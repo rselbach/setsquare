@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greendale enrollment system</title>
+<style>
+@font-face{font-family:"D-DIN";src:url("../fonts/D-DIN.woff2") format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"D-DIN";src:url("../fonts/D-DIN-Bold.woff2") format("woff2");font-weight:700;font-display:block}
+@font-face{font-family:"D-DIN Condensed";src:url("../fonts/D-DINCondensed.woff2") format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"D-DIN Condensed";src:url("../fonts/D-DINCondensed-Bold.woff2") format("woff2");font-weight:700;font-display:block}
+@font-face{font-family:"D-DIN Exp";src:url("../fonts/D-DINExp.woff2") format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"D-DIN Exp";src:url("../fonts/D-DINExp-Bold.woff2") format("woff2");font-weight:700;font-display:block}
+
+:root{
+  color-scheme:light;
+  --board:#DBE2DB;
+  --vellum:#F3F5F1;
+  --vellum-2:#E7ECE6;
+  --vellum-3:#DAE1D9;
+  --field:#FFFFFF;
+  --sheet:#FFFFFF;
+  --graphite:#2A2F2B;
+  --lead:#5E665F;
+  --rule:#D3D9D2;
+  --rule-strong:#848D85;
+  --grid-minor:rgba(92,190,220,.16);
+  --grid-major:rgba(92,190,220,.36);
+  --guide:#2399BF;
+  --ink:#0B7EA3;
+  --ink-wash:rgba(11,126,163,.13);
+  --redline:#C4313B;
+  --on-graphite:#F3F5F1;
+  --pop-shadow:0 12px 28px -10px rgba(30,40,34,.30),0 2px 4px rgba(30,40,34,.08);
+  --diagram-text:#1F2421;
+  --edge:#4A514C;
+  --mist-f:#DCEBF2;--mist-s:#3C7A93;
+  --sage-f:#E1EEDD;--sage-s:#5B8A4E;
+  --ochre-f:#F7EACB;--ochre-s:#A07617;
+  --rose-f:#F6DEDC;--rose-s:#A54B48;
+  --lilac-f:#E9E2F2;--lilac-s:#6E5A99;
+  --stone-f:#EDEEEA;--stone-s:#6B6E66;
+  --font-ui:"D-DIN","Helvetica Neue",Arial,system-ui,sans-serif;
+  --font-narrow:"D-DIN Condensed","Arial Narrow","D-DIN",sans-serif;
+  --font-wide:"D-DIN Exp","D-DIN","Helvetica Neue",sans-serif;
+  --font-diagram:Helvetica,Arial,sans-serif;
+  --r-control:3px;
+  --r-pop:6px;
+  --lib-w:240px;
+  --insp-w:280px;
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --board:#161D1A;
+  --vellum:#1F2724;
+  --vellum-2:#28322E;
+  --vellum-3:#323D38;
+  --field:#171E1B;
+  --sheet:#232B27;
+  --graphite:#E2E8E3;
+  --lead:#97A39A;
+  --rule:#303A35;
+  --rule-strong:#66726B;
+  --grid-minor:rgba(95,199,230,.10);
+  --grid-major:rgba(95,199,230,.22);
+  --guide:#4CC3E6;
+  --ink:#5CC8EA;
+  --ink-wash:rgba(92,200,234,.16);
+  --redline:#F06A70;
+  --on-graphite:#161D1A;
+  --pop-shadow:0 14px 30px -10px rgba(0,0,0,.65),0 2px 4px rgba(0,0,0,.3);
+  --diagram-text:#E2E8E3;
+  --edge:#AEB8B1;
+  --mist-f:#1E3440;--mist-s:#6FB3CF;
+  --sage-f:#22362A;--sage-s:#8DC07E;
+  --ochre-f:#3A3220;--ochre-s:#D9B05A;
+  --rose-f:#40292A;--rose-s:#E08F8B;
+  --lilac-f:#312B41;--lilac-s:#B7A2E0;
+  --stone-f:#2C322F;--stone-s:#A3ABA5;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:400 13px/18px var(--font-ui);color:var(--graphite);background:var(--vellum);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default;opacity:.4}
+:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+svg{display:block}
+.icon{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{display:grid;height:100vh;height:100dvh;grid-template-columns:var(--lib-w) minmax(0,1fr) var(--insp-w);grid-template-rows:48px minmax(0,1fr);grid-template-areas:"top top top" "lib stage insp"}
+
+/* top bar */
+.topbar{grid-area:top;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:0 10px}
+.tb-left,.tb-right{display:flex;align-items:center;gap:4px;min-width:0}
+.tb-right{justify-content:flex-end;gap:8px}
+.iconbtn{display:inline-grid;place-items:center;width:32px;height:32px;padding:0;border:0;border-radius:var(--r-control);background:none;color:var(--graphite)}
+.iconbtn:hover{background:var(--vellum-2)}
+.iconbtn[aria-pressed="true"]{background:var(--graphite);color:var(--on-graphite)}
+.menubtn{display:inline-flex;align-items:center;gap:2px;height:32px;padding:0 4px 0 6px;border:0;border-radius:var(--r-control);background:none}
+.menubtn:hover{background:var(--vellum-2)}
+.mark{width:22px;height:22px;fill:var(--graphite)}
+.undo-group{display:flex;align-items:center;gap:2px}
+.sep{width:1px;height:20px;background:var(--rule);margin:0 6px}
+.tools{display:flex;align-items:center;gap:2px;padding:3px;border-radius:5px;background:var(--vellum-2)}
+.tools .iconbtn:hover{background:var(--vellum-3)}
+.tools .iconbtn[aria-pressed="true"]{background:var(--graphite)}
+.cmdfield{display:flex;align-items:center;gap:8px;width:min(300px,100%);height:32px;padding:0 8px 0 9px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--field);color:var(--lead);text-align:left}
+.cmdfield:hover{border-color:var(--graphite)}
+.cmdfield span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdfield .short{display:none}
+.kbd{font:400 12px/1 var(--font-narrow);color:var(--lead);white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:none;font-weight:700;white-space:nowrap}
+.btn:hover{background:var(--vellum-2)}
+.btn-primary{background:var(--graphite);border-color:var(--graphite);color:var(--on-graphite)}
+.btn-primary:hover{background:var(--graphite);opacity:.9}
+.only-narrow{display:none}
+
+/* library */
+.library{grid-area:lib;display:flex;flex-direction:column;min-height:0;background:var(--vellum)}
+.lib-search{padding:6px 10px 10px 12px}
+.field{display:flex;align-items:center;gap:6px;height:30px;padding:0 8px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--field);color:var(--lead)}
+.field:focus-within{border-color:var(--ink)}
+.field input{flex:1;min-width:0;height:100%;border:0;background:none;color:var(--graphite);outline:none}
+.field input::placeholder{color:var(--lead)}
+.lib-scroll{flex:1;overflow:auto;padding:0 6px 16px 8px;scrollbar-width:thin}
+.lib-sec+.lib-sec{margin-top:2px}
+.lib-head{display:flex;align-items:center;gap:4px;width:100%;height:30px;padding:0 6px 0 2px;border:0;border-radius:var(--r-control);background:none;font-weight:700;text-align:left}
+.lib-head:hover{background:var(--vellum-2)}
+.lib-head .count{margin-left:auto;font:400 12px var(--font-narrow);color:var(--lead)}
+.chev{width:16px;height:16px;transition:transform .14s ease}
+.lib-head[aria-expanded="true"] .chev,.sec-head[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:2px 2px 10px}
+.tile{display:grid;place-items:center;aspect-ratio:1;padding:0;border:0;border-radius:var(--r-control);background:none;color:var(--graphite);cursor:grab}
+.tile:hover{background:var(--vellum-2)}
+.tile svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round;overflow:visible}
+.lib-note{margin:0;padding:2px 8px 12px 22px;color:var(--lead)}
+.lib-foot{padding:10px 12px 12px}
+.lib-foot .btn{width:100%;justify-content:center;font-weight:400}
+
+/* stage */
+.stage{grid-area:stage;position:relative;overflow:hidden;background:var(--board);border-radius:8px 8px 0 0}
+.ruler{position:absolute;z-index:2;background:var(--vellum)}
+.ruler-x{top:0;left:22px;right:0;height:22px;box-shadow:inset 0 -1px 0 var(--rule)}
+.ruler-y{top:22px;left:0;bottom:0;width:22px;box-shadow:inset -1px 0 0 var(--rule)}
+.ruler-corner{top:0;left:0;width:22px;height:22px;box-shadow:inset -1px -1px 0 var(--rule)}
+.ruler svg{width:100%;height:100%;overflow:hidden}
+.ruler line{stroke:var(--lead);stroke-width:1;opacity:.55}
+.ruler text{font:400 10px var(--font-narrow);fill:var(--lead)}
+.ruler .band{fill:var(--ink-wash)}
+.ruler .band-edge{stroke:var(--ink);opacity:1}
+#canvas{position:absolute;top:22px;left:22px;width:calc(100% - 22px);height:calc(100% - 22px);touch-action:none;outline:none}
+#canvas.hand{cursor:grab}
+#canvas.panning{cursor:grabbing}
+#canvas.place{cursor:crosshair}
+.no-grid .grid{display:none}
+
+/* diagram marks: user content, uses the diagram font */
+.node{cursor:move}
+.shape{stroke-width:1.25}
+.sw-mist{fill:var(--mist-f);stroke:var(--mist-s)}
+.sw-sage{fill:var(--sage-f);stroke:var(--sage-s)}
+.sw-ochre{fill:var(--ochre-f);stroke:var(--ochre-s)}
+.sw-rose{fill:var(--rose-f);stroke:var(--rose-s)}
+.sw-lilac{fill:var(--lilac-f);stroke:var(--lilac-s)}
+.sw-stone{fill:var(--stone-f);stroke:var(--stone-s)}
+.sw-none{fill:var(--sheet);stroke:var(--diagram-text)}
+.node .detail{fill:none}
+.node .stroke-only{fill:none;stroke:var(--diagram-text);stroke-width:1.5}
+.node .container-body{fill:transparent}
+.node .text-hit{fill:transparent;stroke:none}
+.label{font:12px var(--font-diagram);fill:var(--diagram-text);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.label-head{font-weight:700;text-anchor:start}
+.edge{fill:none;stroke:var(--edge);stroke-width:1.25}
+.arrowhead{fill:var(--edge)}
+.edge-label-bg{fill:var(--sheet)}
+.edge-label{font:11px var(--font-diagram);fill:var(--diagram-text);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+
+/* construction layer: editor marks that never print */
+#construct{pointer-events:none}
+.guide{stroke:var(--guide);stroke-width:1;stroke-dasharray:4 3}
+.dim{stroke:var(--ink);stroke-width:1}
+.dim-ext{stroke:var(--ink);stroke-width:1;opacity:.55}
+.chip{fill:var(--sheet);stroke:var(--ink);stroke-width:1}
+.chip-eq{fill:var(--ink);stroke:var(--ink)}
+.chip-text{font:700 11px var(--font-narrow);fill:var(--ink);text-anchor:middle;dominant-baseline:central;letter-spacing:.02em}
+.chip-eq+.chip-text{fill:var(--sheet)}
+.sel-box{fill:none;stroke:var(--ink);stroke-width:1}
+.handle{fill:var(--sheet);stroke:var(--ink);stroke-width:1.5;pointer-events:all}
+.handle[data-handle="n"],.handle[data-handle="s"]{cursor:ns-resize}
+.handle[data-handle="e"],.handle[data-handle="w"]{cursor:ew-resize}
+.handle[data-handle="nw"],.handle[data-handle="se"]{cursor:nwse-resize}
+.handle[data-handle="ne"],.handle[data-handle="sw"]{cursor:nesw-resize}
+.rot-stem{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 2}
+.nub{pointer-events:all;cursor:pointer}
+.nub circle{fill:var(--sheet);stroke:var(--ink);stroke-width:1}
+.nub path{stroke:var(--ink);stroke-width:1.25;stroke-linecap:round}
+.nub:hover circle{fill:var(--ink)}
+.nub:hover path{stroke:var(--sheet)}
+.hover-box{fill:none;stroke:var(--guide);stroke-width:1}
+
+/* title block: the drawing's identity, page, and view state */
+.titleblock{position:absolute;right:14px;bottom:14px;z-index:3;display:grid;grid-template-columns:auto auto auto minmax(148px,auto);background:var(--vellum);border:1.5px solid var(--graphite)}
+.tb-cell{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:4px 10px 6px;border-left:1px solid var(--rule-strong);border-top:1px solid var(--rule-strong)}
+.tb-cell:first-child,.tb-row2-first{border-left:0}
+.tb-title{grid-column:1 / 4;border-top:0}
+.tb-page{grid-column:4;grid-row:1 / 3;border-top:0;justify-content:center;gap:4px}
+.tb-page-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tb-label{font:400 11px/13px var(--font-narrow);color:var(--lead)}
+.tb-value{display:flex;align-items:center;gap:4px;padding:0;border:0;background:none;font-weight:700;line-height:18px;text-align:left;white-space:nowrap}
+button.tb-value{border-radius:2px}
+button.tb-value:hover{color:var(--ink)}
+.tb-name{font:700 14px/20px var(--font-wide);letter-spacing:.01em}
+.tb-zoom{display:flex;align-items:center;gap:2px}
+.tb-zoom .iconbtn{width:22px;height:20px}
+.tb-zoom output{min-width:40px;text-align:center;font:700 13px/18px var(--font-narrow);font-variant-numeric:tabular-nums}
+.tb-pager{display:flex;gap:2px;margin-right:-6px}
+.tb-pager .iconbtn{width:22px;height:20px}
+.tb-pager .icon,.tb-zoom .icon{width:16px;height:16px}
+
+/* inspector */
+.inspector{grid-area:insp;min-height:0;overflow:auto;background:var(--vellum);scrollbar-width:thin}
+.insp-head{display:flex;align-items:flex-start;gap:8px;padding:6px 10px 12px 16px}
+.insp-title{flex:1;min-width:0}
+.insp-name{margin:0;font:700 14px/20px var(--font-wide);letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.insp-kind{margin:2px 0 0;color:var(--lead)}
+.sec{border-top:1px solid var(--rule)}
+.sec-head{display:flex;align-items:center;gap:4px;width:100%;height:36px;padding:0 10px 0 12px;border:0;background:none;font-weight:700;text-align:left}
+.sec-head:hover{background:var(--vellum-2)}
+.sec-head .aside{margin-left:auto;font-weight:400;color:var(--lead)}
+.sec-body{display:grid;gap:8px;padding:2px 16px 16px}
+.sec-head[aria-expanded="false"]+.sec-body{display:none}
+.row{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:8px}
+.lbl{color:var(--lead)}
+.ctl{display:flex;align-items:center;gap:6px;min-width:0;height:28px;padding:0 8px;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--field)}
+.ctl:focus-within{border-color:var(--ink)}
+.ctl input,.ctl select{flex:1;min-width:0;height:100%;border:0;background:none;outline:none}
+.ctl select{appearance:none;cursor:pointer}
+.ctl .icon{width:16px;height:16px;color:var(--lead)}
+.hex{font:400 13px var(--font-narrow);font-variant-numeric:tabular-nums}
+.well{flex:none;width:16px;height:16px;border-radius:2px;border:1.5px solid}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.num b{flex:none;width:12px;font:400 12px var(--font-narrow);color:var(--lead)}
+.num input{font:400 14px var(--font-narrow);font-variant-numeric:tabular-nums}
+.swatches{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.sw{aspect-ratio:1;padding:0;border:1.5px solid;border-radius:var(--r-control)}
+.sw[aria-pressed="true"]{outline:2px solid var(--graphite);outline-offset:2px}
+.sw:focus-visible{outline-color:var(--ink)}
+.sw-btn-none{background:linear-gradient(to top right,transparent calc(50% - 1px),var(--redline) calc(50% - .5px),var(--redline) calc(50% + .5px),transparent calc(50% + 1px)),var(--sheet);border-color:var(--rule-strong)}
+.seg{display:flex;border:1px solid var(--rule-strong);border-radius:var(--r-control);background:var(--field);overflow:hidden}
+.seg button{flex:1;display:grid;place-items:center;height:26px;min-width:28px;padding:0;border:0;background:none}
+.seg button+button{border-left:1px solid var(--rule-strong)}
+.seg button[aria-pressed="true"]{background:var(--vellum-3)}
+.seg .icon{width:18px;height:18px}
+.seg b,.seg i,.seg u{font-family:var(--font-diagram);font-size:13px}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px}
+.check{display:flex;align-items:center;gap:8px;cursor:pointer}
+.check input{width:14px;height:14px;margin:0;accent-color:var(--graphite)}
+.order{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.order .btn{justify-content:center;font-weight:400;height:28px;padding:0 8px}
+.props{display:grid;gap:0;border:1px solid var(--rule);border-radius:var(--r-control);background:var(--field)}
+.prop{display:grid;grid-template-columns:72px 1fr;gap:8px;padding:5px 8px}
+.prop+.prop{border-top:1px solid var(--rule)}
+.prop dt{color:var(--lead)}
+.prop dd{margin:0}
+.linkbtn{justify-self:start;padding:2px 0;border:0;background:none;color:var(--graphite);font-weight:700}
+.linkbtn:hover{color:var(--ink)}
+
+/* popovers, palette, toast */
+.pop{position:fixed;z-index:40;min-width:220px;padding:6px;background:var(--vellum);border:1px solid var(--rule-strong);border-radius:var(--r-pop);box-shadow:var(--pop-shadow);transform-origin:var(--origin,top left);animation:pop-in .12s ease-out}
+.pop[hidden]{display:none}
+@keyframes pop-in{from{opacity:0;transform:scale(.97)}}
+.pop-title{margin:2px 8px 6px;font-weight:700}
+.mi{display:flex;align-items:center;gap:10px;width:100%;height:32px;padding:0 8px;border:0;border-radius:var(--r-control);background:none;text-align:left;white-space:nowrap}
+.mi:hover,.mi:focus-visible{background:var(--vellum-3)}
+.mi .kbd{margin-left:auto}
+.mi .icon{width:18px;height:18px;color:var(--lead)}
+.mi[aria-current="page"]{font-weight:700}
+.mi-danger{color:var(--redline)}
+.pop hr{height:1px;margin:6px 4px;border:0;background:var(--rule)}
+.pop .check{padding:6px 8px}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(22,29,26,.30)}
+.scrim[hidden]{display:none}
+.palette{position:absolute;left:50%;top:12vh;width:min(620px,calc(100vw - 24px));transform:translateX(-50%);overflow:hidden;background:var(--vellum);border:1px solid var(--rule-strong);border-radius:var(--r-pop);box-shadow:var(--pop-shadow);animation:pal-in .14s ease-out}
+@keyframes pal-in{from{opacity:0;transform:translate(-50%,-6px)}}
+.pal-input{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-bottom:1px solid var(--rule)}
+.pal-input input{flex:1;height:100%;border:0;background:none;font-size:18px;outline:none}
+.pal-input input::placeholder{color:var(--lead)}
+.scope{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 6px 0 8px;border:0;border-radius:var(--r-control);background:var(--vellum-3);font-weight:700}
+.scope[hidden]{display:none}
+.scope .icon{width:14px;height:14px}
+.pal-list{max-height:min(440px,62vh);overflow:auto;padding:6px}
+.pal-group{padding:10px 10px 4px;color:var(--lead)}
+.pal-item{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:var(--r-control);cursor:pointer}
+.pal-item[aria-selected="true"]{background:var(--vellum-3)}
+.pal-item svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round;color:var(--lead)}
+.pal-item .where{color:var(--lead)}
+.pal-empty{margin:0;padding:18px 12px;color:var(--lead)}
+.pal-foot{display:flex;gap:16px;padding:8px 16px;border-top:1px solid var(--rule);color:var(--lead)}
+.toast{position:fixed;left:50%;bottom:24px;z-index:60;transform:translateX(-50%);padding:9px 14px;border-radius:var(--r-control);background:var(--graphite);color:var(--on-graphite);box-shadow:var(--pop-shadow)}
+.toast[hidden]{display:none}
+
+@media (max-width:1180px){:root{--lib-w:216px;--insp-w:256px}.cmdfield{width:150px}.cmdfield .long{display:none}.cmdfield .short{display:block}}
+@media (max-width:960px){
+  .app{grid-template-columns:minmax(0,1fr) var(--insp-w);grid-template-areas:"top top" "stage insp"}
+  .library{position:fixed;top:48px;left:0;bottom:0;z-index:30;width:280px;box-shadow:var(--pop-shadow);transform:translateX(-105%);transition:transform .18s ease}
+  .show-library .library{transform:none}
+  .only-narrow{display:inline-grid}
+  .tools .wide-only:not(#insertBtn){display:none}
+  .stage{border-radius:8px 0 0 0}
+  .btn-share{display:none}
+}
+@media (max-width:720px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "stage"}
+  .topbar{grid-template-columns:auto 1fr auto;gap:6px;padding:0 6px}
+  .tools{justify-self:center}
+  .tools .wide-only,.tb-left .undo-group,.cmdfield span,.cmdfield .short,.cmdfield .kbd,.btn-export span{display:none}
+  .cmdfield{width:32px;padding:0;justify-content:center;border:0;background:none;color:var(--graphite)}
+  .btn-export{width:32px;padding:0;justify-content:center}
+  .stage{border-radius:0}
+  .inspector{position:fixed;left:0;right:0;bottom:0;z-index:20;max-height:60px;overflow:hidden;border-top:1px solid var(--rule-strong);box-shadow:var(--pop-shadow);transition:max-height .2s ease}
+  .show-inspector .inspector{max-height:62vh;overflow:auto}
+  .insp-head{cursor:pointer;padding-top:12px}
+  .titleblock{left:8px;right:8px;bottom:70px;grid-template-columns:minmax(0,1fr) auto auto}
+  .tb-title{grid-column:1;min-width:0}
+  .tb-name{font-size:13px;line-height:18px;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block}
+  .tb-page{grid-column:2;grid-row:1}
+  .tb-zoomcell{grid-column:3;grid-row:1;border-top:0}
+  .tb-pager,.tb-hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-undo" viewBox="0 0 20 20"><path d="M7 4.5 3.5 8 7 11.5M3.5 8H12a4.5 4.5 0 0 1 0 9H9"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 20 20"><path d="M13 4.5 16.5 8 13 11.5M16.5 8H8a4.5 4.5 0 0 0 0 9h3"/></symbol>
+  <symbol id="i-select" viewBox="0 0 20 20"><path d="M5 3.5 15 10l-4.6 1.2L13 16.6l-1.9.9-2.5-5.4L5 14.8z"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 20 20"><path d="M7.2 10.4V5.2a1.2 1.2 0 0 1 2.4 0v4.3M9.6 9.5V3.9a1.2 1.2 0 0 1 2.4 0v5.6M12 9.5V5.4a1.2 1.2 0 0 1 2.4 0v6c0 3.4-2.1 5.9-5 5.9-1.9 0-3-.7-4-2.3l-2.1-3.4a1.2 1.2 0 0 1 2-1.4l1.9 2.2"/></symbol>
+  <symbol id="i-rect" viewBox="0 0 20 20"><rect x="3.5" y="5.5" width="13" height="9" rx="1"/></symbol>
+  <symbol id="i-ellipse" viewBox="0 0 20 20"><ellipse cx="10" cy="10" rx="7" ry="5.5"/></symbol>
+  <symbol id="i-text" viewBox="0 0 20 20"><path d="M5 5.5h10M10 5.5v10M8 15.5h4"/></symbol>
+  <symbol id="i-connector" viewBox="0 0 20 20"><path d="M3.5 15.5H9V5.5h6.5M13.5 3.5l2 2-2 2"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 20 20"><path d="M3.5 15.5c2.5 0 3-3.5 5.2-6.4 2-2.7 4.2-4.1 6-3.5.9 1.4-.5 3.4-2.6 5.4-2 1.9-2.8 3.3-1.1 4.5 1 .7 2.6.2 4.5-.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 20 20"><path d="M4 10h12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 20 20"><circle cx="8.8" cy="8.8" r="5"/><path d="m12.6 12.6 3.9 3.9"/></symbol>
+  <symbol id="i-theme" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path d="M10 3.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 20 20"><path d="m8 6 4 4-4 4"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 20 20"><path d="m12 6-4 4 4 4"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 20 20"><path d="m6 8 4 4 4-4"/></symbol>
+  <symbol id="i-shapes" viewBox="0 0 20 20"><rect x="3.5" y="3.5" width="6" height="6" rx=".5"/><circle cx="14" cy="6.5" r="3"/><path d="m6.5 11 3.4 5.5H3.1zM11 11h5.5v5.5H11z"/></symbol>
+  <symbol id="i-export" viewBox="0 0 20 20"><path d="M10 3.5v9M6.5 9l3.5 3.5L13.5 9M4 16.5h12"/></symbol>
+  <symbol id="i-code" viewBox="0 0 20 20"><path d="M7 6 3 10l4 4M13 6l4 4-4 4"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 20 20"><rect x="4.5" y="9" width="11" height="8" rx="1"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></symbol>
+  <symbol id="i-close" viewBox="0 0 20 20"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></symbol>
+  <symbol id="i-a-left" viewBox="0 0 20 20"><path d="M3.5 3v14"/><rect x="6" y="5" width="9" height="3.5"/><rect x="6" y="11.5" width="5.5" height="3.5"/></symbol>
+  <symbol id="i-a-hcenter" viewBox="0 0 20 20"><path d="M10 3v14"/><rect x="5" y="5" width="10" height="3.5"/><rect x="7" y="11.5" width="6" height="3.5"/></symbol>
+  <symbol id="i-a-right" viewBox="0 0 20 20"><path d="M16.5 3v14"/><rect x="5" y="5" width="9" height="3.5"/><rect x="8.5" y="11.5" width="5.5" height="3.5"/></symbol>
+  <symbol id="i-a-top" viewBox="0 0 20 20"><path d="M3 3.5h14"/><rect x="5" y="6" width="3.5" height="9"/><rect x="11.5" y="6" width="3.5" height="5.5"/></symbol>
+  <symbol id="i-a-middle" viewBox="0 0 20 20"><path d="M3 10h14"/><rect x="5" y="5" width="3.5" height="10"/><rect x="11.5" y="7" width="3.5" height="6"/></symbol>
+  <symbol id="i-a-bottom" viewBox="0 0 20 20"><path d="M3 16.5h14"/><rect x="5" y="5" width="3.5" height="9"/><rect x="11.5" y="8.5" width="3.5" height="5.5"/></symbol>
+  <symbol id="i-t-left" viewBox="0 0 20 20"><path d="M4 5.5h12M4 10h8M4 14.5h10"/></symbol>
+  <symbol id="i-t-center" viewBox="0 0 20 20"><path d="M4 5.5h12M6 10h8M5 14.5h10"/></symbol>
+  <symbol id="i-t-right" viewBox="0 0 20 20"><path d="M4 5.5h12M8 10h8M6 14.5h10"/></symbol>
+  <symbol id="i-page" viewBox="0 0 20 20"><path d="M5.5 3.5h6l3 3v10h-9z"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 20 20"><path d="m10 3.5 7 3.8-7 3.8-7-3.8zM3 11.2l7 3.8 7-3.8"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="menubtn" id="menuBtn" aria-haspopup="menu" aria-expanded="false" title="Setsquare menu">
+        <svg class="mark" viewBox="0 0 22 22" aria-hidden="true"><path fill-rule="evenodd" d="M3 19V3l16 16zm3-3h6.4L6 9.6z"/></svg>
+        <svg class="icon" style="width:14px;height:14px"><use href="#i-chev-d"/></svg>
+        <span class="sr">Setsquare menu</span>
+      </button>
+      <button class="iconbtn only-narrow" id="libToggle" title="Shapes" aria-label="Show shapes" aria-expanded="false"><svg class="icon"><use href="#i-shapes"/></svg></button>
+      <span class="undo-group">
+        <span class="sep"></span>
+        <button class="iconbtn" id="undoBtn" title="Undo  ⌘Z" aria-label="Undo" disabled><svg class="icon"><use href="#i-undo"/></svg></button>
+        <button class="iconbtn" id="redoBtn" title="Redo  ⇧⌘Z" aria-label="Redo" disabled><svg class="icon"><use href="#i-redo"/></svg></button>
+      </span>
+    </div>
+    <div class="tools" role="toolbar" aria-label="Tools">
+      <button class="iconbtn" data-tool="select" aria-pressed="true" title="Select  V" aria-label="Select"><svg class="icon"><use href="#i-select"/></svg></button>
+      <button class="iconbtn" data-tool="hand" aria-pressed="false" title="Pan  H" aria-label="Pan"><svg class="icon"><use href="#i-hand"/></svg></button>
+      <button class="iconbtn" data-tool="rect" aria-pressed="false" title="Rectangle  R" aria-label="Rectangle"><svg class="icon"><use href="#i-rect"/></svg></button>
+      <button class="iconbtn wide-only" data-tool="ellipse" aria-pressed="false" title="Ellipse  E" aria-label="Ellipse"><svg class="icon"><use href="#i-ellipse"/></svg></button>
+      <button class="iconbtn" data-tool="text" aria-pressed="false" title="Text  T" aria-label="Text"><svg class="icon"><use href="#i-text"/></svg></button>
+      <button class="iconbtn" data-tool="connector" aria-pressed="false" title="Connector  C" aria-label="Connector"><svg class="icon"><use href="#i-connector"/></svg></button>
+      <button class="iconbtn wide-only" data-tool="pen" aria-pressed="false" title="Freehand  P" aria-label="Freehand"><svg class="icon"><use href="#i-pen"/></svg></button>
+      <span class="sep wide-only" style="margin:0 3px"></span>
+      <button class="iconbtn wide-only" id="insertBtn" title="Insert" aria-label="Insert" aria-haspopup="menu" aria-expanded="false"><svg class="icon"><use href="#i-plus"/></svg></button>
+    </div>
+    <div class="tb-right">
+      <button class="cmdfield" id="cmdBtn" aria-label="Search shapes and commands"><svg class="icon" style="width:18px;height:18px"><use href="#i-search"/></svg><span class="long">Search shapes and commands</span><span class="short">Search</span><kbd class="kbd">⌘K</kbd></button>
+      <button class="iconbtn" id="themeBtn" title="Switch to dark theme" aria-label="Switch to dark theme"><svg class="icon"><use href="#i-theme"/></svg></button>
+      <button class="btn btn-share" id="shareBtn">Share</button>
+      <button class="btn btn-primary btn-export" id="exportBtn" aria-haspopup="menu" aria-expanded="false"><svg class="icon" style="width:18px;height:18px"><use href="#i-export"/></svg><span>Export</span></button>
+    </div>
+  </header>
+
+  <aside class="library" aria-label="Shape library">
+    <div class="lib-search">
+      <label class="field"><svg class="icon" style="width:16px;height:16px"><use href="#i-search"/></svg><span class="sr">Search shapes</span><input id="libFilter" type="search" placeholder="Search shapes" autocomplete="off"></label>
+    </div>
+    <div class="lib-scroll" id="libList"></div>
+    <div class="lib-foot"><button class="btn" id="moreLibs"><svg class="icon" style="width:18px;height:18px"><use href="#i-plus"/></svg>Add libraries</button></div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="ruler ruler-corner"></div>
+    <div class="ruler ruler-x"><svg id="rulerX"></svg></div>
+    <div class="ruler ruler-y"><svg id="rulerY"></svg></div>
+    <svg id="canvas" tabindex="0" aria-label="Diagram canvas">
+      <defs>
+        <pattern id="gridMinor" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" style="stroke:var(--grid-minor)" vector-effect="non-scaling-stroke"/></pattern>
+        <pattern id="gridMajor" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" style="stroke:var(--grid-major)" vector-effect="non-scaling-stroke"/></pattern>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="arrowhead" d="M0 1.2 9.5 5 0 8.8z"/></marker>
+      </defs>
+      <g id="world">
+        <g id="sheet"></g>
+        <g id="diagram"></g>
+      </g>
+      <g id="construct"></g>
+    </svg>
+
+    <section class="titleblock" aria-label="Drawing">
+      <div class="tb-cell tb-title">
+        <span class="tb-label">Drawing</span>
+        <button class="tb-value tb-name" id="docName" title="Rename">Greendale enrollment system</button>
+      </div>
+      <div class="tb-cell tb-page">
+        <div class="tb-page-head">
+          <span class="tb-label" id="pageCount">Page 2 of 4</span>
+          <span class="tb-pager">
+            <button class="iconbtn" id="pagePrev" aria-label="Previous page" title="Previous page  ⌘PgUp"><svg class="icon"><use href="#i-chev-l"/></svg></button>
+            <button class="iconbtn" id="pageNext" aria-label="Next page" title="Next page  ⌘PgDn"><svg class="icon"><use href="#i-chev"/></svg></button>
+          </span>
+        </div>
+        <button class="tb-value" id="pageBtn" aria-haspopup="menu" aria-expanded="false"><span id="pageName">Enrollment flow</span><svg class="icon" style="width:14px;height:14px"><use href="#i-chev-d"/></svg></button>
+      </div>
+      <div class="tb-cell tb-row2-first tb-hide-sm">
+        <span class="tb-label">Layer</span>
+        <button class="tb-value" id="layerBtn" aria-haspopup="menu" aria-expanded="false">Services<svg class="icon" style="width:14px;height:14px"><use href="#i-chev-d"/></svg></button>
+      </div>
+      <div class="tb-cell tb-zoomcell">
+        <span class="tb-label">Zoom</span>
+        <div class="tb-zoom">
+          <button class="iconbtn" id="zoomOut" aria-label="Zoom out" title="Zoom out  ⌘−"><svg class="icon"><use href="#i-minus"/></svg></button>
+          <output id="zoomOut_" aria-live="polite">100%</output>
+          <button class="iconbtn" id="zoomIn" aria-label="Zoom in" title="Zoom in  ⌘+"><svg class="icon"><use href="#i-plus"/></svg></button>
+        </div>
+      </div>
+      <div class="tb-cell tb-hide-sm">
+        <span class="tb-label">Saved</span>
+        <button class="tb-value" id="historyBtn" title="Show revision history" style="font-weight:400">2 min ago</button>
+      </div>
+    </section>
+  </main>
+
+  <aside class="inspector" id="inspector" aria-label="Inspector"></aside>
+</div>
+
+<div class="pop" id="pop" hidden role="menu"></div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Search shapes and commands">
+    <div class="pal-input">
+      <svg class="icon" style="color:var(--lead)"><use href="#i-search"/></svg>
+      <button class="scope" id="palScope" hidden title="Clear scope"><span id="palScopeName"></span><svg class="icon"><use href="#i-close"/></svg></button>
+      <input id="palInput" placeholder="Search shapes and commands" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palList">
+    </div>
+    <div class="pal-list" id="palList" role="listbox"></div>
+    <div class="pal-foot"><span><span class="kbd">↑↓</span> Move</span><span><span class="kbd">Enter</span> Run</span><span><span class="kbd">Esc</span> Close</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+"use strict";
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// shape registry: one geometry source for the canvas, library tiles, and palette icons
+const SHAPES = {
+  rect: { name: "Rectangle", size: [120, 60], d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z` },
+  rounded: { name: "Rounded rectangle", size: [120, 60], d: (x, y, w, h) => roundRect(x, y, w, h, Math.min(10, w / 4, h / 4)) },
+  stadium: { name: "Terminator", size: [120, 50], d: (x, y, w, h) => roundRect(x, y, w, h, Math.min(h / 2, w / 2)) },
+  ellipse: { name: "Ellipse", size: [120, 80], d: (x, y, w, h) => `M${x} ${y + h / 2}a${w / 2} ${h / 2} 0 1 0 ${w} 0a${w / 2} ${h / 2} 0 1 0 ${-w} 0Z` },
+  circle: { name: "Circle", size: [80, 80], tile: [4, 4, 22, 22], d: (x, y, w, h) => `M${x} ${y + h / 2}a${w / 2} ${h / 2} 0 1 0 ${w} 0a${w / 2} ${h / 2} 0 1 0 ${-w} 0Z` },
+  diamond: { name: "Decision", size: [110, 80], d: (x, y, w, h) => `M${x + w / 2} ${y}L${x + w} ${y + h / 2}L${x + w / 2} ${y + h}L${x} ${y + h / 2}Z` },
+  triangle: { name: "Triangle", size: [80, 70], d: (x, y, w, h) => `M${x + w / 2} ${y}L${x + w} ${y + h}H${x}Z` },
+  hexagon: { name: "Preparation", size: [120, 60], d: (x, y, w, h) => { const s = Math.min(w / 4, h / 2); return `M${x + s} ${y}H${x + w - s}L${x + w} ${y + h / 2}L${x + w - s} ${y + h}H${x + s}L${x} ${y + h / 2}Z`; } },
+  parallelogram: { name: "Data", size: [120, 60], d: (x, y, w, h) => { const s = Math.min(w * .2, 20); return `M${x + s} ${y}H${x + w}L${x + w - s} ${y + h}H${x}Z`; } },
+  trapezoid: { name: "Trapezoid", size: [120, 60], d: (x, y, w, h) => { const s = Math.min(w * .2, 20); return `M${x + s} ${y}H${x + w - s}L${x + w} ${y + h}H${x}Z`; } },
+  manualop: { name: "Manual operation", size: [120, 60], d: (x, y, w, h) => { const s = Math.min(w * .2, 20); return `M${x} ${y}H${x + w}L${x + w - s} ${y + h}H${x + s}Z`; } },
+  step: { name: "Step", size: [120, 60], d: (x, y, w, h) => { const s = Math.min(w * .2, h / 2); return `M${x} ${y}H${x + w - s}L${x + w} ${y + h / 2}L${x + w - s} ${y + h}H${x}L${x + s} ${y + h / 2}Z`; } },
+  cylinder: { name: "Database", size: [100, 100], d: (x, y, w, h) => { const r = Math.min(h * .12, 10); return `M${x} ${y + r}a${w / 2} ${r} 0 0 1 ${w} 0V${y + h - r}a${w / 2} ${r} 0 0 1 ${-w} 0Z`; }, detail: (x, y, w, h) => { const r = Math.min(h * .12, 10); return `M${x} ${y + r}a${w / 2} ${r} 0 0 0 ${w} 0`; } },
+  queue: { name: "Queue", size: [150, 60], d: (x, y, w, h) => { const r = Math.min(w * .08, 10); return `M${x + r} ${y}H${x + w - r}a${r} ${h / 2} 0 0 1 0 ${h}H${x + r}a${r} ${h / 2} 0 0 1 0 ${-h}Z`; }, detail: (x, y, w, h) => { const r = Math.min(w * .08, 10); return `M${x + w - r} ${y}a${r} ${h / 2} 0 0 0 0 ${h}`; } },
+  document: { name: "Document", size: [120, 70], d: (x, y, w, h) => { const a = Math.min(h * .1, 7); return `M${x} ${y}H${x + w}V${y + h - a}Q${x + w * .75} ${y + h - 3 * a} ${x + w / 2} ${y + h - a}T${x} ${y + h - a}Z`; } },
+  note: { name: "Note", size: [160, 90], d: (x, y, w, h) => { const f = Math.min(14, w / 5, h / 4); return `M${x} ${y}H${x + w - f}L${x + w} ${y + f}V${y + h}H${x}Z`; }, detail: (x, y, w, h) => { const f = Math.min(14, w / 5, h / 4); return `M${x + w - f} ${y}V${y + f}H${x + w}`; } },
+  delay: { name: "Delay", size: [110, 60], d: (x, y, w, h) => { const r = Math.min(h / 2, w / 2); return `M${x} ${y}H${x + w - r}a${r} ${h / 2} 0 0 1 0 ${h}H${x}Z`; } },
+  offpage: { name: "Off-page reference", size: [70, 70], d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h * .6}L${x + w / 2} ${y + h}L${x} ${y + h * .6}Z` },
+  manualin: { name: "Manual input", size: [120, 60], d: (x, y, w, h) => `M${x} ${y + h * .3}L${x + w} ${y}V${y + h}H${x}Z` },
+  cloud: { name: "Cloud", size: [130, 80], d: (x, y, w, h) => { const P = (u, v) => `${x + u * w} ${y + v * h}`; return `M${P(.25, .9)}C${P(.03, .9)} ${P(0, .56)} ${P(.18, .5)}C${P(.12, .2)} ${P(.45, .08)} ${P(.55, .3)}C${P(.65, .06)} ${P(.97, .14)} ${P(.88, .47)}C${P(1.03, .55)} ${P(1, .9)} ${P(.78, .9)}Z`; } },
+  cube: { name: "Cube", size: [100, 90], d: (x, y, w, h) => { const k = Math.min(w, h) * .2; return `M${x} ${y + k}L${x + k} ${y}H${x + w}V${y + h - k}L${x + w - k} ${y + h}H${x}Z`; }, detail: (x, y, w, h) => { const k = Math.min(w, h) * .2; return `M${x} ${y + k}H${x + w - k}V${y + h}M${x + w - k} ${y + k}L${x + w} ${y}`; } },
+  callout: { name: "Callout", size: [130, 80], d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h * .72}H${x + w * .45}L${x + w * .28} ${y + h}V${y + h * .72}H${x}Z` },
+  process: { name: "Predefined process", size: [130, 60], d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`, detail: (x, y, w, h) => { const b = Math.min(w * .1, 12); return `M${x + b} ${y}V${y + h}M${x + w - b} ${y}V${y + h}`; } },
+  arrow: { name: "Block arrow", size: [120, 60], d: (x, y, w, h) => { const k = Math.min(w * .38, h); return `M${x} ${y + h * .3}H${x + w - k}V${y}L${x + w} ${y + h / 2}L${x + w - k} ${y + h}V${y + h * .7}H${x}Z`; } },
+  actor: { name: "Actor", size: [40, 70], strokeOnly: true, labelBelow: true, d: (x, y, w, h) => { const r = Math.min(w, h) * .18, cx = x + w / 2; return `M${cx - r} ${y + r}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0ZM${cx} ${y + 2 * r}V${y + h * .62}M${x} ${y + h * .38}H${x + w}M${cx} ${y + h * .62}L${x} ${y + h}M${cx} ${y + h * .62}L${x + w} ${y + h}`; } },
+  usecase: { name: "Use case", size: [130, 60], d: (x, y, w, h) => `M${x} ${y + h / 2}a${w / 2} ${h / 2} 0 1 0 ${w} 0a${w / 2} ${h / 2} 0 1 0 ${-w} 0Z` },
+  umlclass: { name: "Class", size: [150, 100], labelTop: true, d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`, detail: (x, y, w, h) => `M${x} ${y + 26}H${x + w}M${x} ${y + h * .62}H${x + w}` },
+  package: { name: "Package", size: [140, 90], d: (x, y, w, h) => { const t = Math.min(w * .4, 50); return `M${x} ${y}H${x + t}V${y + 14}H${x + w}V${y + h}H${x}Z`; }, detail: (x, y, w, h) => `M${x} ${y + 14}H${x + Math.min(w * .4, 50)}` },
+  component: { name: "Component", size: [140, 70], d: (x, y, w, h) => `M${x + 8} ${y}H${x + w}V${y + h}H${x + 8}Z`, detail: (x, y, w, h) => `M${x} ${y + h * .25}h16v${h * .14}h-16zM${x} ${y + h * .61}h16v${h * .14}h-16z` },
+  orsum: { name: "Or", size: [60, 60], d: (x, y, w, h) => `M${x} ${y + h / 2}a${w / 2} ${h / 2} 0 1 0 ${w} 0a${w / 2} ${h / 2} 0 1 0 ${-w} 0Z`, detail: (x, y, w, h) => `M${x + w / 2} ${y}V${y + h}M${x} ${y + h / 2}H${x + w}` },
+  table: { name: "Table", size: [180, 100], labelTop: true, d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`, detail: (x, y, w, h) => { let s = `M${x} ${y + 26}H${x + w}M${x + w * .36} ${y + 26}V${y + h}`; for (let r = y + 26 + 24; r < y + h - 4; r += 24) s += `M${x} ${r}H${x + w}`; return s; } },
+  container: { name: "Container", size: [260, 180], container: true, d: (x, y, w, h) => roundRect(x, y, w, h, 4), detail: (x, y, w, h) => `M${x} ${y + 28}H${x + w}` },
+  text: { name: "Text", size: [100, 30], textOnly: true, d: (x, y, w, h) => `M${x} ${y}H${x + w}V${y + h}H${x}Z`, tileArt: `<path d="M8 8h14M15 8v14M12.5 22h5"/>` },
+  line: { name: "Line", connector: true, tileArt: `<path d="M5 25 25 5"/>` },
+  arrowline: { name: "Arrow", connector: true, tileArt: `<path d="M5 25 24 6M17 6h7v7"/>` },
+  elbow: { name: "Orthogonal connector", connector: true, tileArt: `<path d="M5 24h10V6h10M21 3l3.5 3L21 9"/>` },
+  curve: { name: "Curved connector", connector: true, tileArt: `<path d="M5 24C5 12 25 18 25 6M21.5 4.5 25 6l-1 3.6"/>` },
+};
+function roundRect(x, y, w, h, r) {
+  return `M${x + r} ${y}H${x + w - r}a${r} ${r} 0 0 1 ${r} ${r}V${y + h - r}a${r} ${r} 0 0 1 ${-r} ${r}H${x + r}a${r} ${r} 0 0 1 ${-r} ${-r}V${y + r}a${r} ${r} 0 0 1 ${r} ${-r}Z`;
+}
+function tileArt(kind) {
+  const S = SHAPES[kind];
+  if (S.tileArt) return S.tileArt;
+  const [w0, h0] = S.size, k = 24 / Math.max(w0, h0);
+  const [x, y, w, h] = S.tile || [15 - w0 * k / 2, 15 - h0 * k / 2, w0 * k, h0 * k];
+  return `<path d="${S.d(x, y, w, h)}"/>` + (S.detail ? `<path d="${S.detail(x, y, w, h)}"/>` : "");
+}
+
+const LIBRARIES = [
+  { id: "scratch", name: "Scratchpad", items: [], empty: "Drag shapes here to reuse them across drawings." },
+  { id: "general", name: "General", open: true, items: ["rect", "rounded", "ellipse", "circle", "diamond", "triangle", "hexagon", "parallelogram", "trapezoid", "step", "cylinder", "queue", "document", "note", "cloud", "cube", "callout", "process", "arrow", "actor", "text", "container", "table", "line", "arrowline", "elbow", "curve"] },
+  { id: "flowchart", name: "Flowchart", items: ["stadium", "rect", "diamond", "parallelogram", "document", "process", "hexagon", "manualin", "manualop", "delay", "offpage", "cylinder", "orsum"] },
+  { id: "uml", name: "UML", items: ["umlclass", "package", "component", "actor", "usecase", "note"] },
+  { id: "er", name: "Entity relation", items: ["table", "diamond", "ellipse"] },
+  { id: "bpmn", name: "BPMN" }, { id: "network", name: "Network" }, { id: "k8s", name: "Kubernetes" },
+  { id: "aws", name: "AWS" }, { id: "azure", name: "Azure" }, { id: "gcp", name: "Google Cloud" },
+  { id: "electrical", name: "Electrical" }, { id: "mockups", name: "Mockups" },
+];
+
+const doc = {
+  nodes: [
+    { id: "backend", kind: "container", x: 450, y: 20, w: 390, h: 520, label: "Enrollment backend", sw: "stone" },
+    { id: "student", kind: "actor", x: 20, y: 75, w: 40, h: 70, label: "Student" },
+    { id: "portal", kind: "rounded", x: 100, y: 80, w: 130, h: 60, label: "Student portal", sw: "mist" },
+    { id: "gateway", kind: "rect", x: 280, y: 80, w: 120, h: 60, label: "API gateway", sw: "stone" },
+    { id: "enroll", kind: "rect", x: 470, y: 80, w: 150, h: 60, label: "Enrollment service", sw: "mist" },
+    { id: "seat", kind: "diamond", x: 490, y: 190, w: 110, h: 80, label: "Seat open?", sw: "ochre" },
+    { id: "registrar", kind: "cylinder", x: 710, y: 180, w: 100, h: 100, label: "Registrar DB", sw: "sage" },
+    { id: "waitlist", kind: "queue", x: 470, y: 320, w: 150, h: 60, label: "Waitlist queue", sw: "lilac" },
+    { id: "notify", kind: "rect", x: 690, y: 320, w: 140, h: 60, label: "Notification\nservice", sw: "mist" },
+    { id: "email", kind: "document", x: 690, y: 440, w: 140, h: 70, label: "Email to student", sw: "rose" },
+    { id: "note", kind: "note", x: 100, y: 230, w: 210, h: 90, label: "Seats open up when a\nstudent drops a class before\nthe add/drop deadline.", sw: "ochre" },
+  ],
+  edges: [
+    { from: "student", to: "portal" },
+    { from: "portal", to: "gateway", label: "HTTPS" },
+    { from: "gateway", to: "enroll", label: "enroll" },
+    { from: "enroll", to: "seat" },
+    { from: "seat", to: "registrar", label: "Yes" },
+    { from: "seat", to: "waitlist", label: "No" },
+    { from: "waitlist", to: "notify", label: "seat freed" },
+    { from: "notify", to: "email" },
+  ],
+};
+const DATA = { waitlist: [["Owner", "Annie Edison"], ["Tier", "Critical"], ["Retention", "14 days"]] };
+const PAGES = ["Overview", "Enrollment flow", "Data model", "Network"];
+const SWATCHES = ["mist", "sage", "ochre", "rose", "lilac", "stone"];
+const SHEET = { w: 1169, h: 827 };
+
+const ui = {
+  sel: "waitlist", tool: "select", view: { z: 1, ox: 40, oy: 36 },
+  demo: !matchMedia("(max-width:720px)").matches, drag: null, hover: null, space: false, page: 1,
+  open: { style: true, fill: true, line: true, text: false, arrange: true, data: false, page: true, view: true },
+  past: [], future: [],
+};
+const byId = id => doc.nodes.find(n => n.id === id);
+
+// geometry and routing
+const center = n => ({ x: n.x + n.w / 2, y: n.y + n.h / 2 });
+function route(a, b) {
+  const ac = center(a), bc = center(b), dx = bc.x - ac.x, dy = bc.y - ac.y;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    const sx = dx > 0 ? a.x + a.w : a.x, tx = dx > 0 ? b.x : b.x + b.w;
+    if (Math.abs(ac.y - bc.y) < .5) return [[sx, ac.y], [tx, bc.y]];
+    const mx = (sx + tx) / 2;
+    return [[sx, ac.y], [mx, ac.y], [mx, bc.y], [tx, bc.y]];
+  }
+  const sy = dy > 0 ? a.y + a.h : a.y, ty = dy > 0 ? b.y : b.y + b.h;
+  if (Math.abs(ac.x - bc.x) < .5) return [[ac.x, sy], [bc.x, ty]];
+  const my = (sy + ty) / 2;
+  return [[ac.x, sy], [ac.x, my], [bc.x, my], [bc.x, ty]];
+}
+function midpoint(pts) {
+  let best = 0, at = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const len = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if (len > best) { best = len; at = i; }
+  }
+  return [(pts[at][0] + pts[at - 1][0]) / 2, (pts[at][1] + pts[at - 1][1]) / 2];
+}
+const measure = (() => { const c = document.createElement("canvas").getContext("2d"); return (t, font) => { c.font = font; return c.measureText(t).width; }; })();
+
+// rendering
+function renderSheet() {
+  $("#sheet").innerHTML = `
+    <rect x="-1" y="-1" width="${SHEET.w + 2}" height="${SHEET.h + 2}" fill="rgba(30,40,34,.10)"/>
+    <rect x="0" y="2" width="${SHEET.w}" height="${SHEET.h}" fill="rgba(30,40,34,.06)"/>
+    <rect width="${SHEET.w}" height="${SHEET.h}" style="fill:var(--sheet)"/>
+    <rect class="grid" width="${SHEET.w}" height="${SHEET.h}" fill="url(#gridMinor)"/>
+    <rect class="grid" width="${SHEET.w}" height="${SHEET.h}" fill="url(#gridMajor)"/>`;
+}
+function nodeMarkup(n) {
+  const S = SHAPES[n.kind], { x, y, w, h } = n, sw = `sw-${n.sw || "none"}`;
+  let s = `<g class="node" data-id="${n.id}">`;
+  if (S.container) {
+    s += `<path class="shape container-body" style="stroke:var(--${n.sw}-s)" d="${S.d(x, y, w, h)}"/>`;
+    s += `<path class="shape ${sw}" d="M${x + 4} ${y}H${x + w - 4}a4 4 0 0 1 4 4V${y + 28}H${x}V${y + 4}a4 4 0 0 1 4 -4Z"/>`;
+    return s + `<text class="label label-head" x="${x + 12}" y="${y + 14}">${esc(n.label)}</text></g>`;
+  }
+  if (S.textOnly) s += `<path class="text-hit" d="${S.d(x, y, w, h)}"/>`;
+  else s += `<path class="shape ${S.strokeOnly ? "stroke-only" : sw}" d="${S.d(x, y, w, h)}"/>`;
+  if (S.detail) s += `<path class="shape detail ${sw}" d="${S.detail(x, y, w, h)}"/>`;
+  const lines = String(n.label || "").split("\n"), lh = 14.5;
+  let cy = S.labelBelow ? y + h + 14 : S.labelTop ? y + 13 : y + h / 2 - (n.kind === "document" ? 4 : 0);
+  cy -= S.labelBelow || S.labelTop ? 0 : (lines.length - 1) * lh / 2;
+  lines.forEach((t, i) => { s += `<text class="label" x="${x + w / 2}" y="${cy + i * lh}"${S.labelTop ? ' style="font-weight:700"' : ""}>${esc(t)}</text>`; });
+  return s + "</g>";
+}
+function edgeMarkup(e) {
+  const a = byId(e.from), b = byId(e.to);
+  if (!a || !b) return "";
+  const pts = route(a, b);
+  let s = `<path class="edge" marker-end="url(#arrow)" d="M${pts.map(p => p.join(" ")).join("L")}"/>`;
+  if (e.label) {
+    const [mx, my] = midpoint(pts), tw = measure(e.label, "11px Helvetica") + 8;
+    s += `<rect class="edge-label-bg" x="${mx - tw / 2}" y="${my - 8}" width="${tw}" height="16"/><text class="edge-label" x="${mx}" y="${my}">${esc(e.label)}</text>`;
+  }
+  return s;
+}
+function renderDiagram() {
+  const v = ui.view;
+  $("#world").setAttribute("transform", `translate(${v.ox} ${v.oy}) scale(${v.z})`);
+  const containers = doc.nodes.filter(n => SHAPES[n.kind].container);
+  const rest = doc.nodes.filter(n => !SHAPES[n.kind].container);
+  $("#diagram").innerHTML = containers.map(nodeMarkup).join("") + doc.edges.map(edgeMarkup).join("") + rest.map(nodeMarkup).join("");
+}
+
+// construction layer: guides and dimension lines, drawn in screen space so they stay crisp at any zoom
+const toScreen = (x, y) => [ui.view.ox + x * ui.view.z, ui.view.oy + y * ui.view.z];
+const overlaps = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0) > 0;
+function neighbors(n, others) {
+  const near = (dir) => {
+    let best = null, gap = Infinity;
+    for (const o of others) {
+      let g;
+      if (dir === "up" && overlaps(o.x, o.x + o.w, n.x, n.x + n.w) && o.y + o.h <= n.y + .5) g = n.y - (o.y + o.h);
+      else if (dir === "down" && overlaps(o.x, o.x + o.w, n.x, n.x + n.w) && o.y >= n.y + n.h - .5) g = o.y - (n.y + n.h);
+      else if (dir === "left" && overlaps(o.y, o.y + o.h, n.y, n.y + n.h) && o.x + o.w <= n.x + .5) g = n.x - (o.x + o.w);
+      else if (dir === "right" && overlaps(o.y, o.y + o.h, n.y, n.y + n.h) && o.x >= n.x + n.w - .5) g = o.x - (n.x + n.w);
+      if (g !== undefined && g < gap) { gap = g; best = o; }
+    }
+    return best ? { o: best, gap } : null;
+  };
+  return near;
+}
+function snapTargets(n) {
+  const moving = ui.drag ? ui.drag.group : [n];
+  return doc.nodes.filter(o => !moving.includes(o) && !SHAPES[o.kind].container);
+}
+function construction(n) {
+  const others = snapTargets(n), guides = [], dims = [];
+  const xs = o => [o.x, o.x + o.w / 2, o.x + o.w], ys = o => [o.y, o.y + o.h / 2, o.y + o.h];
+  // one guide per aligned neighbor set: a centered match hides the edge matches it implies
+  const aligned = (lines, linesOf) => {
+    const found = [lines[1], lines[0], lines[2]].map(l => ({ l, hits: others.filter(o => linesOf(o).some(m => Math.abs(m - l) < .5)) }));
+    const seen = new Set();
+    return found.filter(f => f.hits.length && f.hits.some(o => !seen.has(o)) && f.hits.every(o => seen.add(o)));
+  };
+  for (const { l, hits } of aligned(xs(n), xs)) { const all = [n, ...hits]; guides.push([l, Math.min(...all.map(o => o.y)) - 14, l, Math.max(...all.map(o => o.y + o.h)) + 14]); }
+  for (const { l, hits } of aligned(ys(n), ys)) { const all = [n, ...hits]; guides.push([Math.min(...all.map(o => o.x)) - 14, l, Math.max(...all.map(o => o.x + o.w)) + 14, l]); }
+  const near = neighbors(n, others);
+  for (const [back, fwd, axis] of [["up", "down", "v"], ["left", "right", "h"]]) {
+    const A = near(back), C = near(fwd);
+    const B = A && neighbors(A.o, others.filter(o => o !== A.o))(back);
+    const D = C && neighbors(C.o, others.filter(o => o !== C.o))(fwd);
+    const eq = (g1, g2) => Math.abs(g1 - g2) < .5;
+    if (A && B && eq(A.gap, B.gap)) dims.push({ axis, a: B.o, b: A.o, gap: B.gap, eq: true, group: [B.o, A.o, n] }, { axis, a: A.o, b: n, gap: A.gap, eq: true, group: [B.o, A.o, n] });
+    else if (C && D && eq(C.gap, D.gap)) dims.push({ axis, a: n, b: C.o, gap: C.gap, eq: true, group: [n, C.o, D.o] }, { axis, a: C.o, b: D.o, gap: D.gap, eq: true, group: [n, C.o, D.o] });
+    else if (A && C && eq(A.gap, C.gap)) dims.push({ axis, a: A.o, b: n, gap: A.gap, eq: true, group: [A.o, n, C.o] }, { axis, a: n, b: C.o, gap: C.gap, eq: true, group: [A.o, n, C.o] });
+    else {
+      if (A && A.gap <= 160) dims.push({ axis, a: A.o, b: n, gap: A.gap, group: [A.o, n] });
+      if (C && C.gap <= 160) dims.push({ axis, a: n, b: C.o, gap: C.gap, group: [n, C.o] });
+    }
+  }
+  return { guides, dims };
+}
+function chip(x, y, text, eq) {
+  const w = measure(text, "700 11px 'D-DIN Condensed'") + 10;
+  return `<rect class="chip${eq ? " chip-eq" : ""}" x="${x - w / 2}" y="${y - 8}" width="${w}" height="16" rx="2"/><text class="chip-text" x="${x}" y="${y + .5}">${text}</text>`;
+}
+const tick = (x, y) => `<line class="dim" x1="${x - 4}" y1="${y + 4}" x2="${x + 4}" y2="${y - 4}"/>`;
+function dimMarkup(d) {
+  const z = ui.view.z;
+  if (d.axis === "v") {
+    const right = Math.max(...d.group.map(o => o.x + o.w));
+    const [dx] = toScreen(right, 0), X = dx + 18;
+    const [ax, y1] = toScreen(d.a.x + d.a.w, d.a.y + d.a.h), [bx, y2] = toScreen(d.b.x + d.b.w, d.b.y);
+    return `<line class="dim-ext" x1="${ax + 3}" y1="${y1}" x2="${X + 5}" y2="${y1}"/><line class="dim-ext" x1="${bx + 3}" y1="${y2}" x2="${X + 5}" y2="${y2}"/>
+      <line class="dim" x1="${X}" y1="${y1}" x2="${X}" y2="${y2}"/>${tick(X, y1)}${tick(X, y2)}${chip(X, (y1 + y2) / 2, Math.round(d.gap), d.eq)}`;
+  }
+  const bottom = Math.max(...d.group.map(o => o.y + o.h));
+  const [, dy] = toScreen(0, bottom), Y = dy + 36;
+  const [x1, ay] = toScreen(d.a.x + d.a.w, d.a.y + d.a.h), [x2, by] = toScreen(d.b.x, d.b.y + d.b.h);
+  return `<line class="dim-ext" x1="${x1}" y1="${ay + 3}" x2="${x1}" y2="${Y + 5}"/><line class="dim-ext" x1="${x2}" y1="${by + 3}" x2="${x2}" y2="${Y + 5}"/>
+    <line class="dim" x1="${x1}" y1="${Y}" x2="${x2}" y2="${Y}"/>${tick(x1, Y)}${tick(x2, Y)}${chip((x1 + x2) / 2, Y, Math.round(d.gap), d.eq)}`;
+}
+// quick-add nubs only appear on sides that no connector uses
+function connectedSides(n) {
+  const sides = new Set();
+  for (const e of doc.edges) {
+    if (e.from !== n.id && e.to !== n.id) continue;
+    const a = byId(e.from), b = byId(e.to);
+    if (!a || !b) continue;
+    const pts = route(a, b), [px, py] = e.from === n.id ? pts[0] : pts[pts.length - 1];
+    sides.add(Math.abs(px - n.x) < .5 ? "w" : Math.abs(px - n.x - n.w) < .5 ? "e" : Math.abs(py - n.y) < .5 ? "n" : "s");
+  }
+  return sides;
+}
+function renderConstruct() {
+  const n = ui.sel && byId(ui.sel);
+  let s = "";
+  if (ui.hover && ui.hover !== ui.sel && !ui.drag) {
+    const h = byId(ui.hover);
+    if (h) { const [x, y] = toScreen(h.x, h.y); s += `<rect class="hover-box" x="${x - .5}" y="${y - .5}" width="${h.w * ui.view.z + 1}" height="${h.h * ui.view.z + 1}"/>`; }
+  }
+  if (n) {
+    const moving = ui.demo || (ui.drag && ui.drag.moved);
+    if (moving && !SHAPES[n.kind].container) {
+      const { guides, dims } = construction(n);
+      for (const [x1, y1, x2, y2] of guides) { const [a, b] = toScreen(x1, y1), [c, d] = toScreen(x2, y2); s += `<line class="guide" x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`; }
+      s += dims.map(dimMarkup).join("");
+    }
+    const [x, y] = toScreen(n.x, n.y), w = n.w * ui.view.z, h = n.h * ui.view.z;
+    s += `<rect class="sel-box" x="${x - .5}" y="${y - .5}" width="${w + 1}" height="${h + 1}"/>`;
+    if (!moving) {
+      s += `<line class="rot-stem" x1="${x + w}" y1="${y}" x2="${x + w + 12}" y2="${y - 12}"/><circle class="handle" data-handle="rotate" cx="${x + w + 15}" cy="${y - 15}" r="4"/>`;
+      const used = connectedSides(n);
+      if (!SHAPES[n.kind].container) for (const [cx, cy, dir] of [[x + w + 22, y + h / 2, "e"], [x + w / 2, y + h + 22, "s"], [x - 22, y + h / 2, "w"]]) {
+        if (used.has(dir)) continue;
+        s += `<g class="nub" data-nub="${dir}"><circle cx="${cx}" cy="${cy}" r="7"/><path d="M${cx - 3} ${cy}h6M${cx} ${cy - 3}v6"/></g>`;
+      }
+    }
+    for (const [hx, hy, k] of [[x, y, "nw"], [x + w / 2, y, "n"], [x + w, y, "ne"], [x + w, y + h / 2, "e"], [x + w, y + h, "se"], [x + w / 2, y + h, "s"], [x, y + h, "sw"], [x, y + h / 2, "w"]]) {
+      s += `<rect class="handle" data-handle="${k}" x="${hx - 3.5}" y="${hy - 3.5}" width="7" height="7"/>`;
+    }
+    if (moving) s += chip(x + w / 2, y + h + 16, `${Math.round(n.w)} × ${Math.round(n.h)}`, false);
+  }
+  $("#construct").innerHTML = s;
+}
+
+// rulers
+function renderRulers() {
+  const cv = $("#canvas"), W = cv.clientWidth, H = cv.clientHeight, { z, ox, oy } = ui.view;
+  const minor = [5, 10, 20, 50, 100].find(m => m * z >= 6) || 200;
+  const major = [50, 100, 200, 500, 1000].find(m => m * z >= 60) || 2000;
+  const n = ui.sel && byId(ui.sel);
+  const draw = (len, off, horizontal) => {
+    let s = "";
+    if (n) {
+      const a = off + (horizontal ? n.x : n.y) * z, b = a + (horizontal ? n.w : n.h) * z;
+      s += horizontal ? `<rect class="band" x="${a}" y="0" width="${b - a}" height="22"/><line class="band-edge" x1="${a}" x2="${a}" y1="0" y2="22"/><line class="band-edge" x1="${b}" x2="${b}" y1="0" y2="22"/>`
+        : `<rect class="band" x="0" y="${a}" width="22" height="${b - a}"/><line class="band-edge" y1="${a}" y2="${a}" x1="0" x2="22"/><line class="band-edge" y1="${b}" y2="${b}" x1="0" x2="22"/>`;
+    }
+    for (let v = Math.floor(-off / z / minor) * minor; v <= (len - off) / z; v += minor) {
+      const p = Math.round(off + v * z) + .5, isMajor = v % major === 0, l = isMajor ? 22 : v % (major / 2) === 0 ? 8 : 4;
+      s += horizontal ? `<line x1="${p}" x2="${p}" y1="${22 - l}" y2="22"/>` : `<line y1="${p}" y2="${p}" x1="${22 - l}" x2="22"/>`;
+      if (isMajor) s += horizontal ? `<text x="${p + 3}" y="10">${v}</text>` : `<text transform="translate(10 ${p + 3}) rotate(-90)" text-anchor="end">${v}</text>`;
+    }
+    return s;
+  };
+  $("#rulerX").innerHTML = draw(W, ox, true);
+  $("#rulerY").innerHTML = draw(H, oy, false);
+}
+
+// inspector
+const hexOf = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim().toUpperCase();
+function sec(id, title, body, aside = "") {
+  const open = ui.open[id];
+  return `<section class="sec"><button class="sec-head" data-sec="${id}" aria-expanded="${open}"><svg class="icon chev"><use href="#i-chev"/></svg>${title}${aside ? `<span class="aside">${aside}</span>` : ""}</button><div class="sec-body">${body}</div></section>`;
+}
+const num = (k, v, label) => `<label class="ctl num"><b>${k}</b><span class="sr">${label}</span><input data-field="${k.toLowerCase()}" inputmode="numeric" value="${Math.round(v)}"></label>`;
+function renderInspector() {
+  const n = ui.sel && byId(ui.sel), el = $("#inspector");
+  if (!n) {
+    el.innerHTML = `<div class="insp-head"><div class="insp-title"><h2 class="insp-name">${PAGES[ui.page]}</h2><p class="insp-kind">Page ${ui.page + 1} of ${PAGES.length}</p></div></div>` +
+      sec("page", "Page", `
+        <div class="row"><span class="lbl">Size</span><label class="ctl"><select aria-label="Page size"><option>A4</option><option>US Letter</option><option>A3</option><option>Custom</option></select><svg class="icon"><use href="#i-chev-d"/></svg></label></div>
+        <div class="row"><span class="lbl">Orientation</span><div class="seg"><button aria-pressed="false">Portrait</button><button aria-pressed="true">Landscape</button></div></div>
+        <div class="row"><span class="lbl">Background</span><label class="ctl"><span class="well" style="background:var(--sheet);border-color:var(--rule-strong)"></span><input class="hex" value="Default" aria-label="Background"></label></div>`) +
+      sec("view", "Drawing aids", `
+        <div class="row"><span class="lbl">Grid</span><label class="ctl num"><input data-grid value="10" aria-label="Grid size"><b>pt</b></label></div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="gridToggle" ${$("#canvas").classList.contains("no-grid") ? "" : "checked"}>Show grid</label>
+          <label class="check"><input type="checkbox" checked>Guides</label>
+          <label class="check"><input type="checkbox" checked>Page view</label>
+          <label class="check"><input type="checkbox" checked>Rulers</label>
+          <label class="check"><input type="checkbox" checked>Connect arrows</label>
+          <label class="check"><input type="checkbox">Connect points</label>
+        </div>`) +
+      `<section class="sec"><div class="sec-body" style="padding-top:14px"><p class="lbl" style="margin:0">Select a shape to style it. Hold Shift to select more than one.</p></div></section>`;
+    return;
+  }
+  const S = SHAPES[n.kind], sw = n.sw || "none";
+  const fill = sw === "none" ? "NONE" : hexOf(`--${sw}-f`), stroke = sw === "none" ? hexOf("--diagram-text") : hexOf(`--${sw}-s`);
+  const fillVar = sw === "none" ? "var(--sheet)" : `var(--${sw}-f)`, strokeVar = sw === "none" ? "var(--diagram-text)" : `var(--${sw}-s)`;
+  const label = String(n.label || "Untitled").replace(/\n/g, " ");
+  const props = DATA[n.id] || [];
+  el.innerHTML = `
+    <div class="insp-head" id="inspHead">
+      <div class="insp-title"><h2 class="insp-name" title="${esc(label)}">${esc(label)}</h2><p class="insp-kind">${S.name}</p></div>
+      <button class="iconbtn" title="Edit style  ⌘E" aria-label="Edit style"><svg class="icon"><use href="#i-code"/></svg></button>
+      <button class="iconbtn" title="Lock  ⌘L" aria-label="Lock"><svg class="icon"><use href="#i-lock"/></svg></button>
+    </div>` +
+    sec("style", "Style", `<div class="swatches">${SWATCHES.map(k => `<button class="sw" data-sw="${k}" aria-pressed="${k === sw}" title="${k[0].toUpperCase() + k.slice(1)}" style="background:var(--${k}-f);border-color:var(--${k}-s)"></button>`).join("")}<button class="sw sw-btn-none" data-sw="none" aria-pressed="${sw === "none"}" title="No fill"></button></div>`) +
+    sec("fill", "Fill", `
+      <div class="row"><span class="lbl">Color</span><label class="ctl"><span class="well" style="background:${fillVar};border-color:${strokeVar}"></span><input class="hex" value="${fill}" aria-label="Fill color"></label></div>
+      <div class="row"><span class="lbl">Gradient</span><label class="ctl"><select aria-label="Gradient"><option>None</option><option>Top to bottom</option><option>Left to right</option><option>Radial</option></select><svg class="icon"><use href="#i-chev-d"/></svg></label></div>
+      <div class="row"><span class="lbl">Opacity</span><label class="ctl num"><input value="100" aria-label="Opacity"><b>%</b></label></div>`) +
+    sec("line", "Line", `
+      <div class="row"><span class="lbl">Color</span><label class="ctl"><span class="well" style="background:${strokeVar};border-color:${strokeVar}"></span><input class="hex" value="${stroke}" aria-label="Line color"></label></div>
+      <div class="row"><span class="lbl">Width</span><div class="pair"><label class="ctl num"><input value="1.25" aria-label="Line width"><b>pt</b></label><label class="ctl"><select aria-label="Line pattern"><option>Solid</option><option>Dashed</option><option>Dotted</option></select><svg class="icon"><use href="#i-chev-d"/></svg></label></div></div>
+      <div class="checks"><label class="check"><input type="checkbox">Rounded</label><label class="check"><input type="checkbox">Shadow</label><label class="check"><input type="checkbox">Sketch</label><label class="check"><input type="checkbox">Glass</label></div>`) +
+    sec("text", "Text", `
+      <div class="row"><span class="lbl">Font</span><div class="pair" style="grid-template-columns:1fr 64px"><label class="ctl"><select aria-label="Font"><option>Helvetica</option><option>Verdana</option><option>Georgia</option><option>Courier New</option></select><svg class="icon"><use href="#i-chev-d"/></svg></label><label class="ctl num"><input value="12" aria-label="Font size"><b>pt</b></label></div></div>
+      <div class="row"><span class="lbl">Style</span><div class="seg"><button aria-pressed="false" aria-label="Bold"><b>B</b></button><button aria-pressed="false" aria-label="Italic"><i>I</i></button><button aria-pressed="false" aria-label="Underline"><u>U</u></button></div></div>
+      <div class="row"><span class="lbl">Align</span><div class="seg"><button aria-pressed="false" aria-label="Align left"><svg class="icon"><use href="#i-t-left"/></svg></button><button aria-pressed="true" aria-label="Align center"><svg class="icon"><use href="#i-t-center"/></svg></button><button aria-pressed="false" aria-label="Align right"><svg class="icon"><use href="#i-t-right"/></svg></button></div></div>
+      <div class="row"><span class="lbl">Position</span><label class="ctl"><select aria-label="Label position"><option>Center</option><option>Top</option><option>Bottom</option><option>Left</option><option>Right</option></select><svg class="icon"><use href="#i-chev-d"/></svg></label></div>`, "Helvetica 12") +
+    sec("arrange", "Arrange", `
+      <div class="pair">${num("X", n.x, "X position")}${num("Y", n.y, "Y position")}${num("W", n.w, "Width")}${num("H", n.h, "Height")}</div>
+      <div class="row"><span class="lbl">Rotation</span><label class="ctl num"><input value="0" aria-label="Rotation"><b>°</b></label></div>
+      <div class="row"><span class="lbl">Align</span><div class="seg">${["left", "hcenter", "right", "top", "middle", "bottom"].map(a => `<button aria-pressed="false" aria-label="Align ${a}" title="Align ${a.replace("hcenter", "center")}"><svg class="icon"><use href="#i-a-${a}"/></svg></button>`).join("")}</div></div>
+      <div class="order"><button class="btn" data-order="front">Bring to front</button><button class="btn" data-order="back">Send to back</button></div>`) +
+    sec("data", "Data", `
+      ${props.length ? `<dl class="props" style="margin:0">${props.map(([k, v]) => `<div class="prop"><dt>${k}</dt><dd>${v}</dd></div>`).join("")}</dl>` : `<p class="lbl" style="margin:0">Add properties to use them in labels, links, and placeholders.</p>`}
+      <button class="linkbtn">Add property</button>`, props.length ? `${props.length} properties` : "");
+}
+
+function renderChrome() {
+  $("#zoomOut_").textContent = `${Math.round(ui.view.z * 100)}%`;
+  $("#pageCount").textContent = `Page ${ui.page + 1} of ${PAGES.length}`;
+  $("#pageName").textContent = PAGES[ui.page];
+  $("#undoBtn").disabled = !ui.past.length;
+  $("#redoBtn").disabled = !ui.future.length;
+  $$("[data-tool]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tool === ui.tool)));
+  const cv = $("#canvas");
+  cv.classList.toggle("hand", ui.tool === "hand" || ui.space);
+  cv.classList.toggle("place", ["rect", "ellipse", "text"].includes(ui.tool));
+}
+function render() { renderDiagram(); renderConstruct(); renderRulers(); renderChrome(); }
+function renderAll() { render(); renderInspector(); }
+
+// history
+const snapshot = () => JSON.stringify(doc);
+function commit(before) {
+  if (before === snapshot()) return;
+  ui.past.push(before); ui.future = [];
+  renderChrome();
+}
+function restore(s) {
+  const d = JSON.parse(s);
+  doc.nodes.splice(0, doc.nodes.length, ...d.nodes);
+  doc.edges.splice(0, doc.edges.length, ...d.edges);
+  if (ui.sel && !byId(ui.sel)) ui.sel = null;
+}
+function undo() { if (!ui.past.length) return; ui.future.push(snapshot()); restore(ui.past.pop()); ui.demo = false; renderAll(); }
+function redo() { if (!ui.future.length) return; ui.past.push(snapshot()); restore(ui.future.pop()); ui.demo = false; renderAll(); }
+
+// snapping
+function snapMove(n, x, y) {
+  const T = 6 / ui.view.z, others = snapTargets(n);
+  const pick = (cands, cur) => cands.reduce((best, c) => (Math.abs(c) <= T && (best === null || Math.abs(c) < Math.abs(best)) ? c : best), null);
+  const dxs = [], dys = [];
+  for (const o of others) {
+    for (const l of [o.x, o.x + o.w / 2, o.x + o.w]) for (const a of [0, n.w / 2, n.w]) dxs.push(l - (x + a));
+    for (const l of [o.y, o.y + o.h / 2, o.y + o.h]) for (const a of [0, n.h / 2, n.h]) dys.push(l - (y + a));
+  }
+  const probe = { ...n, x, y }, near = neighbors(probe, others);
+  const A = near("up"), B = A && neighbors(A.o, others.filter(o => o !== A.o))("up");
+  if (A && B) dys.push(B.gap - A.gap);
+  const L = near("left"), M = L && neighbors(L.o, others.filter(o => o !== L.o))("left");
+  if (L && M) dxs.push(M.gap - L.gap);
+  const C = near("down"), D = C && neighbors(C.o, others.filter(o => o !== C.o))("down");
+  if (C && D) dys.push(C.gap - D.gap);
+  const R = near("right"), Q = R && neighbors(R.o, others.filter(o => o !== R.o))("right");
+  if (R && Q) dxs.push(R.gap - Q.gap);
+  const sx = pick(dxs), sy = pick(dys);
+  return [sx !== null ? x + sx : Math.round(x / 10) * 10, sy !== null ? y + sy : Math.round(y / 10) * 10];
+}
+
+// canvas interaction
+const canvas = $("#canvas");
+const toWorld = e => { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left - ui.view.ox) / ui.view.z, (e.clientY - r.top - ui.view.oy) / ui.view.z]; };
+function select(id) { ui.sel = id; renderAll(); }
+function addNode(kind, cx, cy) {
+  const S = SHAPES[kind];
+  if (!S || S.connector) { setTool("connector"); toast(`Drag from a shape's edge to draw a ${S ? S.name.toLowerCase() : "connector"}.`); return; }
+  const before = snapshot(), [w, h] = S.size;
+  const n = { id: `n${Date.now().toString(36)}`, kind, x: Math.round((cx - w / 2) / 10) * 10, y: Math.round((cy - h / 2) / 10) * 10, w, h, label: S.textOnly ? "Text" : S.container ? "Container" : S.name, sw: S.strokeOnly || S.textOnly ? undefined : "stone" };
+  doc.nodes.push(n);
+  ui.sel = n.id; ui.demo = false;
+  commit(before); renderAll();
+}
+function visibleCenter() { const r = canvas.getBoundingClientRect(); return [(r.width / 2 - ui.view.ox) / ui.view.z, (r.height / 2 - ui.view.oy) / ui.view.z]; }
+
+canvas.addEventListener("pointerdown", e => {
+  canvas.focus({ preventScroll: true });
+  closePop();
+  ui.demo = false;
+  const [wx, wy] = toWorld(e);
+  if (ui.tool === "hand" || ui.space || e.button === 1) {
+    ui.drag = { pan: true, sx: e.clientX, sy: e.clientY, ox: ui.view.ox, oy: ui.view.oy };
+    canvas.classList.add("panning"); canvas.setPointerCapture(e.pointerId); return;
+  }
+  if (["rect", "ellipse", "text"].includes(ui.tool)) { addNode(ui.tool, wx, wy); setTool("select"); return; }
+  const handle = e.target.closest("[data-handle]"), nub = e.target.closest("[data-nub]");
+  if (nub && ui.sel) { quickAdd(nub.dataset.nub); return; }
+  if (handle && ui.sel && handle.dataset.handle !== "rotate") {
+    const n = byId(ui.sel);
+    ui.drag = { resize: handle.dataset.handle, n, start: { ...n }, wx, wy, before: snapshot(), group: [n] };
+    canvas.setPointerCapture(e.pointerId); return;
+  }
+  const hit = e.target.closest("[data-id]");
+  if (!hit) { ui.sel = null; renderAll(); return; }
+  const n = byId(hit.dataset.id);
+  const group = SHAPES[n.kind].container ? [n, ...doc.nodes.filter(o => o !== n && o.x >= n.x && o.y >= n.y && o.x + o.w <= n.x + n.w && o.y + o.h <= n.y + n.h)] : [n];
+  ui.sel = n.id;
+  ui.drag = { n, group, starts: group.map(o => [o.x, o.y]), wx, wy, before: snapshot(), moved: false };
+  canvas.setPointerCapture(e.pointerId);
+  renderAll();
+});
+canvas.addEventListener("pointermove", e => {
+  const d = ui.drag;
+  if (!d) {
+    const hit = e.target.closest("[data-id]"), id = hit ? hit.dataset.id : null;
+    if (id !== ui.hover) { ui.hover = id; renderConstruct(); }
+    return;
+  }
+  if (d.pan) { ui.view.ox = d.ox + e.clientX - d.sx; ui.view.oy = d.oy + e.clientY - d.sy; render(); return; }
+  const [wx, wy] = toWorld(e);
+  if (d.resize) {
+    const s = d.start, k = d.resize, dx = wx - d.wx, dy = wy - d.wy, min = 20;
+    let { x, y, w, h } = s;
+    if (k.includes("e")) w = Math.max(min, Math.round((s.w + dx) / 10) * 10);
+    if (k.includes("s")) h = Math.max(min, Math.round((s.h + dy) / 10) * 10);
+    if (k.includes("w")) { const nx = Math.min(s.x + s.w - min, Math.round((s.x + dx) / 10) * 10); w = s.x + s.w - nx; x = nx; }
+    if (k.includes("n")) { const ny = Math.min(s.y + s.h - min, Math.round((s.y + dy) / 10) * 10); h = s.y + s.h - ny; y = ny; }
+    Object.assign(d.n, { x, y, w, h });
+    render(); syncArrange(); return;
+  }
+  if (!d.moved && Math.hypot(wx - d.wx, wy - d.wy) * ui.view.z < 3) return;
+  d.moved = true;
+  const [x0, y0] = d.starts[0];
+  const [sx, sy] = snapMove(d.n, x0 + wx - d.wx, y0 + wy - d.wy);
+  d.group.forEach((o, i) => { o.x = d.starts[i][0] + sx - x0; o.y = d.starts[i][1] + sy - y0; });
+  render(); syncArrange();
+});
+const endDrag = () => {
+  const d = ui.drag;
+  if (!d) return;
+  ui.drag = null;
+  canvas.classList.remove("panning");
+  if (d.before) commit(d.before);
+  render();
+};
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("pointerleave", () => { if (!ui.drag && ui.hover) { ui.hover = null; renderConstruct(); } });
+canvas.addEventListener("dblclick", e => {
+  const hit = e.target.closest("[data-id]");
+  if (hit) toast("Label editing opens a rich-text editor here.");
+});
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (e.ctrlKey || e.metaKey) {
+    const r = canvas.getBoundingClientRect();
+    zoomAt(ui.view.z * Math.exp(-e.deltaY * .01), e.clientX - r.left, e.clientY - r.top);
+  } else { ui.view.ox -= e.deltaX; ui.view.oy -= e.deltaY; render(); }
+}, { passive: false });
+canvas.addEventListener("dragover", e => e.preventDefault());
+canvas.addEventListener("drop", e => {
+  e.preventDefault();
+  const kind = e.dataTransfer.getData("text/x-shape");
+  if (kind) { const [wx, wy] = toWorld(e); addNode(kind, wx, wy); }
+});
+function zoomAt(z, cx, cy) {
+  z = Math.min(4, Math.max(.25, z));
+  const v = ui.view;
+  v.ox = cx - (cx - v.ox) * z / v.z; v.oy = cy - (cy - v.oy) * z / v.z; v.z = z;
+  render();
+}
+function zoomStep(dir) {
+  const steps = [.25, .33, .5, .67, .75, .9, 1, 1.25, 1.5, 2, 3, 4];
+  const z = dir > 0 ? steps.find(s => s > ui.view.z + .001) || 4 : [...steps].reverse().find(s => s < ui.view.z - .001) || .25;
+  zoomAt(z, canvas.clientWidth / 2, canvas.clientHeight / 2);
+}
+function fit() {
+  const b = doc.nodes.reduce((a, n) => [Math.min(a[0], n.x), Math.min(a[1], n.y), Math.max(a[2], n.x + n.w), Math.max(a[3], n.y + n.h + (SHAPES[n.kind].labelBelow ? 20 : 0))], [Infinity, Infinity, -Infinity, -Infinity]);
+  const W = canvas.clientWidth, H = canvas.clientHeight, pad = Math.min(56, W * .06);
+  const z = [1, .9, .8, .75, .67, .5, .33].find(s => (b[2] - b[0]) * s + pad * 2 <= W && (b[3] - b[1]) * s + pad * 2 <= H - 70) || .25;
+  ui.view.z = z;
+  ui.view.ox = Math.max(pad - b[0] * z, (W - (b[2] - b[0]) * z) / 2 - b[0] * z);
+  ui.view.oy = pad * .7 - b[1] * z;
+  render();
+}
+function quickAdd(dir) {
+  const n = byId(ui.sel), gap = 60, before = snapshot();
+  const m = { id: `n${Date.now().toString(36)}`, kind: n.kind, w: n.w, h: n.h, label: SHAPES[n.kind].name, sw: n.sw };
+  m.x = dir === "e" ? n.x + n.w + gap : dir === "w" ? n.x - gap - n.w : n.x;
+  m.y = dir === "s" ? n.y + n.h + gap : n.y;
+  doc.nodes.push(m);
+  doc.edges.push(dir === "w" ? { from: m.id, to: n.id } : { from: n.id, to: m.id });
+  ui.sel = m.id;
+  commit(before); renderAll();
+}
+function syncArrange() {
+  const n = ui.sel && byId(ui.sel);
+  if (!n) return;
+  for (const k of ["x", "y", "w", "h"]) { const f = $(`[data-field="${k}"]`); if (f && document.activeElement !== f) f.value = Math.round(n[k]); }
+}
+
+// inspector events
+$("#inspector").addEventListener("click", e => {
+  const head = e.target.closest("[data-sec]");
+  if (head) { ui.open[head.dataset.sec] = head.getAttribute("aria-expanded") !== "true"; head.setAttribute("aria-expanded", String(ui.open[head.dataset.sec])); return; }
+  const swb = e.target.closest("[data-sw]");
+  if (swb && ui.sel) { const before = snapshot(); byId(ui.sel).sw = swb.dataset.sw; commit(before); renderAll(); return; }
+  const ord = e.target.closest("[data-order]");
+  if (ord && ui.sel) {
+    const before = snapshot(), n = byId(ui.sel), i = doc.nodes.indexOf(n);
+    doc.nodes.splice(i, 1);
+    if (ord.dataset.order === "front") doc.nodes.push(n); else doc.nodes.splice(doc.nodes.findIndex(o => !SHAPES[o.kind].container), 0, n);
+    commit(before); render(); return;
+  }
+  const seg = e.target.closest(".seg button");
+  if (seg && !seg.closest(".seg").querySelector("[aria-label^='Align ']") ) seg.setAttribute("aria-pressed", String(seg.getAttribute("aria-pressed") !== "true"));
+  if (e.target.closest("#inspHead") && matchMedia("(max-width:720px)").matches && !e.target.closest("button")) $("#app").classList.toggle("show-inspector");
+  if (e.target.id === "gridToggle") canvas.classList.toggle("no-grid", !e.target.checked);
+});
+$("#inspector").addEventListener("change", e => {
+  const f = e.target.dataset.field;
+  if (!f || !ui.sel) return;
+  const v = parseFloat(e.target.value);
+  if (Number.isNaN(v)) { syncArrange(); return; }
+  const before = snapshot();
+  byId(ui.sel)[f] = f === "w" || f === "h" ? Math.max(10, v) : v;
+  commit(before); render();
+});
+
+// library
+function renderLibrary(filter = "") {
+  const q = filter.trim().toLowerCase();
+  let html = "", matches = 0;
+  for (const lib of LIBRARIES) {
+    const items = (lib.items || []).filter(k => !q || SHAPES[k].name.toLowerCase().includes(q) || k.includes(q));
+    if (q && !items.length) continue;
+    matches += items.length;
+    const open = q ? true : !!lib.open;
+    html += `<section class="lib-sec"><button class="lib-head" data-lib="${lib.id}" aria-expanded="${open}"><svg class="icon chev"><use href="#i-chev"/></svg>${lib.name}${lib.items && lib.items.length ? `<span class="count">${items.length}</span>` : ""}</button>`;
+    if (open) {
+      if (!lib.items) html += `<p class="lib-note">Library contents aren't drawn in this mockup.</p>`;
+      else if (!items.length) html += `<p class="lib-note">${lib.empty}</p>`;
+      else html += `<div class="tiles">${items.map(k => `<button class="tile" draggable="true" data-shape="${k}" title="${SHAPES[k].name}" aria-label="${SHAPES[k].name}"><svg viewBox="0 0 30 30">${tileArt(k)}</svg></button>`).join("")}</div>`;
+    }
+    html += "</section>";
+  }
+  if (q && !matches) html = `<p class="lib-note" style="padding:8px">No shapes named “${esc(filter)}” in your libraries. Press Enter to search every library.</p>`;
+  $("#libList").innerHTML = html;
+}
+$("#libList").addEventListener("click", e => {
+  const head = e.target.closest("[data-lib]");
+  if (head) { const lib = LIBRARIES.find(l => l.id === head.dataset.lib); lib.open = !lib.open; renderLibrary($("#libFilter").value); return; }
+  const tile = e.target.closest("[data-shape]");
+  if (tile) { const [cx, cy] = visibleCenter(); addNode(tile.dataset.shape, cx, cy); }
+});
+$("#libList").addEventListener("dragstart", e => {
+  const tile = e.target.closest("[data-shape]");
+  if (tile) { e.dataTransfer.setData("text/x-shape", tile.dataset.shape); e.dataTransfer.effectAllowed = "copy"; }
+});
+$("#libFilter").addEventListener("input", e => renderLibrary(e.target.value));
+$("#libFilter").addEventListener("keydown", e => { if (e.key === "Enter") toast("Searching every library needs the shape index, which this mockup doesn't include."); });
+
+// popovers
+const pop = $("#pop");
+let popAnchor = null;
+function openPop(anchor, html, align = "left", above = false) {
+  if (popAnchor === anchor) { closePop(); return; }
+  closePop();
+  pop.innerHTML = html; pop.hidden = false; popAnchor = anchor;
+  anchor.setAttribute("aria-expanded", "true");
+  const r = anchor.getBoundingClientRect(), pr = pop.getBoundingClientRect();
+  let left = align === "right" ? r.right - pr.width : r.left;
+  left = Math.max(8, Math.min(left, innerWidth - pr.width - 8));
+  const top = above ? r.top - pr.height - 6 : r.bottom + 6;
+  pop.style.left = `${left}px`; pop.style.top = `${Math.max(8, top)}px`;
+  pop.style.setProperty("--origin", `${align === "right" ? "right" : "left"} ${above ? "bottom" : "top"}`);
+  const first = pop.querySelector("button"); if (first) first.focus({ preventScroll: true });
+}
+function closePop() {
+  if (!popAnchor) return;
+  popAnchor.setAttribute("aria-expanded", "false");
+  pop.hidden = true; popAnchor = null;
+}
+document.addEventListener("pointerdown", e => { if (popAnchor && !pop.contains(e.target) && !popAnchor.contains(e.target)) closePop(); });
+const mi = (label, attrs = "", kbd = "", icon = "") => `<button class="mi" role="menuitem" ${attrs}>${icon ? `<svg class="icon"><use href="#${icon}"/></svg>` : ""}${label}${kbd ? `<span class="kbd">${kbd}</span>` : ""}</button>`;
+
+$("#menuBtn").addEventListener("click", e => openPop(e.currentTarget, ["File", "Edit", "View", "Arrange", "Extras", "Help"].map(g => mi(g, `data-scope="${g}"`, "", "")).join("") + "<hr>" + mi("Keyboard shortcuts", 'data-run="shortcuts"', "⌘/")));
+$("#insertBtn").addEventListener("click", e => openPop(e.currentTarget, `<p class="pop-title">Insert</p>` + [["Shape", "⌘⇧K"], ["Table", ""], ["Image", "⌘⇧I"], ["Link", "⌘⇧L"], ["Math formula", ""], ["Template", ""]].map(([l, k]) => mi(l, `data-run="insert:${l}"`, k)).join("") + "<hr>" + [["From text", ""], ["From CSV", ""], ["From Mermaid", ""], ["From PlantUML", ""]].map(([l]) => mi(l, `data-run="insert:${l}"`)).join(""), "left"));
+$("#exportBtn").addEventListener("click", e => openPop(e.currentTarget, `<p class="pop-title">Export this page</p>` + ["PNG", "SVG", "PDF", "JPEG", "HTML", "VSDX", "XML"].map(f => mi(`${f}`, `data-run="export:${f}"`)).join("") + `<hr><label class="check"><input type="checkbox" checked>Keep diagram editable in PNG and SVG</label>`, "right"));
+$("#pageBtn").addEventListener("click", e => openPop(e.currentTarget, PAGES.map((p, i) => `<button class="mi" role="menuitem" data-page="${i}" ${i === ui.page ? 'aria-current="page"' : ""}><svg class="icon"><use href="#i-page"/></svg>${p}</button>`).join("") + "<hr>" + mi("Add page", 'data-run="addpage"', "", "i-plus") + mi("Duplicate page", 'data-run="duppage"') + mi("Rename page", 'data-run="renamepage"') + `<button class="mi mi-danger" role="menuitem" data-run="delpage">Delete page</button>`, "right", true));
+$("#layerBtn").addEventListener("click", e => openPop(e.currentTarget, `<p class="pop-title">Layers</p>` + ["Annotations", "Services", "Background"].map(l => `<button class="mi" role="menuitem" ${l === "Services" ? 'aria-current="page"' : ""}><svg class="icon"><use href="#i-layers"/></svg>${l}${l === "Background" ? '<span class="kbd"><svg class="icon" style="width:14px;height:14px"><use href="#i-lock"/></svg></span>' : ""}</button>`).join("") + "<hr>" + mi("Add layer", 'data-run="addlayer"', "", "i-plus"), "left", true));
+$("#historyBtn").addEventListener("click", () => toast("Revision history opens here: 14 saved revisions."));
+$("#docName").addEventListener("click", () => toast("Rename the drawing inline here."));
+$("#shareBtn").addEventListener("click", () => toast("Sharing needs a cloud location. Save the drawing to one first."));
+pop.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.scope) { closePop(); openPalette(b.dataset.scope); return; }
+  if (b.dataset.page) { ui.page = +b.dataset.page; closePop(); renderAll(); return; }
+  if (b.dataset.run) { closePop(); run(b.dataset.run, b.textContent.trim()); }
+});
+pop.addEventListener("keydown", e => {
+  const items = $$(".mi", pop), i = items.indexOf(document.activeElement);
+  if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+  if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+});
+
+// command registry: one list feeds the menu, the palette, and shortcuts
+const COMMANDS = [
+  ["File", "New drawing", "⌘N"], ["File", "Open", "⌘O"], ["File", "Save", "⌘S"], ["File", "Save as", "⇧⌘S"], ["File", "Import", "⌘⇧O"],
+  ["File", "Export as PNG", "", "export:PNG"], ["File", "Export as SVG", "", "export:SVG"], ["File", "Export as PDF", "", "export:PDF"], ["File", "Export as VSDX", "", "export:VSDX"],
+  ["File", "Page setup", ""], ["File", "Print", "⌘P"], ["File", "Revision history", ""], ["File", "Properties", ""],
+  ["Edit", "Undo", "⌘Z", "undo"], ["Edit", "Redo", "⇧⌘Z", "redo"], ["Edit", "Duplicate", "⌘D", "duplicate"], ["Edit", "Delete", "⌫", "delete"],
+  ["Edit", "Select all", "⌘A"], ["Edit", "Select shapes", "⇧⌘I"], ["Edit", "Select connectors", "⇧⌘E"], ["Edit", "Find and replace", "⌘F"],
+  ["Edit", "Edit style", "⌘E"], ["Edit", "Edit data", "⌘M"], ["Edit", "Edit tooltip", ""], ["Edit", "Edit link", "⌥⇧L"], ["Edit", "Lock or unlock", "⌘L"],
+  ["View", "Zoom in", "⌘+", "zoomin"], ["View", "Zoom out", "⌘−", "zoomout"], ["View", "Zoom to fit", "⇧⌘H", "fit"], ["View", "Show grid", "⌘'", "grid"],
+  ["View", "Rulers", ""], ["View", "Page view", ""], ["View", "Outline", "⇧⌘O"], ["View", "Layers", "⇧⌘L"], ["View", "Connection points", ""], ["View", "Dark theme", "", "theme"], ["View", "Full screen", ""],
+  ["Arrange", "Bring to front", "⇧⌘]", "front"], ["Arrange", "Send to back", "⇧⌘[", "back"], ["Arrange", "Group", "⌘G"], ["Arrange", "Ungroup", "⇧⌘G"],
+  ["Arrange", "Align left edges", "⌥⌘←"], ["Arrange", "Align centers", "⌥⌘H"], ["Arrange", "Align top edges", "⌥⌘↑"], ["Arrange", "Distribute horizontally", ""], ["Arrange", "Distribute vertically", ""],
+  ["Arrange", "Rotate 90°", "⌘R"], ["Arrange", "Flip horizontally", ""], ["Arrange", "Flip vertically", ""], ["Arrange", "Autosize", "⇧⌘Y"],
+  ["Arrange", "Vertical tree layout", ""], ["Arrange", "Horizontal tree layout", ""], ["Arrange", "Radial tree layout", ""], ["Arrange", "Organic layout", ""], ["Arrange", "Circle layout", ""], ["Arrange", "Flow layout", ""],
+  ["Extras", "Edit diagram XML", ""], ["Extras", "Plugins", ""], ["Extras", "Sketch style", ""], ["Extras", "Math typesetting", ""], ["Extras", "Configuration", ""],
+  ["Help", "Keyboard shortcuts", "⌘/", "shortcuts"], ["Help", "Documentation", ""], ["Help", "Report a problem", ""],
+].map(([group, label, kbd, id]) => ({ group, label, kbd, id }));
+
+let palScope = null, palItems = [], palIndex = 0;
+function openPalette(scope = null) {
+  closePop();
+  palScope = scope;
+  $("#scrim").hidden = false;
+  $("#palScope").hidden = !scope;
+  $("#palScopeName").textContent = scope || "";
+  $("#palInput").value = "";
+  renderPalette();
+  $("#palInput").focus();
+}
+function closePalette() { $("#scrim").hidden = true; canvas.focus({ preventScroll: true }); }
+function renderPalette() {
+  const q = $("#palInput").value.trim().toLowerCase(), words = q.split(/\s+/).filter(Boolean);
+  const match = s => words.every(w => s.toLowerCase().includes(w));
+  const cmds = COMMANDS.filter(c => (!palScope || c.group === palScope) && match(`${c.label} ${c.group}`));
+  const shapes = palScope || !q ? [] : Object.entries(SHAPES).filter(([k, s]) => !s.connector && match(`${s.name} shape ${k}`)).slice(0, 6);
+  palItems = [...shapes.map(([k, s]) => ({ shape: k, label: s.name })), ...cmds];
+  palIndex = Math.min(palIndex, Math.max(0, palItems.length - 1));
+  let html = "", i = 0;
+  if (shapes.length) html += `<div class="pal-group">Shapes</div>` + shapes.map(([k, s]) => `<div class="pal-item" role="option" data-i="${i}" aria-selected="${i++ === palIndex}"><svg viewBox="0 0 30 30">${tileArt(k)}</svg><span>${s.name}</span><span class="where">Insert</span></div>`).join("");
+  const groups = [...new Set(cmds.map(c => c.group))];
+  for (const g of groups) {
+    html += `<div class="pal-group">${g}</div>`;
+    for (const c of cmds.filter(c => c.group === g)) html += `<div class="pal-item" role="option" data-i="${i}" aria-selected="${i++ === palIndex}"><span></span><span>${c.label}</span><span class="kbd">${c.kbd || ""}</span></div>`;
+  }
+  $("#palList").innerHTML = html || `<p class="pal-empty">Nothing matches “${esc($("#palInput").value)}”. Try one word, such as “align” or “cylinder”.</p>`;
+  const cur = $(`.pal-item[aria-selected="true"]`); if (cur) cur.scrollIntoView({ block: "nearest" });
+}
+function runPalette(i) {
+  const it = palItems[i];
+  if (!it) return;
+  closePalette();
+  if (it.shape) { const [cx, cy] = visibleCenter(); addNode(it.shape, cx, cy); return; }
+  run(it.id || "", it.label);
+}
+$("#palInput").addEventListener("input", () => { palIndex = 0; renderPalette(); });
+$("#palInput").addEventListener("keydown", e => {
+  if (e.key === "ArrowDown") { e.preventDefault(); palIndex = Math.min(palItems.length - 1, palIndex + 1); renderPalette(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); palIndex = Math.max(0, palIndex - 1); renderPalette(); }
+  else if (e.key === "Enter") { e.preventDefault(); runPalette(palIndex); }
+  else if (e.key === "Escape") { e.preventDefault(); closePalette(); }
+  else if (e.key === "Backspace" && !e.target.value && palScope) { palScope = null; $("#palScope").hidden = true; renderPalette(); }
+});
+$("#palList").addEventListener("click", e => { const it = e.target.closest("[data-i]"); if (it) runPalette(+it.dataset.i); });
+$("#palScope").addEventListener("click", () => { palScope = null; $("#palScope").hidden = true; renderPalette(); $("#palInput").focus(); });
+$("#scrim").addEventListener("pointerdown", e => { if (e.target.id === "scrim") closePalette(); });
+$("#cmdBtn").addEventListener("click", () => openPalette());
+
+function run(id, label) {
+  const n = ui.sel && byId(ui.sel);
+  switch (id) {
+    case "undo": return undo();
+    case "redo": return redo();
+    case "zoomin": return zoomStep(1);
+    case "zoomout": return zoomStep(-1);
+    case "fit": return fit();
+    case "grid": canvas.classList.toggle("no-grid"); return renderInspector();
+    case "theme": return toggleTheme();
+    case "delete": return deleteSel();
+    case "duplicate": if (n) { const before = snapshot(), m = { ...n, id: `n${Date.now().toString(36)}`, x: n.x + 20, y: n.y + 20 }; doc.nodes.push(m); ui.sel = m.id; commit(before); renderAll(); } return;
+    case "front": case "back": if (n) $(`[data-order="${id}"]`)?.click(); return;
+    case "addpage": PAGES.push(`Page ${PAGES.length + 1}`); ui.page = PAGES.length - 1; renderAll(); return toast(`Added ${PAGES[ui.page]}.`);
+  }
+  if (id.startsWith("export:")) return toast(`Exported “Greendale enrollment system.${id.slice(7).toLowerCase()}”.`);
+  toast(`“${label}” isn't wired up in this mockup.`);
+}
+function deleteSel() {
+  if (!ui.sel) return;
+  const before = snapshot();
+  doc.nodes.splice(doc.nodes.indexOf(byId(ui.sel)), 1);
+  for (let i = doc.edges.length - 1; i >= 0; i--) if (doc.edges[i].from === ui.sel || doc.edges[i].to === ui.sel) doc.edges.splice(i, 1);
+  ui.sel = null;
+  commit(before); renderAll();
+}
+
+// tools, theme, toast, keyboard
+function setTool(t) { ui.tool = t; renderChrome(); }
+$$("[data-tool]").forEach(b => b.addEventListener("click", () => setTool(b.dataset.tool)));
+function toggleTheme() {
+  const dark = document.documentElement.dataset.theme !== "dark";
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const label = dark ? "Switch to light theme" : "Switch to dark theme";
+  $("#themeBtn").title = label; $("#themeBtn").setAttribute("aria-label", label);
+  renderInspector();
+}
+$("#themeBtn").addEventListener("click", toggleTheme);
+$("#undoBtn").addEventListener("click", undo);
+$("#redoBtn").addEventListener("click", redo);
+$("#zoomIn").addEventListener("click", () => zoomStep(1));
+$("#zoomOut").addEventListener("click", () => zoomStep(-1));
+$("#pagePrev").addEventListener("click", () => { ui.page = (ui.page - 1 + PAGES.length) % PAGES.length; renderAll(); });
+$("#pageNext").addEventListener("click", () => { ui.page = (ui.page + 1) % PAGES.length; renderAll(); });
+$("#libToggle").addEventListener("click", e => { const on = $("#app").classList.toggle("show-library"); e.currentTarget.setAttribute("aria-expanded", String(on)); });
+let toastTimer;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 2600); }
+
+const typing = el => el && (el.tagName === "INPUT" || el.tagName === "SELECT" || el.isContentEditable);
+document.addEventListener("keydown", e => {
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); $("#scrim").hidden ? openPalette() : closePalette(); return; }
+  if (!$("#scrim").hidden) return;
+  if (e.key === "Escape") { if (popAnchor) { const a = popAnchor; closePop(); a.focus(); } else { ui.sel = null; ui.demo = false; renderAll(); } return; }
+  if (typing(document.activeElement)) return;
+  if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === "d") { e.preventDefault(); run("duplicate"); return; }
+  if (mod && (e.key === "=" || e.key === "+")) { e.preventDefault(); zoomStep(1); return; }
+  if (mod && e.key === "-") { e.preventDefault(); zoomStep(-1); return; }
+  if (mod && e.shiftKey && e.key.toLowerCase() === "h") { e.preventDefault(); fit(); return; }
+  if (mod) return;
+  if (e.key === " " && !ui.space) { ui.space = true; renderChrome(); e.preventDefault(); return; }
+  if ((e.key === "Delete" || e.key === "Backspace") && ui.sel) { e.preventDefault(); deleteSel(); return; }
+  const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  if (arrows[e.key] && ui.sel) {
+    e.preventDefault();
+    const before = snapshot(), n = byId(ui.sel), s = e.shiftKey ? 10 : 1;
+    n.x += arrows[e.key][0] * s; n.y += arrows[e.key][1] * s; ui.demo = false;
+    commit(before); render(); syncArrange(); return;
+  }
+  const tools = { v: "select", h: "hand", r: "rect", e: "ellipse", t: "text", c: "connector", p: "pen" };
+  if (tools[e.key.toLowerCase()]) setTool(tools[e.key.toLowerCase()]);
+});
+document.addEventListener("keyup", e => { if (e.key === " ") { ui.space = false; renderChrome(); } });
+addEventListener("resize", render);
+
+renderSheet();
+renderLibrary();
+document.fonts.ready.then(() => { fit(); renderAll(); });
+</script>
+</body>
+</html>
