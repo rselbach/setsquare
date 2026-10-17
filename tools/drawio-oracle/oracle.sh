@@ -77,11 +77,15 @@ raw = pathlib.Path(sys.argv[1]).read_text()
 data = json.loads(json.loads(raw))
 for name, pages in data.items():
     path = pathlib.Path(f"{name}.oracle.tsv")
-    rows = ["# draw.io 9034053fba. route: page, edge, points. path: page, edge, index, fill, dash, width, d"]
+    rows = ["# draw.io 9034053fba. route: page, edge, points. label: page, edge, point. "
+            "path: page, edge, index, fill, dash, width, d. bounds: page, vertex, x y width height"]
     for i, page in enumerate(pages):
+        for vertex, b in page["vertices"].items():
+            rows.append(f"bounds\t{i}\t{vertex}\t{b[0]} {b[1]} {b[2]} {b[3]}")
         for edge, info in page["edges"].items():
             points = " ".join("null" if p is None else f"{p[0]},{p[1]}" for p in info["points"])
             rows.append(f"route\t{i}\t{edge}\t{points}")
+            rows.append(f"label\t{i}\t{edge}\t{info['label'][0]},{info['label'][1]}")
             for n, d in enumerate(info["paths"]):
                 rows.append(f"path\t{i}\t{edge}\t{n}\t{d['fill'] or '-'}\t{d['dash'] or '-'}\t{d['width'] or '-'}\t{d['d']}")
     path.write_text("\n".join(rows) + "\n")

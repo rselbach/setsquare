@@ -59,19 +59,25 @@ window.route = function (text) {
     graph.view.setTranslate(0, 0);
     graph.refresh();
     const edges = {};
+    const vertices = {};
     const cells = graph.getModel().cells;
     for (const id of Object.keys(cells).sort()) {
       const cell = cells[id];
-      if (!graph.getModel().isEdge(cell)) continue;
       const state = graph.view.getState(cell);
-      if (!state || !state.absolutePoints) continue;
+      if (!state) continue;
+      if (graph.getModel().isVertex(cell)) {
+        vertices[id] = [round(state.x), round(state.y), round(state.width), round(state.height)];
+        continue;
+      }
+      if (!graph.getModel().isEdge(cell) || !state.absolutePoints) continue;
       edges[id] = {
         points: state.absolutePoints.map(p => (p ? [round(p.x), round(p.y)] : null)),
+        label: [round(state.absoluteOffset.x), round(state.absoluteOffset.y)],
         paths: paths(state),
       };
     }
     graph.destroy();
-    return { name, edges };
+    return { name, edges, vertices };
   });
 };
 window.ready = typeof Graph === 'function';

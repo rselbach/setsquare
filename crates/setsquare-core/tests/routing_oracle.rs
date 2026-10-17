@@ -2,8 +2,9 @@
 //!
 //! Each fixture drawing has a `.oracle.tsv` file that `tools/drawio-oracle/oracle.sh`
 //! writes by rendering the drawing with draw.io itself. Route rows hold the points draw.io
-//! computed for a connector. Path rows hold each SVG element draw.io painted for it: the
-//! line first, then the arrowheads.
+//! computed for a connector, and label rows where it centers the connector's label. Path
+//! rows hold each SVG element draw.io painted for it: the line first, then the arrowheads.
+//! Bounds rows hold every shape's position and size in page coordinates.
 
 use std::fmt::Write;
 use std::fs;
@@ -29,10 +30,18 @@ struct Painted {
     geometry: String,
 }
 
+struct Placed {
+    page: usize,
+    cell: String,
+    values: Vec<f64>,
+}
+
 struct Oracle {
     doc: Document,
     routes: Vec<Route>,
     paths: Vec<Painted>,
+    labels: Vec<Placed>,
+    bounds: Vec<Placed>,
 }
 
 fn fixture(name: &str) -> PathBuf {
@@ -47,7 +56,13 @@ fn load(name: &str) -> Oracle {
     let doc = drawio::read(&drawing).unwrap_or_else(|e| panic!("{name}: {e}"));
     let golden = fs::read_to_string(fixture(&format!("{name}.oracle.tsv")))
         .unwrap_or_else(|e| panic!("{name}: {e}"));
-    let (mut routes, mut paths) = (Vec::new(), Vec::new());
+    let (mut routes, mut paths, mut labels, mut bounds) =
+        (Vec::new(), Vec::new(), Vec::new(), Vec::new());
+    let numbers = |s: &str| -> Vec<f64> {
+        s.split([' ', ','])
+            .map(|n| n.parse().expect("number"))
+            .collect()
+    };
     for line in golden.lines().filter(|l| !l.starts_with('#')) {
         let cols: Vec<&str> = line.split('\t').collect();
         let page = cols[1].parse().expect("page index");
@@ -70,10 +85,26 @@ fn load(name: &str) -> Oracle {
                 dash: Some(cols[5]).filter(|d| *d != "-").map(str::to_owned),
                 geometry: cols[7].to_owned(),
             }),
+            "label" => labels.push(Placed {
+                page,
+                cell: cols[2].to_owned(),
+                values: numbers(cols[3]),
+            }),
+            "bounds" => bounds.push(Placed {
+                page,
+                cell: cols[2].to_owned(),
+                values: numbers(cols[3]),
+            }),
             other => panic!("{name}: unknown row kind {other}"),
         }
     }
-    Oracle { doc, routes, paths }
+    Oracle {
+        doc,
+        routes,
+        paths,
+        labels,
+        bounds,
+    }
 }
 
 /// Splits path data or an element description into words and numbers.
@@ -146,6 +177,49 @@ fn check_routes(name: &str) {
         }
     }
     report(name, "routes", oracle.routes.len(), failures);
+}
+
+fn close(want: &[f64], got: &[f64]) -> bool {
+    want.len() == got.len()
+        && want
+            .iter()
+            .zip(got)
+            .all(|(w, g)| (w - g).abs() <= POINT_TOLERANCE)
+}
+
+fn check_placement(name: &str) {
+    let oracle = load(name);
+    let mut failures = Vec::new();
+    for want in &oracle.bounds {
+        let model = &oracle.doc.pages()[want.page].model;
+        let got = model
+            .bounds(&CellId::new(&want.cell))
+            .map(|r| vec![r.x, r.y, r.width, r.height]);
+        if !got.as_deref().is_some_and(|g| close(&want.values, g)) {
+            failures.push(format!(
+                "bounds of {}: draw.io {:?}, setsquare {got:?}",
+                want.cell, want.values
+            ));
+        }
+    }
+    for want in &oracle.labels {
+        let model = &oracle.doc.pages()[want.page].model;
+        let got = model
+            .edge_label_point(&CellId::new(&want.cell))
+            .map(|p| vec![p.x, p.y]);
+        if !got.as_deref().is_some_and(|g| close(&want.values, g)) {
+            failures.push(format!(
+                "label of {}: draw.io {:?}, setsquare {got:?}",
+                want.cell, want.values
+            ));
+        }
+    }
+    report(
+        name,
+        "shape bounds and label points",
+        oracle.bounds.len() + oracle.labels.len(),
+        failures,
+    );
 }
 
 fn check_paint(name: &str) {
@@ -265,4 +339,25 @@ fn paint_matches_drawio_everywhere_else() {
     ] {
         check_paint(name);
     }
+}
+
+#[test]
+fn shapes_and_labels_sit_where_drawio_puts_them() {
+    for name in [
+        "routing/labels",
+        "routing/perimeters",
+        "routing/constraints",
+        "routing/styles",
+        "templates/activity_diagram_1",
+        "templates/class_1",
+        "templates/cross_functional_flowchart_1",
+        "templates/gantt_1",
+    ] {
+        check_placement(name);
+    }
+}
+
+#[test]
+fn routes_match_drawio_on_labels_page() {
+    check_routes("routing/labels");
 }

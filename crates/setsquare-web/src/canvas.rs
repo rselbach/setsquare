@@ -334,8 +334,7 @@ pub fn Canvas() -> impl IntoView {
         let g = doc.settings.with(|s| s.grid_size);
         format!(
             r#"<pattern id="grid-minor" width="{g}" height="{g}" patternUnits="userSpaceOnUse"><path d="M{g} 0H0V{g}" fill="none" style="stroke:var(--grid-minor)" vector-effect="non-scaling-stroke"/></pattern>
-<pattern id="grid-major" width="{m}" height="{m}" patternUnits="userSpaceOnUse"><path d="M{m} 0H0V{m}" fill="none" style="stroke:var(--grid-major)" vector-effect="non-scaling-stroke"/></pattern>
-<marker id="arrow" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 1.2 9.5 5 0 8.8z" fill="context-stroke"/></marker>"#,
+<pattern id="grid-major" width="{m}" height="{m}" patternUnits="userSpaceOnUse"><path d="M{m} 0H0V{m}" fill="none" style="stroke:var(--grid-major)" vector-effect="non-scaling-stroke"/></pattern>"#,
             m = g * 5.0,
         )
     };

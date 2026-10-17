@@ -1,6 +1,9 @@
 //! What the canvas paints for one cell, computed from the model.
 
-use setsquare_core::{CellId, CellKind, Model, Rect, Shape, Style};
+use setsquare_core::{
+    CellId, CellKind, MarkerFill, MarkerGeometry, MarkerPaint, Model, Rect, Shape, Style,
+    edge_shape,
+};
 
 /// The paint for one cell. Equal values mean the cell does not need to redraw.
 #[derive(Clone, Debug, PartialEq)]
@@ -15,6 +18,11 @@ pub struct VertexDraw {
     pub outline: String,
     pub detail: Option<String>,
     pub fill: String,
+    /// A container's header and its fill, painted over the body.
+    pub header: Option<(String, String)>,
+    /// Degrees clockwise around `pivot`, from the `rotation` style.
+    pub rotation: f64,
+    pub pivot: (f64, f64),
     pub stroke: String,
     pub stroke_width: f64,
     pub label: Option<Label>,
@@ -22,11 +30,11 @@ pub struct VertexDraw {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct EdgeDraw {
-    pub path: String,
+    pub line: String,
+    pub markers: Vec<MarkerPaint>,
     pub stroke: String,
     pub stroke_width: f64,
-    pub dashed: bool,
-    pub arrow: bool,
+    pub dash: Option<String>,
     pub label: Option<Label>,
 }
 
@@ -40,8 +48,8 @@ pub struct Label {
     pub color: String,
     pub size: f64,
     pub bold: bool,
-    /// The box behind the label, for edge labels that sit on top of their line.
-    pub backdrop: Option<Rect>,
+    /// The box behind the label and its color, for edge labels that sit on their line.
+    pub backdrop: Option<(Rect, String)>,
 }
 
 const LINE_HEIGHT: f64 = 1.2;
@@ -54,69 +62,63 @@ impl CellDraw {
         if !cell.visible {
             return CellDraw::Hidden;
         }
+        let Some(style) = model.style(id) else {
+            return CellDraw::Hidden;
+        };
         match &cell.kind {
             CellKind::Layer => CellDraw::Hidden,
             CellKind::Vertex(_) => {
                 let Some(bounds) = model.bounds(id) else {
                     return CellDraw::Hidden;
                 };
-                let style = &cell.style;
-                let shape = Shape::of(style);
-                // Open shapes get a transparent fill so a click anywhere inside selects them.
-                let open = shape.is_open() || style.get("fillColor") == Some("none");
+                let shape = Shape::of(&style);
+                let fill = paint(&style, "fillColor", "var(--sheet)");
+                let header = shape.header(bounds, &style);
+                // A container's body takes swimlaneFillColor; its fillColor goes to the header.
+                let body = if header.is_some() {
+                    paint(&style, "swimlaneFillColor", "var(--sheet)")
+                } else {
+                    fill.clone()
+                };
+                // Unpainted interiors stay transparent so a click anywhere inside selects them.
+                let body = if shape.is_open() || body == "none" {
+                    "transparent".to_owned()
+                } else {
+                    body
+                };
                 CellDraw::Vertex(VertexDraw {
                     outline: shape.outline(bounds),
-                    detail: shape.detail(bounds, style),
-                    fill: if open {
-                        "transparent".into()
-                    } else {
-                        color(style, "fillColor", "var(--sheet)")
-                    },
-                    stroke: if shape == Shape::Text {
-                        "none".into()
-                    } else {
-                        color(style, "strokeColor", "var(--diagram-text)")
-                    },
+                    detail: shape.detail(bounds, &style),
+                    header: header.map(|r| (Shape::Rectangle.outline(r), fill)),
+                    fill: body,
+                    stroke: paint(&style, "strokeColor", "var(--diagram-text)"),
                     stroke_width: style.number("strokeWidth").unwrap_or(1.0),
-                    label: label(&cell.label, style, shape.label_area(bounds, style)),
+                    rotation: style.number("rotation").unwrap_or(0.0),
+                    pivot: (bounds.center().x, bounds.center().y),
+                    label: label(&cell.label, &style, shape.label_area(bounds, &style)),
                 })
             }
             CellKind::Edge(_) => {
                 let Some(route) = model.route(id) else {
                     return CellDraw::Hidden;
                 };
-                let style = &cell.style;
-                let path = route
-                    .iter()
-                    .enumerate()
-                    .map(|(i, p)| format!("{}{} {}", if i == 0 { 'M' } else { 'L' }, p.x, p.y))
-                    .collect();
-                let at = model.point_along(id, 0.0).unwrap_or_default();
-                let label = label(
-                    &cell.label,
-                    style,
-                    Rect::new(at.x - 60.0, at.y - 10.0, 120.0, 20.0),
-                )
-                .map(|mut l| {
-                    let width = l.lines.iter().map(|t| t.chars().count()).max().unwrap_or(0) as f64
-                        * l.size
-                        * 0.55
-                        + 8.0;
-                    let height = l.lines.len() as f64 * l.size * LINE_HEIGHT + 2.0;
-                    l.backdrop = Some(Rect::new(
-                        at.x - width / 2.0,
-                        at.y - height / 2.0,
-                        width,
-                        height,
-                    ));
-                    l
-                });
+                let Some(shape) = edge_shape(&route, &style) else {
+                    return CellDraw::Hidden;
+                };
+                let at = model.edge_label_point(id).unwrap_or_default();
+                let backdrop = paint(&style, "labelBackgroundColor", "var(--sheet)");
+                // draw.io aligns an edge label around its label point, not inside a box.
+                let label =
+                    label(&cell.label, &style, Rect::new(at.x, at.y, 0.0, 0.0)).map(|mut l| {
+                        l.backdrop = (backdrop != "none").then(|| (l.text_box(), backdrop));
+                        l
+                    });
                 CellDraw::Edge(EdgeDraw {
-                    path,
-                    stroke: color(style, "strokeColor", "var(--diagram-text)"),
-                    stroke_width: style.number("strokeWidth").unwrap_or(1.0),
-                    dashed: style.flag("dashed"),
-                    arrow: style.get("endArrow") != Some("none"),
+                    line: shape.line,
+                    markers: shape.markers,
+                    stroke: paint(&style, "strokeColor", "var(--diagram-text)"),
+                    stroke_width: shape.stroke_width,
+                    dash: shape.dash,
                     label,
                 })
             }
@@ -134,6 +136,12 @@ impl CellDraw {
                     r#"<path d="{}" style="fill:{};stroke:{};stroke-width:{}"/>"#,
                     v.outline, v.fill, v.stroke, v.stroke_width
                 );
+                if let Some((d, fill)) = &v.header {
+                    out += &format!(
+                        r#"<path d="{d}" style="fill:{fill};stroke:{};stroke-width:{}"/>"#,
+                        v.stroke, v.stroke_width
+                    );
+                }
                 if let Some(d) = &v.detail {
                     out += &format!(
                         r#"<path class="detail" d="{d}" style="stroke:{};stroke-width:{}"/>"#,
@@ -143,23 +151,42 @@ impl CellDraw {
                 if let Some(l) = &v.label {
                     out += &l.markup();
                 }
+                // draw.io turns the shape and its label together around the center.
+                if v.rotation != 0.0 {
+                    out = format!(
+                        r#"<g transform="rotate({} {} {})">{out}</g>"#,
+                        v.rotation, v.pivot.0, v.pivot.1
+                    );
+                }
                 out
             }
             CellDraw::Edge(e) => {
-                let dash = if e.dashed {
-                    ";stroke-dasharray:6 4"
-                } else {
-                    ""
-                };
-                let marker = if e.arrow {
-                    r#" marker-end="url(#arrow)""#
-                } else {
-                    ""
-                };
+                let dash = e
+                    .dash
+                    .as_ref()
+                    .map(|d| format!(";stroke-dasharray:{d}"))
+                    .unwrap_or_default();
                 let mut out = format!(
-                    r#"<path class="hit" d="{0}"/><path class="edge" d="{0}"{marker} style="stroke:{1};stroke-width:{2}{dash}"/>"#,
-                    e.path, e.stroke, e.stroke_width
+                    r#"<path class="hit" d="{0}"/><path class="edge" d="{0}" style="stroke:{1};stroke-width:{2}{dash}"/>"#,
+                    e.line, e.stroke, e.stroke_width
                 );
+                for m in &e.markers {
+                    let fill = match m.fill {
+                        MarkerFill::None => "none",
+                        MarkerFill::Stroke => e.stroke.as_str(),
+                        MarkerFill::White => "#ffffff",
+                    };
+                    let style = format!(
+                        r#"style="fill:{fill};stroke:{};stroke-width:{}""#,
+                        e.stroke, e.stroke_width
+                    );
+                    out += &match &m.geometry {
+                        MarkerGeometry::Path(d) => format!(r#"<path d="{d}" {style}/>"#),
+                        MarkerGeometry::Ellipse { cx, cy, rx, ry } => {
+                            format!(r#"<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" {style}/>"#)
+                        }
+                    };
+                }
                 if let Some(l) = &e.label {
                     out += &l.markup();
                 }
@@ -170,11 +197,29 @@ impl CellDraw {
 }
 
 impl Label {
+    /// Returns an estimate of the box the text covers, padded by two units.
+    fn text_box(&self) -> Rect {
+        let longest = self
+            .lines
+            .iter()
+            .map(|t| t.chars().count())
+            .max()
+            .unwrap_or(0) as f64;
+        let width = longest * self.size * 0.55 + 4.0;
+        let height = self.lines.len() as f64 * self.size * LINE_HEIGHT;
+        let left = match self.anchor {
+            "start" => self.x - 2.0,
+            "end" => self.x - width + 2.0,
+            _ => self.x - width / 2.0,
+        };
+        Rect::new(left, self.y - self.size * LINE_HEIGHT / 2.0, width, height)
+    }
+
     fn markup(&self) -> String {
         let mut out = String::new();
-        if let Some(r) = self.backdrop {
+        if let Some((r, color)) = &self.backdrop {
             out += &format!(
-                r#"<rect x="{}" y="{}" width="{}" height="{}" style="fill:var(--sheet)"/>"#,
+                r#"<rect x="{}" y="{}" width="{}" height="{}" style="fill:{color}"/>"#,
                 r.x, r.y, r.width, r.height
             );
         }
@@ -202,11 +247,13 @@ pub fn escape(text: &str) -> String {
         .replace('"', "&quot;")
 }
 
-/// Returns a style color as CSS. draw.io's `light-dark(a,b)` pairs are valid CSS as is,
-/// and `default` or a missing key falls back to a theme-aware variable.
-fn color(style: &Style, key: &str, fallback: &str) -> String {
+/// Returns a color from an effective style as CSS. A missing color means draw.io paints
+/// nothing, `default` means the theme's color, and `light-dark(a,b)` pairs are valid CSS
+/// as they are.
+fn paint(style: &Style, key: &str, theme: &str) -> String {
     match style.get(key) {
-        None | Some("default") => fallback.to_owned(),
+        None => "none".to_owned(),
+        Some("default") => theme.to_owned(),
         Some(c) => c.to_owned(),
     }
 }
@@ -245,7 +292,7 @@ fn label(text: &str, style: &Style, area: Rect) -> Option<Label> {
         x,
         y,
         anchor,
-        color: color(style, "fontColor", "var(--diagram-text)"),
+        color: paint(style, "fontColor", "var(--diagram-text)"),
         size,
         bold: style.number("fontStyle").is_some_and(|s| s as i64 & 1 == 1),
         backdrop: None,

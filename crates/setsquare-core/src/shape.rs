@@ -27,15 +27,19 @@ pub enum Shape {
     Actor,
     Process,
     Swimlane,
-    /// Text with no outline.
-    Text,
+    /// A line through the middle of the bounds, as in UML class dividers.
+    Line,
+    /// A line shape turned upright by `direction=north` or `south`, as in activity bars.
+    VerticalLine,
 }
 
 impl Shape {
-    /// Returns the shape that `style` asks for, using draw.io's style keys.
+    /// Returns the shape an effective style asks for. Pass the style from
+    /// [`Model::style`](crate::Model::style), where named styles such as `ellipse` have
+    /// already set the `shape` key.
     pub fn of(style: &Style) -> Shape {
         let sideways = matches!(style.get("direction"), Some("north" | "south"));
-        let named = |name: &str| match name {
+        let shape = style.get("shape").and_then(|name| match name {
             "ellipse" => Some(Shape::Ellipse),
             "rhombus" => Some(Shape::Rhombus),
             "triangle" => Some(Shape::Triangle),
@@ -49,23 +53,17 @@ impl Shape {
             "note" => Some(Shape::Note),
             "cloud" => Some(Shape::Cloud),
             "umlActor" => Some(Shape::Actor),
+            "startState" | "endState" => Some(Shape::Ellipse),
+            "line" if sideways => Some(Shape::VerticalLine),
+            "line" => Some(Shape::Line),
             "process" => Some(Shape::Process),
             "swimlane" => Some(Shape::Swimlane),
-            "text" => Some(Shape::Text),
             _ => None,
-        };
-        if let Some(shape) = style.get("shape").and_then(named) {
-            return shape;
-        }
-        for name in ["swimlane", "text", "ellipse", "rhombus", "triangle"] {
-            if style.has_name(name) {
-                return named(name).unwrap_or(Shape::Rectangle);
-            }
-        }
-        if style.flag("rounded") {
-            Shape::RoundedRectangle
-        } else {
-            Shape::Rectangle
+        });
+        match shape {
+            Some(shape) => shape,
+            None if style.flag("rounded") => Shape::RoundedRectangle,
+            None => Shape::Rectangle,
         }
     }
 
@@ -79,11 +77,20 @@ impl Shape {
         } = r;
         let p = |u: f64, v: f64| format!("{} {}", x + u * w, y + v * h);
         match self {
-            Shape::Rectangle | Shape::Process | Shape::Text => {
+            Shape::Rectangle | Shape::Process => {
                 format!("M{x} {y}H{}V{}H{x}Z", x + w, y + h)
             }
             Shape::RoundedRectangle => rounded(r, 10.0_f64.min(w / 4.0).min(h / 4.0)),
-            Shape::Swimlane => rounded(r, 4.0_f64.min(w / 4.0).min(h / 4.0)),
+            Shape::Swimlane => format!("M{x} {y}H{}V{}H{x}Z", x + w, y + h),
+            Shape::Line => format!("M{x} {}H{}", y + h / 2.0, x + w),
+            // draw.io turns the shape a quarter around its center, so the line keeps the
+            // length of the bounds' width.
+            Shape::VerticalLine => format!(
+                "M{} {}V{}",
+                x + w / 2.0,
+                y + h / 2.0 - w / 2.0,
+                y + h / 2.0 + w / 2.0
+            ),
             Shape::Ellipse => ellipse(r),
             Shape::Rhombus => format!(
                 "M{}L{}L{}L{}Z",
@@ -238,14 +245,29 @@ impl Shape {
                     y + h
                 ))
             }
-            Shape::Swimlane => Some(format!("M{x} {}H{}", y + header(style), x + w)),
+            Shape::Swimlane if horizontal(style) => {
+                Some(format!("M{x} {}H{}", y + header(style), x + w))
+            }
+            Shape::Swimlane => Some(format!("M{} {y}V{}", x + header(style), y + h)),
             _ => None,
         }
     }
 
     /// Reports whether the shape is drawn with strokes only.
     pub fn is_open(self) -> bool {
-        matches!(self, Shape::Actor | Shape::Text)
+        matches!(self, Shape::Actor | Shape::Line | Shape::VerticalLine)
+    }
+
+    /// Returns a container's header, which draw.io fills with `fillColor` while the body
+    /// takes `swimlaneFillColor`.
+    pub fn header(self, r: Rect, style: &Style) -> Option<Rect> {
+        match self {
+            Shape::Swimlane if horizontal(style) => {
+                Some(Rect::new(r.x, r.y, r.width, header(style).min(r.height)))
+            }
+            Shape::Swimlane => Some(Rect::new(r.x, r.y, header(style).min(r.width), r.height)),
+            _ => None,
+        }
     }
 
     /// Returns the box the label is laid out in, following draw.io's label position keys.
@@ -264,7 +286,7 @@ impl Shape {
         }
         match self {
             Shape::Actor => Rect::new(r.x - r.width, r.bottom(), r.width * 3.0, 20.0),
-            Shape::Swimlane => Rect::new(r.x, r.y, r.width, header(style)),
+            Shape::Swimlane => self.header(r, style).unwrap_or(r),
             Shape::Document => Rect::new(
                 r.x,
                 r.y,
@@ -276,9 +298,15 @@ impl Shape {
     }
 }
 
-/// Returns a swimlane's header height from `startSize`, defaulting to draw.io's 23.
+/// Returns a swimlane's header size from `startSize`, defaulting to draw.io's 23.
 fn header(style: &Style) -> f64 {
     style.number("startSize").unwrap_or(23.0)
+}
+
+/// Reports whether a swimlane's header runs across the top. `horizontal=0` puts it on the
+/// left.
+fn horizontal(style: &Style) -> bool {
+    style.get("horizontal") != Some("0")
 }
 
 fn rounded(r: Rect, k: f64) -> String {
@@ -316,6 +344,7 @@ fn ellipse(r: Rect) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::stylesheet::Stylesheet;
 
     #[test]
     fn of_reads_draw_io_styles() {
@@ -345,6 +374,26 @@ mod tests {
             ),
             ("container", "swimlane;startSize=30;", Shape::Swimlane),
             (
+                "text is a rectangle without paint",
+                "text;html=1;",
+                Shape::Rectangle,
+            ),
+            (
+                "class divider",
+                "line;strokeWidth=1;fillColor=none;",
+                Shape::Line,
+            ),
+            (
+                "activity bar",
+                "line;html=1;strokeWidth=6;direction=south;",
+                Shape::VerticalLine,
+            ),
+            (
+                "start node",
+                "ellipse;html=1;shape=startState;",
+                Shape::Ellipse,
+            ),
+            (
                 "actor",
                 "shape=umlActor;verticalLabelPosition=bottom;",
                 Shape::Actor,
@@ -356,7 +405,8 @@ mod tests {
             ),
         ];
         for (name, style, want) in tests {
-            assert_eq!(Shape::of(&Style::parse(style)), want, "{name}");
+            let resolved = Stylesheet::drawio().resolve(&Style::parse(style), false);
+            assert_eq!(Shape::of(&resolved), want, "{name}");
         }
     }
 
@@ -406,5 +456,32 @@ mod tests {
             &Style::parse("swimlane;startSize=30;"),
         );
         assert_eq!(header.height, 30.0);
+    }
+
+    #[test]
+    fn swimlane_header_follows_orientation() {
+        let r = Rect::new(0.0, 0.0, 200.0, 300.0);
+        let tests = [
+            (
+                "across the top",
+                "swimlane;startSize=30;",
+                Rect::new(0.0, 0.0, 200.0, 30.0),
+            ),
+            (
+                "down the left",
+                "swimlane;startSize=40;horizontal=0;",
+                Rect::new(0.0, 0.0, 40.0, 300.0),
+            ),
+            (
+                "draw.io default size",
+                "swimlane;",
+                Rect::new(0.0, 0.0, 200.0, 23.0),
+            ),
+        ];
+        for (name, style, want) in tests {
+            let style = Stylesheet::drawio().resolve(&Style::parse(style), false);
+            assert_eq!(Shape::Swimlane.header(r, &style), Some(want), "{name}");
+        }
+        assert_eq!(Shape::Rectangle.header(r, &Style::default()), None);
     }
 }

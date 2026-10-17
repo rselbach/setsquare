@@ -1,7 +1,7 @@
 //! The shape library. Tiles draw with the same outlines as the canvas.
 
 use leptos::prelude::*;
-use setsquare_core::{Rect, Shape, Size, Style};
+use setsquare_core::{Rect, Shape, Size, Style, Stylesheet};
 
 use crate::canvas::{ViewState, insert_vertex};
 use crate::doc::DocState;
@@ -106,14 +106,15 @@ const GENERAL: [Tile; 18] = [
 ];
 
 fn tile_art(tile: &Tile) -> String {
-    let style = Style::parse(tile.style);
+    let own = Style::parse(tile.style);
+    if own.has_name("text") {
+        return r#"<path d="M8 8h14M15 8v14M12.5 22h5"/>"#.to_owned();
+    }
+    let style = Stylesheet::drawio().resolve(&own, false);
     let shape = Shape::of(&style);
     let (w, h) = tile.size;
     let k = 24.0 / w.max(h);
     let r = Rect::new(15.0 - w * k / 2.0, 15.0 - h * k / 2.0, w * k, h * k);
-    if shape == Shape::Text {
-        return r#"<path d="M8 8h14M15 8v14M12.5 22h5"/>"#.to_owned();
-    }
     // Scale a container's header with the tile so it stays visible.
     let style = style
         .get("startSize")

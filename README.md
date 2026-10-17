@@ -2,7 +2,7 @@
 
 Setsquare is a diagram editor written in Rust. It aims for full feature parity with [draw.io](https://github.com/jgraph/drawio) under its own interface, and it runs in the browser first.
 
-The project is at an early milestone. The web app opens and saves `.drawio` files, including compressed pages and files with several pages. You can select, drag with snapping, restyle, resize from the inspector, add shapes from the library, and undo. Connectors still use simple routing, so files with waypoints or draw.io's edge styles draw their connectors as straight segments.
+The project is at an early milestone. The web app opens and saves `.drawio` files, including compressed pages and files with several pages. Connectors route, connect, and draw their arrowheads the way draw.io does: tests compare 839 connectors against draw.io's own output. You can select, drag with snapping, restyle, resize from the inspector, add shapes from the library, and undo. Many of draw.io's shape types still draw as rectangles.
 
 ## Repository layout
 
@@ -10,6 +10,7 @@ The project is at an early milestone. The web app opens and saves `.drawio` file
 - `crates/setsquare-web` holds the web app, built with [Leptos](https://leptos.dev) and compiled to WebAssembly.
 - `design/` holds the interface design: its rationale, the design tokens, and an interactive HTML mockup.
 - `docs/parity/drawio-inventory.md` lists draw.io's features with source citations. It is the checklist for parity.
+- `tools/drawio-oracle` records how draw.io routes and paints connectors, for the tests to compare against.
 
 ## Build and run
 

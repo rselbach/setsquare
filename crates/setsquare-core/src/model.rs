@@ -61,16 +61,34 @@ pub struct Vertex {
 }
 
 /// The waypoints and label placement of an edge. Points are in the parent's space.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct EdgeGeometry {
     pub points: Vec<Point>,
     /// The loose end used when the edge has no source cell.
     pub source_point: Option<Point>,
     /// The loose end used when the edge has no target cell.
     pub target_point: Option<Point>,
-    /// The label position: `x` runs from -1 at the source to 1 at the target.
+    /// The label position: `x` runs from -1 at the source to 1 at the target, and `y` moves
+    /// the label away from the line. Only relative geometry uses it.
     pub label_position: Point,
     pub label_offset: Point,
+    /// draw.io's `relative` flag. Old files have edges without it; their labels sit halfway
+    /// between the two ends, shifted by the offset, and `label_position` is ignored.
+    pub relative: bool,
+}
+
+impl Default for EdgeGeometry {
+    /// Returns relative geometry with no points, as draw.io creates for new edges.
+    fn default() -> Self {
+        EdgeGeometry {
+            points: Vec::new(),
+            source_point: None,
+            target_point: None,
+            label_position: Point::default(),
+            label_offset: Point::default(),
+            relative: true,
+        }
+    }
 }
 
 /// A connector between two cells or loose points.
@@ -300,14 +318,15 @@ impl Model {
             return None;
         };
         let parent = self.cells.get(&v.parent)?;
+        // Matches mxGraphView.updateCellState: a relative child's top-left corner sits on its
+        // anchor, and an absolute child of an edge uses the edge's own origin.
         match (&v.geometry, &parent.kind) {
             (VertexGeometry::Bounds(r), CellKind::Layer) => Some(*r),
             (VertexGeometry::Bounds(r), CellKind::Vertex(_)) => {
                 Some(r.translate(self.bounds(&v.parent)?.origin()))
             }
-            (VertexGeometry::Bounds(r), CellKind::Edge(_)) => {
-                let at = self.point_along(&v.parent, 0.0)?;
-                Some(r.translate(at))
+            (VertexGeometry::Bounds(r), CellKind::Edge(e)) => {
+                Some(r.translate(self.origin_of(&e.parent)))
             }
             (
                 VertexGeometry::Relative {
@@ -320,12 +339,7 @@ impl Model {
                 let p = self.bounds(&v.parent)?;
                 let x = p.x + anchor.x * p.width + offset.x;
                 let y = p.y + anchor.y * p.height + offset.y;
-                Some(Rect::new(
-                    x - size.width / 2.0,
-                    y - size.height / 2.0,
-                    size.width,
-                    size.height,
-                ))
+                Some(Rect::new(x, y, size.width, size.height))
             }
             (
                 VertexGeometry::Relative {
@@ -335,13 +349,8 @@ impl Model {
                 },
                 CellKind::Edge(_),
             ) => {
-                let at = self.point_along(&v.parent, anchor.x)? + *offset;
-                Some(Rect::new(
-                    at.x - size.width / 2.0,
-                    at.y - size.height / 2.0,
-                    size.width,
-                    size.height,
-                ))
+                let at = self.label_point(&v.parent, *anchor, *offset)?;
+                Some(Rect::new(at.x, at.y, size.width, size.height))
             }
             (_, CellKind::Layer) => None,
         }
@@ -366,26 +375,60 @@ impl Model {
         Some(Stylesheet::drawio().resolve(&cell.style, matches!(cell.kind, CellKind::Edge(_))))
     }
 
-    /// Returns the point at `t` along an edge, where -1 is the source end and 1 is the target end.
-    pub fn point_along(&self, edge: &CellId, t: f64) -> Option<Point> {
+    /// Returns the point on an edge where draw.io places a label, as `mxGraphView.getPoint`
+    /// computes it. `position.x` runs from -1 at the source to 1 at the target,
+    /// `position.y` moves the point away from the segment it lands on, and `offset` shifts
+    /// it in page units.
+    pub fn label_point(&self, edge: &CellId, position: Point, offset: Point) -> Option<Point> {
         let route = self.route(edge)?;
-        let lengths: Vec<f64> = route
+        let segments: Vec<f64> = route
             .windows(2)
             .map(|w| (w[1].x - w[0].x).hypot(w[1].y - w[0].y))
             .collect();
-        let total: f64 = lengths.iter().sum();
-        let mut remaining = total * (t.clamp(-1.0, 1.0) + 1.0) / 2.0;
-        for (segment, len) in route.windows(2).zip(&lengths) {
-            if remaining <= *len && *len > 0.0 {
-                let k = remaining / len;
-                return Some(Point::new(
-                    segment[0].x + (segment[1].x - segment[0].x) * k,
-                    segment[0].y + (segment[1].y - segment[0].y) * k,
-                ));
-            }
-            remaining -= len;
+        let Some(&first) = segments.first() else {
+            return route.first().map(|p| *p + offset);
+        };
+        let total: f64 = segments.iter().sum();
+        let dist = ((position.x / 2.0 + 0.5) * total).round();
+        let (mut length, mut segment, mut index) = (0.0, first, 1);
+        while dist >= (length + segment).round() && index < route.len() - 1 {
+            length += segment;
+            segment = segments[index];
+            index += 1;
         }
-        route.last().copied()
+        let factor = if segment == 0.0 {
+            0.0
+        } else {
+            (dist - length) / segment
+        };
+        let (p0, pe) = (route[index - 1], route[index]);
+        let (dx, dy) = (pe.x - p0.x, pe.y - p0.y);
+        let (nx, ny) = if segment == 0.0 {
+            (0.0, 0.0)
+        } else {
+            (dy / segment, dx / segment)
+        };
+        Some(Point::new(
+            p0.x + dx * factor + nx * position.y + offset.x,
+            p0.y + dy * factor - (ny * position.y - offset.y),
+        ))
+    }
+
+    /// Returns where an edge's own label sits, from its label position and offset.
+    pub fn edge_label_point(&self, edge: &CellId) -> Option<Point> {
+        let CellKind::Edge(e) = &self.cells.get(edge)?.kind else {
+            return None;
+        };
+        let g = &e.geometry;
+        if g.relative {
+            return self.label_point(edge, g.label_position, g.label_offset);
+        }
+        let route = self.route(edge)?;
+        let (p0, pe) = (route.first()?, route.last()?);
+        Some(Point::new(
+            (p0.x + pe.x) / 2.0 + g.label_offset.x,
+            (p0.y + pe.y) / 2.0 + g.label_offset.y,
+        ))
     }
 
     /// Returns `ids` and all their descendants.

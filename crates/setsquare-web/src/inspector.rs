@@ -28,7 +28,7 @@ fn shape_name(shape: Shape) -> &'static str {
         Shape::Actor => "Actor",
         Shape::Process => "Predefined process",
         Shape::Swimlane => "Container",
-        Shape::Text => "Text",
+        Shape::Line | Shape::VerticalLine => "Line",
     }
 }
 
@@ -114,13 +114,12 @@ fn Selected(id: CellId) -> impl IntoView {
                 .unwrap_or_default()
         }
     };
-    let kind = doc.read(
-        |m| match m.cell(&id).map(|c| (&c.kind, Shape::of(&c.style))) {
-            Some((CellKind::Edge(_), _)) => "Connector",
-            Some((_, shape)) => shape_name(shape),
-            None => "",
-        },
-    );
+    let kind = doc.read(|m| match (m.cell(&id), m.style(&id)) {
+        (Some(c), _) if matches!(c.kind, CellKind::Edge(_)) => "Connector",
+        (Some(c), _) if c.style.has_name("text") => "Text",
+        (Some(_), Some(style)) => shape_name(Shape::of(&style)),
+        _ => "",
+    });
     let is_vertex = doc.read(|m| matches!(m.cell(&id).map(|c| &c.kind), Some(CellKind::Vertex(_))));
 
     let swatches = SWATCHES

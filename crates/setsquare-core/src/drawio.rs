@@ -501,6 +501,7 @@ fn edge_geometry(g: &Element) -> EdgeGeometry {
             .child_as("mxPoint", "offset")
             .map(point)
             .unwrap_or_default(),
+        relative: g.attr("relative") == Some("1"),
     }
 }
 
@@ -705,7 +706,10 @@ fn write_vertex_geometry(out: &mut String, v: &Vertex) {
 fn write_edge_geometry(out: &mut String, g: &EdgeGeometry) {
     out.push_str("<mxGeometry");
     xy(out, g.label_position);
-    out.push_str(r#" relative="1" as="geometry">"#);
+    if g.relative {
+        out.push_str(r#" relative="1""#);
+    }
+    out.push_str(r#" as="geometry">"#);
     if let Some(p) = g.source_point {
         mx_point(out, p, Some("sourcePoint"));
     }

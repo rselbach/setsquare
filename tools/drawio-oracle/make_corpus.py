@@ -23,8 +23,18 @@ class Page:
             f'<mxGeometry x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}" as="geometry"/></mxCell>'
         )
 
-    def edge(self, cid, style, source=None, target=None, source_point=None, target_point=None, points=()):
-        attrs = f'id="{cid}" style={quoteattr(style)} edge="1" parent="1"'
+    def child(self, cid, style, parent, x, y, w, h, value="", relative=False, offset=None):
+        """Adds a vertex inside another cell, optionally with relative geometry."""
+        rel = ' relative="1"' if relative else ""
+        inner = f'<mxPoint x="{offset[0]:g}" y="{offset[1]:g}" as="offset"/>' if offset else ""
+        self.cells.append(
+            f'<mxCell id="{cid}" value={quoteattr(value)} style={quoteattr(style)} vertex="1" connectable="0" parent="{parent}">'
+            f'<mxGeometry x="{x:g}" y="{y:g}" width="{w:g}" height="{h:g}"{rel} as="geometry">{inner}</mxGeometry></mxCell>'
+        )
+
+    def edge(self, cid, style, source=None, target=None, source_point=None, target_point=None, points=(),
+             value="", label=(0, 0), label_offset=None, parent="1"):
+        attrs = f'id="{cid}" value={quoteattr(value)} style={quoteattr(style)} edge="1" parent="{parent}"'
         if source:
             attrs += f' source="{source}"'
         if target:
@@ -36,7 +46,10 @@ class Page:
             inner += f'<mxPoint x="{target_point[0]:g}" y="{target_point[1]:g}" as="targetPoint"/>'
         if points:
             inner += '<Array as="points">' + "".join(f'<mxPoint x="{x:g}" y="{y:g}"/>' for x, y in points) + "</Array>"
-        self.cells.append(f'<mxCell {attrs}><mxGeometry relative="1" as="geometry">{inner}</mxGeometry></mxCell>')
+        if label_offset:
+            inner += f'<mxPoint x="{label_offset[0]:g}" y="{label_offset[1]:g}" as="offset"/>'
+        geo = f'x="{label[0]:g}" y="{label[1]:g}" ' if label != (0, 0) else ""
+        self.cells.append(f'<mxCell {attrs}><mxGeometry {geo}relative="1" as="geometry">{inner}</mxGeometry></mxCell>')
 
     def xml(self, index):
         root = '<mxCell id="0"/><mxCell id="1" parent="0"/>' + "".join(self.cells)
@@ -208,13 +221,50 @@ def markers():
     return page
 
 
+def labels():
+    page = Page("Labels")
+    positions = [(-1, 0), (-0.5, 0), (0, 0), (0.5, 0), (1, 0), (0, 15), (0, -20), (-0.6, 12)]
+    for row, style in enumerate(["endArrow=classic;html=1;", "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;"]):
+        for col, (x, y) in enumerate(positions):
+            ox, oy = 100 + col * 320, 100 + row * 320
+            s, t = f"lab-{row}-{col}-s", f"lab-{row}-{col}-t"
+            page.vertex(s, "rounded=0;" + TEXT, ox, oy, 80, 40)
+            page.vertex(t, "rounded=0;" + TEXT, ox + 180, oy + 140, 80, 40)
+            offset = (6, -4) if col % 3 == 2 else None
+            page.edge(f"lab-{row}-{col}", style, source=s, target=t, value="label", label=(x, y), label_offset=offset)
+    oy = 760
+    page.vertex("el-s", "rounded=0;" + TEXT, 100, oy, 80, 40)
+    page.vertex("el-t", "rounded=0;" + TEXT, 500, oy + 160, 80, 40)
+    page.edge("el", "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;", source="el-s", target="el-t")
+    for i, (x, y, off) in enumerate([(-0.4, 12, (5, -3)), (0.2, 0, None), (0.8, -15, (0, 8))]):
+        page.child(f"el-label-{i}", "edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];", "el",
+                   x, y, 0, 0, value=f"part {i}", relative=True, offset=off)
+    page.child("el-sized", "ellipse;" + TEXT, "el", -0.1, 0, 20, 20, relative=True, offset=(-10, -10))
+    page.child("el-absolute", "rounded=0;" + TEXT, "el", 30, 40, 50, 30)
+    page.vertex("host", "rounded=0;" + TEXT, 800, oy, 160, 100)
+    page.child("port-e", "ellipse;" + TEXT, "host", 1, 0.5, 20, 20, relative=True, offset=(-10, -10))
+    page.child("port-n", "ellipse;" + TEXT, "host", 0.25, 0, 16, 16, relative=True, offset=(-8, -8))
+    page.child("port-plain", "ellipse;" + TEXT, "host", 0, 1, 12, 12, relative=True)
+    page.vertex("port-target", "rounded=0;" + TEXT, 1100, oy + 200, 100, 60)
+    page.edge("to-port-e", "endArrow=classic;html=1;", source="port-e", target="port-target")
+    page.edge("to-port-n", "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;", source="port-n", target="port-target")
+    page.vertex("outer", "swimlane;startSize=30;html=1;", 100, 1100, 500, 360, value="Outer")
+    page.child("inner", "swimlane;startSize=24;html=1;", "outer", 40, 60, 260, 200, value="Inner")
+    page.child("deep", "rounded=0;" + TEXT, "inner", 30, 60, 100, 50, value="Deep")
+    page.child("shallow", "rounded=0;" + TEXT, "outer", 360, 260, 100, 50, value="Shallow")
+    page.edge("nested", "edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;", source="deep", target="shallow", value="nested")
+    page.edge("inside", "endArrow=classic;html=1;", source="deep", target="shallow", parent="outer", value="inside")
+    return page
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     write("perimeters", [perimeters()])
     write("styles", [styles()])
     write("constraints", [constraints()])
     write("markers", [markers()])
-    print(f"wrote 4 drawings to {OUT}", file=sys.stderr)
+    write("labels", [labels()])
+    print(f"wrote 5 drawings to {OUT}", file=sys.stderr)
 
 
 if __name__ == "__main__":
