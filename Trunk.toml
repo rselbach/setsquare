@@ -1,0 +1,10 @@
+# Lets `trunk serve` and `trunk build` run from the repository root.
+
+[build]
+target = "crates/setsquare-web/index.html"
+dist = "crates/setsquare-web/dist"
+
+[watch]
+# Rebuild when either crate changes, not only the web app.
+watch = ["crates"]
+ignore = ["crates/setsquare-web/dist"]

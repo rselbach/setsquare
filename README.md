@@ -20,7 +20,7 @@ cargo install trunk --locked
 just dev
 ```
 
-`just dev` serves the app at `http://127.0.0.1:8080` and rebuilds on every change. Run `just` to list the other tasks:
+`just dev` runs `trunk serve` from the repository root. It serves the app at `http://127.0.0.1:8080` and rebuilds when either crate changes. Run `just` to list the other tasks:
 
 | Task | What it does |
 | --- | --- |

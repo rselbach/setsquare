@@ -5,11 +5,11 @@ default:
 
 # Serve the web app with live reload at http://127.0.0.1:8080
 dev:
-    cd crates/setsquare-web && trunk serve
+    trunk serve
 
 # Build the web app for release into crates/setsquare-web/dist
 build:
-    cd crates/setsquare-web && trunk build --release
+    trunk build --release
 
 # Run the core tests
 test:
