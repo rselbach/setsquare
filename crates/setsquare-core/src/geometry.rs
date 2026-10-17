@@ -212,39 +212,6 @@ pub fn snap(moving: Rect, others: &[Rect], threshold: f64, grid: f64) -> Snap {
     Snap { rect, guides }
 }
 
-/// Routes an orthogonal connector between two terminal rectangles with at most two bends.
-/// The connector leaves and enters through the sides that face each other.
-pub fn route_orthogonal(source: Rect, target: Rect) -> Vec<Point> {
-    let (a, b) = (source.center(), target.center());
-    let (dx, dy) = (b.x - a.x, b.y - a.y);
-    if dx.abs() >= dy.abs() {
-        let sx = if dx > 0.0 { source.right() } else { source.x };
-        let tx = if dx > 0.0 { target.x } else { target.right() };
-        if (a.y - b.y).abs() < 1e-6 {
-            return vec![Point::new(sx, a.y), Point::new(tx, b.y)];
-        }
-        let mx = (sx + tx) / 2.0;
-        return vec![
-            Point::new(sx, a.y),
-            Point::new(mx, a.y),
-            Point::new(mx, b.y),
-            Point::new(tx, b.y),
-        ];
-    }
-    let sy = if dy > 0.0 { source.bottom() } else { source.y };
-    let ty = if dy > 0.0 { target.y } else { target.bottom() };
-    if (a.x - b.x).abs() < 1e-6 {
-        return vec![Point::new(a.x, sy), Point::new(b.x, ty)];
-    }
-    let my = (sy + ty) / 2.0;
-    vec![
-        Point::new(a.x, sy),
-        Point::new(a.x, my),
-        Point::new(b.x, my),
-        Point::new(b.x, ty),
-    ]
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -283,35 +250,5 @@ mod tests {
     fn snap_without_grid_keeps_free_position() {
         let got = snap(Rect::new(3.0, 7.0, 10.0, 10.0), &[], 6.0, 0.0);
         assert_eq!(got.rect, Rect::new(3.0, 7.0, 10.0, 10.0));
-    }
-
-    #[test]
-    fn route_orthogonal_bends_only_when_misaligned() {
-        let a = Rect::new(0.0, 0.0, 100.0, 40.0);
-        let tests = [
-            (
-                "same row",
-                Rect::new(200.0, 0.0, 100.0, 40.0),
-                vec![Point::new(100.0, 20.0), Point::new(200.0, 20.0)],
-            ),
-            (
-                "offset row",
-                Rect::new(200.0, 60.0, 100.0, 40.0),
-                vec![
-                    Point::new(100.0, 20.0),
-                    Point::new(150.0, 20.0),
-                    Point::new(150.0, 80.0),
-                    Point::new(200.0, 80.0),
-                ],
-            ),
-            (
-                "below",
-                Rect::new(0.0, 100.0, 100.0, 40.0),
-                vec![Point::new(50.0, 40.0), Point::new(50.0, 100.0)],
-            ),
-        ];
-        for (name, b, want) in tests {
-            assert_eq!(route_orthogonal(a, b), want, "{name}");
-        }
     }
 }

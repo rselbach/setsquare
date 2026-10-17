@@ -643,8 +643,13 @@ mod tests {
     fn route_connects_facing_sides() {
         let m = sample();
         let route = m.route(&CellId::new("e")).expect("route");
-        assert_eq!(route.first(), Some(&Point::new(160.0, 140.0)));
-        assert_eq!(route.last(), Some(&Point::new(500.0, 135.0)));
+        // Floating ends sit where the line between the two centers crosses each side.
+        let want = [Point::new(160.0, 139.684), Point::new(500.0, 135.380)];
+        assert_eq!(route.len(), want.len(), "{route:?}");
+        for (got, want) in route.iter().zip(want) {
+            let close = (got.x - want.x).abs() < 1e-3 && (got.y - want.y).abs() < 1e-3;
+            assert!(close, "got {got:?}, want {want:?}");
+        }
     }
 
     #[test]

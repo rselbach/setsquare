@@ -15,6 +15,9 @@ A copy of the license is in [`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt)
 | `crates/setsquare-core/src/edge_shape/marker.rs` | `src/main/webapp/mxgraph/src/shape/mxMarker.js` | Translated to Rust: every built-in marker |
 | `crates/setsquare-core/src/edge_shape/marker.rs` | `src/main/webapp/js/grapheditor/Shapes.js` | Translated to Rust: the markers draw.io adds to `mxMarker` |
 | `crates/setsquare-core/src/edge_shape/marker.rs` | `src/main/webapp/shapes/er/mxER.js` | Translated to Rust: the ER markers |
+| `crates/setsquare-core/src/routing/mod.rs` | `src/main/webapp/mxgraph/src/view/mxGraphView.js`, `src/main/webapp/mxgraph/src/view/mxGraph.js`, `src/main/webapp/mxgraph/src/view/mxCellState.js`, `src/main/webapp/mxgraph/src/util/mxUtils.js`, `src/main/webapp/js/grapheditor/Graph.js` | Translated to Rust: the connector routing pipeline only |
+| `crates/setsquare-core/src/routing/perimeter.rs` | `src/main/webapp/mxgraph/src/view/mxPerimeter.js`, `src/main/webapp/js/grapheditor/Shapes.js`, `src/main/webapp/mxgraph/src/util/mxUtils.js` | Translated to Rust: the perimeters only |
+| `crates/setsquare-core/src/routing/edge_style.rs` | `src/main/webapp/mxgraph/src/view/mxEdgeStyle.js`, `src/main/webapp/js/grapheditor/Shapes.js`, `src/main/webapp/mxgraph/src/util/mxUtils.js` | Translated to Rust: the edge styles only |
 
 Test fixtures in `crates/setsquare-core/tests/fixtures/templates` are draw.io templates
 licensed under CC BY 4.0. Their README lists the sources.

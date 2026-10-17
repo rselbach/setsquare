@@ -218,31 +218,26 @@ fn check_paint(name: &str) {
 }
 
 #[test]
-#[ignore = "routing port in progress"]
 fn routes_match_drawio_on_perimeters() {
     check_routes("routing/perimeters");
 }
 
 #[test]
-#[ignore = "routing port in progress"]
 fn routes_match_drawio_on_constraints() {
     check_routes("routing/constraints");
 }
 
 #[test]
-#[ignore = "routing port in progress"]
 fn routes_match_drawio_on_edge_styles() {
     check_routes("routing/styles");
 }
 
 #[test]
-#[ignore = "routing port in progress"]
 fn routes_match_drawio_on_markers_page() {
     check_routes("routing/markers");
 }
 
 #[test]
-#[ignore = "routing port in progress"]
 fn routes_match_drawio_on_templates() {
     for name in [
         "activity_diagram_1",
