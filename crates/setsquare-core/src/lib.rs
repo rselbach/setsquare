@@ -15,7 +15,7 @@ pub mod style;
 pub mod stylesheet;
 
 pub use change::{Applied, Change, History};
-pub use edge_shape::{EdgeShape, MarkerGeometry, MarkerPaint, edge_shape};
+pub use edge_shape::{EdgeShape, MarkerFill, MarkerGeometry, MarkerPaint, edge_shape};
 pub use geometry::{Guide, Point, Rect, Size, Snap};
 pub use model::{
     Cell, CellId, CellKind, Document, Edge, EdgeGeometry, Model, ModelError, Page, PageSettings,

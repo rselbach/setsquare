@@ -9,7 +9,7 @@ use std::fmt::Write;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use setsquare_core::{CellId, Document, MarkerGeometry, Point, drawio, edge_shape};
+use setsquare_core::{CellId, Document, MarkerFill, MarkerGeometry, Point, drawio, edge_shape};
 
 /// draw.io prints path numbers with at most two decimals.
 const PATH_TOLERANCE: f64 = 0.02;
@@ -157,24 +157,23 @@ fn check_paint(name: &str) {
         };
         let model = &oracle.doc.pages()[want.page].model;
         let style = model.style(&CellId::new(&want.edge)).expect("edge style");
-        let shape = edge_shape(&points, &style);
-        let mut got = vec![(shape.line.clone(), "none".to_owned(), shape.dash.clone())];
-        for m in &shape.markers {
-            let geometry = match &m.geometry {
-                MarkerGeometry::Path(d) => d.clone(),
-                MarkerGeometry::Ellipse { cx, cy, rx, ry } => {
-                    format!("ellipse {cx} {cy} {rx} {ry}")
-                }
-            };
-            got.push((
-                geometry,
-                if m.filled {
-                    "filled".into()
-                } else {
-                    "none".into()
-                },
-                None,
-            ));
+        let mut got = Vec::new();
+        if let Some(shape) = edge_shape(&points, &style) {
+            got.push((shape.line.clone(), "none".to_owned(), shape.dash.clone()));
+            for m in &shape.markers {
+                let geometry = match &m.geometry {
+                    MarkerGeometry::Path(d) => d.clone(),
+                    MarkerGeometry::Ellipse { cx, cy, rx, ry } => {
+                        format!("ellipse {cx} {cy} {rx} {ry}")
+                    }
+                };
+                let fill = match m.fill {
+                    MarkerFill::None => "none",
+                    MarkerFill::Stroke => "filled",
+                    MarkerFill::White => "#ffffff",
+                };
+                got.push((geometry, fill.to_owned(), None));
+            }
         }
         let painted: Vec<&Painted> = oracle
             .paths
@@ -250,13 +249,11 @@ fn routes_match_drawio_on_templates() {
 }
 
 #[test]
-#[ignore = "edge painting port in progress"]
 fn paint_matches_drawio_on_markers() {
     check_paint("routing/markers");
 }
 
 #[test]
-#[ignore = "edge painting port in progress"]
 fn paint_matches_drawio_everywhere_else() {
     for name in [
         "routing/perimeters",
