@@ -1,9 +1,11 @@
 //! The diagram model behind Setsquare, a diagram editor with draw.io feature parity.
 //!
 //! This crate has no user interface and no platform code. It owns the cell tree of each
-//! page, draw.io styles, geometry, the built-in shapes, and undoable edits.
+//! page, draw.io styles, geometry, the built-in shapes, undoable edits, and the draw.io
+//! file format.
 
 pub mod change;
+pub mod drawio;
 pub mod geometry;
 pub mod model;
 pub mod shape;

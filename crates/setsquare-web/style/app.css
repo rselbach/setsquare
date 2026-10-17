@@ -144,6 +144,10 @@ svg { display: block; }
 .tb-cell.first { border-left: 0; }
 .tb-title { grid-column: 1 / 4; border-top: 0; border-left: 0; }
 .tb-page { grid-column: 4; grid-row: 1 / 3; border-top: 0; gap: 4px; }
+.tb-page-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tb-pager { display: flex; gap: 2px; margin-right: -6px; }
+.tb-pager .iconbtn { width: 22px; height: 20px; }
+.tb-pager .icon { width: 16px; height: 16px; }
 .tb-label { font: 400 11px/13px var(--font-narrow); color: var(--lead); }
 .tb-value { font-weight: 700; line-height: 18px; white-space: nowrap; }
 .tb-name { font: 700 14px/20px var(--font-wide); letter-spacing: .01em; }
@@ -173,6 +177,12 @@ svg { display: block; }
 .sw { aspect-ratio: 1; padding: 0; border: 1.5px solid; border-radius: var(--r-control); }
 .sw[aria-pressed="true"] { outline: 2px solid var(--graphite); outline-offset: 2px; }
 .sw:focus-visible { outline-color: var(--ink); }
+
+/* notices */
+.toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; display: flex; align-items: center; gap: 12px; max-width: min(560px, calc(100vw - 24px)); padding: 8px 8px 8px 14px; transform: translateX(-50%); border-radius: var(--r-control); background: var(--graphite); color: var(--on-graphite); box-shadow: var(--pop-shadow); }
+.toast .iconbtn { width: 26px; height: 26px; color: var(--on-graphite); }
+.toast .iconbtn:hover { background: rgba(127, 127, 127, .25); }
+.file-input { display: none; }
 
 @media (max-width: 1180px) { :root { --lib-w: 216px; --insp-w: 256px; } }
 @media (max-width: 860px) {

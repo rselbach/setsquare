@@ -55,6 +55,8 @@ pub struct Vertex {
     pub parent: CellId,
     pub geometry: VertexGeometry,
     pub connectable: bool,
+    /// The bounds to restore when a collapsed container expands.
+    pub alternate_bounds: Option<Rect>,
 }
 
 /// The waypoints and label placement of an edge. Points are in the parent's space.
@@ -140,6 +142,7 @@ impl Cell {
                 parent,
                 geometry: VertexGeometry::Bounds(bounds),
                 connectable: true,
+                alternate_bounds: None,
             }),
         )
     }
@@ -529,6 +532,9 @@ pub struct PageSettings {
     pub background: Option<String>,
     pub math: bool,
     pub shadow: bool,
+    /// Attributes this crate does not interpret yet, such as `adaptiveColors`, kept so
+    /// files round-trip unchanged.
+    pub extra: Vec<(String, String)>,
 }
 
 impl Default for PageSettings {
@@ -548,6 +554,7 @@ impl Default for PageSettings {
             background: None,
             math: false,
             shadow: false,
+            extra: Vec::new(),
         }
     }
 }

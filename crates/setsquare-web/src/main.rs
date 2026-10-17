@@ -7,17 +7,19 @@ mod draw;
 mod inspector;
 mod library;
 mod sample;
+mod workspace;
 
 use leptos::ev;
 use leptos::prelude::*;
-use setsquare_core::{Change, Point};
+use setsquare_core::{Change, Model, PageSettings, Point};
 use wasm_bindgen::JsCast;
 
 use crate::canvas::{Canvas, Tool, ViewState};
-use crate::chrome::{Theme, TitleBlock, TopBar, report};
+use crate::chrome::{Notice, OPEN_INPUT, Theme, TitleBlock, TopBar, report};
 use crate::doc::DocState;
 use crate::inspector::Inspector;
 use crate::library::Library;
+use crate::workspace::Workspace;
 
 fn main() {
     leptos::mount::mount_to_body(App);
@@ -25,13 +27,12 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
-    let document = sample::document();
-    let page = document.pages()[0].clone();
-    let pages = document.pages().len();
-    let doc = DocState::new(page.model, page.settings);
+    let doc = DocState::new(Model::default(), PageSettings::default());
     let view = ViewState::new();
+    let workspace = Workspace::new(doc, sample::document(), sample::NAME);
     provide_context(doc);
     provide_context(view);
+    provide_context(workspace);
 
     let theme = RwSignal::new(Theme::Light);
     Effect::new(move |_| {
@@ -45,7 +46,7 @@ fn App() -> impl IntoView {
         }
     });
 
-    let _keys = window_event_listener(ev::keydown, move |e| shortcut(doc, view, &e));
+    let _keys = window_event_listener(ev::keydown, move |e| shortcut(doc, view, workspace, &e));
     let _keys_up = window_event_listener(ev::keyup, move |e| {
         if e.key() == " " {
             view.space.set(false);
@@ -58,10 +59,11 @@ fn App() -> impl IntoView {
             <Library/>
             <main class="stage">
                 <Canvas/>
-                <TitleBlock name=sample::NAME page=page.name.clone() pages/>
+                <TitleBlock/>
             </main>
-            <Inspector page=page.name pages/>
+            <Inspector/>
         </div>
+        <Notice/>
     }
 }
 
@@ -70,7 +72,7 @@ fn document_root() -> Option<web_sys::Element> {
 }
 
 /// Handles keyboard shortcuts that apply anywhere outside a text field.
-fn shortcut(doc: DocState, view: ViewState, e: &ev::KeyboardEvent) {
+fn shortcut(doc: DocState, view: ViewState, workspace: Workspace, e: &ev::KeyboardEvent) {
     let typing = e
         .target()
         .and_then(|t| t.dyn_into::<web_sys::Element>().ok())
@@ -96,6 +98,19 @@ fn shortcut(doc: DocState, view: ViewState, e: &ev::KeyboardEvent) {
         }
         (true, "-") => {
             view.step_zoom(-1);
+            true
+        }
+        (true, "s") => {
+            workspace.save(doc);
+            true
+        }
+        (true, "o") => {
+            let input = web_sys::window()
+                .and_then(|w| w.document())
+                .and_then(|d| d.get_element_by_id(OPEN_INPUT));
+            if let Some(input) = input.and_then(|i| i.dyn_into::<web_sys::HtmlElement>().ok()) {
+                input.click();
+            }
             true
         }
         (true, "h" | "H") if e.shift_key() => {

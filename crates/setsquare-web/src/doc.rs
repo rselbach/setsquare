@@ -18,8 +18,10 @@ pub struct DocState {
     structure: Trigger,
     can_undo: RwSignal<bool>,
     can_redo: RwSignal<bool>,
-    pub settings: StoredValue<PageSettings>,
+    pub settings: RwSignal<PageSettings>,
     pub selection: RwSignal<Option<CellId>>,
+    /// Counts edits, so the title block can tell whether the drawing changed since a save.
+    pub revision: RwSignal<u64>,
 }
 
 impl DocState {
@@ -31,9 +33,46 @@ impl DocState {
             structure: Trigger::new(),
             can_undo: RwSignal::new(false),
             can_redo: RwSignal::new(false),
-            settings: StoredValue::new(settings),
+            settings: RwSignal::new(settings),
             selection: RwSignal::new(None),
+            revision: RwSignal::new(0),
         }
+    }
+
+    /// Puts another page's model, settings, and history in place and returns the previous
+    /// ones. Every cell redraws.
+    pub fn swap(
+        &self,
+        model: Model,
+        settings: PageSettings,
+        history: History,
+    ) -> (Model, PageSettings, History) {
+        let model = self
+            .model
+            .try_update_value(|m| std::mem::replace(m, model))
+            .expect("document state outlives its views");
+        let history = self
+            .history
+            .try_update_value(|h| std::mem::replace(h, history))
+            .expect("document state outlives its views");
+        let settings = self
+            .settings
+            .try_update(|s| std::mem::replace(s, settings))
+            .expect("document state outlives its views");
+        self.selection.set(None);
+        let all: Vec<ArcTrigger> = self.triggers.with_value(|t| t.values().cloned().collect());
+        for trigger in all {
+            trigger.notify();
+        }
+        self.structure.notify();
+        self.sync_history();
+        self.revision.update(|r| *r += 1);
+        (model, settings, history)
+    }
+
+    /// Returns a copy of the model, such as for saving.
+    pub fn snapshot(&self) -> Model {
+        self.model.with_value(Clone::clone)
     }
 
     /// Reads the model without subscribing to anything.
@@ -93,6 +132,7 @@ impl DocState {
     pub fn record(&self, inverse: Change) {
         self.history.update_value(|h| h.record(inverse));
         self.sync_history();
+        self.revision.update(|r| *r += 1);
     }
 
     pub fn undo(&self) -> Result<(), ModelError> {
@@ -151,6 +191,7 @@ impl DocState {
             self.structure.notify();
         }
         self.sync_history();
+        self.revision.update(|r| *r += 1);
         Ok(())
     }
 

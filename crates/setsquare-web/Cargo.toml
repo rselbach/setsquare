@@ -8,8 +8,25 @@ publish.workspace = true
 [dependencies]
 leptos = { version = "0.8", features = ["csr"] }
 setsquare-core = { path = "../setsquare-core" }
+js-sys = "0.3"
 wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["DomRect", "Element", "HtmlElement", "HtmlInputElement", "Window"] }
+web-sys = { version = "0.3", features = [
+    "Blob",
+    "BlobPropertyBag",
+    "DataTransfer",
+    "Document",
+    "DomRect",
+    "Element",
+    "File",
+    "FileList",
+    "FileReader",
+    "HtmlAnchorElement",
+    "HtmlElement",
+    "HtmlInputElement",
+    "ProgressEvent",
+    "Url",
+    "Window",
+] }
 
 [lints]
 workspace = true

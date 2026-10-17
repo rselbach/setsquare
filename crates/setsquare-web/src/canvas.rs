@@ -11,6 +11,7 @@ use wasm_bindgen::JsCast;
 
 use crate::doc::DocState;
 use crate::draw::CellDraw;
+use crate::workspace::Workspace;
 
 /// The active tool in the top bar.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -144,7 +145,7 @@ pub fn insert_vertex(doc: DocState, at: Point, style: &str, size: Size, label: &
     };
     let grid = doc
         .settings
-        .with_value(|s| if s.grid { s.grid_size } else { 1.0 });
+        .with_untracked(|s| if s.grid { s.grid_size } else { 1.0 });
     let snap_to = |v: f64| (v / grid).round() * grid;
     let id = doc.new_id();
     let rect = Rect::new(
@@ -188,6 +189,7 @@ fn client(e: &ev::PointerEvent) -> Point {
 pub fn Canvas() -> impl IntoView {
     let doc = expect_context::<DocState>();
     let view = expect_context::<ViewState>();
+    let workspace = expect_context::<Workspace>();
     let canvas = NodeRef::<leptos::svg::Svg>::new();
     let gesture = StoredValue::new(None::<Gesture>);
 
@@ -284,7 +286,7 @@ pub fn Canvas() -> impl IntoView {
                 let wanted = start.translate(view.to_world(at) - *pointer);
                 let grid = doc
                     .settings
-                    .with_value(|s| if s.grid { s.grid_size } else { 0.0 });
+                    .with_untracked(|s| if s.grid { s.grid_size } else { 0.0 });
                 let snapped = snap(wanted, others, 6.0 / view.zoom.get_untracked(), grid);
                 let delta = snapped.rect.origin() - (start.origin() + *applied);
                 if delta != Point::default() {
@@ -328,31 +330,31 @@ pub fn Canvas() -> impl IntoView {
         }
     };
 
-    let (grid_minor, page_size, show_grid) = doc
-        .settings
-        .with_value(|s| (s.grid_size, s.page_size, s.grid));
-    let defs = format!(
-        r#"<pattern id="grid-minor" width="{g}" height="{g}" patternUnits="userSpaceOnUse"><path d="M{g} 0H0V{g}" fill="none" style="stroke:var(--grid-minor)" vector-effect="non-scaling-stroke"/></pattern>
+    let defs = move || {
+        let g = doc.settings.with(|s| s.grid_size);
+        format!(
+            r#"<pattern id="grid-minor" width="{g}" height="{g}" patternUnits="userSpaceOnUse"><path d="M{g} 0H0V{g}" fill="none" style="stroke:var(--grid-minor)" vector-effect="non-scaling-stroke"/></pattern>
 <pattern id="grid-major" width="{m}" height="{m}" patternUnits="userSpaceOnUse"><path d="M{m} 0H0V{m}" fill="none" style="stroke:var(--grid-major)" vector-effect="non-scaling-stroke"/></pattern>
 <marker id="arrow" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 1.2 9.5 5 0 8.8z" fill="context-stroke"/></marker>"#,
-        g = grid_minor,
-        m = grid_minor * 5.0,
-    );
-    let sheet = format!(
-        r#"<rect class="sheet-edge" x="-1" y="-1" width="{w2}" height="{h2}"/><rect class="sheet" width="{w}" height="{h}"/>{grid}"#,
-        w = page_size.width,
-        h = page_size.height,
-        w2 = page_size.width + 2.0,
-        h2 = page_size.height + 2.0,
-        grid = if show_grid {
+            m = g * 5.0,
+        )
+    };
+    let sheet = move || {
+        let (size, show_grid) = doc.settings.with(|s| (s.page_size, s.grid));
+        let (w, h) = (size.width, size.height);
+        let grid = if show_grid {
             format!(
-                r#"<rect width="{0}" height="{1}" fill="url(#grid-minor)"/><rect width="{0}" height="{1}" fill="url(#grid-major)"/>"#,
-                page_size.width, page_size.height
+                r#"<rect width="{w}" height="{h}" fill="url(#grid-minor)"/><rect width="{w}" height="{h}" fill="url(#grid-major)"/>"#
             )
         } else {
             String::new()
-        },
-    );
+        };
+        format!(
+            r#"<rect class="sheet-edge" x="-1" y="-1" width="{}" height="{}"/><rect class="sheet" width="{w}" height="{h}"/>{grid}"#,
+            w + 2.0,
+            h + 2.0
+        )
+    };
 
     view! {
         <div class="ruler ruler-corner"></div>
@@ -369,6 +371,13 @@ pub fn Canvas() -> impl IntoView {
             on:pointerup=on_up
             on:pointercancel=on_up
             on:wheel=on_wheel
+            on:dragover=|e: ev::DragEvent| e.prevent_default()
+            on:drop=move |e: ev::DragEvent| {
+                e.prevent_default();
+                if let Some(file) = e.data_transfer().and_then(|d| d.files()).and_then(|f| f.get(0)) {
+                    workspace.open_file(doc, view, file);
+                }
+            }
         >
             <defs inner_html=defs></defs>
             <g transform=move || {

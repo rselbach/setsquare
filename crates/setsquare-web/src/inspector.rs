@@ -7,6 +7,7 @@ use setsquare_core::{CellId, CellKind, Change, Rect, Shape, VertexGeometry};
 use crate::chrome::report;
 use crate::doc::DocState;
 use crate::sample::SWATCHES;
+use crate::workspace::Workspace;
 
 fn shape_name(shape: Shape) -> &'static str {
     match shape {
@@ -47,23 +48,48 @@ fn heading(label: &str) -> String {
 }
 
 #[component]
-pub fn Inspector(page: String, pages: usize) -> impl IntoView {
+pub fn Inspector() -> impl IntoView {
     let doc = expect_context::<DocState>();
-    let (grid, size) = doc.settings.with_value(|s| (s.grid_size, s.page_size));
+    let workspace = expect_context::<Workspace>();
+    let page = move || {
+        workspace
+            .page_names
+            .with(|n| n.get(workspace.current.get()).cloned().unwrap_or_default())
+    };
+    let pages = move || {
+        format!(
+            "Page {} of {}",
+            workspace.current.get() + 1,
+            workspace.page_names.with(Vec::len)
+        )
+    };
+    let size = move || {
+        doc.settings
+            .with(|s| format!("{} × {} pt", s.page_size.width, s.page_size.height))
+    };
+    let grid = move || {
+        doc.settings.with(|s| {
+            if s.grid {
+                format!("{} pt", s.grid_size)
+            } else {
+                "Off".to_owned()
+            }
+        })
+    };
     view! {
         <aside class="inspector" aria-label="Inspector">
             {move || match doc.selection.get() {
                 Some(id) => view! { <Selected id/> }.into_any(),
                 None => view! {
                     <div class="insp-head">
-                        <h2 class="insp-name">{page.clone()}</h2>
-                        <p class="insp-kind">{format!("Page 1 of {pages}")}</p>
+                        <h2 class="insp-name">{page}</h2>
+                        <p class="insp-kind">{pages}</p>
                     </div>
                     <section class="sec">
                         <h3 class="sec-title">"Page"</h3>
                         <div class="sec-body">
-                            <div class="row"><span class="lbl">"Size"</span><span>{format!("{} × {} pt", size.width, size.height)}</span></div>
-                            <div class="row"><span class="lbl">"Grid"</span><span>{format!("{grid} pt")}</span></div>
+                            <div class="row"><span class="lbl">"Size"</span><span>{size}</span></div>
+                            <div class="row"><span class="lbl">"Grid"</span><span>{grid}</span></div>
                             <p class="note">"Select a shape to style it."</p>
                         </div>
                     </section>
