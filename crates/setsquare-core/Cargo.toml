@@ -1,0 +1,9 @@
+[package]
+name = "setsquare-core"
+description = "Diagram model, styles, geometry, and editing for Setsquare"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
