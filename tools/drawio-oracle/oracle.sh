@@ -80,7 +80,7 @@ for name, pages in data.items():
     rows = ["# draw.io 9034053fba. route: page, edge, points. path: page, edge, index, fill, dash, width, d"]
     for i, page in enumerate(pages):
         for edge, info in page["edges"].items():
-            points = " ".join("null" if p is None else f"{p[0]:g},{p[1]:g}" for p in info["points"])
+            points = " ".join("null" if p is None else f"{p[0]},{p[1]}" for p in info["points"])
             rows.append(f"route\t{i}\t{edge}\t{points}")
             for n, d in enumerate(info["paths"]):
                 rows.append(f"path\t{i}\t{edge}\t{n}\t{d['fill'] or '-'}\t{d['dash'] or '-'}\t{d['width'] or '-'}\t{d['d']}")

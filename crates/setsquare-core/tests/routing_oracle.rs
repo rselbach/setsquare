@@ -180,7 +180,12 @@ fn check_paint(name: &str) {
             .iter()
             .filter(|p| p.page == want.page && p.edge == want.edge)
             .collect();
-        let fills_match = |want: &Painted, got: &str| (want.fill == "none") == (got == "none");
+        // "filled" means the stroke color, which is never white in these fixtures.
+        let fills_match = |want: &Painted, got: &str| match got {
+            "none" => want.fill == "none",
+            "#ffffff" => want.fill.eq_ignore_ascii_case("#ffffff"),
+            _ => want.fill != "none" && !want.fill.eq_ignore_ascii_case("#ffffff"),
+        };
         let ok = painted.len() == got.len()
             && painted
                 .iter()
