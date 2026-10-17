@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>draw.io routing oracle</title>
+<script src="viewer-static.min.js"></script>
+<style>body { margin: 0; } #graph { position: relative; width: 1600px; height: 1200px; overflow: hidden; background: #fff; }</style>
+</head>
+<body>
+<div id="graph"></div>
+<script>
+// Renders every page of a draw.io file with draw.io's own Graph and reports, for each
+// connector, the route draw.io computed and the SVG paths it painted.
+function round(v) { return Math.round(v * 1000) / 1000; }
+
+// Paths keep their path data. Other elements are written as their tag and geometry,
+// such as "ellipse cx cy rx ry", so the comparison stays one string per element.
+function geometry(el) {
+  const a = n => el.getAttribute(n);
+  switch (el.tagName) {
+    case 'path': return a('d');
+    case 'ellipse': return `ellipse ${a('cx')} ${a('cy')} ${a('rx')} ${a('ry')}`;
+    case 'circle': return `ellipse ${a('cx')} ${a('cy')} ${a('r')} ${a('r')}`;
+    case 'rect': return `rect ${a('x')} ${a('y')} ${a('width')} ${a('height')}`;
+    default: return el.tagName;
+  }
+}
+
+function paths(state) {
+  if (!state.shape || !state.shape.node) return [];
+  return Array.from(state.shape.node.querySelectorAll('path, ellipse, circle, rect, polyline, polygon, line'))
+    .filter(p => p.getAttribute('visibility') !== 'hidden')
+    .map(p => ({
+      d: geometry(p),
+      fill: p.getAttribute('fill'),
+      dash: p.getAttribute('stroke-dasharray'),
+      width: p.getAttribute('stroke-width'),
+    }));
+}
+
+function pageModels(text) {
+  const root = mxUtils.parseXml(text).documentElement;
+  if (root.nodeName !== 'mxfile') return [{ name: 'Page-1', node: root }];
+  return Array.from(root.getElementsByTagName('diagram')).map(d => {
+    let node = d.getElementsByTagName('mxGraphModel')[0];
+    if (!node) node = mxUtils.parseXml(Graph.decompress(mxUtils.getTextContent(d))).documentElement;
+    return { name: d.getAttribute('name') || '', node };
+  });
+}
+
+window.route = function (text) {
+  const container = document.getElementById('graph');
+  return pageModels(text).map(({ name, node }) => {
+    container.innerHTML = '';
+    const graph = new Graph(container);
+    graph.setEnabled(false);
+    new mxCodec(node.ownerDocument).decode(node, graph.getModel());
+    graph.view.scale = 1;
+    graph.view.setTranslate(0, 0);
+    graph.refresh();
+    const edges = {};
+    const cells = graph.getModel().cells;
+    for (const id of Object.keys(cells).sort()) {
+      const cell = cells[id];
+      if (!graph.getModel().isEdge(cell)) continue;
+      const state = graph.view.getState(cell);
+      if (!state || !state.absolutePoints) continue;
+      edges[id] = {
+        points: state.absolutePoints.map(p => (p ? [round(p.x), round(p.y)] : null)),
+        paths: paths(state),
+      };
+    }
+    graph.destroy();
+    return { name, edges };
+  });
+};
+window.ready = typeof Graph === 'function';
+</script>
+</body>
+</html>

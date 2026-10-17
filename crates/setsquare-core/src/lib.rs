@@ -6,12 +6,16 @@
 
 pub mod change;
 pub mod drawio;
+pub mod edge_shape;
 pub mod geometry;
 pub mod model;
+mod routing;
 pub mod shape;
 pub mod style;
+pub mod stylesheet;
 
 pub use change::{Applied, Change, History};
+pub use edge_shape::{EdgeShape, MarkerGeometry, MarkerPaint, edge_shape};
 pub use geometry::{Guide, Point, Rect, Size, Snap};
 pub use model::{
     Cell, CellId, CellKind, Document, Edge, EdgeGeometry, Model, ModelError, Page, PageSettings,
@@ -19,3 +23,4 @@ pub use model::{
 };
 pub use shape::Shape;
 pub use style::Style;
+pub use stylesheet::Stylesheet;

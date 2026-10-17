@@ -5,7 +5,7 @@ use setsquare_core::drawio;
 
 #[test]
 fn reads_and_round_trips_draw_io_templates() {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures");
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/templates");
     let mut read = 0;
     for entry in fs::read_dir(&dir).expect("fixtures directory") {
         let path = entry.expect("fixture entry").path();

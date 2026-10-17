@@ -8,8 +8,9 @@ use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::sync::Arc;
 
-use crate::geometry::{Point, Rect, Size, route_orthogonal};
+use crate::geometry::{Point, Rect, Size};
 use crate::style::Style;
+use crate::stylesheet::Stylesheet;
 
 /// The identifier of a cell, unique within its page.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -347,33 +348,22 @@ impl Model {
     }
 
     /// Returns the origin of the space that `parent`'s children use, in page coordinates.
-    fn origin_of(&self, parent: &CellId) -> Point {
+    pub(crate) fn origin_of(&self, parent: &CellId) -> Point {
         self.bounds(parent).map_or(Point::default(), |r| r.origin())
     }
 
-    /// Returns the route of an edge in page coordinates, from source to target.
+    /// Returns the route of an edge in page coordinates, from source to target, as draw.io
+    /// computes it: the terminal points on each shape's perimeter or connection point, with
+    /// the points the edge style adds between them.
     pub fn route(&self, id: &CellId) -> Option<Vec<Point>> {
-        let CellKind::Edge(e) = &self.cells.get(id)?.kind else {
-            return None;
-        };
-        let origin = self.origin_of(&e.parent);
-        let end =
-            |terminal: &Option<CellId>, loose: Option<Point>| -> Option<Result<Rect, Point>> {
-                match terminal {
-                    Some(t) => self.bounds(t).map(Ok),
-                    None => loose.map(|p| Err(p + origin)),
-                }
-            };
-        let source = end(&e.source, e.geometry.source_point)?;
-        let target = end(&e.target, e.geometry.target_point)?;
-        if let (Ok(s), Ok(t), true) = (source, target, e.geometry.points.is_empty()) {
-            return Some(route_orthogonal(s, t));
-        }
-        let anchor = |end: Result<Rect, Point>| end.map_or_else(|p| p, |r| r.center());
-        let mut points = vec![anchor(source)];
-        points.extend(e.geometry.points.iter().map(|p| *p + origin));
-        points.push(anchor(target));
-        Some(points)
+        crate::routing::route(self, id)
+    }
+
+    /// Returns the effective style of a cell: draw.io's default vertex or edge style with
+    /// the cell's named styles and its own keys applied.
+    pub fn style(&self, id: &CellId) -> Option<Style> {
+        let cell = self.cells.get(id)?;
+        Some(Stylesheet::drawio().resolve(&cell.style, matches!(cell.kind, CellKind::Edge(_))))
     }
 
     /// Returns the point at `t` along an edge, where -1 is the source end and 1 is the target end.

@@ -16,6 +16,9 @@ enum Token {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Style {
     tokens: Vec<Token>,
+    /// Set when the string starts with `;`, which tells draw.io not to start from the
+    /// default vertex or edge style.
+    skip_defaults: bool,
 }
 
 impl Style {
@@ -29,7 +32,24 @@ impl Style {
                 None => Token::Name(t.to_owned()),
             })
             .collect();
-        Style { tokens }
+        Style {
+            tokens,
+            skip_defaults: s.starts_with(';'),
+        }
+    }
+
+    /// Returns the tokens in order: a named style as `(name, None)`, a pair as
+    /// `(key, Some(value))`.
+    pub(crate) fn entries(&self) -> impl Iterator<Item = (&str, Option<&str>)> {
+        self.tokens.iter().map(|t| match t {
+            Token::Name(n) => (n.as_str(), None),
+            Token::Pair(k, v) => (k.as_str(), Some(v.as_str())),
+        })
+    }
+
+    /// Reports whether the style opts out of the default vertex or edge style.
+    pub(crate) fn skips_defaults(&self) -> bool {
+        self.skip_defaults
     }
 
     /// Returns the value for `key`. When a key repeats, the last value wins, as in draw.io.
@@ -83,6 +103,9 @@ impl Style {
 impl fmt::Display for Style {
     /// Writes the style in draw.io's form, with a `;` after every token.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.skip_defaults {
+            f.write_str(";")?;
+        }
         for t in &self.tokens {
             match t {
                 Token::Name(n) => write!(f, "{n};")?,
@@ -122,6 +145,11 @@ mod tests {
                 "link=data:action/json,{\"a\"=1};",
             ),
             ("empty", "", ""),
+            (
+                "leading separator skips defaults",
+                ";rounded=1;",
+                ";rounded=1;",
+            ),
         ];
         for (name, input, want) in tests {
             assert_eq!(Style::parse(input).to_string(), want, "{name}");
