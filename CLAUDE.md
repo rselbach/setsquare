@@ -2,10 +2,10 @@
 
 ## Project Structure
 
-Excalidraw is a **monorepo** with a clear separation between the core library and the application:
+Setsquare is a fork of Excalidraw. It keeps Excalidraw's **monorepo** layout and package names, with a clear separation between the core library and the application:
 
 - **`packages/excalidraw/`** - Main React component library published to npm as `@excalidraw/excalidraw`
-- **`excalidraw-app/`** - Full-featured web application (excalidraw.com) that uses the library
+- **`excalidraw-app/`** - The Setsquare web application that uses the library
 - **`packages/`** - Core packages: `@excalidraw/common`, `@excalidraw/element`, `@excalidraw/math`, `@excalidraw/utils`
 - **`examples/`** - Integration examples (NextJS, browser script)
 

@@ -52,7 +52,18 @@ export const AppWelcomeScreen: React.FC<{
       <WelcomeScreen.Hints.ToolbarHint />
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
-        <WelcomeScreen.Center.Logo />
+        <WelcomeScreen.Center.Logo>
+          <svg
+            viewBox="0 0 22 22"
+            width="1em"
+            height="1em"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path fillRule="evenodd" d="M3 19V3l16 16zm3-3h6.4L6 9.6z" />
+          </svg>
+          Setsquare
+        </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>
           {headingContent}
         </WelcomeScreen.Center.Heading>

@@ -226,10 +226,9 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 2.3 * 1024 ** 2, // 2.3MB
         },
         manifest: {
-          short_name: "Excalidraw",
-          name: "Excalidraw",
-          description:
-            "Excalidraw is a whiteboard tool that lets you easily sketch diagrams that have a hand-drawn feel to them.",
+          short_name: "Setsquare",
+          name: "Setsquare",
+          description: "Setsquare is a diagram tool that runs in your browser.",
           icons: [
             {
               src: "android-chrome-192x192.png",
@@ -253,7 +252,7 @@ export default defineConfig(({ mode }) => {
             },
           ],
           start_url: "/",
-          id: "excalidraw",
+          id: "setsquare",
           display: "standalone",
           theme_color: "#121212",
           background_color: "#ffffff",
