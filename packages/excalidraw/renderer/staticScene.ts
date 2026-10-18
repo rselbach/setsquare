@@ -1,5 +1,4 @@
 import {
-  applyDarkModeFilter,
   COLOR_WHITE,
   FRAME_STYLE,
   THEME,
@@ -54,14 +53,16 @@ import type {
 } from "../scene/types";
 import type { StaticCanvasAppState, Zoom } from "../types";
 
+// engineering paper: the grid is a construction mark, so it's drawn in the
+// theme's non-photo blue (`--guide`, see theme.scss) and never exported
 const GridLineColor = {
   [THEME.LIGHT]: {
-    bold: "#dddddd",
-    regular: "#e5e5e5",
+    bold: "#bfe4ef",
+    regular: "#daeff5",
   },
   [THEME.DARK]: {
-    bold: applyDarkModeFilter("#dddddd"),
-    regular: applyDarkModeFilter("#e5e5e5"),
+    bold: "#1f3c45",
+    regular: "#1a2a2f",
   },
 } as const;
 
