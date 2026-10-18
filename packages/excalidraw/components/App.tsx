@@ -384,6 +384,7 @@ import { AppToolDrag, TOOL_DRAG_PREVIEW_OPACITY } from "./App.toolDrag";
 import { AppCursor } from "./App.cursor";
 import { AppDrawShape } from "./App.drawshape";
 import { AppDuplicate } from "./App.duplicate";
+import { AppConnectorHandles } from "./App.connectorHandles";
 import { AppFlowchart } from "./App.flowchart";
 import { AppModifiers } from "./App.modifiers";
 import { AppPan } from "./App.pan";
@@ -664,6 +665,7 @@ class App extends React.Component<AppProps, AppState> {
   });
   public toolDrag: AppToolDrag = new AppToolDrag(this);
   public flowchart: AppFlowchart = new AppFlowchart(this);
+  public connectorHandles = new AppConnectorHandles(this);
   public cursor: AppCursor = new AppCursor(this);
   public arrowText: AppArrowText = new AppArrowText(this);
   public pan: AppPan = new AppPan(this, {
@@ -2690,6 +2692,7 @@ class App extends React.Component<AppProps, AppState> {
                             renderScrollbars={
                               this.props.renderScrollbars === true
                             }
+                            connectorHandles={this.connectorHandles.render}
                             editorInterface={this.editorInterface}
                             interactionEnabled={this.isInteractionEnabled()}
                             navigationEnabled={this.isNavigationEnabled()}
@@ -7205,6 +7208,11 @@ class App extends React.Component<AppProps, AppState> {
       return;
     }
 
+    if (this.connectorHandles.updateHover(scenePointer, isOverScrollBar)) {
+      this.cursor.set(CURSOR_TYPE.POINTER);
+      return;
+    }
+
     if (!isOverScrollBar) {
       // for linear elements, we'd like to prioritize point dragging over edge resizing
       // therefore, we update and check hovered point index first
@@ -7766,6 +7774,10 @@ class App extends React.Component<AppProps, AppState> {
 
     // don't select while panning
     if (gesture.pointers.size > 1) {
+      return;
+    }
+
+    if (this.connectorHandles.handlePointerDown(event)) {
       return;
     }
 

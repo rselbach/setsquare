@@ -12,6 +12,8 @@ import {
 
 import type {
   ExcalidrawElement,
+  ExcalidrawFlowchartNodeElement,
+  NonDeleted,
   NonDeletedExcalidrawElement,
 } from "@excalidraw/element/types";
 
@@ -76,16 +78,7 @@ export class AppFlowchart {
         return true;
       }
       case "committed": {
-        if (operation.nodes.length) {
-          this.app.insertNewElements(operation.nodes);
-        }
-
-        const firstNode = operation.nodes[0];
-        if (firstNode) {
-          this.selectAndReveal(firstNode);
-        }
-
-        this.captureUpdate();
+        this.insertConnection(operation.nodes);
         return true;
       }
       case "navigationEnded":
@@ -164,6 +157,25 @@ export class AppFlowchart {
 
     return navigationEnded ? { type: "navigationEnded" } : { type: "none" };
   }
+
+  /** Adds a copy of `node` `direction` of it, connected to it, as Cmd+arrow does. */
+  addConnectedNode = (
+    node: NonDeleted<ExcalidrawFlowchartNodeElement>,
+    direction: LinkDirection,
+  ) => {
+    const creator = new FlowChartCreator();
+    creator.createNodes(node, this.app.state, direction, this.app.scene);
+    this.insertConnection(creator.pendingNodes ?? []);
+  };
+
+  /** Adds connected elements in one undo step, selecting the first. */
+  insertConnection = (elements: readonly NonDeletedExcalidrawElement[]) => {
+    if (elements.length) {
+      this.app.insertNewElements(elements);
+      this.selectAndReveal(elements[0]);
+    }
+    this.captureUpdate();
+  };
 
   private selectAndReveal(node: NonDeletedExcalidrawElement) {
     this.app.setState((prevState) => ({

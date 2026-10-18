@@ -30,7 +30,8 @@ import {
   newElement,
   newStickyNoteElement,
 } from "./newElement";
-import { aabbForElement } from "./bounds";
+import { aabbForElement, elementCenterPoint } from "./bounds";
+import { getLinkDirectionBetween } from "./connectorHandles";
 import { elementsAreInFrameBounds, elementOverlapsWithFrame } from "./frame";
 import {
   isBindableElement,
@@ -307,12 +308,60 @@ export const addNewNodes = (
   return { nodes, crossStart };
 };
 
+/** Where `addNewNodes` puts a single new node: the free slot `direction` of `startNode`. */
+export const getNewNodePosition = (
+  startNode: NonDeleted<ExcalidrawFlowchartNodeElement>,
+  direction: LinkDirection,
+  elementsMap: ElementsMap,
+) => {
+  const obstacles = getConnectedFlowchartNodes(startNode, elementsMap).map(
+    (node) => aabbForElement(node, elementsMap),
+  );
+  return placeCluster(startNode, direction, 1, obstacles, null).positions[0];
+};
+
+/**
+ * The elements that connect `startNode`, leaving from its `direction` side,
+ * to a `target` element, or to a copy of `startNode` centered `at` a point.
+ */
+export const getConnectorElements = (
+  startNode: NonDeleted<ExcalidrawFlowchartNodeElement>,
+  direction: LinkDirection,
+  end: { target: NonDeleted<ExcalidrawBindableElement> } | { at: GlobalPoint },
+  appState: AppState,
+  scene: Scene,
+): NonDeletedExcalidrawElement[] => {
+  const endNode =
+    "target" in end
+      ? end.target
+      : cloneFlowchartNode(
+          startNode,
+          end.at[0] - startNode.width / 2,
+          end.at[1] - startNode.height / 2,
+        );
+  const arrow = createBindingArrow(
+    startNode,
+    endNode,
+    direction,
+    appState,
+    scene,
+    getLinkDirectionBetween(
+      elementCenterPoint(startNode, scene.getNonDeletedElementsMap()),
+      elementCenterPoint(endNode, scene.getNonDeletedElementsMap()),
+    ),
+  );
+  return "target" in end ? [arrow] : [endNode, arrow];
+};
+
 const createBindingArrow = (
   startBindingElement: NonDeleted<ExcalidrawFlowchartNodeElement>,
-  endBindingElement: NonDeleted<ExcalidrawFlowchartNodeElement>,
+  endBindingElement: NonDeleted<ExcalidrawBindableElement>,
   direction: LinkDirection,
   appState: AppState,
   scene: Scene,
+  /** the direction the end element lies in, which decides the side the
+   * arrow enters it from */
+  endDirection: LinkDirection = direction,
 ) => {
   let startX: number;
   let startY: number;
@@ -345,7 +394,7 @@ const createBindingArrow = (
   let endX: number;
   let endY: number;
 
-  switch (direction) {
+  switch (endDirection) {
     case "up": {
       endX = endBindingElement.x + endBindingElement.width / 2 - startX;
       endY = endBindingElement.y + endBindingElement.height - startY + PADDING;

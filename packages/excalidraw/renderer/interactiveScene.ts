@@ -81,6 +81,7 @@ import type {
   NonDeletedSceneElementsMap,
 } from "@excalidraw/element/types";
 
+import { renderConnectorHandles } from "../renderer/renderConnectorHandles";
 import { renderSnaps } from "../renderer/renderSnaps";
 import { roundRect } from "../renderer/roundRect";
 import {
@@ -2103,6 +2104,16 @@ const _renderInteractiveScene = ({
   });
 
   renderSnaps(context, appState);
+
+  if (renderConfig.connectorHandles) {
+    renderConnectorHandles(
+      context,
+      appState,
+      elementsMap,
+      renderConfig.connectorHandles,
+      renderConfig.selectionColor,
+    );
+  }
 
   context.restore();
 

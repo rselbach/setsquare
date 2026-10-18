@@ -44,6 +44,7 @@ type InteractiveCanvasProps = {
   scale: number;
   appState: InteractiveCanvasAppState;
   renderScrollbars: boolean;
+  connectorHandles: InteractiveCanvasRenderConfig["connectorHandles"];
   editorInterface: EditorInterface;
   app: AppClassProperties;
   interactionEnabled: boolean;
@@ -155,6 +156,7 @@ const InteractiveCanvas = (props: InteractiveCanvasProps) => {
         remotePointerUsernames,
         remotePointerUserStates,
         selectionColor,
+        connectorHandles: props.connectorHandles,
         renderScrollbars: props.renderScrollbars,
         // NOTE not memoized on so we don't rerender on cursor move
         lastViewportPosition: props.app.viewport.lastPosition,
@@ -289,6 +291,7 @@ const areEqual = (
     prevProps.visibleElements !== nextProps.visibleElements ||
     prevProps.selectedElements !== nextProps.selectedElements ||
     prevProps.renderScrollbars !== nextProps.renderScrollbars ||
+    prevProps.connectorHandles !== nextProps.connectorHandles ||
     prevProps.interactionEnabled !== nextProps.interactionEnabled ||
     prevProps.navigationEnabled !== nextProps.navigationEnabled
   ) {

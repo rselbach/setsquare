@@ -62,6 +62,7 @@ export * from "./binding";
 export * from "./bounds";
 export * from "./bucketFill";
 export * from "./collision";
+export * from "./connectorHandles";
 export * from "./comparisons";
 export * from "./containerCache";
 export * from "./cropElement";

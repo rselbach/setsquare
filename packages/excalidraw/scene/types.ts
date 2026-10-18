@@ -7,6 +7,8 @@ import type {
 } from "@excalidraw/element/types";
 
 import type { MakeBrand } from "@excalidraw/common/utility-types";
+import type { LinkDirection } from "@excalidraw/element";
+import type { GlobalPoint } from "@excalidraw/math";
 
 import type {
   AppClassProperties,
@@ -73,9 +75,23 @@ export type InteractiveCanvasRenderConfig = {
   remotePointerButton: Map<SocketId, string | undefined>;
   selectionColor: string;
   lastViewportPosition: { x: number; y: number };
+  connectorHandles: ConnectorHandlesRenderConfig | null;
   // extra options passed to the renderer
   // ---------------------------------------------------------------------------
   renderScrollbars?: boolean;
+};
+
+/** The connector handles around a hovered shape, and what using one adds. */
+export type ConnectorHandlesRenderConfig = {
+  elementId: ExcalidrawElement["id"];
+  /** the handle under the pointer, or being dragged */
+  active: LinkDirection | null;
+  /** where a connector from the active handle lands: a copy of the shape
+   * centered on a point, or another shape */
+  preview:
+    | { type: "node"; center: GlobalPoint }
+    | { type: "target"; elementId: ExcalidrawElement["id"] }
+    | null;
 };
 
 export type RenderInteractiveSceneCallback = {
