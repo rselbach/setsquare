@@ -26,6 +26,7 @@ import {
   getHoveredElementForBinding,
   hitElementItself,
   intersectElementWithLineSegment,
+  isHollowInteriorHit,
   isPointInElement,
 } from "../src/collision";
 import { mutateElement } from "../src/mutateElement";
@@ -213,13 +214,13 @@ describe("hitElementItself cache", () => {
   });
 
   it("override does not affect caching", () => {
+    // frames are hit on their outline only, so the override changes the result
     const element = API.createElement({
-      type: "rectangle",
+      type: "frame",
       x: 0,
       y: 0,
       width: 100,
       height: 100,
-      backgroundColor: "transparent",
     });
     const elementsMap = arrayToMap([element]);
     const point = pointFrom<GlobalPoint>(50, 50);
@@ -452,7 +453,7 @@ describe.each(["variable", "constant"] as const)(
     );
 
     it.each([0, Math.PI / 4])(
-      "does not hit the interior of a transparent loop at angle %s",
+      "hits the interior of a transparent loop as a hollow inside at angle %s",
       (angle) => {
         const element = createLoop({
           angle,
@@ -470,7 +471,8 @@ describe.each(["variable", "constant"] as const)(
         isPointInElement(point, element, elementsMap);
         expect(
           hitElementItself({ element, elementsMap, point, threshold: 1 }),
-        ).toBe(false);
+        ).toBe(true);
+        expect(isHollowInteriorHit(point, element, elementsMap, 1)).toBe(true);
       },
     );
 
@@ -901,15 +903,16 @@ describe("ellipse outline hit test", () => {
       backgroundColor: "transparent",
     });
 
-    // on the horizontal center line, ~50px from the outline
+    // on the horizontal center line, ~50px from the outline: inside the
+    // ellipse, but not on its outline
     expect(
-      hitElementItself({
-        point: pointFrom<GlobalPoint>(210, 50),
-        element: ellipse,
-        threshold: 10,
-        elementsMap: arrayToMap([ellipse]),
-      }),
-    ).toBe(false);
+      isHollowInteriorHit(
+        pointFrom<GlobalPoint>(210, 50),
+        ellipse,
+        arrayToMap([ellipse]),
+        10,
+      ),
+    ).toBe(true);
   });
 });
 

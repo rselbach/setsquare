@@ -169,6 +169,7 @@ import {
   getElementsOverlappingFrame,
   hitElementBoundText,
   hitElementItself,
+  isHollowInteriorHit,
   isElementLink,
   isMeasureTextSupported,
   getMinTextElementWidth,
@@ -5980,6 +5981,33 @@ class App extends React.Component<AppProps, AppState> {
           }
         }
       }
+
+      // a hollow shape's empty inside is the weakest hit, so shapes drawn
+      // inside or behind it stay clickable; among only hollow insides, the
+      // innermost shape wins
+      const elementsMap = this.scene.getNonDeletedElementsMap();
+      const solidHitElements = allHitElements.filter(
+        (element) =>
+          !isHollowInteriorHit(
+            pointFrom(x, y),
+            element,
+            elementsMap,
+            this.getElementHitThreshold(element),
+          ),
+      );
+      if (!solidHitElements.length) {
+        return allHitElements.reduce((innermost, element) =>
+          Math.abs(element.width * element.height) <=
+          Math.abs(innermost.width * innermost.height)
+            ? element
+            : innermost,
+        );
+      }
+      if (solidHitElements.length === 1) {
+        return solidHitElements[0];
+      }
+      allHitElements = solidHitElements;
+
       const elementWithHighestZIndex =
         allHitElements[allHitElements.length - 1];
 

@@ -24,7 +24,7 @@ import {
 
 import { getElementsInGroup } from "@excalidraw/element";
 
-import { shouldTestInside } from "@excalidraw/element";
+import { hasSolidInterior, shouldTestInside } from "@excalidraw/element";
 import { hasBoundTextElement, isBoundToContainer } from "@excalidraw/element";
 import { getBoundTextElementId } from "@excalidraw/element";
 
@@ -223,9 +223,11 @@ const eraserTest = (
 
   // There are shapes where the inner area should trigger erasing
   // even though the eraser path segment doesn't intersect with or
-  // get close to the shape's stroke
+  // get close to the shape's stroke. Only painted insides count, so sweeping
+  // through the empty middle of a hollow box doesn't erase it.
   if (
     shouldTestInside(element) &&
+    hasSolidInterior(element) &&
     isPointInElement(lastPoint, element, elementsMap)
   ) {
     return true;

@@ -230,6 +230,64 @@ describe("lasso on touch devices", () => {
   });
 });
 
+describe("clicking inside hollow shapes", () => {
+  beforeEach(async () => {
+    await render(<Excalidraw />);
+  });
+
+  const hollowRectangle = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) =>
+    API.createElement({
+      type: "rectangle",
+      x,
+      y,
+      width,
+      height,
+      backgroundColor: "transparent",
+    });
+
+  it("selects a transparent shape when clicked anywhere inside it", () => {
+    const box = hollowRectangle(0, 0, 200, 100);
+    API.setElements([box]);
+
+    mouse.clickAt(100, 50);
+    assertSelectedElements([box.id]);
+  });
+
+  it("keeps shapes inside a hollow box clickable when the box is on top", () => {
+    const inner = API.createElement({
+      type: "rectangle",
+      x: 50,
+      y: 50,
+      width: 40,
+      height: 40,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+    const boundary = hollowRectangle(0, 0, 300, 200);
+    API.setElements([inner, boundary]);
+
+    mouse.clickAt(70, 70);
+    assertSelectedElements([inner.id]);
+
+    mouse.clickAt(200, 150);
+    assertSelectedElements([boundary.id]);
+  });
+
+  it("selects the innermost of nested hollow boxes", () => {
+    const inner = hollowRectangle(50, 50, 100, 80);
+    const outer = hollowRectangle(0, 0, 300, 200);
+    API.setElements([inner, outer]);
+
+    mouse.clickAt(100, 90);
+    assertSelectedElements([inner.id]);
+  });
+});
+
 describe("alt-click cycling", () => {
   beforeEach(async () => {
     await render(<Excalidraw />);
@@ -643,7 +701,10 @@ describe("box-selection overlap mode", () => {
 
     API.setElements([rect1]);
 
-    boxSelect(25, 25, 75, 75);
+    // pressing inside a shape grabs it, so box-select within it holding Cmd
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      boxSelect(25, 25, 75, 75);
+    });
 
     assertSelectedElements([]);
   });
@@ -680,7 +741,10 @@ describe("box-selection overlap mode", () => {
 
     API.setElements([rect1]);
 
-    boxSelect(40, 40, 60, 60);
+    // pressing inside a shape grabs it, so box-select within it holding Cmd
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      boxSelect(40, 40, 60, 60);
+    });
 
     assertSelectedElements([]);
   });
@@ -1007,7 +1071,10 @@ describe("box-selection overlap mode", () => {
 
     API.setElements([frame, rect1]);
 
-    boxSelect(60, 20, 90, 60);
+    // pressing inside a shape grabs it, so box-select within it holding Cmd
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      boxSelect(60, 20, 90, 60);
+    });
 
     assertSelectedElements([]);
   });

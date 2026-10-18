@@ -84,27 +84,44 @@ import type {
   Ordered,
 } from "./types";
 
+/**
+ * Whether the element's inside is painted (a fill, a label, text, an image or
+ * an embed), so it hides what's behind it from the pointer.
+ */
+export const hasSolidInterior = (element: ExcalidrawElement) =>
+  (hasBackground(element.type) && !isTransparent(element.backgroundColor)) ||
+  hasBoundTextElement(element) ||
+  isIframeLikeElement(element) ||
+  isTextElement(element) ||
+  isImageElement(element);
+
 export const shouldTestInside = (element: ExcalidrawElement) => {
-  if (element.type === "arrow") {
+  if (element.type === "arrow" || isFrameLikeElement(element)) {
     return false;
   }
 
-  const isDraggableFromInside =
-    (hasBackground(element.type) && !isTransparent(element.backgroundColor)) ||
-    hasBoundTextElement(element) ||
-    isIframeLikeElement(element) ||
-    isTextElement(element);
-
-  if (element.type === "line") {
-    return isDraggableFromInside && isPathALoop(element.points);
+  // a closed shape is hit anywhere inside, filled or not, so a hollow box is
+  // as easy to pick as a filled one (see `isHollowInteriorHit`)
+  if (element.type === "line" || element.type === "freedraw") {
+    return isPathALoop(element.points);
   }
 
-  if (element.type === "freedraw") {
-    return isDraggableFromInside && isPathALoop(element.points);
-  }
-
-  return isDraggableFromInside || isImageElement(element);
+  return true;
 };
+
+/**
+ * Whether the point hits the element only through its unpainted inside. It's
+ * the weakest kind of hit: shapes behind or inside a hollow shape stay
+ * pickable through it.
+ */
+export const isHollowInteriorHit = (
+  point: GlobalPoint,
+  element: ExcalidrawElement,
+  elementsMap: ElementsMap,
+  threshold: number,
+) =>
+  !hasSolidInterior(element) &&
+  !isPointOnElementOutline(point, element, elementsMap, threshold);
 
 export type HitTestArgs = {
   point: GlobalPoint;

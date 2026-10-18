@@ -33,6 +33,7 @@ import {
   isElementInGroup,
   isEmbeddableElement,
   isFrameLikeElement,
+  isHollowInteriorHit,
   isImageElement,
   isInitializedImageElement,
   isLinearElement,
@@ -225,13 +226,27 @@ export class AppSelectionTool {
           }
         }
 
-        const allHitElements = this.app.getElementsAtPosition(
-          pointerDownState.origin.x,
-          pointerDownState.origin.y,
-          {
-            includeLockedElements: true,
-          },
-        );
+        const elementsMap = this.app.scene.getNonDeletedElementsMap();
+        const allHitElements = this.app
+          .getElementsAtPosition(
+            pointerDownState.origin.x,
+            pointerDownState.origin.y,
+            {
+              includeLockedElements: true,
+            },
+          )
+          // with Cmd held, pressing in a hollow shape's empty inside starts a
+          // selection box within the shape instead of grabbing it
+          .filter(
+            (element) =>
+              !event[KEYS.CTRL_OR_CMD] ||
+              !isHollowInteriorHit(
+                pointFrom(pointerDownState.origin.x, pointerDownState.origin.y),
+                element,
+                elementsMap,
+                this.app.getElementHitThreshold(element),
+              ),
+          );
         const unlockedHitElements = allHitElements.filter((e) => !e.locked);
 
         // Cannot set preferSelected in getElementAtPosition as we do in pointer move; consider:
@@ -269,6 +284,7 @@ export class AppSelectionTool {
             this.app.getElementAtPosition(
               pointerDownState.origin.x,
               pointerDownState.origin.y,
+              { allHitElements: unlockedHitElements },
             );
         }
 

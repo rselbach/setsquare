@@ -1727,7 +1727,7 @@ describe("textWysiwyg", () => {
       expect(diamond.height).toBe(70);
     });
 
-    it("should bind text to container when double clicked inside of the transparent container", async () => {
+    it("should bind text to container when double clicked anywhere inside of the transparent container", async () => {
       const rectangle = API.createElement({
         type: "rectangle",
         x: 10,
@@ -1738,27 +1738,15 @@ describe("textWysiwyg", () => {
       });
       API.setElements([rectangle]);
 
+      // off its center: the inside is part of the shape, filled or not
       mouse.doubleClickAt(rectangle.x + 10, rectangle.y + 10);
       expect(h.elements.length).toBe(2);
-      let text = h.elements[1] as ExcalidrawTextElementWithContainer;
-      expect(text.type).toBe("text");
-      expect(text.containerId).toBe(null);
-      mouse.down();
-      let editor = await getTextEditor();
-      Keyboard.exitTextEditor(editor);
-
-      mouse.doubleClickAt(
-        rectangle.x + rectangle.width / 2,
-        rectangle.y + rectangle.height / 2,
-      );
-      expect(h.elements.length).toBe(3);
-
-      text = h.elements[1] as ExcalidrawTextElementWithContainer;
+      const text = h.elements[1] as ExcalidrawTextElementWithContainer;
       expect(text.type).toBe("text");
       expect(text.containerId).toBe(rectangle.id);
 
       mouse.down();
-      editor = await getTextEditor();
+      const editor = await getTextEditor();
 
       updateTextEditor(editor, "Hello World!");
       Keyboard.exitTextEditor(editor);
@@ -1858,12 +1846,13 @@ describe("textWysiwyg", () => {
       });
     });
 
-    it("should'nt bind text to container when not double clicked on center", async () => {
+    it("should'nt bind text to container when the text tool clicks off its center", async () => {
       expect(h.elements.length).toBe(1);
       expect(h.elements[0].id).toBe(rectangle.id);
 
       // clicking somewhere on top left
-      mouse.doubleClickAt(rectangle.x + 20, rectangle.y + 20);
+      UI.clickTool("text");
+      mouse.clickAt(rectangle.x + 20, rectangle.y + 20);
       expect(h.elements.length).toBe(2);
 
       const text = h.elements[1] as ExcalidrawTextElementWithContainer;
