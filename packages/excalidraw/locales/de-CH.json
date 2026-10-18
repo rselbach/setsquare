@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Einfügen",
     "pasteAsPlaintext": "Als unformatierten Text einfügen",
     "pasteCharts": "Diagramme einfügen",
@@ -437,10 +435,7 @@
     "disk_button": "Als Datei speichern",
     "link_title": "Teilbarer Link",
     "link_details": "Als schreibgeschützten Link exportieren.",
-    "link_button": "Als Link exportieren",
-    "excalidrawplus_description": "Speichere die Szene in deinem Excalidraw+ Arbeitsbereich.",
-    "excalidrawplus_button": "Exportieren",
-    "excalidrawplus_exportError": "Konnte nicht nach Excalidraw+ exportieren..."
+    "link_button": "Als Link exportieren"
   },
   "helpDialog": {
     "blog": "Lies unseren Blog",
@@ -596,7 +591,6 @@
       "center_heading": "Deine Zeichnungen werden im Browserspeicher gespeichert.",
       "center_heading_line2": "Der Browserspeicher kann unerwartet gelöscht werden.",
       "center_heading_line3": "Speichere deine Arbeit regelmäßig in einer Datei, um Datenverlust zu vermeiden.",
-      "center_heading_plus": "Möchtest du stattdessen zu Excalidraw+ gehen?",
       "menuHint": "Exportieren, Einstellungen, Sprachen, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Auf Festplatte speichern",
         "button": "Auf Festplatte speichern",
         "description": "Exportiere die Zeichnungsdaten in eine Datei, aus der du später importieren kannst."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Export nach Excalidraw+",
-        "description": "Speichere die Szene in deinem Excalidraw+-Arbeitsbereich."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Mermaid-Syntaxfehler"
     },
     "rateLimit": {
-      "messageLimit": "Du hast dein KI-Limit im kostenlosen Tarif erreicht. Probiere Excalidraw+ für mehr oder komme morgen wieder.",
       "generalRateLimit": "Nicht so schnell! Bitte warte einen Moment, bevor du es erneut versuchst.",
       "messageLimitInputPlaceholder": "Nachrichtenlimit erreicht"
-    },
-    "upsellBtnLabel": "Auf Plus upgraden"
+    }
   },
   "quickSearch": {
     "placeholder": "Schnellsuche"

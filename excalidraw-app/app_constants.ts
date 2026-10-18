@@ -51,11 +51,3 @@ export const STORAGE_KEYS = {
   // do not use apart from migrations
   __LEGACY_LOCAL_STORAGE_LIBRARY: "excalidraw-library",
 } as const;
-
-export const COOKIES = {
-  AUTH_STATE_COOKIE: "excplus-auth",
-} as const;
-
-export const isExcalidrawPlusSignedUser = document.cookie.includes(
-  COOKIES.AUTH_STATE_COOKIE,
-);

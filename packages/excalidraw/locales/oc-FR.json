@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Pegar",
     "pasteAsPlaintext": "Pegar en tèxt brut",
     "pasteCharts": "Pegar los grafics",
@@ -437,10 +435,7 @@
     "disk_button": "Salvar al fichièr",
     "link_title": "Ligam de partejar",
     "link_details": "Exportar coma un ligam de lectura sola.",
-    "link_button": "Exportar en ligam",
-    "excalidrawplus_description": "Enregistrar la scèna dins vòstre espaci de trabalh Excalidraw+.",
-    "excalidrawplus_button": "Exportar",
-    "excalidrawplus_exportError": "Export impossibla cap a Excalidraw+ pel moment..."
+    "link_button": "Exportar en ligam"
   },
   "helpDialog": {
     "blog": "Legir nòstre blog",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Voliatz puslèu utilizar Excalidraw+ a la plaça ?",
       "menuHint": "Exportar, preferéncias, lengas, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Salvar al disc",
         "button": "Salvar al disc",
         "description": "Exportar las donadas de la scèna cap a un fichièr que podètz importar mai tard."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exportar dins Excalidraw+",
-        "description": "Enregistrar la scèna dins vòstre espaci de trabalh Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "Recèrca rapida"

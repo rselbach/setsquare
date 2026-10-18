@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "ثبت‌نام",
-    "signIn": "ورود",
     "paste": "جایگذاری",
     "pasteAsPlaintext": "جایگذاری به عنوان متن ساده",
     "pasteCharts": "جایگذاری نمودارها",
@@ -437,10 +435,7 @@
     "disk_button": "ذخیره در فایل",
     "link_title": "لینک قابل اشتراک‌گذاری",
     "link_details": "خروجی به عنوان یک پیوند فقط خواندنی.",
-    "link_button": "خروجی در فایل",
-    "excalidrawplus_description": "صحنه را در فضای کاری Excalidraw+ خود ذخیره کنید.",
-    "excalidrawplus_button": "خروجی گرفتن",
-    "excalidrawplus_exportError": "در حال حاضر نمی‌توان به Excalidraw+ صادر کرد..."
+    "link_button": "خروجی در فایل"
   },
   "helpDialog": {
     "blog": "بلاگ ما را بخوانید",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "آیا می‌خواهید به جای آن به Excalidraw+ بروید؟",
       "menuHint": "خروجی، ترجیحات، زبان ها، ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "ذخیره در دیسک",
         "button": "ذخیره در دیسک",
         "description": "خروجی از داده های صحنه را به عنوان فایل که بعدا می توانید بیافزایید."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "خروجی به Excalidraw+",
-        "description": "ذخیره صفحه در میز کار Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "جستجو فوری"

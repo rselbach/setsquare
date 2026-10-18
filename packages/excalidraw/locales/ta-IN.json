@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "ஒட்டு",
     "pasteAsPlaintext": "அலங்காரமின்றி ஒட்டு",
     "pasteCharts": "விளக்கப்படங்களை ஒட்டு",
@@ -437,10 +435,7 @@
     "disk_button": "கோப்பில் சேமி",
     "link_title": "பகிரக்கூடிய தொடுப்பு",
     "link_details": "வாசிக்க-மட்டும் தொடுப்பாக ஏற்றுமதிசெய்.",
-    "link_button": "தொடுப்புக்கு ஏற்றுமதிசெய்",
-    "excalidrawplus_description": "காட்சியை உன் எக்ஸ்கேலிட்ரா பணியிடத்தில் சேமி.",
-    "excalidrawplus_button": "ஏற்றுமதி",
-    "excalidrawplus_exportError": "இத்தருணத்தில் எக்ஸ்கேலிட்ரா+ க்கு ஏற்றுமதிசெய்ய முடியவில்லை..."
+    "link_button": "தொடுப்புக்கு ஏற்றுமதிசெய்"
   },
   "helpDialog": {
     "blog": "எமது வலைப்பூவை வாசி",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "நீங்கள் Excalidraw+க்கு செல்ல விரும்புகிறீர்களா?",
       "menuHint": "விருப்பத்தேர்வுகள், மொழிகள் போன்றனவை ஏற்றுமதிசெய்..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "வட்டில் சேமி",
         "button": "வட்டில் சேமி",
         "description": "காட்சித் தரவை நீங்கள் பின்னர் இறக்குமதி செய்யக்கூடிய ஒரு கோப்பிற்கு ஏற்றுமதிசெய்க."
-      },
-      "excalidrawPlus": {
-        "title": "எக்ஸ்காலிட்ரா+",
-        "button": "எக்ஸ்காலிட்ரா+-க்கு ஏற்றுமதிசெய்",
-        "description": "காட்சியை உன் எக்ஸ்கேலிட்ரா+ பணியிடத்தில் சேமி."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "விரைவு தேடல்"

@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Wklej",
     "pasteAsPlaintext": "Wklej jako zwykły tekst",
     "pasteCharts": "Wklej wykresy",
@@ -437,10 +435,7 @@
     "disk_button": "Zapisz do pliku",
     "link_title": "Link do udostępnienia",
     "link_details": "Eksportuj jako link tylko do odczytu.",
-    "link_button": "Wygeneruj link",
-    "excalidrawplus_description": "Zapisz scenę do swojego obszaru roboczego Excalidraw+.",
-    "excalidrawplus_button": "Eksportuj",
-    "excalidrawplus_exportError": "W tej chwili nie można wyeksportować do Excalidraw+..."
+    "link_button": "Wygeneruj link"
   },
   "helpDialog": {
     "blog": "Przeczytaj na naszym blogu",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Czy zamiast tego chcesz przejść do Excalidraw+?",
       "menuHint": "Eksportuj, preferencje, języki..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Zapisz na dysku",
         "button": "Zapisz na dysku",
         "description": "Eksportuj zawartość sceny jako plik z możliwością importowania."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Eksportuj do Excalidraw+",
-        "description": "Zapisz scenę do swojego obszaru roboczego Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "Szybkie wyszukiwanie"

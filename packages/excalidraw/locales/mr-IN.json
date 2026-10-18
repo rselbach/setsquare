@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "चिटकवा",
     "pasteAsPlaintext": "साधा मजकूर च्या रुपात पेस्ट करा",
     "pasteCharts": "चार्ट चिकटवा",
@@ -437,10 +435,7 @@
     "disk_button": "फ़ाइल मधे जतन करा",
     "link_title": "सामायिके साठी दुवा",
     "link_details": "नुसतं वाचु देणारा दुवा चा स्वरूपे बाहेर ठेवा.",
-    "link_button": "दुवा स्वरूपे बाहेर ठेवा",
-    "excalidrawplus_description": "दृश्य तुमच्या एक्सकेलीड्रॉ कार्यक्षेत्र मधे जतन करा.",
-    "excalidrawplus_button": "बाहेर ठेवा",
-    "excalidrawplus_exportError": "एक्सकेलीड्रॉ मधे बाहेर ठेवता नाही येत..."
+    "link_button": "दुवा स्वरूपे बाहेर ठेवा"
   },
   "helpDialog": {
     "blog": "आमचा ब्लॉग वाचा",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "त्याऐवजी तुम्हाला Excalidraw+ वर जायचे आहे का?",
       "menuHint": "निर्यात, आवड़ी-निवडी, भाषा, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "डिस्क मधे जतन करा",
         "button": "डिस्क मधे जतन करा",
         "description": "सीन डेटा बाहेर एक फ़ाइल मधे जतन करा, त्या फ़ाइल मधुन तो डेटा नंतर परत आणु शकता."
-      },
-      "excalidrawPlus": {
-        "title": "एक्षकालीड्रॉ +",
-        "button": "एक्षकाली ड्रॉ+ मधे निर्यात करा",
-        "description": "दृष्य तुमच्या एक्षकालीड्रॉ+ चा कार्यस्थल मधे जतन करा."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "जलद शोध"

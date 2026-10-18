@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Lim inn",
     "pasteAsPlaintext": "Lim inn som klartekst",
     "pasteCharts": "Lim inn diagrammer",
@@ -437,10 +435,7 @@
     "disk_button": "Lagre til fil",
     "link_title": "Delbar lenke",
     "link_details": "Eksporter som en skrivebeskyttet lenke.",
-    "link_button": "Eksporter til lenke",
-    "excalidrawplus_description": "Lagre scenen til ditt Excalidraw+ arbeidsområde.",
-    "excalidrawplus_button": "Eksporter",
-    "excalidrawplus_exportError": "Kunne ikke eksportere til Excalidraw+ for øyeblikket..."
+    "link_button": "Eksporter til lenke"
   },
   "helpDialog": {
     "blog": "Les bloggen vår",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Ønsker du å gå til Excalidraw+ i stedet?",
       "menuHint": "Eksporter, innstillinger, språk, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Lagre til disk",
         "button": "Lagre til disk",
         "description": "Eksporter scene-dataene til en fil som du kan importere fra senere."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Eksporter til Excalidraw+",
-        "description": "Lagre scenen til ditt Excalidraw+-arbeidsområde."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "Hurtigsøk"

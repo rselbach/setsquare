@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "បិទភ្ជាប់",
     "pasteAsPlaintext": "បិទភ្ជាប់ជាអត្ថបទធម្មតា",
     "pasteCharts": "បិទភ្ជាប់តារាង",
@@ -437,10 +435,7 @@
     "disk_button": "រក្សាទុកក្នុងឯកសារ",
     "link_title": "តំណដែលអាចចែករំលែកបាន",
     "link_details": "នាំចេញជាតំណបានតែមើលឬអាន។",
-    "link_button": "នាំចេញជាតំណ",
-    "excalidrawplus_description": "រក្សាទុកស៊ីនទៅកន្លែងធ្វើការ Excalidraw+ របស់អ្នក។",
-    "excalidrawplus_button": "នាំចេញ",
-    "excalidrawplus_exportError": "មិនអាចនាំចេញទៅ Excalidraw+ បានទេនៅពេលនេះ..."
+    "link_button": "នាំចេញជាតំណ"
   },
   "helpDialog": {
     "blog": "អានប្លក់របស់យើង",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "តើ​អ្នក​ចង់​ទៅ Excalidraw+ ​វិញ ឬ មែន?",
       "menuHint": "នាំចេញ ចំណូលចិត្ត ភាសា ..."
     },
     "defaults": {
@@ -626,11 +620,6 @@
         "description": ""
       },
       "saveToDisk": {
-        "title": "",
-        "button": "",
-        "description": ""
-      },
-      "excalidrawPlus": {
         "title": "",
         "button": "",
         "description": ""
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

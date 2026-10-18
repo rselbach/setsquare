@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Yapıştır",
     "pasteAsPlaintext": "Düz metin olarak yapıştır",
     "pasteCharts": "Grafikleri yapıştır",
@@ -437,10 +435,7 @@
     "disk_button": "Dosyaya kaydet",
     "link_title": "Paylaşılabilir bağlantı",
     "link_details": "Salt okunur bir bağlantı olarak dışa aktarın.",
-    "link_button": "Bağlantı olarak dışa aktar",
-    "excalidrawplus_description": "Sahneyi Excalidraw+ çalışma alanınıza kaydedin.",
-    "excalidrawplus_button": "Dışa aktar",
-    "excalidrawplus_exportError": "Şu anda Excalidraw+'a aktarılamadı..."
+    "link_button": "Bağlantı olarak dışa aktar"
   },
   "helpDialog": {
     "blog": "Blog'umuzu okuyun",
@@ -596,7 +591,6 @@
       "center_heading": "Çizimleriniz tarayıcınızın depolama alanına kaydedilir.",
       "center_heading_line2": "Tarayıcı depolama alanı beklenmedik bir şekilde silinebilir.",
       "center_heading_line3": "Veri kaybını önlemek için çalışmanızı düzenli olarak bir dosyaya kaydedin.",
-      "center_heading_plus": "Ecalidraw+'a mı gitmek istediniz?",
       "menuHint": "Dışa aktar, seçenekler, diller, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Diske kaydet",
         "button": "Diske Kaydet",
         "description": "Sahne verilerini daha sonra içe aktarabileceğiniz bir dosyaya aktarın."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Excalidraw+'a aktar",
-        "description": "Sahneyi Excalidraw+ çalışma alanınıza kaydedin."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Mermaid sözdizim hatası"
     },
     "rateLimit": {
-      "messageLimit": "Ücretsiz plan AI kullanım limitine ulaştın. Excalidraw+ planını deneyin ya da yarın tekrar gelin.",
       "generalRateLimit": "Yavaş ol, bizim için çok hızlısın! Tekrar denemeden önce lütfen biraz bekle.",
       "messageLimitInputPlaceholder": "Mesaj limitine ulaştın"
-    },
-    "upsellBtnLabel": "Plus'a Yükselt"
+    }
   },
   "quickSearch": {
     "placeholder": "Hızlı arama"

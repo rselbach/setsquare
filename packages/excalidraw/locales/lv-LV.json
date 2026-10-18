@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Ielīmēt",
     "pasteAsPlaintext": "Ielīmēt kā vienkāršu tekstu",
     "pasteCharts": "Ielīmēt grafikus",
@@ -437,10 +435,7 @@
     "disk_button": "Saglabāt datnē",
     "link_title": "Kopīgošanas saite",
     "link_details": "Eksportēt kā tikai lasāmu saiti.",
-    "link_button": "Eksportēt kā saiti",
-    "excalidrawplus_description": "Saglabāt ainu savā Excalidraw+ darbvietā.",
-    "excalidrawplus_button": "Eksportēt",
-    "excalidrawplus_exportError": "Pašreiz nevarēja eksportēt uz Excalidraw+..."
+    "link_button": "Eksportēt kā saiti"
   },
   "helpDialog": {
     "blog": "Lasīt mūsu blogu",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Vai tā vietā vēlies doties uz Excalidraw+?",
       "menuHint": "Eksportēšana, iestatījumi, valodas..."
     },
     "defaults": {
@@ -626,11 +620,6 @@
         "description": ""
       },
       "saveToDisk": {
-        "title": "",
-        "button": "",
-        "description": ""
-      },
-      "excalidrawPlus": {
         "title": "",
         "button": "",
         "description": ""
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

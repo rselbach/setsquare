@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "पेस्ट",
     "pasteAsPlaintext": "सादे पाठ के रूप में चिपकाएं",
     "pasteCharts": "चार्ट चिपकाएँ",
@@ -437,10 +435,7 @@
     "disk_button": "फ़ाइल में सुरक्षित करें",
     "link_title": "साझा करने योग्य कड़ी",
     "link_details": "केवल पढ़ी जा सके ऐसी कड़ी में निर्यात करें",
-    "link_button": "कड़ी स्वरूप में निर्यात करे",
-    "excalidrawplus_description": "दृश्य को एक्सकालीड्रॉप्लस कार्यस्थल में सुरक्षित रखें",
-    "excalidrawplus_button": "निर्यात",
-    "excalidrawplus_exportError": "इस वक्त एक्सकालीड्रॉप्लस में निर्यात नहीं किया जा सका..."
+    "link_button": "कड़ी स्वरूप में निर्यात करे"
   },
   "helpDialog": {
     "blog": "हमारा ब्लॉग पढे",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "बजाय आपको एक्स-काली-ड्रॉ-प्लस पर जाना है?",
       "menuHint": "निर्यात, पसंद, भाषायें, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "डिस्क में सम्हाले",
         "button": "डिस्क में सम्हाले",
         "description": "दृष्य डेटा बाहरी फ़ाइल में निर्यात करे, जहाँसे आप उसे पुनः आयात कर सकते हो"
-      },
-      "excalidrawPlus": {
-        "title": "एक्स-काली-ड्रॉ-प्लस",
-        "button": "एकस-काल-ड्रॉ-प्लस में निर्यात करे",
-        "description": "दृष्य को आपके एक्स-काली-ड्रॉ-प्लस के कर्यस्थल में सम्हाले"
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "त्वरित खोज"

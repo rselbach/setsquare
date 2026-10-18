@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "붙여 넣기",
     "pasteAsPlaintext": "일반 텍스트로 붙여 넣기",
     "pasteCharts": "차트 붙여 넣기",
@@ -437,10 +435,7 @@
     "disk_button": "파일로 저장",
     "link_title": "공유 가능한 링크 생성",
     "link_details": "읽기 전용 링크로 내보냅니다.",
-    "link_button": "링크로 내보내기",
-    "excalidrawplus_description": "화면을 당신의 Excalidraw+ 작업 공간으로 저장합니다.",
-    "excalidrawplus_button": "내보내기",
-    "excalidrawplus_exportError": "지금은 Excalidraw+로 내보낼 수 없습니다..."
+    "link_button": "링크로 내보내기"
   },
   "helpDialog": {
     "blog": "블로그 읽어보기",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "대신 Excalidraw+로 이동하시겠습니까?",
       "menuHint": "내보내기, 설정, 언어, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "디스크에 저장",
         "button": "디스크에 저장",
         "description": "나중에 다시 불러올 수 있도록 화면 데이터를 내보냅니다."
-      },
-      "excalidrawPlus": {
-        "title": "",
-        "button": "Excalidraw+로 내보내기",
-        "description": "화면을 당신의 Excalidraw+ 작업 공간으로 저장합니다."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

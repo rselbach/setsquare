@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "สมัครสมาชิก",
-    "signIn": "เข้าสู่ระบบ",
     "paste": "วาง",
     "pasteAsPlaintext": "วางโดยไม่มีการจัดรูปแบบ",
     "pasteCharts": "วางแผนภูมิ",
@@ -437,10 +435,7 @@
     "disk_button": "บันทึกเป็นไฟล์",
     "link_title": "ลิงก์ที่สามารถแชร์ได้",
     "link_details": "",
-    "link_button": "ส่งออกไปยังไฟล์",
-    "excalidrawplus_description": "",
-    "excalidrawplus_button": "ส่งออก",
-    "excalidrawplus_exportError": "ไม่สามารถส่งออกไปที่ Excalidraw+ ได้ในขณะนี้"
+    "link_button": "ส่งออกไปยังไฟล์"
   },
   "helpDialog": {
     "blog": "อ่านบล็อกของพวกเรา",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "",
       "menuHint": ""
     },
     "defaults": {
@@ -628,11 +622,6 @@
       "saveToDisk": {
         "title": "บันทึกไปยังดิสก์",
         "button": "บันทึกไปยังดิสก์",
-        "description": ""
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "นำออกไปยัง Excalidraw+",
         "description": ""
       }
     },
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": "อัปเกรดบัญชีเป็นแบบ Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "ค้นหาด่วน"

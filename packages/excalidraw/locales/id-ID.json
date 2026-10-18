@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "Daftar",
-    "signIn": "Daftar",
     "paste": "Tempel",
     "pasteAsPlaintext": "Tempel sebagai teks biasa",
     "pasteCharts": "Tempel diagram",
@@ -437,10 +435,7 @@
     "disk_button": "Simpan ke file",
     "link_title": "Tautan",
     "link_details": "Ekspor sebagai tautan yang hanya dibaca.",
-    "link_button": "Ekspor ke tautan",
-    "excalidrawplus_description": "Simpan pemandangan ke ruang kerja Excalidraw+ Anda.",
-    "excalidrawplus_button": "Ekspor",
-    "excalidrawplus_exportError": "Tidak dapat ekspor ke Excalidraw+ saat ini..."
+    "link_button": "Ekspor ke tautan"
   },
   "helpDialog": {
     "blog": "Baca blog kami",
@@ -596,7 +591,6 @@
       "center_heading": "Gambar anda disimpan di penyimpanan browser anda.",
       "center_heading_line2": "Penyimpanan browser dapat terhapus secara tidak terduga.",
       "center_heading_line3": "Simpan pekerjaan anda ke file secara berkala agar tidak hilang.",
-      "center_heading_plus": "Apa Anda ingin berpindah ke Excalidraw+?",
       "menuHint": "Ekspor, preferensi, bahasa, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Simpan ke disk",
         "button": "Simpan ke disk",
         "description": "Ekspor data pemandangan ke file yang dapat Anda dapat impor nanti."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Ekspor ke Excalidraw+",
-        "description": "Simpan pemandangan ke ruang kerja Excalidraw+ Anda."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Kesalahan sintaks Mermaid"
     },
     "rateLimit": {
-      "messageLimit": "Anda telah mencapai batas AI pada paket gratis. Coba Excalidraw + untuk akses lebih atau kembali lagi besok.",
       "generalRateLimit": "Tunggu sebentar, Anda terlalu cepat! Harap tunggu sejenak sebelum mencoba lagi.",
       "messageLimitInputPlaceholder": "Anda telah mencapai batas pesan anda"
-    },
-    "upsellBtnLabel": "Tingkatkan ke Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "Pencarian Cepat"

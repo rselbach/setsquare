@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "ਪੇਸਟ ਕਰੋ",
     "pasteAsPlaintext": "ਸਾਦੇ ਪਾਠ ਵਜੋਂ ਪੇਸਟ ਕਰੋ",
     "pasteCharts": "ਚਾਰਟ ਪੇਸਟ ਕਰੋ",
@@ -437,10 +435,7 @@
     "disk_button": "ਫਾਈਲ ਵਿੱਚ ਸਾਂਭੋ",
     "link_title": "ਸਾਂਝੀ ਕਰਨ ਵਾਲੀ ਲਿੰਕ",
     "link_details": "ਸਿਰਫ ਦੇਖੇ-ਜਾਣ ਵਾਲੀ ਲਿੰਕ ਵਜੋਂ ਨਿਰਯਾਤ ਕਰੋ।",
-    "link_button": "ਲਿੰਕ ਵਿੱਚ ਨਿਰਯਾਤ ਕਰੋ",
-    "excalidrawplus_description": "ਆਪਣੇ ਦ੍ਰਿਸ਼ ਦੇ ਡਾਟੇ ਨੂੰ Excalidraw+ ਵਰਕਸਪੇਸ ਵਿੱਚ ਸਾਂਭੋ।",
-    "excalidrawplus_button": "ਨਿਰਯਾਤ ਕਰੋ",
-    "excalidrawplus_exportError": "ਇਸ ਸਮੇਂ Excalidraw+ ਵਿੱਚ ਨਿਰਯਾਤ ਨਹੀਂ ਕਰ ਸਕੇ..."
+    "link_button": "ਲਿੰਕ ਵਿੱਚ ਨਿਰਯਾਤ ਕਰੋ"
   },
   "helpDialog": {
     "blog": "ਸਾਡਾ ਬਲੌਗ ਪੜ੍ਹੋ",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "",
       "menuHint": "ਨਿਰਯਾਤ, ਤਰਜੀਹਾਂ, ਭਾਸ਼ਾਵਾਂ, …"
     },
     "defaults": {
@@ -626,11 +620,6 @@
         "description": ""
       },
       "saveToDisk": {
-        "title": "",
-        "button": "",
-        "description": ""
-      },
-      "excalidrawPlus": {
         "title": "",
         "button": "",
         "description": ""
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

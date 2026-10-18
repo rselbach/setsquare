@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "粘贴",
     "pasteAsPlaintext": "粘贴为纯文本",
     "pasteCharts": "粘贴图表",
@@ -437,10 +435,7 @@
     "disk_button": "保存为文件",
     "link_title": "分享链接",
     "link_details": "导出为只读链接。",
-    "link_button": "导出链接",
-    "excalidrawplus_description": "将画布保存到您的 Excalidraw+ 工作区。",
-    "excalidrawplus_button": "导出",
-    "excalidrawplus_exportError": "暂时无法导出到 Excalidraw+ ..."
+    "link_button": "导出链接"
   },
   "helpDialog": {
     "blog": "浏览我们的博客",
@@ -596,7 +591,6 @@
       "center_heading": "您的绘图已保存在您的浏览器存储中。",
       "center_heading_line2": "浏览器存储可能会被无意清除。",
       "center_heading_line3": "将您的工作定期保存到一个文件，以避免丢失。",
-      "center_heading_plus": "是否前往 Excalidraw+ ？",
       "menuHint": "导出、首选项、语言……"
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "保存到本地",
         "button": "保存到本地",
         "description": "将画布数据导出为文件，以便以后导入。"
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "导出到 Excalidraw+",
-        "description": "将画布保存到您的 Excalidraw+ 工作区。"
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Mermaid 语法错误"
     },
     "rateLimit": {
-      "messageLimit": "您已达到免费版的 AI 使用上限。请尝试 Excalidraw+ 获取更多额度，或明天再试。",
       "generalRateLimit": "慢点慢点，您的手速太快了！请稍候再试。",
       "messageLimitInputPlaceholder": "您已达到消息上限"
-    },
-    "upsellBtnLabel": "升级到 Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "快速搜索"

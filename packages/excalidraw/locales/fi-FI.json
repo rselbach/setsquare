@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Liitä",
     "pasteAsPlaintext": "Liitä pelkkänä tekstinä",
     "pasteCharts": "Liitä kaaviot",
@@ -437,10 +435,7 @@
     "disk_button": "Tallenna tiedostoon",
     "link_title": "Jaettava linkki",
     "link_details": "Vie vain luku -linkkinä.",
-    "link_button": "Vie linkkinä",
-    "excalidrawplus_description": "Tallenna teos Excalidraw+ tilaan.",
-    "excalidrawplus_button": "Vie",
-    "excalidrawplus_exportError": "Ei voitu viedä Excalidraw+-palveluun tällä hetkellä..."
+    "link_button": "Vie linkkinä"
   },
   "helpDialog": {
     "blog": "Lue blogiamme",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Haluatko sen sijaan mennä Excalidraw+:aan?",
       "menuHint": "Vie, asetukset, kielet, ..."
     },
     "defaults": {
@@ -628,11 +622,6 @@
       "saveToDisk": {
         "title": "Tallenna levylle",
         "button": "Tallenna levylle",
-        "description": ""
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Vie Excalidraw+:aan",
         "description": ""
       }
     },
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

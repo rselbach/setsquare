@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Colar",
     "pasteAsPlaintext": "Colar como texto sem formatação",
     "pasteCharts": "Colar gráficos",
@@ -437,10 +435,7 @@
     "disk_button": "Salvar em um arquivo",
     "link_title": "Link compartilhável",
     "link_details": "Exportar como link de somente leitura.",
-    "link_button": "Exportar link",
-    "excalidrawplus_description": "Salvar a cena na sua área de trabalho Excalidraw+.",
-    "excalidrawplus_button": "Exportar",
-    "excalidrawplus_exportError": "Não é possível exportar para o Excalidraw+ neste momento..."
+    "link_button": "Exportar link"
   },
   "helpDialog": {
     "blog": "Leia o nosso blog",
@@ -596,7 +591,6 @@
       "center_heading": "Seus desenhos estão salvos no armazenamento do seu navegador.",
       "center_heading_line2": "O armazenamento do navegador pode ser apagado inesperadamente.",
       "center_heading_line3": "Salve seu trabalho em um arquivo regularmente para evitar perdê-lo.",
-      "center_heading_plus": "Você queria ir para o Excalidraw+ em vez disso?",
       "menuHint": "Exportar, preferências, idiomas..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Salvar no computador",
         "button": "Salvar no computador",
         "description": "Exportar os dados da cena para um arquivo que você poderá importar mais tarde."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exportar para Excalidraw+",
-        "description": "Salvar a cena na sua área de trabalho Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Erro de sintaxe Mermaid"
     },
     "rateLimit": {
-      "messageLimit": "Você atingiu o limite de IA no plano gratuito. Experimente o Excalidraw+ para mais ou tente novamente amanhã.",
       "generalRateLimit": "Vai com calma, colega! Espere um momento antes de tentar novamente.",
       "messageLimitInputPlaceholder": "Você atingiu seu limite de mensagens"
-    },
-    "upsellBtnLabel": "Atualize para o Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "Busca rápida"

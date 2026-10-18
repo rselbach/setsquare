@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Pegar",
     "pasteAsPlaintext": "Pegar coma texto sen formato",
     "pasteCharts": "Pegar gráficos",
@@ -437,10 +435,7 @@
     "disk_button": "Gardar nun ficheiro",
     "link_title": "Ligazón para compartir",
     "link_details": "Exportar como unha ligazón de só lectura.",
-    "link_button": "Exportar a unha ligazón",
-    "excalidrawplus_description": "Garde a escena no seu espazo de traballo en Excalidraw+.",
-    "excalidrawplus_button": "Exportar",
-    "excalidrawplus_exportError": "Non se puido exportar a Excalidraw+ neste momento..."
+    "link_button": "Exportar a unha ligazón"
   },
   "helpDialog": {
     "blog": "Le o noso blog",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Queres ir a Excalidraw+ no seu lugar?",
       "menuHint": "Exportar, preferencias, idiomas, ..."
     },
     "defaults": {
@@ -628,11 +622,6 @@
       "saveToDisk": {
         "title": "Gardar no disco",
         "button": "Gardar no disco",
-        "description": ""
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exportar a Excalidraw+",
         "description": ""
       }
     },
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

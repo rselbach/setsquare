@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Enganxa",
     "pasteAsPlaintext": "Enganxar com a text pla",
     "pasteCharts": "Enganxa els diagrames",
@@ -437,10 +435,7 @@
     "disk_button": "Desa en un fitxer",
     "link_title": "Enllaç per a compartir",
     "link_details": "Exporta com a un enllaç de només lectura.",
-    "link_button": "Exporta a un enllaç",
-    "excalidrawplus_description": "Desa l'escena en el vostre espai de treball Excalidraw+.",
-    "excalidrawplus_button": "Exporta",
-    "excalidrawplus_exportError": "No és possible exportar a Excalidraw+ ara mateix..."
+    "link_button": "Exporta a un enllaç"
   },
   "helpDialog": {
     "blog": "Llegiu el nostre blog",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Vols anar a Excalidraw+ en comptes?",
       "menuHint": "Exportar, preferències, llenguatges..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Deseu al disc",
         "button": "Deseu al disc",
         "description": "Exporta les dades de l'escena a un fitxer des del qual podràs importar-les més tard."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exporta a Excalidraw+",
-        "description": "Desa l'escena al teu espai de treball d'Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "Cerca ràpida"

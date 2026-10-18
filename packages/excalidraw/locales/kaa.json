@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Qoyıw",
     "pasteAsPlaintext": "Ápiwayı tekst retinde qoyıw",
     "pasteCharts": "Diagrammalardı qoyıw",
@@ -437,10 +435,7 @@
     "disk_button": "Faylǵa saqlaw",
     "link_title": "",
     "link_details": "",
-    "link_button": "Siltemege eksportlaw",
-    "excalidrawplus_description": "",
-    "excalidrawplus_button": "Eksportlaw",
-    "excalidrawplus_exportError": ""
+    "link_button": "Siltemege eksportlaw"
   },
   "helpDialog": {
     "blog": "Biziń blogtı oqıń",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "",
       "menuHint": "Eksportlaw, sazlawlar, tiller, ..."
     },
     "defaults": {
@@ -628,11 +622,6 @@
       "saveToDisk": {
         "title": "Diskke saqlaw",
         "button": "Diskke saqlaw",
-        "description": ""
-      },
-      "excalidrawPlus": {
-        "title": "",
-        "button": "",
         "description": ""
       }
     },
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": ""

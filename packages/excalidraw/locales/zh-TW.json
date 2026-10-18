@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "貼上",
     "pasteAsPlaintext": "以純文字貼上",
     "pasteCharts": "貼上圖表",
@@ -437,10 +435,7 @@
     "disk_button": "儲存至檔案",
     "link_title": "可共享連結",
     "link_details": "匯出為唯讀連結",
-    "link_button": "匯出為連結",
-    "excalidrawplus_description": "將此場景儲存至你的 Excalidraw+ 工作區",
-    "excalidrawplus_button": "輸出",
-    "excalidrawplus_exportError": "目前無法輸出至 Excalidraw+"
+    "link_button": "匯出為連結"
   },
   "helpDialog": {
     "blog": "閱讀部落格",
@@ -596,7 +591,6 @@
       "center_heading": "你的繪圖已儲存在瀏覽器的儲存空間中。",
       "center_heading_line2": "瀏覽器儲存空間可能會意外地被清除。",
       "center_heading_line3": "請定期將作品儲存為檔案，以避免遺失。",
-      "center_heading_plus": "您是否是要前往 Excalidraw+ ？",
       "menuHint": "輸出、偏好設定、語言..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "儲存至硬碟",
         "button": "儲存至硬碟",
         "description": "將場景匯出為可供匯入的檔案"
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "匯出至 Excalidraw+",
-        "description": "將此場景儲存至您的 Excalidraw+ 工作區"
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Mermaid 語法錯誤"
     },
     "rateLimit": {
-      "messageLimit": "你已達到免費方案的 AI 使用上限。請試用 Excalidraw+ 以取得更多額度，或明天再試。",
       "generalRateLimit": "別心急，你的操作速度太快了！請稍等片刻後再試。",
       "messageLimitInputPlaceholder": "你已達到訊息上限"
-    },
-    "upsellBtnLabel": "升級至 Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "快速搜尋"

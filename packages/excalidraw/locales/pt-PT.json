@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Colar",
     "pasteAsPlaintext": "Colar como texto simples",
     "pasteCharts": "Colar gráficos",
@@ -437,10 +435,7 @@
     "disk_button": "Guardar num ficheiro",
     "link_title": "Hiperligação partilhável",
     "link_details": "Exportar como uma hiperligação de apenas leitura.",
-    "link_button": "Exportar para hiperligação",
-    "excalidrawplus_description": "Guardar a cena no seu espaço de trabalho do Excalidraw+.",
-    "excalidrawplus_button": "Exportar",
-    "excalidrawplus_exportError": "Não foi possível exportar para o Excalidraw+ neste momento..."
+    "link_button": "Exportar para hiperligação"
   },
   "helpDialog": {
     "blog": "Leia o nosso blogue",
@@ -596,7 +591,6 @@
       "center_heading": "Os seus desenhos estão guardados no armazenamento do seu navegador.",
       "center_heading_line2": "O armazenamento do navegador pode ser apagado inesperadamente.",
       "center_heading_line3": "Para não perder os seus desenhos, guarde-os num ficheiro.",
-      "center_heading_plus": "Queria antes ir para o Excalidraw+?",
       "menuHint": "Exportar, preferências, idiomas..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Guardar no disco",
         "button": "Guardar no disco",
         "description": "Exportar os dados da cena para um ficheiro do qual poderá importar mais tarde."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exportar para Excalidraw+",
-        "description": "Guardar a cena no seu espaço de trabalho do Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Erro de sintaxe Mermaid"
     },
     "rateLimit": {
-      "messageLimit": "Atingiu o seu limite de IA no plano gratuito. Experimente o Excalidraw+ para mais ou volte amanhã.",
       "generalRateLimit": "Acalme-se, está a ir muito rápido! Espere se faz favor um momento antes de tentar novamente.",
       "messageLimitInputPlaceholder": "Atingiu o seu limite de mensagens"
-    },
-    "upsellBtnLabel": "Efetuar “upgrade” para o plano Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "Pesquisa rápida"

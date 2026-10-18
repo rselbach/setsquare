@@ -32,10 +32,6 @@ interface ImportMetaEnv {
   // Enable PWA in dev server
   VITE_APP_ENABLE_PWA: string;
 
-  VITE_APP_PLUS_LP: string;
-
-  VITE_APP_PLUS_APP: string;
-
   VITE_APP_GIT_SHA: string;
 
   MODE: string;

@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Επικόλληση",
     "pasteAsPlaintext": "Επικόλληση ως απλό κείμενο",
     "pasteCharts": "Επικόλληση γραφημάτων",
@@ -437,10 +435,7 @@
     "disk_button": "Αποθήκευση σε αρχείο",
     "link_title": "Κοινόχρηστος σύνδεσμος",
     "link_details": "Εξαγωγή ως σύνδεσμο μόνο για ανάγνωση.",
-    "link_button": "Εξαγωγή σε Σύνδεση",
-    "excalidrawplus_description": "Αποθηκεύστε τη σκηνή στο χώρο εργασίας σας Excalidraw+.",
-    "excalidrawplus_button": "Εξαγωγή",
-    "excalidrawplus_exportError": "Δεν ήταν δυνατή η εξαγωγή στο Excalidraw+ αυτή τη στιγμή..."
+    "link_button": "Εξαγωγή σε Σύνδεση"
   },
   "helpDialog": {
     "blog": "Διαβάστε το Blog μας",
@@ -596,7 +591,6 @@
       "center_heading": "",
       "center_heading_line2": "",
       "center_heading_line3": "",
-      "center_heading_plus": "Μήπως θέλατε να πάτε στο Excalidraw+;",
       "menuHint": "Εξαγωγή, προτιμήσεις, γλώσσες, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Αποθήκευση στο δίσκο",
         "button": "Αποθήκευση στο δίσκο",
         "description": "Εξαγωγή δεδομένων σκηνής σε ένα αρχείο από το οποίο μπορείτε να εισάγετε αργότερα."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Εξαγωγή σε Excalidraw+",
-        "description": "Αποθηκεύστε τη σκηνή στο χώρο εργασίας σας Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": ""
     },
     "rateLimit": {
-      "messageLimit": "",
       "generalRateLimit": "",
       "messageLimitInputPlaceholder": ""
-    },
-    "upsellBtnLabel": ""
+    }
   },
   "quickSearch": {
     "placeholder": "Γρήγορη αναζήτηση"

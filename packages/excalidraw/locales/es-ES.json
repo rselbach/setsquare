@@ -1,7 +1,5 @@
 {
   "labels": {
-    "signUp": "",
-    "signIn": "",
     "paste": "Pegar",
     "pasteAsPlaintext": "Pegar como texto sin formato",
     "pasteCharts": "Pegar gráficos",
@@ -437,10 +435,7 @@
     "disk_button": "Guardar en archivo",
     "link_title": "Enlace para compartir",
     "link_details": "Exportar como enlace de sólo lectura.",
-    "link_button": "Exportar a Link",
-    "excalidrawplus_description": "Guarde la escena en su espacio de trabajo de Excalidraw+.",
-    "excalidrawplus_button": "Exportar",
-    "excalidrawplus_exportError": "No se pudo exportar a Excalidraw+ en este momento..."
+    "link_button": "Exportar a Link"
   },
   "helpDialog": {
     "blog": "Lea nuestro blog",
@@ -596,7 +591,6 @@
       "center_heading": "Tus dibujos se guardan en el almacenamiento de tu navegador.",
       "center_heading_line2": "El almacenamiento del navegador puede borrarse inesperadamente.",
       "center_heading_line3": "Guarde su trabajo en un archivo con regularidad para evitar perderlo.",
-      "center_heading_plus": "¿Quieres ir a Excalidraw+?",
       "menuHint": "Exportar, preferencias, idiomas, ..."
     },
     "defaults": {
@@ -629,11 +623,6 @@
         "title": "Guardar en el disco",
         "button": "Guardar en el disco",
         "description": "Exporta los datos de la escena a un archivo desde el cual podrás importar más tarde."
-      },
-      "excalidrawPlus": {
-        "title": "Excalidraw+",
-        "button": "Exportar a Excalidraw+",
-        "description": "Guarda la escena en su espacio de trabajo de Excalidraw+."
       }
     },
     "modal": {
@@ -699,11 +688,9 @@
       "mermaidParseError": "Error de sintaxis de Mermaid"
     },
     "rateLimit": {
-      "messageLimit": "Has alcanzado el límite de IA en el plan gratuito. Prueba Excalidraw+ para obtener más o vuelve mañana.",
       "generalRateLimit": "Espera un momento, ¡vas demasiado rápido para nosotros! Por favor, espera un instante antes de intentarlo de nuevo.",
       "messageLimitInputPlaceholder": "Has alcanzado tu límite de mensajes\n"
-    },
-    "upsellBtnLabel": "Actualizar a Plus"
+    }
   },
   "quickSearch": {
     "placeholder": "Búsqueda rápida"
