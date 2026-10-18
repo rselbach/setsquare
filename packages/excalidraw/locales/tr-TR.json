@@ -114,7 +114,6 @@
     "addToLibrary": "Kütüphaneye ekle",
     "removeFromLibrary": "Kütüphaneden kaldır",
     "libraryLoadingMessage": "Kütüphane yükleniyor…",
-    "libraries": "Kütüphanelere gözat",
     "loadingScene": "Sahne yükleniyor…",
     "loadScene": "Dosyadan sahne yükle",
     "align": "Hizala",
@@ -166,7 +165,6 @@
       "lockAll": "Hepsini kilitle",
       "unlockAll": "Hepsinin kilidini kaldır"
     },
-    "statusPublished": "Yayınlandı",
     "sidebarLock": "Kenar çubuğu açık kalsın",
     "selectAllElementsInFrame": "Çerçevedeki tüm bileşenleri seç",
     "removeAllElementsFromFrame": "Çerçevedeki tüm bileşenleri sil",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Öğe eklenmedi...",
-    "hint_emptyLibrary": "Öğelerden birini eklemek için öğeyi seçin veya aşağıdaki genel kütüphaneden öğeleri ekleyin.",
     "hint_emptyPrivateLibrary": "Tuvalden bir eleman seçerek sayfaya ekleyin.",
     "search": {
       "inputPlaceholder": "Kütüphanede ara",
       "heading": "Kütüphane eşleşmeleri",
       "noResults": "Eşleşen öğe bulunamadı...",
       "clearSearch": "Aramayı temizle"
-    }
+    },
+    "itemName": "Öğe adı"
   },
   "search": {
     "title": "Tuvalde bul",
@@ -256,8 +254,6 @@
     "clear": "Temizle",
     "remove": "Kaldır",
     "embed": "Yerleştirmeyi aç veya kapa",
-    "publishLibrary": "Yeniden adlandır veya yayımla",
-    "submit": "Gönder",
     "confirm": "Onayla",
     "embeddableInteractionButton": "Etkileşime girmek için tıkla"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Tuvali temizle"
-  },
-  "publishDialog": {
-    "title": "Kitaplığı yayınla",
-    "itemName": "Öğe adı",
-    "authorName": "Yazar adı",
-    "githubUsername": "GitHub kullanıcı adı",
-    "twitterUsername": "Twitter kullanıcı adı",
-    "libraryName": "Kitaplık adı",
-    "libraryDesc": "Kitaplık açıklaması",
-    "website": "Web sitesi",
-    "placeholder": {
-      "authorName": "Adınız ya da kullanıcı adınız",
-      "libraryName": "Kitaplığınızın adı",
-      "libraryDesc": "İnsanların kullanımını anlamasına yardımcı olmak için kitaplığınızın açıklaması",
-      "githubHandle": "Github bağlantısı ( tercihe bağlı), kütüphane gözden geçirme için onaylandığında düzenleyebiliesiniz diye",
-      "twitterHandle": "Twitter kullanıcı adı ( tercihe bağlı), bu sayede Twitter üzerinde paylaşıren çalışmanızı size atfedebiliriz",
-      "website": "Kişisel web sayfanızı ya da başka bir yeri bağlayın (tercihe bağlı)"
-    },
-    "errors": {
-      "required": "Gerekli",
-      "website": "Geçerli bir URL girin"
-    },
-    "noteDescription": "Kütüphanenizi diğer insanların da kullanabilmesi için <link>Ortak kütüphane deposuna</link> yükleyin.",
-    "noteGuidelines": "Önce kütüphane elle onaylanmalı. şunu okuyun <link>yönergeler</link> onaylamadan önce. gerekli olması halinde iletişim kurmak için ve değişiklik için GitHub hesabı gerekli, ama çok da illaki olmalı değil.",
-    "noteLicense": "Bunu onaylayarak, kütüphanenin şu lisansla yayınlanmasını onaylıyorsunuz <link>MIT Lisans, </link>ki bu kısaca herkesin onu kısıtlama olmaksızın kullanabileceği anlamına gelmektedir.",
-    "noteItems": "Her kütüphane kendi ismine sahip olmalı ki tarama yapabilelim. Şu kütüphane ögeleri dahil edilecek:",
-    "atleastOneLibItem": "Lütfen başlamak için en az bir tane kütüphane ögesi seçin",
-    "republishWarning": "Not: seçilen ögelerden bir kısmı zaten yayınlanmış/gönderilmiş. Yalnızca mevcut kütüphane ve gönderileri güncellerken yeniden gönderme işlemi yapmalısınız."
-  },
-  "publishSuccessDialog": {
-    "title": "Kütüphane gönderildi",
-    "content": "Teşekkürler {{authorName}}. Kütüphaneniz gözden geçirme için alındı. Durumu takip edebilirsiniz <link>burada</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Kütüphaneyi sıfırla",

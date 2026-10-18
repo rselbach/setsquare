@@ -89,7 +89,6 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
     activeTool,
     zenModeEnabled,
     gridModeEnabled,
-    libraryReturnUrl,
     theme,
     name,
     renderCustomStats,
@@ -231,7 +230,6 @@ const ExcalidrawBase = (props: ExcalidrawProps) => {
           activeTool={activeTool}
           zenModeEnabled={zenModeEnabled}
           gridModeEnabled={gridModeEnabled}
-          libraryReturnUrl={libraryReturnUrl}
           theme={theme}
           name={name}
           renderCustomStats={renderCustomStats}
@@ -459,7 +457,7 @@ export {
 
 export { CaptureUpdateAction } from "@excalidraw/element";
 
-export { parseLibraryTokensFromUrl, useHandleLibrary } from "./data/library";
+export { useHandleLibrary } from "./data/library";
 
 export { Sidebar } from "./components/Sidebar/Sidebar";
 export { Button } from "./components/Button";

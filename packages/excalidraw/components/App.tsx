@@ -3619,8 +3619,8 @@ class App extends React.Component<AppProps, AppState> {
       theme: this.props.theme || restoredAppState.theme,
       // we're falling back to current (pre-init) state when deciding
       // whether to open the library, to handle a case where we
-      // update the state outside of initialData (e.g. when loading the app
-      // with a library install link, which should auto-open the library)
+      // update the state outside of initialData (e.g. when a library update
+      // with `openLibraryMenu` lands before init)
       openSidebar: restoredAppState?.openSidebar || this.state.openSidebar,
       activeTool:
         activeTool.type === "image" ||

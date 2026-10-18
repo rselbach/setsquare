@@ -114,7 +114,6 @@
     "addToLibrary": "Voeg toe aan bibliotheek",
     "removeFromLibrary": "Verwijder uit bibliotheek",
     "libraryLoadingMessage": "Bibliotheek laden…",
-    "libraries": "Blader door bibliotheken",
     "loadingScene": "Scène laden…",
     "loadScene": "Laad scène van uit bestand",
     "align": "Uitlijnen",
@@ -166,7 +165,6 @@
       "lockAll": "Vergrendel alles",
       "unlockAll": "Ontgrendel alles"
     },
-    "statusPublished": "Gepubliceerd",
     "sidebarLock": "Zijbalk open houden",
     "selectAllElementsInFrame": "Selecteer alle elementen in het frame",
     "removeAllElementsFromFrame": "Verwijder alle elementen in het frame",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Nog geen items toegevoegd...",
-    "hint_emptyLibrary": "Selecteer een item op het canvas om het hier toe te voegen of installeer een bibliotheek uit de openbare repository, hieronder.",
     "hint_emptyPrivateLibrary": "Selecteer een item op het canvas om het hier toe te voegen.",
     "search": {
       "inputPlaceholder": "Zoek in bibliotheek",
       "heading": "Bibliotheek overeenkomsten",
       "noResults": "Geen items gevonden...",
       "clearSearch": "Zoekopdracht wissen"
-    }
+    },
+    "itemName": "Itemnaam"
   },
   "search": {
     "title": "Zoek op canvas",
@@ -256,8 +254,6 @@
     "clear": "Wissen",
     "remove": "Verwijderen",
     "embed": "Embedden in-/uitschakelen",
-    "publishLibrary": "Hernoemen of publiceren",
-    "submit": "Versturen",
     "confirm": "Bevestigen",
     "embeddableInteractionButton": "Klik voor interactie"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Wis canvas"
-  },
-  "publishDialog": {
-    "title": "Publiceer bibliotheek",
-    "itemName": "Itemnaam",
-    "authorName": "Naam auteur",
-    "githubUsername": "GitHub gebruikersnaam",
-    "twitterUsername": "Twitter gebruikersnaam",
-    "libraryName": "Naam bibliotheek",
-    "libraryDesc": "Beschrijving van de bibliotheek",
-    "website": "Website",
-    "placeholder": {
-      "authorName": "Je naam of gebruikersnaam",
-      "libraryName": "Naam van je bibliotheek",
-      "libraryDesc": "Beschrijving van je bibliotheek om mensen te helpen het gebruik ervan te begrijpen",
-      "githubHandle": "GitHub-gebruikersnaam (optioneel), zodat je de bibliotheek kunt bewerken zodra deze ter beoordeling is ingediend",
-      "twitterHandle": "Twitter-gebruikersnaam (optioneel), zodat we weten wie we moeten vermelden bij promotie op Twitter",
-      "website": "Link naar je persoonlijke website of elders (optioneel)"
-    },
-    "errors": {
-      "required": "Vereist",
-      "website": "Vul een geldige URL in"
-    },
-    "noteDescription": "<link>openbare repository</link>",
-    "noteGuidelines": "<link>richtlijnen</link>",
-    "noteLicense": "<link>MIT-licentie, </link>",
-    "noteItems": "Elk bibliotheekitem moet een eigen naam hebben zodat het gefilterd kan worden. De volgende bibliotheekitems worden geïncludeerd:",
-    "atleastOneLibItem": "Selecteer op zijn minst één bibliotheekitem om te starten",
-    "republishWarning": "Opmerking: sommige van de geselecteerde items zijn al gepubliceerd/ingediend. Je moet items alleen opnieuw indienen bij het bijwerken van een bestaande bibliotheek of inzending."
-  },
-  "publishSuccessDialog": {
-    "title": "Bibliotheek ingediend",
-    "content": "Dank je {{authorName}}. Jouw bibliotheek is ingediend voor beoordeling. Je kunt de status <link>hier bijhouden</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Reset bibliotheek",

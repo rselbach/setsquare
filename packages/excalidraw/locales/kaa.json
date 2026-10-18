@@ -114,7 +114,6 @@
     "addToLibrary": "Kitapxanaǵa qosıw",
     "removeFromLibrary": "Kitapxanadan alıp taslaw",
     "libraryLoadingMessage": "Kitapxana júklenbekte…",
-    "libraries": "Kitapxanalardı kóriw",
     "loadingScene": "Saxna júklenbekte…",
     "loadScene": "",
     "align": "",
@@ -166,7 +165,6 @@
       "lockAll": "Barlıǵın qulıplaw",
       "unlockAll": "Barlıǵın qulıptan shıǵarıw"
     },
-    "statusPublished": "",
     "sidebarLock": "",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "",
-    "hint_emptyLibrary": "",
     "hint_emptyPrivateLibrary": "",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": ""
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Tazalaw",
     "remove": "Óshiriw",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "Jiberiw",
     "confirm": "Tastıyıqlaw",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": ""
-  },
-  "publishDialog": {
-    "title": "",
-    "itemName": "",
-    "authorName": "Avtor atı",
-    "githubUsername": "GitHub paydalanıwshı atı",
-    "twitterUsername": "Twitter paydalanıwshı atı",
-    "libraryName": "Kitapxana ataması",
-    "libraryDesc": "",
-    "website": "Veb-sayt",
-    "placeholder": {
-      "authorName": "Atıńız yamasa paydalanıwshı atı",
-      "libraryName": "",
-      "libraryDesc": "",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "",
-      "website": ""
-    },
-    "noteDescription": "",
-    "noteGuidelines": "",
-    "noteLicense": "",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "",
-    "content": ""
   },
   "confirmDialog": {
     "resetLibrary": "Kitapxananı qayta ornatıw",

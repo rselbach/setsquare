@@ -114,7 +114,6 @@
     "addToLibrary": "Lisää kirjastoon",
     "removeFromLibrary": "Poista kirjastosta",
     "libraryLoadingMessage": "Ladataan kirjastoa…",
-    "libraries": "Selaa kirjastoja",
     "loadingScene": "Ladataan työtä…",
     "loadScene": "",
     "align": "Tasaa",
@@ -166,7 +165,6 @@
       "lockAll": "Lukitse kaikki",
       "unlockAll": "Poista lukitus kaikista"
     },
-    "statusPublished": "Julkaistu",
     "sidebarLock": "Pidä sivupalkki avoinna",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Kirjastossa ei ole vielä yhtään kohdetta...",
-    "hint_emptyLibrary": "Valitse lisättävä kohde piirtoalueelta, tai asenna alta julkinen kirjasto.",
     "hint_emptyPrivateLibrary": "Valitse lisättävä kohde piirtoalueelta.",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "Kohteen nimi"
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Pyyhi",
     "remove": "Poista",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "Lähetä",
     "confirm": "Vahvista",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Pyyhi piirtoalue"
-  },
-  "publishDialog": {
-    "title": "Julkaise kirjasto",
-    "itemName": "Kohteen nimi",
-    "authorName": "Tekijän nimi",
-    "githubUsername": "GitHub-käyttäjätunnus",
-    "twitterUsername": "Twitter-käyttäjätunnus",
-    "libraryName": "Kirjaston nimi",
-    "libraryDesc": "Kirjaston kuvaus",
-    "website": "Verkkosivu",
-    "placeholder": {
-      "authorName": "Nimesi tai käyttäjänimesi",
-      "libraryName": "Kirjastosi nimi",
-      "libraryDesc": "Kirjaston kuvaus, joka auttaa ihmisiä ymmärtämään sen käyttötarkoitukset",
-      "githubHandle": "GitHub-tunnuksesi (valinnainen), jotta voit muokata kirjastoa sen jälkeen kun se on lähetetty tarkastettavaksi",
-      "twitterHandle": "Twitter-tunnus (valinnainen), jotta tiedämme ketä kiittää kun viestimme Twitterissä",
-      "website": "Linkki henkilökohtaiselle verkkosivustollesi tai muualle (valinnainen)"
-    },
-    "errors": {
-      "required": "Pakollinen",
-      "website": "Syötä oikeamuotoinen URL-osoite"
-    },
-    "noteDescription": "Lähetä kirjastosi, jotta se voidaan sisällyttää <link>julkisessa kirjastolistauksessa</link>muiden käyttöön omissa piirrustuksissaan.",
-    "noteGuidelines": "Kirjasto on ensin hyväksyttävä manuaalisesti. Ole hyvä ja lue <link>ohjeet</link> ennen lähettämistä. Tarvitset GitHub-tilin, jotta voit viestiä ja tehdä muutoksia pyydettäessä, mutta se ei ole ehdottoman välttämätöntä.",
-    "noteLicense": "Lähettämällä hyväksyt että kirjasto julkaistaan <link>MIT-lisenssin </link>alla, mikä lyhyesti antaa muiden käyttää sitä ilman rajoituksia.",
-    "noteItems": "Jokaisella kirjaston kohteella on oltava oma nimensä suodatusta varten. Seuraavat kirjaston kohteet sisältyvät:",
-    "atleastOneLibItem": "Valitse vähintään yksi kirjaston kohde aloittaaksesi",
-    "republishWarning": "Huom! Osa valituista kohteista on merkitty jo julkaistu/lähetetyiksi. Lähetä kohteita uudelleen vain päivitettäessä olemassa olevaa kirjastoa tai ehdotusta."
-  },
-  "publishSuccessDialog": {
-    "title": "Kirjasto lähetetty",
-    "content": "Kiitos {{authorName}}. Kirjastosi on lähetetty tarkistettavaksi. Voit seurata sen tilaa<link>täällä</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Tyhjennä kirjasto",

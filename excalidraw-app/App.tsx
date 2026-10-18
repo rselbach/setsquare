@@ -53,10 +53,7 @@ import {
 import { newElementWith } from "@excalidraw/element";
 import { isInitializedImageElement } from "@excalidraw/element";
 import clsx from "clsx";
-import {
-  parseLibraryTokensFromUrl,
-  useHandleLibrary,
-} from "@excalidraw/excalidraw/data/library";
+import { useHandleLibrary } from "@excalidraw/excalidraw/data/library";
 
 import type { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import type { RestoredDataState } from "@excalidraw/excalidraw/data/restore";
@@ -556,29 +553,26 @@ const ExcalidrawWrapper = () => {
 
     const onHashChange = async (event: HashChangeEvent) => {
       event.preventDefault();
-      const libraryUrlTokens = parseLibraryTokensFromUrl();
-      if (!libraryUrlTokens) {
-        if (
-          collabAPI?.isCollaborating() &&
-          !isCollaborationLink(window.location.href)
-        ) {
-          collabAPI.stopCollaboration(false);
-        }
-        excalidrawAPI.updateScene({ appState: { isLoading: true } });
-
-        initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
-          loadImages(data);
-          if (data.scene) {
-            excalidrawAPI.updateScene({
-              elements: restoreElements(data.scene.elements, null, {
-                repairBindings: true,
-              }),
-              appState: restoreAppState(data.scene.appState, null),
-              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-            });
-          }
-        });
+      if (
+        collabAPI?.isCollaborating() &&
+        !isCollaborationLink(window.location.href)
+      ) {
+        collabAPI.stopCollaboration(false);
       }
+      excalidrawAPI.updateScene({ appState: { isLoading: true } });
+
+      initializeScene({ collabAPI, excalidrawAPI }).then((data) => {
+        loadImages(data);
+        if (data.scene) {
+          excalidrawAPI.updateScene({
+            elements: restoreElements(data.scene.elements, null, {
+              repairBindings: true,
+            }),
+            appState: restoreAppState(data.scene.appState, null),
+            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+          });
+        }
+      });
     };
 
     const syncData = debounce(() => {

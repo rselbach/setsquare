@@ -114,7 +114,6 @@
     "addToLibrary": "Apondre a la bibliotèca",
     "removeFromLibrary": "Suprimir de la bibliotèca",
     "libraryLoadingMessage": "Cargament de la bibliotèca…",
-    "libraries": "Percórrer las bibliotècas",
     "loadingScene": "Cargament de la scèna…",
     "loadScene": "Cargar una scèna d’un fichièr",
     "align": "Alinhament",
@@ -166,7 +165,6 @@
       "lockAll": "Tot verrolhar",
       "unlockAll": "Tot desverrolhar"
     },
-    "statusPublished": "Publicat",
     "sidebarLock": "Gardar la barra laterala dobèrta",
     "selectAllElementsInFrame": "Seleccionar totes los elements del quadre",
     "removeAllElementsFromFrame": "Tirar totes los elements d’al quadre",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Cap d’element pas encara apondut...",
-    "hint_emptyLibrary": "Seleccionatz un element d’apondre aquí, o installatz una bibliotèca del depaus public, çai-jos.",
     "hint_emptyPrivateLibrary": "Seleccionatz un element d’apondre aquí pel canabàs.",
     "search": {
       "inputPlaceholder": "Cercar dins la bibliotèca",
       "heading": "",
       "noResults": "",
       "clearSearch": "Escafar la recèrca"
-    }
+    },
+    "itemName": "Nom de l’element"
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Escafar",
     "remove": "Tirar",
     "embed": "Alternar l’integracion",
-    "publishLibrary": "",
-    "submit": "Enviar",
     "confirm": "Confirmar",
     "embeddableInteractionButton": "Clicar per interagir"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Escafar canabàs"
-  },
-  "publishDialog": {
-    "title": "Publicar la bibliotèca",
-    "itemName": "Nom de l’element",
-    "authorName": "Nom de l’autor",
-    "githubUsername": "Nom d’utilizaire GitHub",
-    "twitterUsername": "Nom d’utilizaire Twitter",
-    "libraryName": "Nom de la bibliotèca",
-    "libraryDesc": "Descripcion de la bibliotèca",
-    "website": "Site web",
-    "placeholder": {
-      "authorName": "Vòstre nom o nom d’utilizaire",
-      "libraryName": "Nom de vòstra bibliotèca",
-      "libraryDesc": "Descripcion de vòstra bibliotèca per ajudar lo monde a comprendre son utilizacion",
-      "githubHandle": "GitHub handle(opcional), per poder modificar la bibliotèca un còp enviada per repassa",
-      "twitterHandle": "Nom d’utilizaire Twitter (opcional), per saber qual mercejar quand ne parlam sus Twitter",
-      "website": "Ligam cap a vòstre site web personal o endacòm mai (opcional)"
-    },
-    "errors": {
-      "required": "Requerit",
-      "website": "Picatz una URL valida"
-    },
-    "noteDescription": "Enviatz vòstra bibliotèca per èsser compresa al <link>repertòri public de bibliotèca</link>per que los autres l’utilizen dins lor dessenhs.",
-    "noteGuidelines": "Qualqu’un deu aprovar la bibliotèca manualament per començar. Volgatz legir las <link>linhas directrises</link> abans de sometre. Vos farà mestièr un compte GitHub per comunicar e realizar de modificacions se demandadas, mas es pas complètament obligatòri.",
-    "noteLicense": "En sometent, acceptatz que la bibliotèca siá publicada sota la <link>Licéncia MIT, </link>que significa en brèu que qual que siá pòt l’utilizar sens cap de restriccion.",
-    "noteItems": "Cada element de bibliotèca deu aver un nom pròpri per èsser filtrable. Los elements de bibliotèca seguentas seràn incluses :",
-    "atleastOneLibItem": "Volgatz seleccionar almens un element de bibliotèca per començar",
-    "republishWarning": "Nòta : d’unes elements seleccionats son marcats ja coma publicats/enviats. Deuriatz sonque tornar enviar los elements pendent l’actualizacion d’una bibliotèca existenta o un mandadís."
-  },
-  "publishSuccessDialog": {
-    "title": "Bibliotèca somesa",
-    "content": "Mercés {{authorName}}. Vòstre bibliotèca es estada somesa per repassa. Podètz seguir l’avançament<link>aquí</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Reïnicializar la bibliotèca",

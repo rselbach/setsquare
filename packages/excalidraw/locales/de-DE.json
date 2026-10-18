@@ -114,7 +114,6 @@
     "addToLibrary": "Zur Bibliothek hinzufügen",
     "removeFromLibrary": "Aus Bibliothek entfernen",
     "libraryLoadingMessage": "Lade Bibliothek…",
-    "libraries": "Bibliotheken durchsuchen",
     "loadingScene": "Lade Zeichnung…",
     "loadScene": "Szene aus Datei laden",
     "align": "Ausrichten",
@@ -166,7 +165,6 @@
       "lockAll": "Alle sperren",
       "unlockAll": "Alle entsperren"
     },
-    "statusPublished": "Veröffentlicht",
     "sidebarLock": "Seitenleiste offen lassen",
     "selectAllElementsInFrame": "Alle Elemente im Rahmen auswählen",
     "removeAllElementsFromFrame": "Alle Elemente aus dem Rahmen entfernen",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Noch keine Elemente hinzugefügt...",
-    "hint_emptyLibrary": "Wähle ein Element auf der Zeichenfläche, um es hier hinzuzufügen. Oder installiere eine Bibliothek aus dem öffentlichen Verzeichnis.",
     "hint_emptyPrivateLibrary": "Wähle ein Element von der Zeichenfläche, um es hier hinzuzufügen.",
     "search": {
       "inputPlaceholder": "Bibliothek durchsuchen",
       "heading": "Bibliothekstreffer",
       "noResults": "Keine passenden Elemente gefunden...",
       "clearSearch": "Suche zurücksetzen"
-    }
+    },
+    "itemName": "Elementname"
   },
   "search": {
     "title": "Auf Zeichenfläche suchen",
@@ -256,8 +254,6 @@
     "clear": "Löschen",
     "remove": "Entfernen",
     "embed": "Einbettung umschalten",
-    "publishLibrary": "Umbenennen oder veröffentlichen",
-    "submit": "Absenden",
     "confirm": "Bestätigen",
     "embeddableInteractionButton": "Klicken, um zu interagieren"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Zeichenfläche löschen"
-  },
-  "publishDialog": {
-    "title": "Bibliothek veröffentlichen",
-    "itemName": "Elementname",
-    "authorName": "Name des Autors",
-    "githubUsername": "GitHub-Benutzername",
-    "twitterUsername": "Twitter-Benutzername",
-    "libraryName": "Name der Bibliothek",
-    "libraryDesc": "Beschreibung der Bibliothek",
-    "website": "Webseite",
-    "placeholder": {
-      "authorName": "Dein Name oder Benutzername",
-      "libraryName": "Name deiner Bibliothek",
-      "libraryDesc": "Beschreibung deiner Bibliothek, um anderen Nutzern bei der Verwendung zu helfen",
-      "githubHandle": "GitHub-Handle (optional), damit du die Bibliothek bearbeiten kannst, wenn sie zur Überprüfung eingereicht wurde",
-      "twitterHandle": "Twitter-Benutzername (optional), damit wir wissen, wen wir bei Werbung über Twitter nennen können",
-      "website": "Link zu deiner persönlichen Webseite oder zu anderer Seite (optional)"
-    },
-    "errors": {
-      "required": "Erforderlich",
-      "website": "Gültige URL eingeben"
-    },
-    "noteDescription": "Sende deine Bibliothek ein, um in das <link>öffentliche Bibliotheksverzeichnis</link> aufgenommen zu werden, damit andere sie in ihren Zeichnungen verwenden können.",
-    "noteGuidelines": "Die Bibliothek muss zuerst manuell freigegeben werden. Bitte lies die <link>Richtlinien</link> vor dem Absenden. Du benötigst ein GitHub-Konto, um zu kommunizieren und Änderungen vorzunehmen, falls erforderlich, aber es ist nicht unbedingt erforderlich.",
-    "noteLicense": "Mit dem Absenden stimmst du zu, dass die Bibliothek unter der <link>MIT-Lizenz</link> veröffentlicht wird. Das bedeutet, dass jeder sie ohne Einschränkungen nutzen kann.",
-    "noteItems": "Jedes Bibliothekselement muss einen eigenen Namen haben, damit es gefiltert werden kann. Die folgenden Bibliothekselemente werden hinzugefügt:",
-    "atleastOneLibItem": "Bitte wähle mindestens ein Bibliothekselement aus, um zu beginnen",
-    "republishWarning": "Hinweis: Einige der ausgewählten Elemente sind bereits als veröffentlicht/eingereicht markiert. Du solltest Elemente nur erneut einreichen, wenn du eine bestehende Bibliothek oder Einreichung aktualisierst."
-  },
-  "publishSuccessDialog": {
-    "title": "Bibliothek übermittelt",
-    "content": "Vielen Dank {{authorName}}. Deine Bibliothek wurde zur Überprüfung eingereicht. Du kannst den Status verfolgen<link>hier</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Bibliothek zurücksetzen",

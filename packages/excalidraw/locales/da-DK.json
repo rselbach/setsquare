@@ -114,7 +114,6 @@
     "addToLibrary": "Føj til bibliotek",
     "removeFromLibrary": "Fjern fra biblioteket",
     "libraryLoadingMessage": "Indlæser bibliotek…",
-    "libraries": "Gennemse biblioteker",
     "loadingScene": "Indlæser scene…",
     "loadScene": "Indlæs scene fra fil",
     "align": "Justér",
@@ -166,7 +165,6 @@
       "lockAll": "",
       "unlockAll": ""
     },
-    "statusPublished": "",
     "sidebarLock": "",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "",
-    "hint_emptyLibrary": "",
     "hint_emptyPrivateLibrary": "",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": ""
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Ryd",
     "remove": "Fjern",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "Gem",
     "confirm": "Bekræft",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": ""
-  },
-  "publishDialog": {
-    "title": "",
-    "itemName": "",
-    "authorName": "",
-    "githubUsername": "",
-    "twitterUsername": "",
-    "libraryName": "",
-    "libraryDesc": "",
-    "website": "",
-    "placeholder": {
-      "authorName": "",
-      "libraryName": "",
-      "libraryDesc": "",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "",
-      "website": ""
-    },
-    "noteDescription": "",
-    "noteGuidelines": "",
-    "noteLicense": "",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "",
-    "content": ""
   },
   "confirmDialog": {
     "resetLibrary": "",

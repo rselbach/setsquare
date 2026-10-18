@@ -114,7 +114,6 @@
     "addToLibrary": "Kitabxanaya əlavə et",
     "removeFromLibrary": "Kitabxanadan sil",
     "libraryLoadingMessage": "Kitabxana yüklənir...",
-    "libraries": "Kitabxanalara bax",
     "loadingScene": "Səhnə yüklənir...",
     "loadScene": "Səhnəni fayldan yüklə",
     "align": "Hizala",
@@ -166,7 +165,6 @@
       "lockAll": "",
       "unlockAll": ""
     },
-    "statusPublished": "",
     "sidebarLock": "",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "",
-    "hint_emptyLibrary": "",
     "hint_emptyPrivateLibrary": "",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": ""
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Təmizlə",
     "remove": "Sil",
     "embed": "Yerləşdirməni aktiv et",
-    "publishLibrary": "",
-    "submit": "Göndər",
     "confirm": "Təsdiqlə",
     "embeddableInteractionButton": "Əlaqə üçün kliklə"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": ""
-  },
-  "publishDialog": {
-    "title": "",
-    "itemName": "",
-    "authorName": "",
-    "githubUsername": "",
-    "twitterUsername": "",
-    "libraryName": "",
-    "libraryDesc": "",
-    "website": "",
-    "placeholder": {
-      "authorName": "",
-      "libraryName": "",
-      "libraryDesc": "",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "",
-      "website": ""
-    },
-    "noteDescription": "",
-    "noteGuidelines": "",
-    "noteLicense": "",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "",
-    "content": ""
   },
   "confirmDialog": {
     "resetLibrary": "",

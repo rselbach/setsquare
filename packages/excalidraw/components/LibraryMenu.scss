@@ -1,5 +1,3 @@
-@use "../css/variables.module" as *;
-
 .excalidraw {
   .layer-ui__library {
     display: flex;
@@ -37,83 +35,6 @@
     span {
       font-size: 0.8em;
     }
-  }
-
-  .publish-library-success {
-    .Dialog__content {
-      display: flex;
-      flex-direction: column;
-    }
-
-    &-close.ToolIcon_type_button {
-      background-color: $color-blue-6;
-      align-self: flex-end;
-      &:hover {
-        background-color: $color-blue-8;
-      }
-      .ToolIcon__icon {
-        width: auto;
-        font-size: 1rem;
-        color: #fff;
-        padding: 0 0.5rem;
-      }
-    }
-  }
-
-  .library-menu-control-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.625rem;
-    position: relative;
-
-    &--at-bottom::before {
-      content: "";
-      width: calc(100% - 1.5rem);
-      height: 1px;
-      position: absolute;
-      top: -1px;
-      background: var(--sidebar-border-color);
-    }
-  }
-
-  .library-menu-browse-button {
-    flex: 1;
-
-    height: var(--lg-button-size);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-
-    border-radius: var(--border-radius-lg);
-    background-color: var(--color-primary);
-    color: #fff;
-    text-align: center;
-    white-space: nowrap;
-    text-decoration: none !important;
-
-    font-weight: 600;
-    font-size: 0.75rem;
-
-    &:hover {
-      background-color: var(--color-brand-hover);
-    }
-    &:active {
-      background-color: var(--color-brand-active);
-    }
-  }
-
-  &.theme--dark {
-    .library-menu-browse-button {
-      color: var(--color-gray-100);
-    }
-  }
-
-  &.excalidraw--mobile .library-menu-browse-button {
-    height: var(--default-button-size);
   }
 
   .layer-ui__library .dropdown-menu {

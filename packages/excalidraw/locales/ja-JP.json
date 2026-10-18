@@ -114,7 +114,6 @@
     "addToLibrary": "ライブラリに追加",
     "removeFromLibrary": "ライブラリから削除",
     "libraryLoadingMessage": "ライブラリを読み込み中…",
-    "libraries": "ライブラリを参照する",
     "loadingScene": "シーンを読み込み中…",
     "loadScene": "ファイルからシーンを開く",
     "align": "配置",
@@ -166,7 +165,6 @@
       "lockAll": "すべてロック",
       "unlockAll": "すべてのロックを解除"
     },
-    "statusPublished": "公開済み",
     "sidebarLock": "サイドバーを開いたままにする",
     "selectAllElementsInFrame": "フレーム内のすべての要素を選択",
     "removeAllElementsFromFrame": "フレーム内のすべての要素を削除",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "まだアイテムが追加されていません…",
-    "hint_emptyLibrary": "キャンバス上のアイテムを選択してここに追加するか、以下の公開リポジトリからライブラリをインストールしてください。",
     "hint_emptyPrivateLibrary": "キャンバス上のアイテムを選択すると、ここに追加されます。",
     "search": {
       "inputPlaceholder": "ライブラリを検索",
       "heading": "ライブラリと一致",
       "noResults": "一致するアイテムはありません…",
       "clearSearch": "検索のクリア"
-    }
+    },
+    "itemName": "アイテム名"
   },
   "search": {
     "title": "キャンバスで検索",
@@ -256,8 +254,6 @@
     "clear": "消去",
     "remove": "削除",
     "embed": "埋め込みの切り替え",
-    "publishLibrary": "名前の変更または公開",
-    "submit": "送信",
     "confirm": "確認",
     "embeddableInteractionButton": "クリックして操作"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "キャンバスを消去"
-  },
-  "publishDialog": {
-    "title": "ライブラリを公開",
-    "itemName": "アイテム名",
-    "authorName": "作成者名",
-    "githubUsername": "GitHub ユーザ名",
-    "twitterUsername": "Twitter ユーザ名",
-    "libraryName": "ライブラリ名",
-    "libraryDesc": "ライブラリの説明",
-    "website": "Webサイト",
-    "placeholder": {
-      "authorName": "お名前またはユーザー名",
-      "libraryName": "あなたのライブラリ名",
-      "libraryDesc": "ライブラリの使い方を理解するための説明",
-      "githubHandle": "GitHubハンドル(任意)。一度レビューのために送信されると、ライブラリを編集できます",
-      "twitterHandle": "Twitterのユーザー名 (任意)。Twitterでプロモーションする際にクレジットする人を知っておくためのものです",
-      "website": "個人のウェブサイトまたは他のサイトへのリンク (任意)"
-    },
-    "errors": {
-      "required": "必須項目",
-      "website": "有効な URL を入力してください"
-    },
-    "noteDescription": "あなたのライブラリを<link>公開ライブラリリポジトリ</link>に投稿して、他の人が作図に使えるようにしましょう。",
-    "noteGuidelines": "投稿されたライブラリは担当者が審査します。投稿前に<link>ガイドライン</link>をお読みください。修正をお願いすることがあるため、GitHubアカウントがあると便利ですが、必須ではありません。",
-    "noteLicense": "投稿することで、ライブラリが<link>MITライセンス</link>で公開されることに同意したものとみなします。これは誰でも自由に利用できることを意味します。",
-    "noteItems": "各アイテムにはフィルタリング用に固有の名前が必要です。以下のアイテムが含まれます:",
-    "atleastOneLibItem": "開始するには少なくとも1つのライブラリ項目を選択してください",
-    "republishWarning": "注意: 選択された項目の中には、すでに公開/投稿済みと表示されているものがあります。既存のライブラリや投稿を更新する場合のみ、アイテムを再投稿してください。"
-  },
-  "publishSuccessDialog": {
-    "title": "ライブラリを送信しました",
-    "content": "{{authorName}} さん、ありがとうございます。あなたのライブラリはレビューのために提出されました。状況を追跡できます。<link>こちら</link>"
   },
   "confirmDialog": {
     "resetLibrary": "ライブラリをリセット",

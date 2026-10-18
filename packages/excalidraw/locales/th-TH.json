@@ -114,7 +114,6 @@
     "addToLibrary": "เพิ่มไปในคลัง",
     "removeFromLibrary": "นำออกจากคลัง",
     "libraryLoadingMessage": "กำลังโหลดคลัง...",
-    "libraries": "เรียกดูไลบรารี",
     "loadingScene": "กำลังโหลดฉาก",
     "loadScene": "โหลดฉากจากไฟล์",
     "align": "จัดตำแหน่ง",
@@ -166,7 +165,6 @@
       "lockAll": "ล็อกทั้งหมด",
       "unlockAll": "ปลดล็อกทั้งหมด"
     },
-    "statusPublished": "เผยแพร่",
     "sidebarLock": "ปิดแถบด้านข้างเอาไว้",
     "selectAllElementsInFrame": "เลือกองค์ประกอบทั้งหมดในกรอบ",
     "removeAllElementsFromFrame": "ลบองค์ประกอบทั้งหมดในกรอบ",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "ยังไม่มีรายการที่เพิ่มเข้าไปได้",
-    "hint_emptyLibrary": "",
     "hint_emptyPrivateLibrary": "เลือกรายการบนแคนวาสเพื่อเพิ่มลงในที่นี้",
     "search": {
       "inputPlaceholder": "ค้นหาห้องสมุด",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "ชื่อสิ่งของ"
   },
   "search": {
     "title": "ใช้บนผืนผ้าใบ",
@@ -256,8 +254,6 @@
     "clear": "เคลียร์",
     "remove": "ลบ",
     "embed": "สลับการฝัง",
-    "publishLibrary": "",
-    "submit": "ตกลง",
     "confirm": "ยืนยัน",
     "embeddableInteractionButton": "คลิกเพื่อปฏิสัมพันธ์"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "ล้างผืนผ้าใบ"
-  },
-  "publishDialog": {
-    "title": "",
-    "itemName": "ชื่อสิ่งของ",
-    "authorName": "ชื่อเจ้าของ",
-    "githubUsername": "ชื่อผู้ใช้ GitHub",
-    "twitterUsername": "ชื่อผู้ใช้ Twitter",
-    "libraryName": "ชื่อไลบรารี่",
-    "libraryDesc": "",
-    "website": "เว็บไซต์",
-    "placeholder": {
-      "authorName": "",
-      "libraryName": "",
-      "libraryDesc": "",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "จำเป็น",
-      "website": "ป้อน URL ที่ถูกต้อง"
-    },
-    "noteDescription": "",
-    "noteGuidelines": "",
-    "noteLicense": "",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "",
-    "content": ""
   },
   "confirmDialog": {
     "resetLibrary": "รีเซ็ตคลัง",

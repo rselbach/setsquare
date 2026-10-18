@@ -114,7 +114,6 @@
     "addToLibrary": "Rnu ɣer temkarḍit",
     "removeFromLibrary": "Kkes si temkarḍit",
     "libraryLoadingMessage": "Asali n temkarḍit…",
-    "libraries": "Snirem timkarḍiyin",
     "loadingScene": "Asali n usayes…",
     "loadScene": "",
     "align": "Reyyec",
@@ -166,7 +165,6 @@
       "lockAll": "Sekkeṛ akk",
       "unlockAll": "Serreḥ akk"
     },
-    "statusPublished": "Yeffeɣ-d",
     "sidebarLock": "Eǧǧ afeggag n yidis yeldi",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Ulac iferdisen yettwarnan yakan...",
-    "hint_emptyLibrary": "Fren aferdis di teɣzut nusuneɣ akken at-ternuḍ dagi, neɣ sbedd tamkarḍit seg usarsay azayez, ukessar-agi.",
     "hint_emptyPrivateLibrary": "Fren aferdis di teɣzut nusuneɣ akken at-ternuḍ dagi.",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "Isem n uferdis"
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "Sfeḍ",
     "remove": "Kkes",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "Azen",
     "confirm": "Sentem",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Sfeḍ taɣzut n usuneɣ"
-  },
-  "publishDialog": {
-    "title": "Suffeɣ-d tamkarḍit",
-    "itemName": "Isem n uferdis",
-    "authorName": "Isem n umeskar",
-    "githubUsername": "Isem n useqdac n GitHub",
-    "twitterUsername": "Isem n useqdac n Twitter",
-    "libraryName": "Isem n temkarḍit",
-    "libraryDesc": "Aglam n temkarḍit",
-    "website": "Asmel n web",
-    "placeholder": {
-      "authorName": "Isem neɣ isem n useqdac inek•inem",
-      "libraryName": "Isem n temkarḍit-inek•inem",
-      "libraryDesc": "Aglam n temkarḍit-inek•inem akken ad tɛiwneḍ medden ad fehmen aseqdec-inec",
-      "githubHandle": "Isem n useqdac n GitHub ( d anefrunan) akken ad tizmireḍ ad tisẓrigeḍ tamkarḍit ticki tuzneḍ-tt i uselken",
-      "twitterHandle": "Isem n useqdac n Twitter (d anefrunan) akken ad nẓer anwa ara nsenmer deg udellel di Twitter",
-      "website": "Aseɣwen ɣer usmel-inek•inem neɣ wayeḍ (d anefrunan)"
-    },
-    "errors": {
-      "required": "Yettwasra",
-      "website": "Sekcem URL ameɣtu"
-    },
-    "noteDescription": "Azen tamkarḍit-inek•inem akken ad teddu di <link>akaram azayez n temkarḍit</link>i yimdanen-nniḍen ara isqedcen deg wunuɣen-nnsen.",
-    "noteGuidelines": "Tamkarḍit teḥwaǧ ad tettwaqbel s ufus qbel. Ma ulac uɣilif ɣer <link>iwellihen</link> send ad tazneḍ. Tesriḍ amiḍan n GitHub akken ad tmmeslayeḍ yerna ad tgeḍ ibeddilen ma yelaq, maca mačči d ayen yettwaḥetmen.",
-    "noteLicense": "Mi tuzneḍ ad tqebleḍ akken tamkarḍit ad d-teffeɣ s <link>Turagt MIT, </link>ayen yebɣan ad d-yini belli yal yiwen izmer ad ten-iseqdec war tilist.",
-    "noteItems": "Yal aferdis n temkarḍit isefk ad isɛu isem-is i yiman-is akken ad yili wamek ara yettusizdeg. Iferdisen-agi n temkarḍit ad ddun:",
-    "atleastOneLibItem": "Ma ulac uɣilif fern ma drus yiwen n uferdis n temkarḍit akken ad tebduḍ",
-    "republishWarning": "Tamawt: kra n yiferdisen yettwafernen ttwacerḍen ffeɣen-d/ttwaznen. Isefk ad talseḍ tuzzna n yiferdisen anagar mi ara tleqqemeḍ tamkarḍit neɣ tuzzna yellan."
-  },
-  "publishSuccessDialog": {
-    "title": "Tamkarḍit tettwazen",
-    "content": "Tanemmirt-ik•im {{authorName}}. Tamkarḍit-inek•inem tettwazen i weselken. Tzemreḍ ad tḍefreḍ aẓayer<link>dagi</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Ales awennez n temkarḍit",

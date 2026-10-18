@@ -114,7 +114,6 @@
     "addToLibrary": "라이브러리에 추가",
     "removeFromLibrary": "라이브러리에서 제거",
     "libraryLoadingMessage": "라이브러리 불러오는 중…",
-    "libraries": "라이브러리 찾기",
     "loadingScene": "화면 불러오는 중…",
     "loadScene": "파일에서 화면 불러오기",
     "align": "정렬",
@@ -166,7 +165,6 @@
       "lockAll": "모두 잠금",
       "unlockAll": "모두 잠금 해제"
     },
-    "statusPublished": "게시 됨",
     "sidebarLock": "사이드 바 유지",
     "selectAllElementsInFrame": "프레임의 모든 요소 선택",
     "removeAllElementsFromFrame": "프레임의 모든 요소 삭제",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "추가된 아이템 없음",
-    "hint_emptyLibrary": "캔버스 위에서 아이템을 선택하여 여기에 추가를 하거나, 아래의 공용 저장소에서 라이브러리를 설치하세요.",
     "hint_emptyPrivateLibrary": "캔버스 위에서 아이템을 선택하여 여기 추가하세요.",
     "search": {
       "inputPlaceholder": "라이브러리 검색",
       "heading": "라이브러리 검색 결과",
       "noResults": "일치하는 항목이 없습니다...",
       "clearSearch": "검색 초기화"
-    }
+    },
+    "itemName": "아이템 이름"
   },
   "search": {
     "title": "캔버스에서 찾기",
@@ -256,8 +254,6 @@
     "clear": "지우기",
     "remove": "삭제",
     "embed": "임베딩 토글",
-    "publishLibrary": "이름 변경 또는 게시",
-    "submit": "제출",
     "confirm": "확인",
     "embeddableInteractionButton": "클릭하여 상호작용"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "캔버스 지우기"
-  },
-  "publishDialog": {
-    "title": "라이브러리 게시하기",
-    "itemName": "아이템 이름",
-    "authorName": "저자명",
-    "githubUsername": "깃허브 사용자이름",
-    "twitterUsername": "트위터 사용자이름",
-    "libraryName": "라이브러리 이름",
-    "libraryDesc": "라이브러리 설명",
-    "website": "웹사이트",
-    "placeholder": {
-      "authorName": "이름 또는 사용자명",
-      "libraryName": "당신의 라이브러리 이름",
-      "libraryDesc": "사람들에게 라이브러리의 용도를 알기 쉽게 설명해주세요",
-      "githubHandle": "GitHub 사용자명 (선택), 제출한 뒤에도 심사를 위해서 라이브러리를 수정할 때 사용됩니다",
-      "twitterHandle": "Twitter 사용자명 (선택), Twitter를 통해서 홍보할 때 제작자를 밝히기 위해 사용됩니다",
-      "website": "개인 웹사이트나 다른 어딘가의 링크 (선택)"
-    },
-    "errors": {
-      "required": "필수사항",
-      "website": "유효한 URL을 입력하세요"
-    },
-    "noteDescription": "당신의 라이브러리를 제출하여 <link>공개 라이브러리 저장소</link>에서 다른 사람들의 그림에 사용할 수 있도록 하세요.",
-    "noteGuidelines": "라이브러리는 먼저 수동으로 승인되어야 합니다. 제출하기 전에 <link>가이드라인</link>을 먼저 읽어보세요. 의견을 공유하거나 변경사항을 만들기 위해선 GitHub 계정이 필요하지만, 반드시 필요하진 않습니다.",
-    "noteLicense": "제출함으로써, 당신은 라이브러리가 <link>MIT 라이선스 </link>하에 배포됨을, 즉 아무나 제약 없이 사용할 수 있음에 동의합니다.",
-    "noteItems": "각각의 라이브러리는 분류할 수 있도록 고유한 이름을 가져야 합니다. 다음의 라이브러리 항목이 포함됩니다:",
-    "atleastOneLibItem": "최소한 하나의 라이브러리를 선택해주세요",
-    "republishWarning": "참고: 선택된 항목의 일부는 이미 제출/게시되었습니다. 기존의 라이브러리나 제출물을 업데이트하는 경우에만 제출하세요."
-  },
-  "publishSuccessDialog": {
-    "title": "라이브러리 제출됨",
-    "content": "{{authorName}}님 감사합니다. 당신의 라이브러리가 심사를 위해 제출되었습니다. 진행 상황을<link>여기에서 확인하실 수 있습니다.</link>"
   },
   "confirmDialog": {
     "resetLibrary": "라이브러리 리셋",

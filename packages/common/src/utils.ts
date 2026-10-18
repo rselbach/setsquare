@@ -233,23 +233,6 @@ export const easeOut = (k: number) => {
   return 1 - Math.pow(1 - k, 4);
 };
 
-// https://github.com/lodash/lodash/blob/es/chunk.js
-export const chunk = <T extends any>(
-  array: readonly T[],
-  size: number,
-): T[][] => {
-  if (!array.length || size < 1) {
-    return [];
-  }
-  let index = 0;
-  let resIndex = 0;
-  const result = Array(Math.ceil(array.length / size));
-  while (index < array.length) {
-    result[resIndex++] = array.slice(index, (index += size));
-  }
-  return result;
-};
-
 export const selectNode = (node: Element) => {
   const selection = window.getSelection();
   if (selection) {

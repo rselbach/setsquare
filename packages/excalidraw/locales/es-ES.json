@@ -114,7 +114,6 @@
     "addToLibrary": "Añadir a la biblioteca",
     "removeFromLibrary": "Eliminar de la biblioteca",
     "libraryLoadingMessage": "Cargando biblioteca…",
-    "libraries": "Explorar bibliotecas",
     "loadingScene": "Cargando escena…",
     "loadScene": "Cargar escena desde archivo",
     "align": "Alinear",
@@ -166,7 +165,6 @@
       "lockAll": "Bloquear todo",
       "unlockAll": "Desbloquear todo"
     },
-    "statusPublished": "Publicado",
     "sidebarLock": "Mantener barra lateral abierta",
     "selectAllElementsInFrame": "Seleccionar todos los elementos en el marco",
     "removeAllElementsFromFrame": "Eliminar todos los elementos del marco",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "No hay elementos añadidos todavía...",
-    "hint_emptyLibrary": "Seleccione un elemento en el lienzo para añadirlo aquí, o instale una biblioteca del repositorio público, a continuación.",
     "hint_emptyPrivateLibrary": "Seleccione un elemento del lienzo para añadirlo aquí.",
     "search": {
       "inputPlaceholder": "Buscar biblioteca",
       "heading": "Coincidir biblioteca",
       "noResults": "No se encontraron elementos coincidentes...",
       "clearSearch": "Borrar búsqueda"
-    }
+    },
+    "itemName": "Nombre del artículo"
   },
   "search": {
     "title": "Encontrar en lienzo",
@@ -256,8 +254,6 @@
     "clear": "Borrar",
     "remove": "Eliminar",
     "embed": "Alternar incrustación",
-    "publishLibrary": "Renombrar o publicar",
-    "submit": "Enviar",
     "confirm": "Confirmar",
     "embeddableInteractionButton": "Pulsa para interactuar"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Borrar lienzo"
-  },
-  "publishDialog": {
-    "title": "Publicar biblioteca",
-    "itemName": "Nombre del artículo",
-    "authorName": "Nombre del autor",
-    "githubUsername": "Nombre de usuario de GitHub",
-    "twitterUsername": "Nombre de usuario de Twitter",
-    "libraryName": "Nombre de la biblioteca",
-    "libraryDesc": "Descripción de la biblioteca",
-    "website": "Sitio Web",
-    "placeholder": {
-      "authorName": "Nombre o nombre de usuario",
-      "libraryName": "Nombre de tu biblioteca",
-      "libraryDesc": "Descripción de su biblioteca para ayudar a la gente a entender su uso",
-      "githubHandle": "Nombre de usuario de GitHub (opcional), así podrá editar la biblioteca una vez enviada para su revisión",
-      "twitterHandle": "Nombre de usuario de Twitter (opcional), así sabemos a quién acreditar cuando se promociona en Twitter",
-      "website": "Enlace a su sitio web personal o en cualquier otro lugar (opcional)"
-    },
-    "errors": {
-      "required": "Requerido",
-      "website": "Introduce una URL válida"
-    },
-    "noteDescription": "Envía tu biblioteca para ser incluida en el <link>repositorio de librería pública</link> para que otras personas utilicen en sus dibujos.",
-    "noteGuidelines": "La biblioteca debe ser aprobada manualmente primero. Por favor, lea la <link>pautas</link> antes de enviar. Necesitará una cuenta de GitHub para comunicarse y hacer cambios si se solicita, pero no es estrictamente necesario.",
-    "noteLicense": "Al enviar, usted acepta que la biblioteca se publicará bajo el <link>Licencia MIT </link>que en breve significa que cualquiera puede utilizarlos sin restricciones.",
-    "noteItems": "Cada elemento de la biblioteca debe tener su propio nombre para que sea filtrable. Los siguientes elementos de la biblioteca serán incluidos:",
-    "atleastOneLibItem": "Por favor, seleccione al menos un elemento de la biblioteca para empezar",
-    "republishWarning": "Nota: algunos de los elementos seleccionados están marcados como ya publicados/enviados. Sólo debería volver a enviar elementos cuando se actualice una biblioteca o envío."
-  },
-  "publishSuccessDialog": {
-    "title": "Biblioteca enviada",
-    "content": "Gracias {{authorName}}. Su biblioteca ha sido enviada para ser revisada. Puede seguir el estado <link>aquí</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Reiniciar biblioteca",

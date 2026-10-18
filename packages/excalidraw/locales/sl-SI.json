@@ -114,7 +114,6 @@
     "addToLibrary": "Dodaj v knjižnico",
     "removeFromLibrary": "Odstrani iz knjižnice",
     "libraryLoadingMessage": "Nalaganje knjižnice ...",
-    "libraries": "Brskaj po knjižnicah",
     "loadingScene": "Nalaganje scene...",
     "loadScene": "Naloži sceno iz datoteke",
     "align": "Poravnava",
@@ -166,7 +165,6 @@
       "lockAll": "Zakleni vse",
       "unlockAll": "Odkleni vse"
     },
-    "statusPublished": "Objavljeno",
     "sidebarLock": "Obdrži stransko vrstico odprto",
     "selectAllElementsInFrame": "Izberi vse elemente v okvirju",
     "removeAllElementsFromFrame": "Izbriši vse elemente v okvirju",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Dodan še ni noben element...",
-    "hint_emptyLibrary": "Izberite element na platnu, da ga dodate sem, ali namestite knjižnico iz javnega skladišča spodaj.",
     "hint_emptyPrivateLibrary": "Izberite element na platnu, da ga dodate sem.",
     "search": {
       "inputPlaceholder": "Iskanje v knjižnici",
       "heading": "Ujemanja v knjižnici",
       "noResults": "Ni najdenih ustreznih elementov...",
       "clearSearch": "Počisti iskanje"
-    }
+    },
+    "itemName": "Ime elementa"
   },
   "search": {
     "title": "Poišči na platnu",
@@ -256,8 +254,6 @@
     "clear": "Počisti",
     "remove": "Odstrani",
     "embed": "Preklopi vdelavo",
-    "publishLibrary": "Preimenuj ali objavi",
-    "submit": "Pošlji",
     "confirm": "Potrdi",
     "embeddableInteractionButton": "Kliknite za interakcijo"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Počisti platno"
-  },
-  "publishDialog": {
-    "title": "Objavi knjižnico",
-    "itemName": "Ime elementa",
-    "authorName": "Ime avtorja",
-    "githubUsername": "GitHub uporabniško ime",
-    "twitterUsername": "Twitter uporabniško ime",
-    "libraryName": "Ime knjižnice",
-    "libraryDesc": "Opis knijžnice",
-    "website": "Spletna stran",
-    "placeholder": {
-      "authorName": "Vaše ime ali uporabniško ime",
-      "libraryName": "Ime vaše knjižnice",
-      "libraryDesc": "Opis vaše knjižnice, da bodo ljudje lažje razumeli njeno uporabo",
-      "githubHandle": "GitHub uporabniško ime (neobvezno), tako da lahko urejate knjižnico potem, ko jo pošljete v pregled",
-      "twitterHandle": "Twitter uporabniško ime (neobvezno), tako da vemo, koga omeniti pri promociji prek Twitterja",
-      "website": "Povezava na vašo osebno spletno stran ali drugam (neobvezno)"
-    },
-    "errors": {
-      "required": "Obvezno",
-      "website": "Vnesite veljaven URL"
-    },
-    "noteDescription": "Predložite svojo knjižnico, da bo vključena v <link>javno skladišče knjižnic,</link>da jih drugi lahko uporabljajo v svojih risbah.",
-    "noteGuidelines": "Knjižnica mora biti najprej ročno odobrena. Prosimo vas, da pred oddajanjem preberete naše <link>smernice.</link>Za komunikacijo in spreminjanje po potrebi boste potrebovali račun GitHub, vendar to ni obvezno.",
-    "noteLicense": "Z oddajo se strinjate, da bo knjižnica objavljena pod <link>licenco MIT, </link>kar na kratko pomeni, da jo lahko kdorkoli uporablja brez omejitev.",
-    "noteItems": "Vsak element knjižnice mora imeti svoje ime, tako da ga je mogoče filtrirati. Vključeni bodo naslednji elementi knjižnice:",
-    "atleastOneLibItem": "Za začetek izberite vsaj en element knjižnice",
-    "republishWarning": "Opomba: nekateri izbrani predmeti so označeni kot že objavljeni/oddani. Elemente lahko znova oddate samo, ko posodabljate obstoječo knjižnico ali oddajo."
-  },
-  "publishSuccessDialog": {
-    "title": "Knjižnica oddana",
-    "content": "{{authorName}}, hvala. Vaša knjižnica je bila poslana v pregled. Stanje lahko spremljate<link>tukaj</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Ponastavi knjižnico",

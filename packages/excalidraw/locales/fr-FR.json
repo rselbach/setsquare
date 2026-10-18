@@ -114,7 +114,6 @@
     "addToLibrary": "Ajouter à la bibliothèque",
     "removeFromLibrary": "Supprimer de la bibliothèque",
     "libraryLoadingMessage": "Chargement de la bibliothèque…",
-    "libraries": "Parcourir les bibliothèques",
     "loadingScene": "Chargement de la scène…",
     "loadScene": "Charger une scène depuis un fichier",
     "align": "Alignement",
@@ -166,7 +165,6 @@
       "lockAll": "Tout verrouiller",
       "unlockAll": "Tout déverrouiller"
     },
-    "statusPublished": "Publié",
     "sidebarLock": "Maintenir la barre latérale ouverte",
     "selectAllElementsInFrame": "Sélectionner tous les éléments du cadre",
     "removeAllElementsFromFrame": "Supprimer tous les éléments du cadre",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Aucun élément n'a encore été ajouté ...",
-    "hint_emptyLibrary": "Sélectionnez un élément sur le canevas pour l'ajouter ici ou installez une bibliothèque depuis le dépôt public, ci-dessous.",
     "hint_emptyPrivateLibrary": "Sélectionnez un élément sur le canevas pour l'ajouter ici.",
     "search": {
       "inputPlaceholder": "Rechercher dans la bibliothèque",
       "heading": "Correspondance de la bibliothèque",
       "noResults": "Aucun élément correspondant trouvé...",
       "clearSearch": "Effacer la recherche"
-    }
+    },
+    "itemName": "Nom de l’élément"
   },
   "search": {
     "title": "Rechercher sur le canevas",
@@ -256,8 +254,6 @@
     "clear": "Effacer",
     "remove": "Supprimer",
     "embed": "Activer/Désactiver l'intégration",
-    "publishLibrary": "Renommer ou publier",
-    "submit": "Envoyer",
     "confirm": "Confirmer",
     "embeddableInteractionButton": "Cliquez pour interagir"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Effacer la zone de dessin"
-  },
-  "publishDialog": {
-    "title": "Publier la bibliothèque",
-    "itemName": "Nom de l’élément",
-    "authorName": "Nom de l'auteur",
-    "githubUsername": "Nom d'utilisateur GitHub",
-    "twitterUsername": "Nom d'utilisateur Twitter",
-    "libraryName": "Nom de la bibliothèque",
-    "libraryDesc": "Description de la bibliothèque",
-    "website": "Site web",
-    "placeholder": {
-      "authorName": "Votre nom ou nom d'utilisateur",
-      "libraryName": "Nom de votre bibliothèque",
-      "libraryDesc": "Description de votre bibliothèque pour aider les gens à comprendre son usage",
-      "githubHandle": "Nom d'utilisateur GitHub (optionnel), pour que tu puisses modifier la bibliothèque une fois soumise pour vérification",
-      "twitterHandle": "Nom d'utilisateur Twitter (optionnel), pour savoir qui créditer lors de la promotion sur Twitter",
-      "website": "Lien vers votre site web personnel ou autre (optionnel)"
-    },
-    "errors": {
-      "required": "Requis",
-      "website": "Entrer une URL valide"
-    },
-    "noteDescription": "Soumets ta bibliothèque pour l'inclure au <link>dépôt de bibliothèque publique</link>pour permettre son utilisation par autrui dans leurs dessins.",
-    "noteGuidelines": "La bibliothèque doit d'abord être approuvée manuellement. Veuillez lire les <link>lignes directrices</link> avant de la soumettre. Vous aurez besoin d'un compte GitHub pour communiquer et apporter des modifications si demandé, mais ce n'est pas obligatoire.",
-    "noteLicense": "En soumettant, vous acceptez que la bibliothèque soit publiée sous la <link>Licence MIT, </link>ce qui en gros signifie que tout le monde peut l'utiliser sans restrictions.",
-    "noteItems": "Chaque élément de la bibliothèque doit avoir son propre nom afin qu'il soit filtrable. Les éléments de bibliothèque suivants seront inclus :",
-    "atleastOneLibItem": "Veuillez sélectionner au moins un élément de bibliothèque pour commencer",
-    "republishWarning": "Remarque : certains des éléments sélectionnés sont marqués comme étant déjà publiés/soumis. Vous devez uniquement resoumettre des éléments lors de la mise à jour d'une bibliothèque ou d'une soumission existante."
-  },
-  "publishSuccessDialog": {
-    "title": "Bibliothèque soumise",
-    "content": "Merci {{authorName}}. Votre bibliothèque a été soumise pour examen. Vous pouvez suivre le statut<link>ici</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Réinitialiser la bibliothèque",

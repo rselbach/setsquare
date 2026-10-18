@@ -376,14 +376,6 @@ export const IDLE_THRESHOLD = 60_000;
 // Report a user active each ACTIVE_THRESHOLD milliseconds
 export const ACTIVE_THRESHOLD = 3_000;
 
-export const URL_QUERY_KEYS = {
-  addLibrary: "addLibrary",
-} as const;
-
-export const URL_HASH_KEYS = {
-  addLibrary: "addLibrary",
-} as const;
-
 export const DEFAULT_UI_OPTIONS: AppProps["UIOptions"] = {
   canvasActions: {
     changeViewBackgroundColor: true,
@@ -575,7 +567,6 @@ export const EDITOR_LS_KEYS = {
   OAI_API_KEY: "excalidraw-oai-api-key",
   // legacy naming (non)scheme
   MERMAID_TO_EXCALIDRAW: "mermaid-to-excalidraw",
-  PUBLISH_LIBRARY: "publish-library-data",
 } as const;
 
 /**

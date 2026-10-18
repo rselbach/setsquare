@@ -114,7 +114,6 @@
     "addToLibrary": "Adicionar à biblioteca",
     "removeFromLibrary": "Remover da biblioteca",
     "libraryLoadingMessage": "Carregando biblioteca…",
-    "libraries": "Procurar bibliotecas",
     "loadingScene": "Carregando cena…",
     "loadScene": "Carregar cenário de arquivo",
     "align": "Alinhamento",
@@ -166,7 +165,6 @@
       "lockAll": "Bloquear tudo",
       "unlockAll": "Desbloquear tudo"
     },
-    "statusPublished": "Publicado",
     "sidebarLock": "Manter barra lateral aberta",
     "selectAllElementsInFrame": "Selecionar todos os elementos no quadro",
     "removeAllElementsFromFrame": "Remover todos os elementos do quadro",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Nenhum item adicionado ainda...",
-    "hint_emptyLibrary": "Selecione um item na tela para adicioná-lo aqui, ou instale uma biblioteca do repositório público, abaixo.",
     "hint_emptyPrivateLibrary": "Selecione um item na tela para adicioná-lo aqui.",
     "search": {
       "inputPlaceholder": "Pesquisar biblioteca",
       "heading": "Correspondências da biblioteca",
       "noResults": "Nenhum resultado encontrado...",
       "clearSearch": "Limpar pesquisa"
-    }
+    },
+    "itemName": "Nome do item"
   },
   "search": {
     "title": "Procurar na tela",
@@ -256,8 +254,6 @@
     "clear": "Limpar",
     "remove": "Remover",
     "embed": "Alternar incorporação",
-    "publishLibrary": "Renomear ou publicar",
-    "submit": "Enviar",
     "confirm": "Confirmar",
     "embeddableInteractionButton": "Clique para interagir"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Limpar a tela"
-  },
-  "publishDialog": {
-    "title": "Publicar biblioteca",
-    "itemName": "Nome do item",
-    "authorName": "Nome do autor",
-    "githubUsername": "Nome de usuário do GitHub",
-    "twitterUsername": "Nome de usuário do Twitter",
-    "libraryName": "Nome da Biblioteca",
-    "libraryDesc": "Descrição da biblioteca",
-    "website": "Site",
-    "placeholder": {
-      "authorName": "Seu nome ou nome de usuário",
-      "libraryName": "Nome da sua biblioteca",
-      "libraryDesc": "Descrição para ajudar as pessoas a entenderem o uso da sua biblioteca",
-      "githubHandle": "Identificador do GitHub (opcional), para que você possa editar a biblioteca depois de enviar para revisão",
-      "twitterHandle": "Nome de usuário do Twitter (opcional), para que saibamos quem deve ser creditado se promovermos no Twitter",
-      "website": "Link para o seu site pessoal ou outro lugar (opcional)"
-    },
-    "errors": {
-      "required": "Obrigatório",
-      "website": "Informe uma URL válida"
-    },
-    "noteDescription": "Envie sua biblioteca para ser incluída no <link>repositório de biblioteca pública</link>para outras pessoas usarem em seus desenhos.",
-    "noteGuidelines": "A biblioteca precisa ser aprovada manualmente primeiro. Por favor, leia o <link>orientações</link> antes de enviar. Você precisará de uma conta do GitHub para se comunicar e fazer alterações quando solicitado, mas não é estritamente necessário.",
-    "noteLicense": "Ao enviar, você concorda que a biblioteca será publicada sob a <link>Licença MIT, </link>o que, em suma, significa que qualquer pessoa pode utilizá-los sem restrições.",
-    "noteItems": "Cada item da biblioteca deve ter seu próprio nome para que seja filtrável. Os seguintes itens da biblioteca serão incluídos:",
-    "atleastOneLibItem": "Por favor, selecione pelo menos um item da biblioteca para começar",
-    "republishWarning": "Nota: alguns dos itens selecionados estão marcados como já publicado/enviado. Você só deve reenviar itens ao atualizar uma biblioteca existente ou submissão."
-  },
-  "publishSuccessDialog": {
-    "title": "Biblioteca enviada",
-    "content": "Obrigado {{authorName}}. Sua biblioteca foi enviada para análise. Você pode acompanhar o status <link>aqui</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Redefinir biblioteca",

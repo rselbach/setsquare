@@ -1,9 +1,6 @@
 import { useEffect, useRef } from "react";
 
 import {
-  URL_HASH_KEYS,
-  URL_QUERY_KEYS,
-  APP_NAME,
   EVENT,
   DEFAULT_SIDEBAR,
   LIBRARY_SIDEBAR_TAB,
@@ -12,7 +9,6 @@ import {
   preventUnload,
   promiseTry,
   resolvablePromise,
-  toValidURL,
   Queue,
   Emitter,
 } from "@excalidraw/common";
@@ -43,19 +39,6 @@ import type {
   LibraryItemsSource,
   LibraryItems_anyVersion,
 } from "../types";
-
-/**
- * format: hostname or hostname/pathname
- *
- * Both hostname and pathname are matched partially,
- * hostname from the end, pathname from the start, with subdomain/path
- * boundaries
- **/
-const ALLOWED_LIBRARY_URLS = [
-  "excalidraw.com",
-  // when installing from github PRs
-  "raw.githubusercontent.com/excalidraw/excalidraw-libraries",
-];
 
 type LibraryUpdate = {
   /** deleted library items since last onLibraryChange event */
@@ -494,54 +477,6 @@ export const distributeLibraryItemsOnSquareGrid = (
   return resElements;
 };
 
-export const validateLibraryUrl = (
-  libraryUrl: string,
-  /**
-   * @returns `true` if the URL is valid, throws otherwise.
-   */
-  validator:
-    | ((libraryUrl: string) => boolean)
-    | string[] = ALLOWED_LIBRARY_URLS,
-): true => {
-  if (
-    typeof validator === "function"
-      ? validator(libraryUrl)
-      : validator.some((allowedUrlDef) => {
-          const allowedUrl = new URL(
-            `https://${allowedUrlDef.replace(/^https?:\/\//, "")}`,
-          );
-
-          const { hostname, pathname } = new URL(libraryUrl);
-
-          return (
-            new RegExp(`(^|\\.)${allowedUrl.hostname}$`).test(hostname) &&
-            new RegExp(
-              `^${allowedUrl.pathname.replace(/\/+$/, "")}(/+|$)`,
-            ).test(pathname)
-          );
-        })
-  ) {
-    return true;
-  }
-
-  throw new Error(`Invalid or disallowed library URL: "${libraryUrl}"`);
-};
-
-export const parseLibraryTokensFromUrl = () => {
-  const libraryUrl =
-    // current
-    new URLSearchParams(window.location.hash.slice(1)).get(
-      URL_HASH_KEYS.addLibrary,
-    ) ||
-    // legacy, kept for compat reasons
-    new URLSearchParams(window.location.search).get(URL_QUERY_KEYS.addLibrary);
-  const idToken = libraryUrl
-    ? new URLSearchParams(window.location.hash.slice(1)).get("token")
-    : null;
-
-  return libraryUrl ? { libraryUrl, idToken } : null;
-};
-
 class AdapterTransaction {
   static queue = new Queue();
 
@@ -633,8 +568,8 @@ const persistLibraryUpdate = async (
       //    libraries aren't synced or there's a race conditions during
       //    syncing
       // 3. some other race condition, e.g. during init where emit updates
-      //    for partial updates (e.g. you install a 3rd party library and
-      //    init from DB only after — we emit events for both updates)
+      //    for partial updates (e.g. the editor loads `initialData.libraryItems`
+      //    and init from DB only after — we emit events for both updates)
       for (const [id, item] of update.addedItems) {
         if (nextLibraryItemsMap.has(id)) {
           // replace item with latest version
@@ -677,11 +612,6 @@ const persistLibraryUpdate = async (
 export const useHandleLibrary = (
   opts: {
     excalidrawAPI: ExcalidrawImperativeAPI | null;
-    /**
-     * Return `true` if the library install url should be allowed.
-     * If not supplied, only the excalidraw.com base domain is allowed.
-     */
-    validateLibraryUrl?: (libraryUrl: string) => boolean;
   } & (
     | {
         /** @deprecated we recommend using `opts.adapter` instead */
@@ -715,92 +645,9 @@ export const useHandleLibrary = (
     // reset on editor remount (excalidrawAPI changed)
     isLibraryLoadedRef.current = false;
 
-    const importLibraryFromURL = async ({
-      libraryUrl,
-      idToken,
-    }: {
-      libraryUrl: string;
-      idToken: string | null;
-    }) => {
-      const libraryPromise = new Promise<Blob>(async (resolve, reject) => {
-        try {
-          libraryUrl = decodeURIComponent(libraryUrl);
-
-          libraryUrl = toValidURL(libraryUrl);
-
-          validateLibraryUrl(libraryUrl, optsRef.current.validateLibraryUrl);
-
-          const request = await fetch(libraryUrl);
-          const blob = await request.blob();
-          resolve(blob);
-        } catch (error: any) {
-          reject(error);
-        }
-      });
-
-      const shouldPrompt = idToken !== excalidrawAPI.id;
-
-      // wait for the tab to be focused before continuing in case we'll prompt
-      // for confirmation
-      await (shouldPrompt && document.hidden
-        ? new Promise<void>((resolve) => {
-            window.addEventListener("focus", () => resolve(), {
-              once: true,
-            });
-          })
-        : null);
-
-      try {
-        await excalidrawAPI.updateLibrary({
-          libraryItems: libraryPromise,
-          prompt: shouldPrompt,
-          merge: true,
-          defaultStatus: "published",
-          openLibraryMenu: true,
-        });
-      } catch (error: any) {
-        excalidrawAPI.updateScene({
-          appState: {
-            errorMessage: error.message,
-          },
-        });
-        throw error;
-      } finally {
-        if (window.location.hash.includes(URL_HASH_KEYS.addLibrary)) {
-          const hash = new URLSearchParams(window.location.hash.slice(1));
-          hash.delete(URL_HASH_KEYS.addLibrary);
-          window.history.replaceState({}, APP_NAME, `#${hash.toString()}`);
-        } else if (window.location.search.includes(URL_QUERY_KEYS.addLibrary)) {
-          const query = new URLSearchParams(window.location.search);
-          query.delete(URL_QUERY_KEYS.addLibrary);
-          window.history.replaceState({}, APP_NAME, `?${query.toString()}`);
-        }
-      }
-    };
-    const onHashChange = (event: HashChangeEvent) => {
-      event.preventDefault();
-      const libraryUrlTokens = parseLibraryTokensFromUrl();
-      if (libraryUrlTokens) {
-        event.stopImmediatePropagation();
-        // If hash changed and it contains library url, import it and replace
-        // the url to its previous state (important in case of collaboration
-        // and similar).
-        // Using history API won't trigger another hashchange.
-        window.history.replaceState({}, "", event.oldURL);
-
-        importLibraryFromURL(libraryUrlTokens);
-      }
-    };
-
     // -------------------------------------------------------------------------
     // ---------------------------------- init ---------------------------------
     // -------------------------------------------------------------------------
-
-    const libraryUrlTokens = parseLibraryTokensFromUrl();
-
-    if (libraryUrlTokens) {
-      importLibraryFromURL(libraryUrlTokens);
-    }
 
     // ------ (A) init load (legacy) -------------------------------------------
     if (
@@ -816,7 +663,7 @@ export const useHandleLibrary = (
           excalidrawAPI.updateLibrary({
             libraryItems,
             // merge with current library items because we may have already
-            // populated it (e.g. by installing 3rd party library which can
+            // populated it (e.g. from `initialData.libraryItems`, which can
             // happen before the DB data is loaded)
             merge: true,
           });
@@ -909,7 +756,7 @@ export const useHandleLibrary = (
             return _libraryItems;
           }),
           // merge with current library items because we may have already
-          // populated it (e.g. by installing 3rd party library which can
+          // populated it (e.g. from `initialData.libraryItems`, which can
           // happen before the DB data is loaded)
           merge: true,
         })
@@ -918,11 +765,6 @@ export const useHandleLibrary = (
         });
     }
     // ---------------------------------------------- data source datapter -----
-
-    window.addEventListener(EVENT.HASHCHANGE, onHashChange);
-    return () => {
-      window.removeEventListener(EVENT.HASHCHANGE, onHashChange);
-    };
   }, [
     // important this useEffect only depends on excalidrawAPI so it only reruns
     // on editor remounts (the excalidrawAPI changes)

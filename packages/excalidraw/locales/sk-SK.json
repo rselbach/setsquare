@@ -114,7 +114,6 @@
     "addToLibrary": "Pridať do knižnice",
     "removeFromLibrary": "Odstrániť z knižnice",
     "libraryLoadingMessage": "Načítavanie knižnice…",
-    "libraries": "Prehliadať knižnice",
     "loadingScene": "Načítavanie scény…",
     "loadScene": "Načítať scénu zo súboru",
     "align": "Zarovnanie",
@@ -166,7 +165,6 @@
       "lockAll": "Zamknúť všetko",
       "unlockAll": "Odomknúť všetko"
     },
-    "statusPublished": "Zverejnené",
     "sidebarLock": "Nechať bočný panel otvorený",
     "selectAllElementsInFrame": "Vybrať všetky prvky v ráme",
     "removeAllElementsFromFrame": "Odstrániť všetky prvky z rámu",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Zatiaľ neboli pridané žiadne položky...",
-    "hint_emptyLibrary": "Vyberte položku z plátna pre jej pridanie do knižnice alebo použite knižnicu z verejného zoznamu knižníc nižšie.",
     "hint_emptyPrivateLibrary": "Vyberte položku z plátna pre jej pridanie do knižnice.",
     "search": {
       "inputPlaceholder": "Prehľadávať knižnicu",
       "heading": "Výsledky z knižnice",
       "noResults": "Neboli nájdené žiadne výsledky...",
       "clearSearch": "Vymazať vyhľadávanie"
-    }
+    },
+    "itemName": "Názov položky"
   },
   "search": {
     "title": "Vyhľadať v plátne",
@@ -256,8 +254,6 @@
     "clear": "Vymazať",
     "remove": "Odstrániť",
     "embed": "Prepnúť zapustenie",
-    "publishLibrary": "Premenovať a zverejniť",
-    "submit": "Potvrdiť",
     "confirm": "Potvrdiť",
     "embeddableInteractionButton": "Kliknite pre interakciu"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Vyčistiť plátno"
-  },
-  "publishDialog": {
-    "title": "Uverejniť knižnicu",
-    "itemName": "Názov položky",
-    "authorName": "Meno autora",
-    "githubUsername": "Github užívateľské meno",
-    "twitterUsername": "Twitter užívateľské meno",
-    "libraryName": "Názov knižnice",
-    "libraryDesc": "Popis knižnice",
-    "website": "Webová stránka",
-    "placeholder": {
-      "authorName": "Vaše meno alebo užívateľské meno",
-      "libraryName": "Názov vašej knižnice",
-      "libraryDesc": "Popis vašej knižnice, ktorý ostatným pomôže porozumieť jej vhodnému použitiu",
-      "githubHandle": "GitHub užívateľské meno (nepovinné), aby ste mohli robiť úpravy po tom, čo bude knižnica uverejnená na schválenie",
-      "twitterHandle": "Twitter užívateľské meno (nepovinné), aby sme vedeli komu pripísať zásluhu pri propagovaní cez Twitter",
-      "website": "Odkaz na vašu osobnú webovú stránku alebo niekam inam (nepovinné)"
-    },
-    "errors": {
-      "required": "Povinné",
-      "website": "Zadajte platnú adresu URL"
-    },
-    "noteDescription": "Uverejnite vašu knižnicu vo <link>verejnom zozname knižníc</link>aby ju aj ostatní mohli použiť v ich náčrtoch.",
-    "noteGuidelines": "Knižnica musí byť najprv manuálne schválená. Prosím prečítajte si <link>pokyny</link> pred uverejnením. Budete potrebovať Github účet na komunikáciu a vykonanie zmien, ak budú potrebné, avšak nie je to úplne povinné.",
-    "noteLicense": "Potvrdením súhlasíte, že knižnica bude zverejnená s <link>MIT licenciou, </link>čo v skratke znamená, že ju môže použiť hocikto bez obmedzení.",
-    "noteItems": "Každá položka v knižnici musí mať svoje vlastné meno, aby sa dala vyhľadať. Súčasťou knižnice budú nasledujúce položky:",
-    "atleastOneLibItem": "Začnite prosím zvolením aspoň jednej položky z knižnice",
-    "republishWarning": "Poznámka: Niektoré z vybraných položiek sú už označené ako zverejnené. Ich znovu uverejnenie by ste mali vykovať iba vtedy ak aktualizujete už existujúcu knižnicu alebo požiadavku na uverejnenie."
-  },
-  "publishSuccessDialog": {
-    "title": "Knižnica uverejnená",
-    "content": "Ďakujeme vám {{authorName}}. Vaša knižnica bola uverejnená na posúdenie. Stav môžete skontrolovať<link>tu</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Obnoviť knižnicu",

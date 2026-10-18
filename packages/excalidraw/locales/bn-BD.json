@@ -114,7 +114,6 @@
     "addToLibrary": "সংগ্রহে যোগ করুন",
     "removeFromLibrary": "সংগ্রহ থেকে বের করুন",
     "libraryLoadingMessage": "সংগ্রহ তৈরি হচ্ছে",
-    "libraries": "সংগ্রহ দেখুন",
     "loadingScene": "দৃশ্য তৈরি হচ্ছে",
     "loadScene": "",
     "align": "পংক্তিবিন্যাস",
@@ -166,7 +165,6 @@
       "lockAll": "সব আবদ্ধ করুন",
       "unlockAll": "সব বিচ্ছিন্ন করুন"
     },
-    "statusPublished": "প্রকাশিত",
     "sidebarLock": "লক",
     "selectAllElementsInFrame": "ফ্রেমের ভিতরের সব উপকরণ বাছাই করুন",
     "removeAllElementsFromFrame": "ফ্রেম থেকে সব উপকরণ মুছুন",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "সংগ্রহে কিছু যোগ করা হয়নি",
-    "hint_emptyLibrary": "এখানে যোগ করার জন্য ক্যানভাসে একটি বস্তু নির্বাচন করুন, অথবা নীচে, প্রকাশ্য সংগ্রহশালা থেকে একটি সংগ্রহ ইনস্টল করুন৷",
     "hint_emptyPrivateLibrary": "এখানে যোগ করার জন্য ক্যানভাসে একটি বস্তু নির্বাচন করুন",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": ""
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "সাফ",
     "remove": "বিয়োগ",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "জমা করুন",
     "confirm": "নিশ্চিত করুন",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": ""
-  },
-  "publishDialog": {
-    "title": "",
-    "itemName": "",
-    "authorName": "",
-    "githubUsername": "",
-    "twitterUsername": "",
-    "libraryName": "",
-    "libraryDesc": "",
-    "website": "",
-    "placeholder": {
-      "authorName": "",
-      "libraryName": "",
-      "libraryDesc": "",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "",
-      "website": ""
-    },
-    "noteDescription": "",
-    "noteGuidelines": "",
-    "noteLicense": "",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "",
-    "content": ""
   },
   "confirmDialog": {
     "resetLibrary": "",

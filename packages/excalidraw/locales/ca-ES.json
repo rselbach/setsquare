@@ -114,7 +114,6 @@
     "addToLibrary": "Afegir a la biblioteca",
     "removeFromLibrary": "Eliminar de la biblioteca",
     "libraryLoadingMessage": "S'està carregant la biblioteca…",
-    "libraries": "Explora les biblioteques",
     "loadingScene": "S'està carregant l'escena…",
     "loadScene": "Carrega una escena des d'un fitxer",
     "align": "Alinea",
@@ -166,7 +165,6 @@
       "lockAll": "Bloca-ho tot",
       "unlockAll": "Desbloca-ho tot"
     },
-    "statusPublished": "Publicat",
     "sidebarLock": "Manté la barra lateral oberta",
     "selectAllElementsInFrame": "Selecciona tots els elements del marc",
     "removeAllElementsFromFrame": "Elimina tots els elements del marc",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Encara no s'hi han afegit elements...",
-    "hint_emptyLibrary": "Trieu un element o un llenç per a afegir-lo aquí, o instal·leu una biblioteca del repositori públic, més avall.",
     "hint_emptyPrivateLibrary": "Trieu un element o un llenç per a afegir-lo aquí.",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "Nom de l'element"
   },
   "search": {
     "title": "Troba al llenç",
@@ -256,8 +254,6 @@
     "clear": "Neteja",
     "remove": "Suprimeix",
     "embed": "Commuta incrustació",
-    "publishLibrary": "",
-    "submit": "Envia",
     "confirm": "Confirma",
     "embeddableInteractionButton": "Feu clic per interactuar"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Neteja el llenç"
-  },
-  "publishDialog": {
-    "title": "Publica la biblioteca",
-    "itemName": "Nom de l'element",
-    "authorName": "Nom de l'autor/a",
-    "githubUsername": "Nom d'usuari de GitHub",
-    "twitterUsername": "Nom d'usuari de Twitter",
-    "libraryName": "Nom de la biblioteca",
-    "libraryDesc": "Descripció de la biblioteca",
-    "website": "Lloc web",
-    "placeholder": {
-      "authorName": "Nom o usuari",
-      "libraryName": "Nom de la vostra biblioteca",
-      "libraryDesc": "Descripció de la biblioteca per a ajudar a la gent a entendre'n el funcionament",
-      "githubHandle": "Identificador de GitHub (opcional), per tal que pugueu editar la biblioteca una vegada enviada per a ser revisada",
-      "twitterHandle": "Usuari de twitter (opcional), per tal que puguem donar-vos crèdit quan fem la promoció a Twitter",
-      "website": "Enllaç al vostre lloc web personal o a qualsevol altre (opcional)"
-    },
-    "errors": {
-      "required": "Requerit",
-      "website": "Introduïu una URL vàlida"
-    },
-    "noteDescription": "Envieu la vostra biblioteca perquè sigui inclosa al <link>repositori públic</link>per tal que altres persones puguin fer-ne ús en els seus dibuixos.",
-    "noteGuidelines": "La biblioteca ha de ser aprovada manualment. Si us plau, llegiu les <link>directrius</link> abans d'enviar-hi res. Necessitareu un compte de GitHub per a comunicar i fer-hi canvis si cal, però no és requisit imprescindible.",
-    "noteLicense": "Quan l'envieu, accepteu que la biblioteca sigui publicada sota la <link>llicència MIT, </link>que, en resum, vol dir que qualsevol persona pot fer-ne ús sense restriccions.",
-    "noteItems": "Cada element de la biblioteca ha de tenir el seu propi nom per tal que sigui filtrable. S'hi inclouran els elements següents:",
-    "atleastOneLibItem": "Si us plau, seleccioneu si més no un element de la biblioteca per a començar",
-    "republishWarning": "Nota: alguns dels elements seleccionats s'han marcat com a publicats/enviats. Només hauríeu de reenviar elements quan actualitzeu una biblioteca existent."
-  },
-  "publishSuccessDialog": {
-    "title": "Biblioteca enviada",
-    "content": "Gràcies, {{authorName}}. La vostra biblioteca ha estat enviada per a ser revisada. Podeu comprovar-ne l'estat<link>aquí</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Restableix la biblioteca",

@@ -114,7 +114,6 @@
     "addToLibrary": "添加到素材库中",
     "removeFromLibrary": "从素材库中移除",
     "libraryLoadingMessage": "正在加载素材库…",
-    "libraries": "浏览素材库",
     "loadingScene": "正在加载绘图…",
     "loadScene": "从文件加载绘图",
     "align": "对齐",
@@ -166,7 +165,6 @@
       "lockAll": "全部锁定",
       "unlockAll": "全部解锁"
     },
-    "statusPublished": "已发布",
     "sidebarLock": "侧边栏常驻",
     "selectAllElementsInFrame": "选择画框中的所有元素",
     "removeAllElementsFromFrame": "分离出画框中的所有元素",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "尚未添加任何项目……",
-    "hint_emptyLibrary": "选中画布上的项目添加到此处，或从下方的公共素材库中导入。",
     "hint_emptyPrivateLibrary": "选中画布上的项目添加到此处。",
     "search": {
       "inputPlaceholder": "搜索库",
       "heading": "匹配的库",
       "noResults": "无匹配项……",
       "clearSearch": "清除搜索"
-    }
+    },
+    "itemName": "项目名称"
   },
   "search": {
     "title": "在画布上查找",
@@ -256,8 +254,6 @@
     "clear": "清除",
     "remove": "删除",
     "embed": "切换嵌入",
-    "publishLibrary": "重命名或发布",
-    "submit": "提交",
     "confirm": "确定",
     "embeddableInteractionButton": "点击以开始交互"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "清除画布"
-  },
-  "publishDialog": {
-    "title": "发布素材库",
-    "itemName": "项目名称",
-    "authorName": "作者名",
-    "githubUsername": "GitHub 用户名",
-    "twitterUsername": "Twitter 用户名",
-    "libraryName": "名称",
-    "libraryDesc": "简介",
-    "website": "网址",
-    "placeholder": {
-      "authorName": "您的名字或用户名",
-      "libraryName": "素材库名称",
-      "libraryDesc": "介绍您的素材库，让人们了解其用途",
-      "githubHandle": "GitHub 用户名（可选），填写后，您可以编辑已提交待审的素材库",
-      "twitterHandle": "Twitter 用户名（可选），填写后，当我们在Twitter发布推广信息时便可提及您",
-      "website": "您个人网站的或任意的链接（可选）"
-    },
-    "errors": {
-      "required": "必填",
-      "website": "输入一个有效的URL"
-    },
-    "noteDescription": "提交后，您的素材库将被包含在<link>公共素材库广场</link>以供其他人在绘图中使用。",
-    "noteGuidelines": "提交的素材库需先经人工审核。在提交之前，请先阅读<link>指南</link> 。后续沟通和对库的修改需要 GitHub 账号，但这不是必须的。",
-    "noteLicense": "提交即表明您已同意素材库将遵循 <link>MIT 许可证</link>，简而言之，任何人都可以不受限制地使用它们。",
-    "noteItems": "素材库中每个项目都有各自的名称以供筛选。以下项目将被包含：",
-    "atleastOneLibItem": "请选择至少一个素材库以开始",
-    "republishWarning": "注意：部分选中的项目已经发布或提交。请仅在更新已有或已提交的素材库时重复提交项目。"
-  },
-  "publishSuccessDialog": {
-    "title": "素材库已提交",
-    "content": "谢谢你 {{authorName}}。您的素材库已被提交审核。请点击<link>此处</link>跟进此次提交的状态"
   },
   "confirmDialog": {
     "resetLibrary": "重置素材库",

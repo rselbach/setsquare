@@ -114,7 +114,6 @@
     "addToLibrary": "Hozzáadás a könyvtárhoz",
     "removeFromLibrary": "Eltávólítás a könyvtárból",
     "libraryLoadingMessage": "Könyvtár betöltése…",
-    "libraries": "Könyvtárak böngészése",
     "loadingScene": "Jelenet betöltése…",
     "loadScene": "Betöltés fájlból",
     "align": "Igazítás",
@@ -166,7 +165,6 @@
       "lockAll": "Összes zárolása",
       "unlockAll": "Összes feloldása"
     },
-    "statusPublished": "Közzétéve",
     "sidebarLock": "Oldalsó sáv nyitva tartása",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "",
-    "hint_emptyLibrary": "",
     "hint_emptyPrivateLibrary": "",
     "search": {
       "inputPlaceholder": "Keresés a könyvtárban",
       "heading": "",
       "noResults": "",
       "clearSearch": "Keresés törlése"
-    }
+    },
+    "itemName": "Tétel neve"
   },
   "search": {
     "title": "Rajzvászonon használt",
@@ -256,8 +254,6 @@
     "clear": "Kiűrítés",
     "remove": "Eltávolítás",
     "embed": "Beágyazás be/ki",
-    "publishLibrary": "",
-    "submit": "Elküldés",
     "confirm": "Megerősítés",
     "embeddableInteractionButton": "Interakció Kattintással"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Rajzvászon alaphelyzetbe"
-  },
-  "publishDialog": {
-    "title": "Könyvtár közzététele",
-    "itemName": "Tétel neve",
-    "authorName": "Szerző neve",
-    "githubUsername": "GitHub felhasználónév",
-    "twitterUsername": "Twitter felhasználónév",
-    "libraryName": "Könyvtár neve",
-    "libraryDesc": "Könyvtár leírása",
-    "website": "Weboldal",
-    "placeholder": {
-      "authorName": "Neved vagy felhasználóneved",
-      "libraryName": "A könyvtárad neve",
-      "libraryDesc": "A könyvtárad használatát segítő leírás",
-      "githubHandle": "GitHub-handle(opcionális), így szerkesztheted a könyvtárat, miután elküldted ellenőrzésre",
-      "twitterHandle": "Twitter-felhasználónév (opcionális), így tudjuk, kinek kell jóváírni a Twitteren keresztüli reklámozást",
-      "website": "Hivatkozás személyes webhelyedre vagy máshová (nem kötelező)"
-    },
-    "errors": {
-      "required": "Kötelező",
-      "website": "Adj meg egy érvényes URL-t"
-    },
-    "noteDescription": "Küld be könyvtáradat, hogy bekerüljön a <link>nyilvános könyvtár tárolóba</link>hogy mások is felhasználhassák a rajzaikban.",
-    "noteGuidelines": "A könyvtárat először manuálisan kell jóváhagyni. Kérjük, olvassa el a <link>segédletet</link> benyújtása előtt. Szüksége lesz egy GitHub-fiókra a kommunikációhoz és a módosításokhoz, ha kérik, de ez nem feltétlenül szükséges.",
-    "noteLicense": "A beküldéssel elfogadja, hogy a könyvtár a következő alatt kerül közzétételre <link>MIT Licensz </link>ami röviden azt jelenti, hogy bárki korlátozás nélkül használhatja őket.",
-    "noteItems": "Minden könyvtárelemnek saját nevével kell rendelkeznie, hogy szűrhető legyen. A következő könyvtári tételek kerülnek bele:",
-    "atleastOneLibItem": "A kezdéshez válassz ki legalább egy könyvtári elemet",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "A könyvtár beküldve",
-    "content": "Köszönjük {{authorName}}. Könyvtáradat elküldtük felülvizsgálatra. Nyomon követheted az állapotot<link>itt</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Könyvtár alaphelyzetbe állítása",

@@ -272,6 +272,59 @@ describe("library menu", () => {
       ]);
     });
   });
+
+  it("should rename selected library items", async () => {
+    const { container } = await render(<Excalidraw />);
+    await act(() =>
+      h.app.library.updateLibrary({
+        libraryItems: [
+          {
+            id: "door",
+            status: "unpublished",
+            created: 1,
+            elements: [API.createElement({ type: "rectangle", id: "door" })],
+          },
+        ],
+        openLibraryMenu: true,
+      }),
+    );
+
+    const itemDragger = await waitFor(() => {
+      const dragger = container.querySelector(".library-unit__dragger");
+      expect(dragger).not.toBeNull();
+      return dragger!;
+    });
+    fireEvent.click(itemDragger, { shiftKey: true });
+    await waitFor(() =>
+      expect(container.querySelector(".library-unit--selected")).not.toBe(null),
+    );
+    fireEvent.click(
+      queryByTestId(
+        container.querySelector(".layer-ui__library")!,
+        "dropdown-menu-button",
+      )!,
+    );
+    fireEvent.click(queryByTestId(container, "lib-dropdown--rename")!);
+
+    const nameInput = await waitFor(() => {
+      const input = document.querySelector<HTMLInputElement>(
+        ".library-rename-dialog input",
+      );
+      expect(input).not.toBeNull();
+      return input!;
+    });
+    fireEvent.change(nameInput, { target: { value: "Greendale door" } });
+    fireEvent.click(
+      document.querySelector(
+        '.library-rename-dialog button[aria-label="Save name(s) and exit"]',
+      )!,
+    );
+
+    await waitFor(async () => {
+      const latestLibrary = await h.app.library.getLatestLibrary();
+      expect(latestLibrary[0].name).toBe("Greendale door");
+    });
+  });
 });
 
 describe("library menu Escape (undocked sidebar)", () => {

@@ -114,7 +114,6 @@
     "addToLibrary": "Tambahkan ke pustaka",
     "removeFromLibrary": "Hapus dari pustaka",
     "libraryLoadingMessage": "Memuat pustaka…",
-    "libraries": "Telusur pustaka",
     "loadingScene": "Memuat pemandangan…",
     "loadScene": "Muat dari file",
     "align": "Perataan",
@@ -166,7 +165,6 @@
       "lockAll": "Kuncikan semua",
       "unlockAll": "Lepas semua"
     },
-    "statusPublished": "Telah terbit",
     "sidebarLock": "Biarkan sidebar tetap terbuka",
     "selectAllElementsInFrame": "Pilih semua unsur di bingkai",
     "removeAllElementsFromFrame": "Hapus semua unsur dari bingkai",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Belum ada item yang ditambahkan...",
-    "hint_emptyLibrary": "Pilih item pada kanvas untuk menambahkan nya di sini, atau pasang pustaka dari gudang di bawah ini.",
     "hint_emptyPrivateLibrary": "Pilih item pada kanvas untuk menambahkan nya di sini.",
     "search": {
       "inputPlaceholder": "Cari pustaka",
       "heading": "Hasil pustaka",
       "noResults": "Tidak ada item yang cocok...",
       "clearSearch": "Hapus pencarian"
-    }
+    },
+    "itemName": "Nama item"
   },
   "search": {
     "title": "Temukan di kanvas",
@@ -256,8 +254,6 @@
     "clear": "Hapus",
     "remove": "Hapus",
     "embed": "Mati/nyala penyematan",
-    "publishLibrary": "Ubah nama atau publikasikan",
-    "submit": "Kirimkan",
     "confirm": "Konfirmasi",
     "embeddableInteractionButton": "Pencet untuk interaksi"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Hapus kanvas"
-  },
-  "publishDialog": {
-    "title": "Terbitkan pustaka",
-    "itemName": "Nama item",
-    "authorName": "Nama pembuat",
-    "githubUsername": "Nama pengguna github",
-    "twitterUsername": "Nama pengguna Twitter",
-    "libraryName": "Nama Pustaka",
-    "libraryDesc": "Deskripsi pustaka",
-    "website": "Situs Web",
-    "placeholder": {
-      "authorName": "Nama atau nama pengguna Anda",
-      "libraryName": "Nama dari pustaka Anda",
-      "libraryDesc": "Deskripsi pustaka Anda untuk membantu orang mengerti penggunaannya",
-      "githubHandle": "Akun GitHub (opsional), jadi Anda dapat mengubah pustaka ketika diserahkan untuk review",
-      "twitterHandle": "Nama pengguna Twitter (opsional), jadi kami tahu siapa dipuji ketika mempromosikannya melalui Twitter",
-      "website": "Hubungkan ke situs personal Anda atau lainnya (opsional)"
-    },
-    "errors": {
-      "required": "Dibutuhkan",
-      "website": "Masukkan URL valid"
-    },
-    "noteDescription": "Kirimkan pustaka Anda untuk disertakan di <link>repositori pustaka publik</link>untuk orang lain menggunakannya dalam gambar mereka.",
-    "noteGuidelines": "Pustaka butuh disetujui secara manual terlebih dahulu. Baca <link>pedoman</link> sebelum mengirim. Anda butuh akun GitHub untuk berkomunikasi dan membuat perubahan jika dibutuhkan, tetapi tidak wajib dibutukan.",
-    "noteLicense": "Dengan mengkirimkannya, Anda setuju pustaka akan diterbitkan dibawah <link>Lisensi MIT, </link>yang artinya siapa pun dapat menggunakannya tanpa batasan.",
-    "noteItems": "Setiap item pustaka harus memiliki nama, sehingga bisa disortir. Item pustaka di bawah ini akan dimasukan:",
-    "atleastOneLibItem": "Pilih setidaknya satu item pustaka untuk mulai",
-    "republishWarning": "Catatan: beberapa item yang dipilih telah ditandai sebagai sudah dipublikasikan/diserahkan. Anda hanya dapat menyerahkan kembali item-item ketika memperbarui pustaka atau pengumpulan."
-  },
-  "publishSuccessDialog": {
-    "title": "Pustaka telah dikirm",
-    "content": "Terima kasih {{authorName}}. pustaka Anda telah diserahkan untuk ditinjau ulang. Anda dapat cek statusnya<link>di sini</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Reset pustaka",

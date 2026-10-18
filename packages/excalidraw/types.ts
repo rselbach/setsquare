@@ -659,7 +659,6 @@ export type LibraryItem = {
   /** timestamp in epoch (ms) */
   created: number;
   name?: string;
-  error?: string;
 };
 export type LibraryItems = readonly LibraryItem[];
 export type LibraryItems_anyVersion = LibraryItems | LibraryItems_v1;
@@ -998,7 +997,6 @@ export interface ExcalidrawProps {
   zenModeEnabled?: boolean;
   gridModeEnabled?: boolean;
   objectsSnapModeEnabled?: boolean;
-  libraryReturnUrl?: string;
   theme?: Theme;
   // @TODO come with better API before v0.18.0
   name?: string;

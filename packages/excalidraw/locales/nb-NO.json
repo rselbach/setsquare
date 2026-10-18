@@ -114,7 +114,6 @@
     "addToLibrary": "Legg til i bibliotek",
     "removeFromLibrary": "Fjern fra bibliotek",
     "libraryLoadingMessage": "Laster bibliotek…",
-    "libraries": "Bla gjennom biblioteker",
     "loadingScene": "Laster inn scene…",
     "loadScene": "Last scene fra fil",
     "align": "Juster",
@@ -166,7 +165,6 @@
       "lockAll": "Lås alle",
       "unlockAll": "Lås opp alle"
     },
-    "statusPublished": "Publisert",
     "sidebarLock": "Holde sidemenyen åpen",
     "selectAllElementsInFrame": "Velg alle elementene i rammen",
     "removeAllElementsFromFrame": "Fjern alle elementer fra rammen",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Ingen elementer lagt til ennå...",
-    "hint_emptyLibrary": "Velg et objekt på lerretet for å legge det til her, eller installer et bibliotek fra den offentlige samlingen under.",
     "hint_emptyPrivateLibrary": "Velg et objekt på lerretet for å legge det til her.",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "Elementnavn"
   },
   "search": {
     "title": "Finn på lerretet",
@@ -256,8 +254,6 @@
     "clear": "Tøm",
     "remove": "Fjern",
     "embed": "Slå av/på innebygging",
-    "publishLibrary": "",
-    "submit": "Send inn",
     "confirm": "Bekreft",
     "embeddableInteractionButton": "Klikk for å samhandle"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Tøm lerret"
-  },
-  "publishDialog": {
-    "title": "Publiser bibliotek",
-    "itemName": "Elementnavn",
-    "authorName": "Forfatterens navn",
-    "githubUsername": "GitHub-brukernavnet",
-    "twitterUsername": "Twitter-brukernavn",
-    "libraryName": "Biblioteknavn",
-    "libraryDesc": "Beskrivelse av bibliotek",
-    "website": "Nettsted",
-    "placeholder": {
-      "authorName": "Ditt navn eller brukernavn",
-      "libraryName": "Navnet på biblioteket ditt",
-      "libraryDesc": "Beskrivelse av biblioteket ditt for å hjelpe folk med å forstå bruken",
-      "githubHandle": "Github-brukernavn (valgfritt), slik at du kan redigere biblioteket når du har sendt inn for gjennomgang",
-      "twitterHandle": "Twitter-brukernavn (valgfritt), slik at vi vet hvem vi skal kreditere når promotert på Twitter",
-      "website": "Lenke til din personlige nettside eller et annet sted (valgfritt)"
-    },
-    "errors": {
-      "required": "Påkrevd",
-      "website": "Angi en gyldig nettadresse"
-    },
-    "noteDescription": "Send inn biblioteket ditt som skal inkluderes i <link>kildekode for offentlig bibliotek</link>for andre å bruke dem i tegninger.",
-    "noteGuidelines": "Biblioteket må godkjennes manuelt først. Les <link>retningslinjene</link> før innsending. Du vil trenge en GitHub-konto for å kommunisere og gjøre endringer hvis ønsket, men det er ikke påkrevd.",
-    "noteLicense": "Ved å sende inn godtar du at biblioteket blir publisert under <link>MIT-lisens, </link>som kortfattet betyr at andre kan bruke dem uten begrensninger.",
-    "noteItems": "Hvert bibliotek må ha sitt eget navn, så det er filtrerbart. Følgende bibliotekselementer vil bli inkludert:",
-    "atleastOneLibItem": "Vennligst velg minst ett bibliotek for å komme i gang",
-    "republishWarning": "Merk: noen av de valgte elementene er merket som allerede publisert/sendt. Du bør kun sende inn elementer på nytt når du oppdaterer et eksisterende bibliotek eller innlevering."
-  },
-  "publishSuccessDialog": {
-    "title": "Bibliotek innsendt",
-    "content": "Takk {{authorName}}. Ditt bibliotek har blitt sendt inn for gjennomgang. Du kan spore statusen<link>her</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Nullstill bibliotek",

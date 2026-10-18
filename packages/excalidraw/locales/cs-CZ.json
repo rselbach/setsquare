@@ -114,7 +114,6 @@
     "addToLibrary": "Přidat do knihovny",
     "removeFromLibrary": "Odebrat z knihovny",
     "libraryLoadingMessage": "Načítání knihovny…",
-    "libraries": "Procházet knihovny",
     "loadingScene": "Načítání scény…",
     "loadScene": "Načíst scénu ze souboru",
     "align": "Zarovnání",
@@ -166,7 +165,6 @@
       "lockAll": "Uzamknout vše",
       "unlockAll": "Odemknout vše"
     },
-    "statusPublished": "Zveřejněno",
     "sidebarLock": "Ponechat postranní panel otevřený",
     "selectAllElementsInFrame": "Vybrat všechny prvky v orámování",
     "removeAllElementsFromFrame": "Odstranit všechny prvky z orámování",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "Dosud neexistují žádné položky...",
-    "hint_emptyLibrary": "Vyberte položku na plátně a přidejte ji sem nebo nainstalujte knihovnu z veřejného úložiště níže.",
     "hint_emptyPrivateLibrary": "Vyberte položku na plátně a přidejte ji sem.",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "Název položky"
   },
   "search": {
     "title": "Najít na plátně",
@@ -256,8 +254,6 @@
     "clear": "Vyčistit",
     "remove": "Odstranit",
     "embed": "Přepínač vkládání",
-    "publishLibrary": "",
-    "submit": "Odeslat",
     "confirm": "Potvrdit",
     "embeddableInteractionButton": "Klikněte pro interakci"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "Vymazat plátno"
-  },
-  "publishDialog": {
-    "title": "Publikovat knihovnu",
-    "itemName": "Název položky",
-    "authorName": "Jméno autora",
-    "githubUsername": "GitHub uživatelské jméno",
-    "twitterUsername": "Twitter uživatelské jméno",
-    "libraryName": "Název knihovny",
-    "libraryDesc": "Popis knihovny",
-    "website": "Webová stránka",
-    "placeholder": {
-      "authorName": "Jméno nebo uživatelské jméno",
-      "libraryName": "Název vaší knihovny",
-      "libraryDesc": "Popis Vaší knihovny, který pomůže lidem pochopit její využití",
-      "githubHandle": "Github uživatelské jméno (nepovinné), abyste mohli upravovat knihovnu poté co je odeslána ke kontrole",
-      "twitterHandle": "Twitter uživatelské jméno (nepovinné), abychom věděli koho označit při propagaci na Twitteru",
-      "website": "Odkaz na Vaši osobní webovou stránku nebo jinam (nepovinné)"
-    },
-    "errors": {
-      "required": "Povinné",
-      "website": "Zadejte platnou URL adresu"
-    },
-    "noteDescription": "Odešlete svou knihovnu, pro zařazení do <link>veřejného úložiště knihoven</link>, odkud ji budou moci při kreslení využít i ostatní uživatelé.",
-    "noteGuidelines": "Knihovna musí být nejdříve ručně schválena. Přečtěte si prosím <link>pokyny</link>",
-    "noteLicense": "Odesláním souhlasíte s tím, že knihovna bude zveřejněna pod <link>MIT licencí</link>, stručně řečeno, kdokoli ji může používat bez omezení.",
-    "noteItems": "Každá položka knihovny musí mít svůj vlastní název, aby byla filtrovatelná. Následující položky knihovny budou zahrnuty:",
-    "atleastOneLibItem": "Vyberte alespoň jednu položku knihovny, kterou chcete začít",
-    "republishWarning": "Poznámka: některé z vybraných položek jsou označeny jako již zveřejněné/odeslané. Položky byste měli znovu odeslat pouze při aktualizaci existující knihovny nebo podání."
-  },
-  "publishSuccessDialog": {
-    "title": "Knihovna byla odeslána",
-    "content": "Děkujeme vám {{authorName}}. Vaše knihovna byla odeslána k posouzení. Stav můžete sledovat <link>zde</link>"
   },
   "confirmDialog": {
     "resetLibrary": "Resetovat knihovnu",

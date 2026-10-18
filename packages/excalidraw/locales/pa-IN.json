@@ -114,7 +114,6 @@
     "addToLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜੋ",
     "removeFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ 'ਚੋਂ ਹਟਾਓ",
     "libraryLoadingMessage": "ਲਾਇਬ੍ਰੇਰੀ ਲੋਡ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ…",
-    "libraries": "ਲਾਇਬ੍ਰੇਰੀਆਂ ਬਰਾਉਜ਼ ਕਰੋ",
     "loadingScene": "ਦ੍ਰਿਸ਼ ਲੋਡ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ…",
     "loadScene": "",
     "align": "ਇਕਸਾਰ",
@@ -166,7 +165,6 @@
       "lockAll": "ਸਭ ਲਾਕ ਕਰੋ",
       "unlockAll": "ਸਭ ਅਨਲਾਕ ਕਰੋ"
     },
-    "statusPublished": "ਪ੍ਰਕਾਸ਼ਤ ਹੈ",
     "sidebarLock": "ਸਾਈਡਬਾਰ ਨੂੰ ਖੁੱਲ੍ਹਾ ਰੱਖੋ",
     "selectAllElementsInFrame": "",
     "removeAllElementsFromFrame": "",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "ਹਾਲੇ ਤੱਕ ਕੋਈ ਚੀਜ ਜੋੜੀ ਨਹੀਂ ਗਈ...",
-    "hint_emptyLibrary": "ਇੱਥੇ ਆਈਟਮ ਜੋੜਨ ਲਈ ਉਸਨੂੰ ਕੈਨਵਸ ‘ਤੇ ਚੁਣੋ, ਜਾਂ ਹੇਠਾਂ ਪਬਲਿਕ ਰਿਪਾਜ਼ੀਟਰੀ ‘ਚੋਂ ਲਾਇਬ੍ਰੇਰੀ ਸਥਾਪਤ ਕਰੋ।",
     "hint_emptyPrivateLibrary": "ਇੱਥੇ ਆਈਟਮ ਜੋੜਨ ਲਈ ਉਸਨੂੰ ਕੈਨਵਸ ‘ਤੇ ਚੁਣੋ।",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "ਚੀਜ਼ ਦਾ ਨਾਂ"
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "ਸਾਫ਼ ਕਰੋ",
     "remove": "ਹਟਾਓ",
     "embed": "",
-    "publishLibrary": "",
-    "submit": "ਜਮ੍ਹਾ ਕਰਵਾਓ",
     "confirm": "ਪੁਸ਼ਟੀ ਕਰੋ",
     "embeddableInteractionButton": ""
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "ਕੈਨਵਸ ਨੂੰ ਸਾਫ਼ ਕਰੋ"
-  },
-  "publishDialog": {
-    "title": "ਲਾਇਬ੍ਰੇਰੀ ਨੂੰ ਪ੍ਰਕਾਸ਼ਤ ਕਰੋ",
-    "itemName": "ਚੀਜ਼ ਦਾ ਨਾਂ",
-    "authorName": "ਲੇਖਕ ਦਾ ਨਾਂ",
-    "githubUsername": "ਗਿੱਟਹੱਬ ਵਰਤੋਂਕਾਰ ਨਾਂ",
-    "twitterUsername": "ਟਵਿੱਟਰ ਦਾ ਵਰਤੋਂਕਾਰ-ਨਾਂ",
-    "libraryName": "ਲਾਇਬ੍ਰੇਰੀ ਦਾ ਨਾਂ",
-    "libraryDesc": "ਲਾਇਬ੍ਰੇਰੀ ਦਾ ਵੇਰਵਾ",
-    "website": "ਵੈੱਬਸਾਇਟ",
-    "placeholder": {
-      "authorName": "ਤੁਹਾਡਾ ਨਾਂ ਜਾਂ ਵਰਤੋਂਕਾਰ-ਨਾਂ",
-      "libraryName": "ਤੁਹਾਡੀ ਲਾਇਬਰ੍ਰੀ ਦਾ ਨਾਂ",
-      "libraryDesc": "ਤੁਹਾਡੀ ਲਾਇਬ੍ਰੇਰੀ ਦਾ ਵੇਰਵਾ ਤਾਂ ਜੋ ਲੋਕਾਂ ਨੂੰ ਇਸ ਤੋੰਂ ਇਸਦੀ ਵਰਤੋਂ ਕਰਨ ਸਬੰਧੀ ਮਦਦ ਮਿਲ ਸਕੇ",
-      "githubHandle": "",
-      "twitterHandle": "",
-      "website": ""
-    },
-    "errors": {
-      "required": "ਲੋੜੀਂਦਾ",
-      "website": "ਜਾਇਜ਼ URL ਭਰੋ"
-    },
-    "noteDescription": "ਹੋਰ ਲੋਕਾਂ ਵੱਲੋਂ ਤੁਹਾਡੀ ਲਾਇਬ੍ਰੇਰੀ ਨੂੰ ਵਰਤਣ ਲਈ ਸਕਣ ਇਸ ਲਈ<link>ਜਨਤਕ ਲਾਇਬ੍ਰੇਰੀ ਦੀ ਰਿਪਾਜ਼ੀਟਰੀ</link> ਵਿੱਚ ਆਪਣੀ ਲਾਇਬ੍ਰੇਰੀ ਸ਼ਾਮਲ ਕਰਵਾਉਣ ਲਈ ਜਮ੍ਹਾ ਕਰਵਾਓ",
-    "noteGuidelines": "<link>ਦਿਸ਼ਾ ਨਿਰਦੇਸ਼</link>",
-    "noteLicense": "<link>MIT ਲਾਇਸੈਂਸ, </link>",
-    "noteItems": "",
-    "atleastOneLibItem": "",
-    "republishWarning": ""
-  },
-  "publishSuccessDialog": {
-    "title": "ਲਾਇਬ੍ਰੇਰੀ ਜਮ੍ਹਾਂ ਕਰਵਾਈ",
-    "content": "ਧੰਨਵਾਦ {{authorName}} ਜੀਉ। ਤੁਹਾਡੀ ਲਾਇਬ੍ਰੇਰੀ ਨੂੰ ਸਮੀਖਿਆ ਲਈ ਭੇਜ ਦਿੱਤਾ ਗਿਆ ਹੈ। ਤੁਸੀਂ ਉਸਦੀ ਸਥਿਤੀ <link>ਇੱਥੇ</link> ਦੇਖ ਸਕਦੇ ਹੋ।"
   },
   "confirmDialog": {
     "resetLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਰੀਸੈੱਟ ਕਰੋ",

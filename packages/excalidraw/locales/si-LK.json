@@ -114,7 +114,6 @@
     "addToLibrary": "පුස්තකාලයට එක් කරන්න",
     "removeFromLibrary": "පුස්තකාලයෙන් ඉවත් කරන්න",
     "libraryLoadingMessage": "පුස්තකාලය පූරණය වෙමින් පවතී",
-    "libraries": "පුස්තකාල",
     "loadingScene": "දර්ශනය පූරණය වෙමින්",
     "loadScene": "",
     "align": "පෙළගැස්වීම",
@@ -166,7 +165,6 @@
       "lockAll": "සියල්ල අගුලු දමන්න",
       "unlockAll": "සියල්ල අගුලු ඉවත් කරන්න"
     },
-    "statusPublished": "ප්‍රකාශිත තත්ත්වය",
     "sidebarLock": "පැති තීරුව අගුලු",
     "selectAllElementsInFrame": "අඳින ලද රාමුවේ සියලුම අංග තෝරන්න",
     "removeAllElementsFromFrame": "රාමුවෙන් සියලුම අංග ඉවත් කරන්න",
@@ -202,14 +200,14 @@
   },
   "library": {
     "noItems": "අයිතම නැත",
-    "hint_emptyLibrary": "පුස්තකාලය හිස් බව පෙන්වයි",
     "hint_emptyPrivateLibrary": "පුද්ගලික පුස්තකාලය හිස් බව පෙන්වයි",
     "search": {
       "inputPlaceholder": "",
       "heading": "",
       "noResults": "",
       "clearSearch": ""
-    }
+    },
+    "itemName": "අයිතම නම"
   },
   "search": {
     "title": "",
@@ -256,8 +254,6 @@
     "clear": "පිරිසිදු",
     "remove": "ඉවත් කරන්න",
     "embed": "බිහිදැමීම",
-    "publishLibrary": "",
-    "submit": "ඉදිරිපත් කරන්න",
     "confirm": "තහවුරු කරන්න",
     "embeddableInteractionButton": "බිහිදැමීමේ අන්තර්ක්‍රියා බොත්තම"
   },
@@ -472,38 +468,6 @@
   },
   "clearCanvasDialog": {
     "title": "කැන්වසය පිරිසිදු කිරීමේ සංවාදය"
-  },
-  "publishDialog": {
-    "title": "ප්‍රකාශන සංවාදය",
-    "itemName": "අයිතම නම",
-    "authorName": "කතුවරයාගේ නම",
-    "githubUsername": "GitHub පරිශීලක නම",
-    "twitterUsername": "Twitter පරිශීලක නම",
-    "libraryName": "පුස්තකාලයේ නම",
-    "libraryDesc": "පුස්තකාල විස්තර",
-    "website": "වෙබ් අඩවිය",
-    "placeholder": {
-      "authorName": "කතුවරයාගේ නම ඇතුලත් කරන්න",
-      "libraryName": "පුස්තකාලයේ නම ඇතුලත් කරන්න",
-      "libraryDesc": "පුස්තකාල විස්තර ඇතුලත් කරන්න",
-      "githubHandle": "GitHub හසුරුව ඇතුලත් කරන්න",
-      "twitterHandle": "Twitter හසුරුව ඇතුලත් කරන්න",
-      "website": "වෙබ් අඩවිය ඇතුලත් කරන්න"
-    },
-    "errors": {
-      "required": "අවශ්‍යයි",
-      "website": "වලංගු නොවන වෙබ් අඩවි URL"
-    },
-    "noteDescription": "සටහන් විස්තර",
-    "noteGuidelines": "සටහන් මාර්ගෝපදේශ",
-    "noteLicense": "සටහන් බලපත්‍රය",
-    "noteItems": "සටහන් අයිතම",
-    "atleastOneLibItem": "අවම වශයෙන් එක් පුස්තකාල අයිතමයක්",
-    "republishWarning": "නැවත ප්‍රකාශන ඇඟවීම"
-  },
-  "publishSuccessDialog": {
-    "title": "ප්‍රකාශන සාර්ථකත්ව සංවාදය",
-    "content": "ප්‍රකාශන සාර්ථකත්ව අන්තර්ගතය"
   },
   "confirmDialog": {
     "resetLibrary": "පුස්තකාලය යළි සකස් කිරීම තහවුරු කරන්න",
