@@ -343,24 +343,10 @@ export class Pointer {
 
 const mouse = new Pointer("mouse");
 
-const transform = (
-  element: ExcalidrawElement | ExcalidrawElement[],
+const getTransformHandleCenter = (
+  elements: ExcalidrawElement[],
   handle: TransformHandleType,
-  mouseMove: [deltaX: number, deltaY: number],
-  keyboardModifiers: KeyboardModifiers = {},
 ) => {
-  const elements = Array.isArray(element) ? element : [element];
-  act(() => {
-    h.setState({
-      selectedElementIds: elements.reduce(
-        (acc, e) => ({
-          ...acc,
-          [e.id]: true,
-        }),
-        {},
-      ),
-    });
-  });
   let handleCoords: TransformHandle | undefined;
   if (elements.length === 1) {
     handleCoords = getTransformHandles(
@@ -387,8 +373,31 @@ const transform = (
     throw new Error(`There is no "${handle}" handle for this selection`);
   }
 
-  const clientX = handleCoords[0] + handleCoords[2] / 2;
-  const clientY = handleCoords[1] + handleCoords[3] / 2;
+  return pointFrom<GlobalPoint>(
+    handleCoords[0] + handleCoords[2] / 2,
+    handleCoords[1] + handleCoords[3] / 2,
+  );
+};
+
+const transform = (
+  element: ExcalidrawElement | ExcalidrawElement[],
+  handle: TransformHandleType,
+  mouseMove: [deltaX: number, deltaY: number],
+  keyboardModifiers: KeyboardModifiers = {},
+) => {
+  const elements = Array.isArray(element) ? element : [element];
+  act(() => {
+    h.setState({
+      selectedElementIds: elements.reduce(
+        (acc, e) => ({
+          ...acc,
+          [e.id]: true,
+        }),
+        {},
+      ),
+    });
+  });
+  const [clientX, clientY] = getTransformHandleCenter(elements, handle);
 
   Keyboard.withModifierKeys(keyboardModifiers, () => {
     mouse.reset();
@@ -648,12 +657,29 @@ export class UI {
     API.updateElement(element, mutations);
   }
 
+  /**
+   * Rotates the selection by `angle` (clockwise) by dragging its rotation
+   * handle around the selection's center.
+   */
   static rotate(
     element: ExcalidrawElement | ExcalidrawElement[],
-    mouseMove: [deltaX: number, deltaY: number],
+    angle: number,
     keyboardModifiers: KeyboardModifiers = {},
   ) {
-    return transform(element, "rotation", mouseMove, keyboardModifiers);
+    const elements = Array.isArray(element) ? element : [element];
+    const handle = getTransformHandleCenter(elements, "rotation");
+    const [x1, y1, x2, y2] = getCommonBounds(elements);
+    const target = pointRotateRads(
+      handle,
+      pointFrom<GlobalPoint>((x1 + x2) / 2, (y1 + y2) / 2),
+      angle as Radians,
+    );
+    return transform(
+      element,
+      "rotation",
+      [target[0] - handle[0], target[1] - handle[1]],
+      keyboardModifiers,
+    );
   }
 
   static group(elements: ExcalidrawElement[]) {

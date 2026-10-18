@@ -196,10 +196,14 @@ export const getTransformHandlesFromCoords = (
           cy,
           angle,
         ),
+    // off the top-right corner, leaving the top center to connectors
     rotation: omitSides.rotation
       ? undefined
       : generateTransformHandle(
-          x1 + width / 2 - handleWidth / 2,
+          x2 +
+            dashedLineMargin -
+            centeringOffset +
+            ROTATION_RESIZE_HANDLE_GAP / zoom.value,
           y1 -
             dashedLineMargin -
             handleMarginY +

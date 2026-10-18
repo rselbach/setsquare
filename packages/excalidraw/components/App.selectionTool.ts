@@ -59,6 +59,7 @@ import {
   vectorSubtract,
 } from "@excalidraw/math";
 
+import type { GlobalPoint, Radians } from "@excalidraw/math";
 import type { TransformHandleType } from "@excalidraw/element";
 import type {
   ExcalidrawElement,
@@ -702,6 +703,14 @@ export class AppSelectionTool {
         typeof transformHandleType === "string" &&
         transformHandleType.length === 2);
 
+    if (transformHandleType === "rotation") {
+      [resizeX, resizeY] = this.getRotationPointer(
+        pointerDownState,
+        selectedElements,
+        pointFrom(resizeX, resizeY),
+      );
+    }
+
     if (
       transformElements(
         pointerDownState.originalElements,
@@ -746,6 +755,48 @@ export class AppSelectionTool {
     }
     return false;
   };
+
+  /**
+   * The rotation math takes the pointer's angle from straight up as the
+   * selection's angle, but the rotation handle sits off the top-right corner.
+   * Turning the pointer back by the angle it was grabbed at makes the
+   * rotation follow the drag from the grab, so the selection doesn't jump
+   * when the handle is pressed.
+   */
+  private getRotationPointer(
+    pointerDownState: PointerDownState,
+    selectedElements: readonly NonDeletedExcalidrawElement[],
+    pointer: GlobalPoint,
+  ) {
+    const [element] = selectedElements;
+    const isSingle = selectedElements.length === 1;
+    const [x1, y1, x2, y2] = isSingle
+      ? getElementAbsoluteCoords(
+          element,
+          this.app.scene.getNonDeletedElementsMap(),
+        )
+      : [0, 0, 0, 0];
+    const center = isSingle
+      ? pointFrom<GlobalPoint>((x1 + x2) / 2, (y1 + y2) / 2)
+      : pointFrom<GlobalPoint>(
+          pointerDownState.resize.center.x,
+          pointerDownState.resize.center.y,
+        );
+    const startAngle = isSingle
+      ? pointerDownState.originalElements.get(element.id)?.angle ??
+        element.angle
+      : 0;
+    const grabAngle = Math.atan2(
+      pointerDownState.origin.y - center[1],
+      pointerDownState.origin.x - center[0],
+    );
+
+    return pointRotateRads(
+      pointer,
+      center,
+      (startAngle - grabAngle - Math.PI / 2) as Radians,
+    );
+  }
 
   /**
    * Drags the selection (or, in the crop editor, the image within its crop) —

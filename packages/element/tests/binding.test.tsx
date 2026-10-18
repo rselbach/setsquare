@@ -805,18 +805,7 @@ describe("binding for simple arrows", () => {
       expect(arrow.startBinding?.elementId).toBe(rectLeft.id);
       expect(arrow.endBinding?.elementId).toBe(rectRight.id);
 
-      const rotation = getTransformHandles(
-        arrow,
-        h.state.zoom,
-        arrayToMap(h.elements),
-        "mouse",
-      ).rotation!;
-      const rotationHandleX = rotation[0] + rotation[2] / 2;
-      const rotationHandleY = rotation[1] + rotation[3] / 2;
-      mouse.reset();
-      mouse.down(rotationHandleX, rotationHandleY);
-      mouse.move(300, 400);
-      mouse.up();
+      UI.rotate(arrow, Math.PI);
       expect(arrow.angle).toBeGreaterThan(0.7 * Math.PI);
       expect(arrow.angle).toBeLessThan(1.3 * Math.PI);
       expect(arrow.startBinding).toBeNull();
