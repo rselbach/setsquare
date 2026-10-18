@@ -32,11 +32,11 @@ $wide-viewport-width: 1000px;
     kbd {
       display: inline-block;
       margin: 0 1px;
-      font-family: monospace;
+      font-family: var(--ui-font-numeric);
       border: 1px solid var(--color-gray-40);
-      border-radius: 4px;
-      padding: 1px 3px;
-      font-size: 10px;
+      border-radius: var(--border-radius-md);
+      padding: 0 3px;
+      font-size: 11px;
     }
   }
 

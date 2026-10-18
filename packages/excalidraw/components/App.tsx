@@ -827,7 +827,9 @@ class App extends React.Component<AppProps, AppState> {
       gridModeEnabled = false,
       objectsSnapModeEnabled = false,
       theme = defaultAppState.theme,
-      name = `${t("labels.untitled")}-${getDateTime()}`,
+      // unnamed until the user names it; `getName` dates a file name for
+      // saving meanwhile
+      name = null,
     } = props;
 
     // seed the host-forced tool so the first render already has it

@@ -167,7 +167,8 @@
 
       &__shortcut {
         margin-inline-start: auto;
-        opacity: 0.5;
+        color: var(--lead);
+        font-family: var(--ui-font-numeric);
 
         &--orphaned {
           text-align: right;
@@ -253,7 +254,7 @@
     @at-root .excalidraw.theme--dark#{&} {
       --background: var(--color-surface-high);
       &:hover {
-        --background: #363541;
+        --background: var(--vellum-3);
       }
     }
 

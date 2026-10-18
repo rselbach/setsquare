@@ -1,0 +1,98 @@
+@use "../../css/variables.module" as *;
+
+.excalidraw {
+  // ruled like an engineering drawing's title block: a graphite frame,
+  // fields split by rules
+  .TitleBlock {
+    --lg-button-size: 2rem;
+
+    display: flex;
+    align-items: stretch;
+    background-color: var(--island-bg-color);
+    border: 1px solid var(--graphite);
+
+    &__cell {
+      display: flex;
+      align-items: center;
+    }
+
+    .TitleBlock__cell + .TitleBlock__cell {
+      border-inline-start: 1px solid var(--rule-strong);
+    }
+
+    // beats the editor's generic text input styles
+    input.TitleBlock__name {
+      box-sizing: border-box;
+      width: 13rem;
+      height: 100%;
+      padding: 0 0.625rem;
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
+      color: var(--text-primary-color);
+      font-family: var(--ui-font-display);
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+
+      &::placeholder {
+        color: var(--lead);
+        font-weight: 400;
+      }
+
+      &:hover {
+        background-color: var(--button-hover-bg);
+      }
+
+      &:focus {
+        outline: none;
+        background-color: var(--input-bg-color);
+        box-shadow: inset 0 0 0 2px var(--focus-highlight-color);
+      }
+    }
+
+    .zoom-actions {
+      background-color: transparent;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .zoom-button {
+      border-radius: 0 !important;
+
+      .ToolIcon__icon {
+        border-radius: 0 !important;
+      }
+    }
+
+    .reset-zoom-button {
+      width: 3.25rem !important;
+      font-family: var(--ui-font-numeric);
+      font-size: 0.9375rem !important;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .help-icon {
+      width: var(--lg-button-size);
+      height: var(--lg-button-size);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      background-color: transparent;
+
+      &:hover {
+        background-color: var(--button-hover-bg);
+      }
+    }
+
+    // in zen mode only the zoom stays, without the frame
+    &--zen {
+      border-color: transparent;
+      background-color: transparent;
+
+      .TitleBlock__cell + .TitleBlock__cell {
+        border-color: transparent;
+      }
+    }
+  }
+}

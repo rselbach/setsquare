@@ -20,12 +20,9 @@
       display: flex;
       width: 100%;
       justify-content: flex-end;
-      gap: 0.75rem;
+      align-items: center;
+      gap: 0.5rem;
       pointer-events: none !important;
-
-      &--compact {
-        gap: 0.5rem;
-      }
 
       & > * {
         pointer-events: var(--ui-pointerEvents);
@@ -117,28 +114,10 @@
     }
   }
 
-  // on tablet, the pen mode button is rendered as a separate floating button
-  // below the compact actions menu (see LayerUI.tsx)
-  .App-menu_top__left > .ToolIcon__penMode {
-    // NOTE: not `justify-self: center` — that centers against the grid
-    // column's track width, which (see above) can be inflated by unrelated
-    // content, visibly shifting this button off from the icon stack above
-    // it. Nudge by hand instead, against the fixed-width compact actions
-    // column (see .selected-shape-actions-container--compact's min-width).
-    justify-self: start;
-    margin-left: calc((48px - var(--lg-button-size)) / 2);
-
-    .ToolIcon__icon {
-      width: var(--lg-button-size);
-      height: var(--lg-button-size);
-      background-color: var(--island-bg-color);
-      box-shadow: var(--shadow-island);
-    }
-
-    // no shadow while pen mode is active (the active fill is enough)
-    &.ToolIcon--checked .ToolIcon__icon {
-      box-shadow: none;
-    }
+  // on tablet, the pen mode button sits below the compact actions
+  .App-inspector > .ToolIcon__penMode .ToolIcon__icon {
+    width: var(--lg-button-size);
+    height: var(--lg-button-size);
   }
 
   .disable-view-mode {
@@ -180,5 +159,162 @@
       width: 20px;
       height: 20px;
     }
+  }
+
+  // ---------------------------------------------------------------------
+  // Docked chrome: the top bar, the inspector and the title block are one
+  // vellum frame around the paper, separated from it by tone and a rule.
+
+  .FixedSideContainer_side_top.App-chrome {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  // buttons in the bar are quiet until hovered; the tools and Share carry
+  // the bar's weight
+  .App-menu_top {
+    .main-menu-trigger,
+    .sidebar-trigger {
+      height: 2rem;
+      border: none;
+      box-shadow: none;
+      background-color: transparent;
+
+      &:hover {
+        background-color: var(--button-hover-bg);
+      }
+
+      &:active {
+        background-color: var(--button-active-bg);
+        box-shadow: none;
+      }
+    }
+
+    .main-menu-trigger {
+      width: auto;
+      gap: 0.125rem;
+      padding: 0 0.25rem 0 0.375rem;
+
+      svg:first-child {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      svg:last-child {
+        width: 0.875rem;
+        height: 0.875rem;
+        color: var(--lead);
+      }
+    }
+
+    .sidebar-trigger {
+      padding: 0 0.625rem;
+      font-size: 0.875rem;
+      letter-spacing: normal;
+    }
+
+    .undo-redo-buttons {
+      margin: 0;
+      background-color: transparent;
+      box-shadow: none;
+
+      button {
+        width: 2rem;
+        height: 2rem;
+        border-radius: var(--border-radius-lg) !important;
+      }
+    }
+
+    .App-toolbar {
+      padding: 0.125rem;
+      background-color: var(--vellum-2);
+      box-shadow: none;
+    }
+
+    // the HintViewer hangs below the bar, over the paper
+    .HintViewer {
+      top: calc(100% + 0.5rem);
+    }
+
+    // same width as the Share button's label (`MQ_MAX_TABLET`)
+    @media (max-width: 1180px) {
+      .sidebar-trigger__label {
+        display: none;
+      }
+    }
+  }
+
+  // the active tool is the strongest state in the chrome: it decides what
+  // the next click on the paper does
+  .App-toolbar
+    .ToolIcon.ToolIcon_type_toggle.ToolIcon--checked
+    .ToolIcon__icon {
+    --icon-fill-color: var(--vellum);
+    --keybinding-color: var(--vellum);
+    background: var(--graphite);
+
+    svg {
+      color: var(--vellum);
+    }
+  }
+
+  .App-toolbar .ToolIcon__keybinding {
+    font-family: var(--ui-font-numeric);
+    color: var(--keybinding-color);
+  }
+
+  // style controls for the selection, or for the active tool's next shape
+  .App-inspector {
+    position: absolute;
+    top: var(--top-bar-height);
+    bottom: 0;
+    inset-inline-end: 0;
+    width: var(--inspector-width);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background-color: var(--island-bg-color);
+    border-inline-start: 1px solid var(--rule);
+
+    &--compact {
+      width: auto;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0;
+    }
+
+    .Island {
+      background-color: transparent;
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    .App-menu__left {
+      position: static;
+      max-width: none;
+      overflow: visible;
+      padding: 0.75rem 1rem 1rem;
+    }
+
+    .exc-stats {
+      position: static;
+      width: auto;
+      border-top: 1px solid var(--rule);
+    }
+
+    .selected-shape-actions-container + .exc-stats {
+      margin-top: 0;
+    }
+  }
+
+  .layer-ui__wrapper--inspector .App-menu_bottom {
+    padding-inline-end: calc(var(--inspector-width) + 1rem);
+  }
+
+  .layer-ui__wrapper--inspector-compact .App-menu_bottom {
+    padding-inline-end: calc(3.5rem + 1rem);
   }
 }

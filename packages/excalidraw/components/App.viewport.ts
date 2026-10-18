@@ -62,13 +62,11 @@ const SCROLL_CONSTRAINTS_SNAP_BACK_DELAY = 200;
 export const RIGHT_SIDEBAR_WIDTH = 302;
 
 /**
- * Approximate styles panel footprints (panel width + editor edge inset),
- * used by `getOffsets` to reserve space for the panel before it was ever
- * rendered (= measured). Keep roughly in sync with the CSS
- * (`.App-menu__left` width / `.compact-shape-actions-island` min-width +
- * `--editor-container-padding`).
+ * Approximate styles panel footprints, used by `getOffsets` to reserve space
+ * for the panel before it was ever rendered (= measured). Keep in sync with
+ * the CSS (`--inspector-width` / the compact `.App-inspector`).
  */
-const STYLES_PANEL_APPROX_WIDTH = { full: 216, compact: 64 };
+const STYLES_PANEL_APPROX_WIDTH = { full: 240, compact: 56 };
 
 type Viewport = Pick<AppState, "scrollX" | "scrollY" | "zoom">;
 
@@ -493,7 +491,7 @@ export class AppViewport {
       this.uiLastMeasured.get(name) ??
       (name === "stylesPanel"
         ? {
-            side: isRTL ? ("right" as const) : ("left" as const),
+            side: isRTL ? ("left" as const) : ("right" as const),
             offset:
               this.dependencies.getStylesPanelMode() === "compact"
                 ? STYLES_PANEL_APPROX_WIDTH.compact

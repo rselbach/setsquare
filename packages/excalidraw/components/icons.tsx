@@ -207,79 +207,30 @@ export const LockedIconFilled = createIcon(
   },
 );
 
-// custom
+// welcome screen leaders, as on a technical drawing: a hairline from a note
+// to what it labels, ending in a narrow filled arrowhead
 export const WelcomeScreenMenuArrow = createIcon(
   <>
-    <path
-      d="M38.5 83.5c-14-2-17.833-10.473-21-22.5C14.333 48.984 12 22 12 12.5"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="m12.005 10.478 7.905 14.423L6 25.75l6.005-15.273Z"
-      fill="currentColor"
-    />
-    <path
-      d="M12.005 10.478c1.92 3.495 3.838 7 7.905 14.423m-7.905-14.423c3.11 5.683 6.23 11.368 7.905 14.423m0 0c-3.68.226-7.35.455-13.91.85m13.91-.85c-5.279.33-10.566.647-13.91.85m0 0c1.936-4.931 3.882-9.86 6.005-15.273M6 25.75c2.069-5.257 4.135-10.505 6.005-15.272"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
+    <path d="M4.5 8V47.5H28" stroke="currentColor" />
+    <path d="M4.5 0 7.5 9h-6z" fill="currentColor" />
   </>,
-  { width: 41, height: 94, fill: "none" },
+  { width: 28, height: 48, fill: "none" },
 );
 
-// custom
 export const WelcomeScreenHelpArrow = createIcon(
   <>
-    <path
-      d="M18.026 1.232c-5.268 13.125-5.548 33.555 3.285 42.311 8.823 8.75 33.31 12.304 42.422 13.523"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="m72.181 59.247-13.058-10-2.948 13.62 16.006-3.62Z"
-      fill="currentColor"
-    />
-    <path
-      d="M72.181 59.247c-3.163-2.429-6.337-4.856-13.058-10m13.058 10c-5.145-3.936-10.292-7.882-13.058-10m0 0c-.78 3.603-1.563 7.196-2.948 13.62m2.948-13.62c-1.126 5.168-2.24 10.346-2.948 13.62m0 0c5.168-1.166 10.334-2.343 16.006-3.62m-16.006 3.62c5.51-1.248 11.01-2.495 16.006-3.62"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
+    <path d="M0 .5h23.5V40" stroke="currentColor" />
+    <path d="M23.5 48 26.5 39h-6z" fill="currentColor" />
   </>,
-  { width: 85, height: 71, fill: "none" },
+  { width: 28, height: 48, fill: "none" },
 );
 
-// custom
 export const WelcomeScreenTopToolbarArrow = createIcon(
   <>
-    <path
-      d="M1 77c14-2 31.833-11.973 35-24 3.167-12.016-6-35-9.5-43.5"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="m24.165 1.093-2.132 16.309 13.27-4.258-11.138-12.05Z"
-      fill="currentColor"
-    />
-    <path
-      d="M24.165 1.093c-.522 3.953-1.037 7.916-2.132 16.309m2.131-16.309c-.835 6.424-1.68 12.854-2.13 16.308m0 0c3.51-1.125 7.013-2.243 13.27-4.257m-13.27 4.257c5.038-1.608 10.08-3.232 13.27-4.257m0 0c-3.595-3.892-7.197-7.777-11.14-12.05m11.14 12.05c-3.837-4.148-7.667-8.287-11.14-12.05"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-    />
+    <path d="M0 47.5h23.5V8" stroke="currentColor" />
+    <path d="M23.5 0 26.5 9h-6z" fill="currentColor" />
   </>,
-  { width: 38, height: 78, fill: "none" },
+  { width: 28, height: 48, fill: "none" },
 );
 
 // custom
@@ -487,14 +438,14 @@ export const SunIcon = createIcon(
   { ...modifiedTablerIconProps, strokeWidth: 1.5 },
 );
 
-export const HamburgerMenuIcon = createIcon(
-  <g strokeWidth="1.5">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-    <line x1="4" y1="6" x2="20" y2="6"></line>
-    <line x1="4" y1="12" x2="20" y2="12"></line>
-    <line x1="4" y1="18" x2="20" y2="18"></line>
-  </g>,
-  tablerIconProps,
+// Setsquare's mark: a set square, the drafting triangle
+export const SetsquareMarkIcon = createIcon(
+  <path
+    fill="currentColor"
+    fillRule="evenodd"
+    d="M3 19V3l16 16zm3-3h6.4L6 9.6z"
+  />,
+  22,
 );
 
 export const ExportIcon = createIcon(

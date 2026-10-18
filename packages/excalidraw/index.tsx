@@ -34,6 +34,7 @@ import polyfill from "./polyfill";
 import "./css/app.scss";
 import "./css/styles.scss";
 import "./fonts/fonts.css";
+import "./fonts/D-DIN/D-DIN.css";
 
 import type {
   AppProps,

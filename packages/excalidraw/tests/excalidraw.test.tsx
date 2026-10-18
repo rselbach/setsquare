@@ -1,7 +1,7 @@
 import { queryByText, queryByTestId } from "@testing-library/react";
 import { useMemo } from "react";
 
-import { THEME } from "@excalidraw/common";
+import { KEYS, THEME } from "@excalidraw/common";
 
 import { t } from "../i18n";
 import { Excalidraw, Footer, MainMenu } from "../index";
@@ -496,5 +496,40 @@ describe("<Excalidraw/>", () => {
     expect(container.querySelector(".excalidraw")).toHaveClass(
       "custom-excalidraw",
     );
+  });
+
+  describe("Title block", () => {
+    it("should rename the drawing from the title block", async () => {
+      const { container } = await render(<Excalidraw />);
+      const nameInput =
+        container.querySelector<HTMLInputElement>(".TitleBlock__name")!;
+      expect(nameInput.value).toBe("");
+      expect(nameInput.placeholder).toBe(t("labels.untitled"));
+
+      act(() => nameInput.focus());
+      fireEvent.change(nameInput, {
+        target: { value: "Greendale campus map" },
+      });
+      fireEvent.keyDown(nameInput, { key: KEYS.ENTER });
+
+      expect(h.state.name).toBe("Greendale campus map");
+      expect(document.activeElement).not.toBe(nameInput);
+    });
+
+    it("should discard a title block edit on Escape", async () => {
+      const { container } = await render(<Excalidraw />);
+      const nameInput =
+        container.querySelector<HTMLInputElement>(".TitleBlock__name")!;
+
+      act(() => nameInput.focus());
+      fireEvent.change(nameInput, { target: { value: "Troy Barnes" } });
+      fireEvent.keyDown(nameInput, { key: KEYS.ESCAPE });
+
+      await waitFor(() => {
+        expect(document.activeElement).not.toBe(nameInput);
+      });
+      expect(nameInput.value).toBe("");
+      expect(h.state.name).toBe(null);
+    });
   });
 });

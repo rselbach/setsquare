@@ -32,7 +32,11 @@ import {
   type ColorDefaultKey,
 } from "../actions/colorTargets";
 
-import { SelectedShapeActions, CompactShapeActions } from "./Actions";
+import {
+  SelectedShapeActions,
+  CompactShapeActions,
+  UndoRedoActions,
+} from "./Actions";
 import { LoadingMessage } from "./LoadingMessage";
 import { MobileMenu } from "./MobileMenu";
 import { PasteChartDialog } from "./PasteChartDialog";
@@ -177,7 +181,6 @@ const LayerUI = ({
 
   const spacing = isCompactStylesPanel
     ? {
-        menuTopGap: 4,
         toolbarColGap: 4,
         toolbarRowGap: 1,
         toolbarInnerRowGap: 0.5,
@@ -185,7 +188,6 @@ const LayerUI = ({
         collabMarginLeft: 8,
       }
     : {
-        menuTopGap: 6,
         toolbarColGap: 4,
         toolbarRowGap: 1,
         toolbarInnerRowGap: 1,
@@ -260,11 +262,6 @@ const LayerUI = ({
             padding={0}
             data-viewport-ui="side"
             data-viewport-ui-name="stylesPanel"
-            style={{
-              // we want to make sure this doesn't overflow so subtracting the
-              // approximate height of hamburgerMenu + footer
-              maxHeight: `${appState.height - 166}px`,
-            }}
           >
             <CompactShapeActions
               appState={appState}
@@ -278,11 +275,6 @@ const LayerUI = ({
           <Island
             className={CLASSES.SHAPE_ACTIONS_MENU}
             padding={2}
-            style={{
-              // we want to make sure this doesn't overflow so subtracting the
-              // approximate height of hamburgerMenu + footer
-              maxHeight: `${appState.height - 166}px`,
-            }}
             data-viewport-ui="side"
             data-viewport-ui-name="stylesPanel"
           >
@@ -298,54 +290,37 @@ const LayerUI = ({
     );
   };
 
+  const shouldRenderSelectedShapeActions =
+    defaultUIEnabled && showSelectedShapeActions(appState, elements);
+
+  const shouldShowStats =
+    defaultUIEnabled &&
+    appState.stats.open &&
+    !appState.zenModeEnabled &&
+    !appState.viewModeEnabled &&
+    appState.openDialog?.name !== "elementLinkSelector";
+
+  const isInspectorOpen = shouldRenderSelectedShapeActions || shouldShowStats;
+
   const renderFixedSideContainer = () => {
-    const shouldRenderSelectedShapeActions =
-      defaultUIEnabled && showSelectedShapeActions(appState, elements);
-
-    const shouldShowStats =
-      defaultUIEnabled &&
-      appState.stats.open &&
-      !appState.zenModeEnabled &&
-      !appState.viewModeEnabled &&
-      appState.openDialog?.name !== "elementLinkSelector";
-
     return (
-      <FixedSideContainer side="top">
-        <div className="App-menu App-menu_top">
-          <Stack.Col
-            gap={spacing.menuTopGap}
-            className={clsx("App-menu_top__left")}
-          >
+      <FixedSideContainer side="top" className="App-chrome">
+        <div
+          className={clsx("App-menu App-menu_top", {
+            "App-menu_top--zen": appState.zenModeEnabled,
+          })}
+        >
+          <div className="App-menu_top__left">
             {renderCanvasActions()}
-            {defaultUIEnabled && (
-              <div
-                className={clsx("selected-shape-actions-container", {
-                  "selected-shape-actions-container--compact":
-                    isCompactStylesPanel,
+            {defaultUIEnabled && !appState.viewModeEnabled && (
+              <UndoRedoActions
+                renderAction={actionManager.renderAction}
+                className={clsx("zen-mode-transition", {
+                  "transition-left": appState.zenModeEnabled,
                 })}
-              >
-                {shouldRenderSelectedShapeActions &&
-                  renderSelectedShapeActions()}
-              </div>
+              />
             )}
-            {/* in compact UI the pen mode button lives outside the toolbar, as
-                a separate floating button below the compact actions menu
-                (same as we render it on mobile); shown alongside the compact
-                actions island, i.e. when a drawing tool or elements are
-                selected */}
-            {defaultUIEnabled &&
-              isCompactStylesPanel &&
-              !appState.viewModeEnabled &&
-              shouldRenderSelectedShapeActions && (
-                <PenModeButton
-                  checked={appState.penMode}
-                  onChange={() => onPenModeToggle(null)}
-                  title={t("toolBar.penMode")}
-                  isMobile
-                  penDetected={appState.penDetected}
-                />
-              )}
-          </Stack.Col>
+          </div>
           {defaultUIEnabled &&
             !appState.viewModeEnabled &&
             appState.openDialog?.name !== "elementLinkSelector" && (
@@ -402,7 +377,6 @@ const LayerUI = ({
               "layer-ui__wrapper__top-right zen-mode-transition",
               {
                 "transition-right": appState.zenModeEnabled,
-                "layer-ui__wrapper__top-right--compact": isCompactStylesPanel,
               },
             )}
           >
@@ -424,6 +398,38 @@ const LayerUI = ({
                 appState.openSidebar?.name !== DEFAULT_SIDEBAR.name) && (
                 <tunnels.DefaultSidebarTriggerTunnel.Out />
               )}
+          </div>
+        </div>
+        {isInspectorOpen && (
+          <div
+            className={clsx("App-inspector", {
+              "App-inspector--compact": isCompactStylesPanel,
+            })}
+          >
+            {shouldRenderSelectedShapeActions && (
+              <div
+                className={clsx("selected-shape-actions-container", {
+                  "selected-shape-actions-container--compact":
+                    isCompactStylesPanel,
+                })}
+              >
+                {renderSelectedShapeActions()}
+              </div>
+            )}
+            {/* in compact UI the pen mode button lives outside the toolbar,
+                below the compact actions menu (same as we render it on
+                mobile) */}
+            {isCompactStylesPanel &&
+              !appState.viewModeEnabled &&
+              shouldRenderSelectedShapeActions && (
+                <PenModeButton
+                  checked={appState.penMode}
+                  onChange={() => onPenModeToggle(null)}
+                  title={t("toolBar.penMode")}
+                  isMobile
+                  penDetected={appState.penDetected}
+                />
+              )}
             {shouldShowStats && (
               <Stats
                 app={app}
@@ -434,7 +440,7 @@ const LayerUI = ({
               />
             )}
           </div>
-        </div>
+        )}
       </FixedSideContainer>
     );
   };
@@ -496,7 +502,9 @@ const LayerUI = ({
               }
             }}
             tab={DEFAULT_SIDEBAR.defaultTab}
-          />
+          >
+            {capitalizeString(t("toolBar.library"))}
+          </DefaultSidebar.Trigger>
         </>
       )}
       {/* Keep supporting surfaces available to host-supplied UI, including
@@ -645,7 +653,11 @@ const LayerUI = ({
             />
           )}
           <div
-            className="layer-ui__wrapper"
+            className={clsx("layer-ui__wrapper", {
+              "layer-ui__wrapper--inspector": isInspectorOpen,
+              "layer-ui__wrapper--inspector-compact":
+                isInspectorOpen && isCompactStylesPanel,
+            })}
             style={
               isSidebarDockedAndFits
                 ? { width: `calc(100% - var(--right-sidebar-width))` }

@@ -567,16 +567,16 @@
   },
   "welcomeScreen": {
     "app": {
-      "center_heading": "Your drawings are saved in your browser's storage.",
-      "center_heading_line2": "Browser storage can be cleared unexpectedly.",
-      "center_heading_line3": "Save your work to a file regularly to avoid losing it.",
-      "menuHint": "Export, preferences, languages, ..."
+      "center_heading": "Drawings stay in this browser.",
+      "center_heading_line2": "Clearing your browser data deletes them.",
+      "center_heading_line3": "Save to a file to keep a copy.",
+      "menuHint": "Open, export, preferences and language"
     },
     "defaults": {
-      "menuHint": "Export, preferences, and more...",
+      "menuHint": "Open, export and preferences",
       "center_heading": "Diagrams. Made. Simple.",
-      "toolbarHint": "Pick a tool & Start drawing!",
-      "helpHint": "Shortcuts & help"
+      "toolbarHint": "Pick a tool, then drag on the canvas",
+      "helpHint": "Shortcuts and help"
     }
   },
   "colorPicker": {
@@ -713,7 +713,7 @@
     },
     "recents": "Recently used",
     "search": {
-      "placeholder": "Search menus, commands, and discover hidden gems",
+      "placeholder": "Search commands",
       "noMatch": "No matching commands..."
     },
     "itemNotAvailable": "Command is not available...",
