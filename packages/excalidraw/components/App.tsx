@@ -825,7 +825,7 @@ class App extends React.Component<AppProps, AppState> {
       viewModeEnabled = false,
       zenModeEnabled = false,
       gridModeEnabled = false,
-      objectsSnapModeEnabled = false,
+      objectsSnapModeEnabled = defaultAppState.objectsSnapModeEnabled,
       theme = defaultAppState.theme,
       // unnamed until the user names it; `getName` dates a file name for
       // saving meanwhile

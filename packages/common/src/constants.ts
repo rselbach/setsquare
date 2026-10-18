@@ -268,7 +268,9 @@ export const STICKY_NOTE_SHADOW_OFFSET = 3;
 export const STICKY_NOTE_SHADOW_OPACITY = 0.16;
 export const STICKY_NOTE_EDGE_SHADOW_WIDTH = 0.5;
 export const STICKY_NOTE_EDGE_SHADOW_OPACITY = 0.08;
-export const DEFAULT_FONT_FAMILY: FontFamilyValues = FONT_FAMILY.Excalifont;
+// Setsquare draws precise diagrams by default: a clean sans-serif rather
+// than handwriting, and straight strokes (see DEFAULT_ELEMENT_PROPS)
+export const DEFAULT_FONT_FAMILY: FontFamilyValues = FONT_FAMILY.Nunito;
 /** number of slots in the font-picker top-picks strip — pick customization
  * (replace / reorder) preserves it. Must equal `DEFAULT_FONTS.length` in
  * `packages/excalidraw/components/FontPicker/FontPicker.tsx` (enforced by
@@ -521,7 +523,7 @@ export const DEFAULT_ELEMENT_PROPS: {
   fillStyle: "solid",
   strokeWidth: STROKE_WIDTH[DEFAULT_ELEMENT_STROKE_WIDTH_KEY],
   strokeStyle: "solid",
-  roughness: ROUGHNESS.artist,
+  roughness: ROUGHNESS.architect,
   opacity: 100,
   locked: false,
 };

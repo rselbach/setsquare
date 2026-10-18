@@ -1464,6 +1464,8 @@ describe("multiple selection", () => {
   });
 
   it("flips while resizing", async () => {
+    // measures the flip itself, so snapping mustn't nudge the handle
+    API.setAppState({ objectsSnapModeEnabled: false });
     const image = API.createElement({
       type: "image",
       x: 60,

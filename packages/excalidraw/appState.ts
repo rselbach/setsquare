@@ -127,7 +127,7 @@ export const getDefaultAppState = (): Omit<
       x: 0,
       y: 0,
     },
-    objectsSnapModeEnabled: false,
+    objectsSnapModeEnabled: true,
     isCropping: false,
     croppingElementId: null,
     searchMatches: null,

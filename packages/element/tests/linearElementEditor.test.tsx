@@ -1545,6 +1545,8 @@ describe("Test Linear Elements", () => {
     });
 
     it("should wrap the bound text when arrow bound container moves", async () => {
+      // measures the move itself, so snapping mustn't nudge the rectangle
+      API.setAppState({ objectsSnapModeEnabled: false });
       const rect = UI.createElement("rectangle", {
         x: 400,
         width: 200,

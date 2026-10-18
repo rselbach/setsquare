@@ -1940,7 +1940,7 @@ describe("textWysiwyg", () => {
 
       expect(h.state.editingTextElement).toBe(null);
 
-      expect(text.fontFamily).toEqual(FONT_FAMILY.Excalifont);
+      expect(text.fontFamily).toEqual(FONT_FAMILY.Nunito);
 
       fireEvent.click(screen.getByTitle(/code/i));
 
@@ -1954,7 +1954,7 @@ describe("textWysiwyg", () => {
       });
       expect(
         (h.elements[1] as ExcalidrawTextElementWithContainer).fontFamily,
-      ).toEqual(FONT_FAMILY.Excalifont);
+      ).toEqual(FONT_FAMILY.Nunito);
 
       //redo
       Keyboard.withModifierKeys({ ctrl: true, shift: true }, () => {
@@ -2587,7 +2587,7 @@ describe("textWysiwyg", () => {
           link: null,
           locked: false,
           opacity: 100,
-          roughness: 1,
+          roughness: 0,
           roundness: null,
           strokeColor: "#1e1e1e",
           strokeStyle: "solid",
