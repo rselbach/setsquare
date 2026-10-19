@@ -523,6 +523,8 @@ export const normalizeFile = async (file: File) => {
     return file;
   }
 
+  const { handle } = file;
+
   if (file?.name?.endsWith(".setsquarelib")) {
     file = createFile(file, MIME_TYPES.setsquarelib, file.name);
   } else if (file?.name?.endsWith(".setsquare")) {
@@ -537,6 +539,8 @@ export const normalizeFile = async (file: File) => {
     }
   }
 
+  // a recreated file must keep its handle so it can be saved back in place
+  file.handle = handle;
   (file as any)[normalizedFileSymbol] = true;
 
   return file;
