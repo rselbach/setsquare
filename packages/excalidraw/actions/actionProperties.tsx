@@ -38,6 +38,7 @@ import {
   bindBindingElement,
   calculateFixedPointForElbowArrowBinding,
   updateBoundElements,
+  updateCardinalArrowEnds,
 } from "@excalidraw/element";
 
 import { LinearElementEditor } from "@excalidraw/element";
@@ -145,6 +146,8 @@ import {
   sharpArrowIcon,
   roundArrowIcon,
   elbowArrowIcon,
+  arrowEndsFreeIcon,
+  arrowEndsCardinalIcon,
   ArrowheadCardinalityExactlyOneIcon,
   ArrowheadCardinalityManyIcon,
   ArrowheadCardinalityOneIcon,
@@ -2049,6 +2052,7 @@ export const actionChangeArrowProperties = register({
       <div className="selected-shape-actions">
         {renderAction("changeArrowhead")}
         {renderAction("changeArrowType")}
+        {renderAction("changeArrowCardinal")}
       </div>
     );
   },
@@ -2299,4 +2303,70 @@ export const actionChangeArrowType = register<keyof typeof ARROW_TYPE>({
       </fieldset>
     );
   },
+});
+
+export const actionChangeArrowCardinal = register<boolean>({
+  name: "changeArrowCardinal",
+  label: "Change arrow ends",
+  trackEvent: false,
+  perform: (elements, appState, value, app) => {
+    const elementsMap = app.scene.getNonDeletedElementsMap();
+    return {
+      elements: changeProperty(elements, appState, (element) => {
+        if (!isArrowElement(element)) {
+          return element;
+        }
+        // turning it off leaves the ends where they are
+        const arrow = newElementWith(element, { cardinal: value });
+        if (!value) {
+          return arrow;
+        }
+        if (isElbowArrow(arrow)) {
+          return {
+            ...arrow,
+            ...updateElbowArrowPoints(arrow, elementsMap, {
+              points: arrow.points,
+            }),
+          };
+        }
+        updateCardinalArrowEnds(arrow, app.scene);
+        return arrow;
+      }),
+      appState: { ...appState, currentItemArrowCardinal: value },
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    };
+  },
+  PanelComponent: ({ elements, appState, updateData, app }) => (
+    <fieldset>
+      <legend>{t("labels.arrowEnds")}</legend>
+      <div className="buttonList">
+        <RadioSelection
+          group="arrowends"
+          options={[
+            {
+              value: false,
+              text: t("labels.arrowEnds_free"),
+              icon: arrowEndsFreeIcon,
+              testId: "arrow-ends-free",
+            },
+            {
+              value: true,
+              text: t("labels.arrowEnds_cardinal"),
+              icon: arrowEndsCardinalIcon,
+              testId: "arrow-ends-cardinal",
+            },
+          ]}
+          value={getFormValue(
+            elements,
+            app,
+            (element) => (isArrowElement(element) ? element.cardinal : null),
+            (element) => isArrowElement(element),
+            (hasSelection) =>
+              hasSelection ? null : appState.currentItemArrowCardinal,
+          )}
+          onChange={(value) => updateData(value)}
+        />
+      </div>
+    </fieldset>
+  ),
 });

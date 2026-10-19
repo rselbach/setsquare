@@ -465,6 +465,8 @@ export interface AppState {
   currentHoveredFontFamily: FontFamilyValues | null;
   currentItemRoundness: StrokeRoundness;
   currentItemArrowType: "sharp" | "round" | "elbow";
+  /** whether new arrows stick to the middle of their elements' sides */
+  currentItemArrowCardinal: boolean;
   viewBackgroundColor: string;
   scrollX: number;
   scrollY: number;

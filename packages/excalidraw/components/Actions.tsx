@@ -175,7 +175,12 @@ export const SelectedShapeActions = ({
 
       {predicates.roundness && <>{renderAction("changeRoundness")}</>}
 
-      {predicates.arrowType && <>{renderAction("changeArrowType")}</>}
+      {predicates.arrowType && (
+        <>
+          {renderAction("changeArrowType")}
+          {renderAction("changeArrowCardinal")}
+        </>
+      )}
 
       {predicates.text && (
         <>

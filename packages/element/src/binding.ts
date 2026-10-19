@@ -58,6 +58,7 @@ import {
 } from "./typeChecks";
 
 import { aabbForElement, elementCenterPoint } from "./bounds";
+import { getCardinalBindingUpdates } from "./cardinalBinding";
 import { updateElbowArrowPoints } from "./elbowArrow";
 import {
   deconstructDiamondElement,
@@ -200,7 +201,10 @@ export const bindOrUnbindBindingElement = (
     appState.isBindingEnabled,
     isMidpointSnappingEnabled,
   );
-  if (start.focusPoint || end.focusPoint) {
+  if (arrow.cardinal && !isElbowArrow(arrow)) {
+    // elbow arrows pick their sides as they're routed
+    updateCardinalArrowEnds(arrow, scene);
+  } else if (start.focusPoint || end.focusPoint) {
     // If the strategy dictates a focus point override, then
     // update the arrow points to point to the focus point.
     const updates: PointsPositionUpdates = new Map();
@@ -235,6 +239,40 @@ export const bindOrUnbindBindingElement = (
   }
 
   return { start, end };
+};
+
+/**
+ * Moves the bound ends of a straight or curved cardinal arrow to the sides
+ * of their elements that lie closest to each other.
+ */
+export const updateCardinalArrowEnds = (
+  arrow: NonDeleted<ExcalidrawArrowElement>,
+  scene: Scene,
+) => {
+  const elementsMap = scene.getNonDeletedElementsMap();
+  const bindings = getCardinalBindingUpdates(arrow, elementsMap);
+  if (bindings.startBinding || bindings.endBinding) {
+    scene.mutateElement(arrow, bindings);
+  }
+
+  const updates: PointsPositionUpdates = new Map();
+  for (const [index, bindingProp] of [
+    [0, "startBinding"],
+    [arrow.points.length - 1, "endBinding"],
+  ] as const) {
+    const binding = arrow[bindingProp];
+    const element = binding && elementsMap.get(binding.elementId);
+    const point =
+      element &&
+      isBindableElement(element) &&
+      updateBoundPoint(arrow, bindingProp, binding, element, elementsMap);
+    if (point) {
+      updates.set(index, { point });
+    }
+  }
+  if (updates.size) {
+    LinearElementEditor.movePoints(arrow, scene, updates);
+  }
 };
 
 const bindOrUnbindBindingElementEdge = (
@@ -1375,6 +1413,14 @@ export const updateBoundElements = (
     // `linearElement` is being moved/scaled already, just update the binding
     if (simultaneouslyUpdatedElementIds.has(element.id)) {
       return;
+    }
+
+    // elbow arrows pick their sides as they're routed
+    if (element.cardinal && !isElbowArrow(element)) {
+      const bindings = getCardinalBindingUpdates(element, elementsMap);
+      if (bindings.startBinding || bindings.endBinding) {
+        scene.mutateElement(element, bindings);
+      }
     }
 
     const updates = bindableElementsVisitor(

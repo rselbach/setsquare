@@ -637,6 +637,7 @@ export const newArrowElement = <T extends boolean>(
     endArrowhead?: Arrowhead | null;
     points?: ExcalidrawArrowElement["points"];
     elbowed?: T;
+    cardinal?: boolean;
     fixedSegments?: ExcalidrawElbowArrowElement["fixedSegments"] | null;
   } & ElementConstructorOpts,
 ): T extends true
@@ -651,6 +652,7 @@ export const newArrowElement = <T extends boolean>(
       startArrowhead: opts.startArrowhead || null,
       endArrowhead: opts.endArrowhead || null,
       elbowed: true,
+      cardinal: opts.cardinal ?? false,
       fixedSegments: opts.fixedSegments || [],
       startIsSpecial: false,
       endIsSpecial: false,
@@ -665,6 +667,7 @@ export const newArrowElement = <T extends boolean>(
     startArrowhead: opts.startArrowhead || null,
     endArrowhead: opts.endArrowhead || null,
     elbowed: false,
+    cardinal: opts.cardinal ?? false,
   } as T extends true
     ? NonDeleted<ExcalidrawElbowArrowElement>
     : NonDeleted<ExcalidrawArrowElement>;

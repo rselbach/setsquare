@@ -60,6 +60,7 @@ import {
   isBindingEnabled,
   updateBoundPoint,
 } from "./binding";
+import { getCardinalBindingUpdates } from "./cardinalBinding";
 import {
   getElementAbsoluteCoords,
   getElementPointsCoords,
@@ -2647,6 +2648,12 @@ const pointDraggingUpdates = (
         ? null
         : updates.endBinding,
   };
+
+  if (element.cardinal) {
+    const bindings = getCardinalBindingUpdates(nextArrow, elementsMap);
+    Object.assign(updates, bindings);
+    Object.assign(nextArrow, bindings);
+  }
 
   // Needed to handle a special case where an existing arrow is dragged over
   // the same element it is bound to on the other side

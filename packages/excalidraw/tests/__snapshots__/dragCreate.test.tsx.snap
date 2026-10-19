@@ -7,6 +7,7 @@ exports[`Test dragCreate > add element to the scene when pointer dragging long e
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
+  "cardinal": false,
   "created": 1,
   "customData": undefined,
   "elbowed": false,

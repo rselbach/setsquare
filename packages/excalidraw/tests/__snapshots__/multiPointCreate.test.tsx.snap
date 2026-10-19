@@ -5,6 +5,7 @@ exports[`multi point mode in linear elements > arrow 3`] = `
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
+  "cardinal": false,
   "created": 1,
   "customData": undefined,
   "elbowed": false,

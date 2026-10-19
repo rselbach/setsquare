@@ -8658,6 +8658,7 @@ class App extends React.Component<AppProps, AppState> {
               locked: false,
               frameId: topLayerFrame ? topLayerFrame.id : null,
               elbowed: this.state.currentItemArrowType === ARROW_TYPE.elbow,
+              cardinal: this.state.currentItemArrowCardinal,
               fixedSegments:
                 this.state.currentItemArrowType === ARROW_TYPE.elbow
                   ? []

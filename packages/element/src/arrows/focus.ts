@@ -47,9 +47,11 @@ export const isFocusPointVisible = (
   ignoreOverlap = false,
 ): boolean => {
   // No focus point management for elbow arrows, because elbow arrows
-  // always have their focus point at the arrow point itself
+  // always have their focus point at the arrow point itself, nor for
+  // cardinal arrows, whose focus points are the middles of sides
   if (
     isElbowArrow(arrow) ||
+    arrow.cardinal ||
     !isBindingEnabled(appState) ||
     arrow.points.length !== 2
   ) {

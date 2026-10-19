@@ -180,6 +180,7 @@ exports[`move element > rectangles with binding arrow 7`] = `
   "angle": 0,
   "backgroundColor": "transparent",
   "boundElements": null,
+  "cardinal": false,
   "created": 1,
   "customData": undefined,
   "elbowed": false,

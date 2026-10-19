@@ -43,6 +43,7 @@ export const getDefaultAppState = (): Omit<
     currentItemStickynoteBackgroundColor: DEFAULT_STICKY_NOTE_BG,
     currentItemRoundness: isTestEnv() ? "sharp" : "round",
     currentItemArrowType: ARROW_TYPE.round,
+    currentItemArrowCardinal: false,
     currentItemStrokeStyle: DEFAULT_ELEMENT_PROPS.strokeStyle,
     currentItemStrokeWidthKey: DEFAULT_ELEMENT_STROKE_WIDTH_KEY,
     currentItemTextAlign: DEFAULT_TEXT_ALIGN,
@@ -176,6 +177,11 @@ const APP_STATE_STORAGE_CONF = (<
     server: false,
   },
   currentItemArrowType: {
+    browser: true,
+    export: false,
+    server: false,
+  },
+  currentItemArrowCardinal: {
     browser: true,
     export: false,
     server: false,

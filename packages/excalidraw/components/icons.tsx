@@ -2338,6 +2338,25 @@ export const roundArrowIcon = createIcon(
   tablerIconProps,
 );
 
+export const arrowEndsFreeIcon = createIcon(
+  <g>
+    <rect x="5" y="5" width="14" height="14" rx="1" />
+    <circle cx="19" cy="8.5" r="1.5" fill="currentColor" />
+  </g>,
+  tablerIconProps,
+);
+
+export const arrowEndsCardinalIcon = createIcon(
+  <g>
+    <rect x="5" y="5" width="14" height="14" rx="1" />
+    <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+    <circle cx="19" cy="12" r="1.5" fill="currentColor" />
+    <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+    <circle cx="5" cy="12" r="1.5" fill="currentColor" />
+  </g>,
+  tablerIconProps,
+);
+
 export const collapseDownIcon = createIcon(
   <g>
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />

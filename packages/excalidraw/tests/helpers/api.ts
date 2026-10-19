@@ -236,6 +236,7 @@ export class API {
       ? ExcalidrawArrowElement["endArrowhead"] | ExcalidrawElbowArrowElement["endArrowhead"]
       : never;
     elbowed?: boolean;
+    cardinal?: boolean;
     fixedSegments?: FixedSegment[] | null;
   }): NonDeleted<
     T extends "arrow" | "line"
@@ -374,6 +375,7 @@ export class API {
             pointFrom<LocalPoint>(100, 100),
           ],
           elbowed: rest.elbowed ?? false,
+          cardinal: rest.cardinal ?? false,
         });
         break;
       case "line":

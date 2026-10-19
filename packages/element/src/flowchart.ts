@@ -430,6 +430,7 @@ const createBindingArrow = (
     roughness: startBindingElement.roughness,
     points: [pointFrom(0, 0), pointFrom(endX, endY)],
     elbowed: true,
+    cardinal: appState.currentItemArrowCardinal,
   });
 
   const elementsMap = scene.getNonDeletedElementsMap();

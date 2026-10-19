@@ -54,6 +54,10 @@ import {
 } from "./types";
 import { aabbForElement, pointInsideBounds } from "./bounds";
 import { getHoveredElementForBinding } from "./collision";
+import {
+  getCardinalBindingUpdates,
+  getClosestCardinalAnchors,
+} from "./cardinalBinding";
 
 import type { Heading } from "./heading";
 import type {
@@ -325,6 +329,7 @@ const handleSegmentRelease = (
       startArrowhead: null,
       endArrowhead: null,
       points: arrow.points,
+      cardinal: arrow.cardinal,
     },
     elementsMap,
     [
@@ -902,9 +907,48 @@ const handleEndpointDrag = (
 const MAX_POS = 1e6;
 
 /**
- *
+ * The update that routes the arrow through `updates`. A cardinal arrow's
+ * bound ends also move to the sides of their elements that lie closest to
+ * each other, so the update carries their new bindings.
  */
 export const updateElbowArrowPoints = (
+  arrow: Readonly<ExcalidrawElbowArrowElement>,
+  elementsMap: NonDeletedSceneElementsMap,
+  updates: Parameters<typeof routeElbowArrowPoints>[2],
+  options?: Parameters<typeof routeElbowArrowPoints>[3],
+): ElementUpdate<ExcalidrawElbowArrowElement> => {
+  // while dragging, the ends preview their sides without being bound to them
+  const bindings =
+    arrow.cardinal && !options?.isDragging
+      ? getCardinalBindingUpdates(
+          {
+            x: arrow.x,
+            y: arrow.y,
+            points: updates.points ?? arrow.points,
+            startBinding:
+              updates.startBinding !== undefined
+                ? updates.startBinding
+                : arrow.startBinding,
+            endBinding:
+              updates.endBinding !== undefined
+                ? updates.endBinding
+                : arrow.endBinding,
+          },
+          elementsMap,
+        )
+      : {};
+  return {
+    ...bindings,
+    ...routeElbowArrowPoints(
+      arrow,
+      elementsMap,
+      { ...updates, ...bindings },
+      options,
+    ),
+  };
+};
+
+const routeElbowArrowPoints = (
   arrow: Readonly<ExcalidrawElbowArrowElement>,
   elementsMap: NonDeletedSceneElementsMap,
   updates: {
@@ -1048,6 +1092,7 @@ export const updateElbowArrowPoints = (
       startArrowhead: arrow.startArrowhead,
       endArrowhead: arrow.endArrowhead,
       points: arrow.points,
+      cardinal: arrow.cardinal,
     },
     elementsMap,
     updatedPoints,
@@ -1198,6 +1243,7 @@ const getElbowArrowData = (
     startArrowhead: Arrowhead | null;
     endArrowhead: Arrowhead | null;
     points: readonly LocalPoint[];
+    cardinal: boolean;
   },
   elementsMap: NonDeletedSceneElementsMap,
   nextPoints: readonly LocalPoint[],
@@ -1241,42 +1287,57 @@ const getElbowArrowData = (
       : null;
   }
 
-  const startGlobalPoint = getGlobalPoint(
-    {
-      ...arrow,
-      angle: 0,
-      type: "arrow",
-      elbowed: true,
-      points: nextPoints,
-    } as ExcalidrawElbowArrowElement,
-    "start",
-    arrow.startBinding?.fixedPoint,
-    origStartGlobalPoint,
-    zoom,
-    hoveredStartElement,
-    elementsMap,
-    options?.isDragging,
-    options?.isBindingEnabled,
-    options?.isMidpointSnappingEnabled,
-  );
-  const endGlobalPoint = getGlobalPoint(
-    {
-      ...arrow,
-      angle: 0,
-      type: "arrow",
-      elbowed: true,
-      points: nextPoints,
-    } as ExcalidrawElbowArrowElement,
-    "end",
-    arrow.endBinding?.fixedPoint,
-    origEndGlobalPoint,
-    zoom,
-    hoveredEndElement,
-    elementsMap,
-    options?.isDragging,
-    options?.isBindingEnabled,
-    options?.isMidpointSnappingEnabled,
-  );
+  // a cardinal arrow previews the sides the elements it's dragged over would
+  // bind it to
+  const cardinalAnchors =
+    options?.isDragging && options.isBindingEnabled !== false && arrow.cardinal
+      ? getClosestCardinalAnchors(
+          { element: hoveredStartElement, point: origStartGlobalPoint },
+          { element: hoveredEndElement, point: origEndGlobalPoint },
+          elementsMap,
+        )
+      : null;
+
+  const startGlobalPoint =
+    cardinalAnchors?.start?.point ??
+    getGlobalPoint(
+      {
+        ...arrow,
+        angle: 0,
+        type: "arrow",
+        elbowed: true,
+        points: nextPoints,
+      } as ExcalidrawElbowArrowElement,
+      "start",
+      arrow.startBinding?.fixedPoint,
+      origStartGlobalPoint,
+      zoom,
+      hoveredStartElement,
+      elementsMap,
+      options?.isDragging,
+      options?.isBindingEnabled,
+      options?.isMidpointSnappingEnabled,
+    );
+  const endGlobalPoint =
+    cardinalAnchors?.end?.point ??
+    getGlobalPoint(
+      {
+        ...arrow,
+        angle: 0,
+        type: "arrow",
+        elbowed: true,
+        points: nextPoints,
+      } as ExcalidrawElbowArrowElement,
+      "end",
+      arrow.endBinding?.fixedPoint,
+      origEndGlobalPoint,
+      zoom,
+      hoveredEndElement,
+      elementsMap,
+      options?.isDragging,
+      options?.isBindingEnabled,
+      options?.isMidpointSnappingEnabled,
+    );
   const startHeading = getBindPointHeading(
     startGlobalPoint,
     endGlobalPoint,

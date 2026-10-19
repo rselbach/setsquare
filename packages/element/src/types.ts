@@ -392,6 +392,12 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
   Readonly<{
     type: "arrow";
     elbowed: boolean;
+    /**
+     * Whether the bound ends stick to the middle of their elements' sides
+     * (N, E, S, W), switching to whichever sides lie closest to each other
+     * as the elements move.
+     */
+    cardinal: boolean;
   }>;
 
 export type ExcalidrawElbowArrowElement = Merge<
