@@ -3546,25 +3546,6 @@ class App extends React.Component<AppProps, AppState> {
   );
 
   private initializeScene = async () => {
-    if (
-      "launchQueue" in this.ownerWindow &&
-      "LaunchParams" in this.ownerWindow
-    ) {
-      (this.ownerWindow as any).launchQueue.setConsumer(
-        async (launchParams: { files: any[] }) => {
-          if (!launchParams.files.length) {
-            return;
-          }
-          const fileHandle = launchParams.files[0];
-          const blob: Blob = await fileHandle.getFile();
-          this.loadFileToCanvas(
-            new File([blob], blob.name || "", { type: blob.type }),
-            fileHandle,
-          );
-        },
-      );
-    }
-
     if (this.props.theme) {
       this.setState({ theme: this.props.theme });
     }
@@ -3694,6 +3675,28 @@ class App extends React.Component<AppProps, AppState> {
         fit: "scale-down",
         animation: false,
       });
+    }
+
+    // a launched file replaces the initial scene, so it can only load once
+    // that scene is in place; the browser holds launches until then
+    if (
+      !this.unmounted &&
+      "launchQueue" in this.ownerWindow &&
+      "LaunchParams" in this.ownerWindow
+    ) {
+      (this.ownerWindow as any).launchQueue.setConsumer(
+        async (launchParams: { files: any[] }) => {
+          if (!launchParams.files.length) {
+            return;
+          }
+          const fileHandle = launchParams.files[0];
+          const blob: Blob = await fileHandle.getFile();
+          this.loadFileToCanvas(
+            new File([blob], blob.name || "", { type: blob.type }),
+            fileHandle,
+          );
+        },
+      );
     }
   };
 
