@@ -1,0 +1,15 @@
+[package]
+name = "setsquare"
+# Single source of truth for the desktop app version.
+version = "0.1.0"
+description = "Setsquare desktop app"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "~2.12", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+tauri-plugin-opener = "2"

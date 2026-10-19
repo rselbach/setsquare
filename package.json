@@ -61,6 +61,7 @@
     "start": "yarn --cwd ./setsquare-app start",
     "start:production": "yarn --cwd ./setsquare-app start:production",
     "start:example": "yarn build:packages && yarn --cwd ./examples/with-script-in-browser start",
+    "tauri": "yarn --cwd ./setsquare-app tauri",
     "test:all": "yarn test:typecheck && yarn test:code && yarn test:other && yarn test:app --watch=false",
     "test:app": "vitest",
     "test:code": "eslint --max-warnings=0 --ext .js,.ts,.tsx .",

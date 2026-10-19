@@ -8,3 +8,5 @@ packages/setsquare/types
 examples/**/public
 dev-dist
 coverage
+setsquare-app/src-tauri/target
+setsquare-app/src-tauri/gen

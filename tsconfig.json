@@ -38,5 +38,5 @@
     }
   },
   "include": ["packages", "setsquare-app"],
-  "exclude": ["examples", "dist", "types", "tests"]
+  "exclude": ["examples", "dist", "types", "tests", "setsquare-app/src-tauri"]
 }

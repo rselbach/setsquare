@@ -564,6 +564,7 @@
       "center_heading": "Drawings stay in this browser.",
       "center_heading_line2": "Clearing your browser data deletes them.",
       "center_heading_line3": "Save to a file to keep a copy.",
+      "center_heading_desktop": "Drawings autosave in this app.",
       "menuHint": "Open, export, preferences and language"
     },
     "defaults": {

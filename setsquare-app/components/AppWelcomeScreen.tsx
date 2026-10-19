@@ -1,3 +1,4 @@
+import { isTauri } from "@tauri-apps/api/core";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import { WelcomeScreen } from "@setsquare/setsquare/index";
 import React from "react";
@@ -25,9 +26,15 @@ export const AppWelcomeScreen: React.FC = React.memo(() => {
           Setsquare
         </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>
-          {t("welcomeScreen.app.center_heading")}
-          <br />
-          {t("welcomeScreen.app.center_heading_line2")}
+          {isTauri() ? (
+            t("welcomeScreen.app.center_heading_desktop")
+          ) : (
+            <>
+              {t("welcomeScreen.app.center_heading")}
+              <br />
+              {t("welcomeScreen.app.center_heading_line2")}
+            </>
+          )}
           <br />
           {t("welcomeScreen.app.center_heading_line3")}
         </WelcomeScreen.Center.Heading>

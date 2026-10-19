@@ -9,12 +9,16 @@ import { createHtmlPlugin } from "vite-plugin-html";
 export default defineConfig(({ mode }) => {
   // To load .env variables
   const envVars = loadEnv(mode, `../`);
+  // set by the Tauri CLI when it runs the desktop app's build hooks
+  const isTauri = Boolean(process.env.TAURI_ENV_PLATFORM);
   // https://vitejs.dev/config/
   return {
     server: {
       port: Number(envVars.VITE_APP_PORT || 3000),
+      // the desktop window loads a fixed dev URL
+      strictPort: isTauri,
       // open the browser
-      open: true,
+      open: !isTauri,
     },
     // We need to specify the envDir since now there are no
     //more located in parallel with the vite.config.ts file but in parent dir
@@ -152,6 +156,9 @@ export default defineConfig(({ mode }) => {
       svgrPlugin(),
       ViteEjsPlugin(),
       VitePWA({
+        // the desktop app ships its own updates and has no use for a service
+        // worker
+        disable: isTauri,
         registerType: "autoUpdate",
         devOptions: {
           /* set this flag to true to enable in Development mode */

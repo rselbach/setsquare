@@ -1,3 +1,5 @@
+import { isTauri } from "@tauri-apps/api/core";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   Setsquare,
   CaptureUpdateAction,
@@ -60,6 +62,7 @@ import { AppFooter } from "./components/AppFooter";
 import { AppMainMenu } from "./components/AppMainMenu";
 import { AppWelcomeScreen } from "./components/AppWelcomeScreen";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
+import { DesktopMenuCommands } from "./desktop/DesktopMenuCommands";
 
 import { updateStaleImageStatuses } from "./data/FileManager";
 import { FileStatusStore } from "./data/fileStatusStore";
@@ -584,9 +587,16 @@ const SetsquareWrapper = () => {
               fit: "scale-down",
               animation: true,
             });
+          } else if (element.link && isTauri()) {
+            // the desktop app has no tabs, so links open in the browser
+            event.preventDefault();
+            openUrl(element.link).catch((error) =>
+              console.error("Couldn't open link", error),
+            );
           }
         }}
       >
+        {isTauri() && <DesktopMenuCommands />}
         <AppMainMenu
           theme={appTheme}
           refresh={() => forceRefresh((prev) => !prev)}
