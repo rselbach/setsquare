@@ -1,21 +1,21 @@
-import { arrayToMap, ROUNDNESS } from "@excalidraw/common";
+import { arrayToMap, ROUNDNESS } from "@setsquare/common";
 import {
   distanceToLineSegment,
   lineSegment,
   pointFrom,
   polygonIncludesPoint,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
-import type { GlobalPoint, LocalPoint, Polygon } from "@excalidraw/math";
+import type { GlobalPoint, LocalPoint, Polygon } from "@setsquare/math";
 
 import { computeBucketFillPolygon, isRestylableFill } from "../src/bucketFill";
 import { getFreedrawStrokeCenterPoints } from "../src/shape";
 
-import type { ElementsMap, NonDeletedExcalidrawElement } from "../src/types";
+import type { ElementsMap, NonDeletedSetsquareElement } from "../src/types";
 
-const setup = (elements: NonDeletedExcalidrawElement[]) => ({
+const setup = (elements: NonDeletedSetsquareElement[]) => ({
   elements,
   elementsMap: arrayToMap(elements) as ElementsMap,
 });
@@ -1129,7 +1129,7 @@ describe("computeBucketFillPolygon", () => {
       mkLine(half, -half, 0, 2 * half),
       mkLine(half, half, -2 * half, 0),
       mkLine(-half, half, 0, -2 * half),
-    ] as NonDeletedExcalidrawElement[];
+    ] as NonDeletedSetsquareElement[];
   };
 
   it("the owner-less fallback keeps expanding past an empty first radius", () => {
@@ -1882,7 +1882,7 @@ describe("computeBucketFillPolygon", () => {
       points: CIRCLE_POINTS.map((p) => pointFrom<LocalPoint>(p[0], p[1])),
     });
     const { elements, elementsMap } = setup([
-      circle as NonDeletedExcalidrawElement,
+      circle as NonDeletedSetsquareElement,
     ]);
 
     const result = computeBucketFillPolygon({
@@ -1948,7 +1948,7 @@ describe("computeBucketFillPolygon", () => {
       points: BLOB_POINTS.map((p) => pointFrom<LocalPoint>(p[0], p[1])),
     });
     const { elements, elementsMap } = setup([
-      blob as NonDeletedExcalidrawElement,
+      blob as NonDeletedSetsquareElement,
     ]);
 
     const result = computeBucketFillPolygon({

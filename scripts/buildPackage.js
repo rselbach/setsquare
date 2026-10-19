@@ -5,7 +5,7 @@ const { pathToFileURL } = require("url");
 const { build } = require("esbuild");
 const { sassPlugin } = require("esbuild-sass-plugin");
 
-const { parseEnvVariables } = require("../packages/excalidraw/env.cjs");
+const { parseEnvVariables } = require("../packages/setsquare/env.cjs");
 
 const ENV_VARS = {
   development: {
@@ -72,13 +72,17 @@ const getConfig = (outdir) => ({
   assetNames: "[dir]/[name]",
   chunkNames: "[dir]/[name]-[hash]",
   alias: {
-    "@excalidraw/utils": path.resolve(__dirname, "../packages/utils/src"),
+    "@setsquare/utils": path.resolve(__dirname, "../packages/utils/src"),
+    "@setsquare/mermaid-to-setsquare": path.resolve(
+      __dirname,
+      "../packages/mermaid-to-setsquare/src",
+    ),
   },
   external: [
-    "@excalidraw/common",
-    "@excalidraw/element",
-    "@excalidraw/math",
-    "@excalidraw/fractional-indexing",
+    "@setsquare/common",
+    "@setsquare/element",
+    "@setsquare/math",
+    "@setsquare/fractional-indexing",
   ],
   loader: {
     ".woff2": "file",

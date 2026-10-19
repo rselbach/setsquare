@@ -1,4 +1,4 @@
-import { pointFrom } from "@excalidraw/math";
+import { pointFrom } from "@setsquare/math";
 
 import {
   FONT_FAMILY,
@@ -7,17 +7,17 @@ import {
   ROUNDNESS,
   isPrimitive,
   getUpdatedTimestamp,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import { Excalidraw, mutateElement } from "@excalidraw/excalidraw";
+import { Setsquare, mutateElement } from "@setsquare/setsquare";
 
-import { actionDuplicateSelection } from "@excalidraw/excalidraw/actions";
+import { actionDuplicateSelection } from "@setsquare/setsquare/actions";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
-import { UI, Keyboard, Pointer } from "@excalidraw/excalidraw/tests/helpers/ui";
+import { UI, Keyboard, Pointer } from "@setsquare/setsquare/tests/helpers/ui";
 
-import { getTextEditor } from "@excalidraw/excalidraw/tests/queries/dom";
+import { getTextEditor } from "@setsquare/setsquare/tests/queries/dom";
 
 import {
   GlobalTestState,
@@ -27,9 +27,9 @@ import {
   getCloneByOrigId,
   render,
   waitFor,
-} from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/setsquare/tests/test-utils";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { LocalPoint } from "@setsquare/math";
 
 import {
   deepCopyElement,
@@ -40,9 +40,9 @@ import {
 import { isBoundToContainer, isTextElement } from "../src/typeChecks";
 
 import type {
-  ExcalidrawLinearElement,
-  ExcalidrawTextElement,
-  NonDeletedExcalidrawElement,
+  SetsquareLinearElement,
+  SetsquareTextElement,
+  NonDeletedSetsquareElement,
 } from "../src/types";
 
 const { h } = window;
@@ -250,7 +250,7 @@ describe("duplicating multiple elements", () => {
 
     const clonedArrows = duplicatedElements.filter(
       (e) => e.type === "arrow",
-    ) as ExcalidrawLinearElement[];
+    ) as SetsquareLinearElement[];
 
     const [clonedRectangle, clonedText1, , clonedArrow2, clonedArrowLabel] =
       duplicatedElements as any as typeof origElements;
@@ -436,7 +436,7 @@ describe("duplicating multiple elements", () => {
 
 describe("group-related duplication", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   it("action-duplicating within group", async () => {
@@ -545,7 +545,7 @@ describe("group-related duplication", () => {
 
 describe("duplication z-order", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   it("duplication z order with Cmd+D for the lowest z-ordered element should be +1 for the clone", () => {
@@ -878,7 +878,7 @@ describe("duplication z-order", () => {
 
 describe("duplicating list items", () => {
   beforeEach(async () => {
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   const duplicate = (texts: string[]) => {
@@ -895,7 +895,7 @@ describe("duplicating list items", () => {
     // (each duplicate goes right after its original)
     const duplicates = h.elements.filter(
       (element) => h.state.selectedElementIds[element.id],
-    ) as ExcalidrawTextElement[];
+    ) as SetsquareTextElement[];
 
     return duplicates.map((element) => {
       expect(element).toMatchObject({ text: element.originalText });
@@ -955,7 +955,7 @@ describe("duplicating list items", () => {
     ]);
   });
 
-  it.each<[string, () => NonDeletedExcalidrawElement[], string[]]>([
+  it.each<[string, () => NonDeletedSetsquareElement[], string[]]>([
     [
       "labeled containers",
       () => [
@@ -1015,7 +1015,7 @@ describe("duplicating list items", () => {
         .filter(isTextElement)
         .map(
           (text) =>
-            (getCloneByOrigId(text.id) as ExcalidrawTextElement).originalText,
+            (getCloneByOrigId(text.id) as SetsquareTextElement).originalText,
         ),
     ).toEqual(expected);
   });
@@ -1188,7 +1188,7 @@ describe("duplicating list items", () => {
 
 describe("alt-dragging the text being edited", () => {
   beforeEach(async () => {
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   /** alt-presses the text editor, which hands the press over to the canvas */
@@ -1253,7 +1253,7 @@ describe("alt-dragging the text being edited", () => {
     Keyboard.keyPress(KEYS.ENTER);
     // (as laid out by the editor)
     const { x, y, width, height, fontSize } = h
-      .elements[0] as ExcalidrawTextElement;
+      .elements[0] as SetsquareTextElement;
     await altPressTextEditor(x + 5, y + height + 3);
 
     Keyboard.withModifierKeys({ alt: true }, () => {
@@ -1271,7 +1271,7 @@ describe("alt-dragging the text being edited", () => {
   it("duplicates a labeled arrow when pressed on its label", async () => {
     const [arrow, label] = API.createLabeledArrow();
     API.setElements([arrow, label]);
-    const { x, y, width, height, points } = arrow as ExcalidrawLinearElement;
+    const { x, y, width, height, points } = arrow as SetsquareLinearElement;
     mouse.clickAt(x + width / 4, y + height / 4);
     // (its editor keeps what the last press grabbed)
     mouse.clickAt(x + width / 2, y + height / 2);

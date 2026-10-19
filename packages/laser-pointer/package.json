@@ -1,5 +1,5 @@
 {
-  "name": "@excalidraw/laser-pointer",
+  "name": "@setsquare/laser-pointer",
   "version": "1.3.1",
   "description": "Generate outline for laser pointer tool",
   "type": "module",
@@ -18,11 +18,11 @@
     "dist/*"
   ],
   "keywords": [
-    "excalidraw",
+    "setsquare",
     "laserpointer"
   ],
-  "bugs": "https://github.com/excalidraw/excalidraw/issues",
-  "repository": "https://github.com/excalidraw/excalidraw",
+  "bugs": "https://github.com/rselbach/setsquare/issues",
+  "repository": "https://github.com/rselbach/setsquare",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

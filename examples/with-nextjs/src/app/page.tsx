@@ -3,10 +3,10 @@ import Script from "next/script";
 
 import "../common.scss";
 
-// Since client components get prerenderd on server as well hence importing the excalidraw stuff dynamically
+// Since client components get prerenderd on server as well hence importing the setsquare stuff dynamically
 // with ssr false
-const ExcalidrawWithClientOnly = dynamic(
-  async () => (await import("../excalidrawWrapper")).default,
+const SetsquareWithClientOnly = dynamic(
+  async () => (await import("../setsquareWrapper")).default,
   {
     ssr: false,
   },
@@ -15,13 +15,13 @@ const ExcalidrawWithClientOnly = dynamic(
 export default function Page() {
   return (
     <>
-      <a href="/excalidraw-in-pages">Switch to Pages router</a>
+      <a href="/setsquare-in-pages">Switch to Pages router</a>
       <h1 className="page-title">App Router</h1>
       <Script id="load-env-variables" strategy="beforeInteractive">
-        {`window["EXCALIDRAW_ASSET_PATH"] = window.origin;`}
+        {`window["SETSQUARE_ASSET_PATH"] = window.origin;`}
       </Script>
       {/* @ts-expect-error - https://github.com/vercel/next.js/issues/42292 */}
-      <ExcalidrawWithClientOnly />
+      <SetsquareWithClientOnly />
     </>
   );
 }

@@ -1,17 +1,17 @@
 import {
   getBoundsFromPoints,
   getElementAbsoluteCoords,
-} from "@excalidraw/element/bounds";
+} from "@setsquare/element/bounds";
 import {
   newArrowElement,
   newElement,
   newLinearElement,
-} from "@excalidraw/element/newElement";
+} from "@setsquare/element/newElement";
 import {
   ELEMENT_PENDING_DRAW_SHAPE_OPACITY,
   getStrokeWidthByKey,
   ROUNDNESS,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 import {
   convexHull,
   distanceToLineSegment,
@@ -24,26 +24,26 @@ import {
   principalAxes,
   principalCoords,
   skewness,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import type { App, AppState } from "@excalidraw/excalidraw/types";
+import type { App, AppState } from "@setsquare/setsquare/types";
 
-import type { LocalPoint, GlobalPoint, Radians } from "@excalidraw/math";
-import type { Bounds } from "@excalidraw/common";
+import type { LocalPoint, GlobalPoint, Radians } from "@setsquare/math";
+import type { Bounds } from "@setsquare/common";
 import type {
-  ExcalidrawArrowElement,
-  ExcalidrawDiamondElement,
-  ExcalidrawElement,
-  ExcalidrawEllipseElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawFrameLikeElement,
-  ExcalidrawRectangleElement,
+  SetsquareArrowElement,
+  SetsquareDiamondElement,
+  SetsquareElement,
+  SetsquareEllipseElement,
+  SetsquareFreeDrawElement,
+  SetsquareFrameLikeElement,
+  SetsquareRectangleElement,
   ElementsMap,
-  ExcalidrawNonSelectionElement,
-  NonDeletedExcalidrawElement,
+  SetsquareNonSelectionElement,
+  NonDeletedSetsquareElement,
   NonDeleted,
-  ExcalidrawLineElement,
-} from "@excalidraw/element/types";
+  SetsquareLineElement,
+} from "@setsquare/element/types";
 
 import { getFrameLikeElements } from "./frame";
 import {
@@ -65,12 +65,12 @@ declare global {
 // rectangle = diamond.
 
 type NonDeletedRecognizedShapeElement = NonDeleted<
-  | ExcalidrawRectangleElement
-  | ExcalidrawEllipseElement
-  | ExcalidrawDiamondElement
-  | ExcalidrawArrowElement
-  | ExcalidrawLineElement
-  | ExcalidrawFreeDrawElement
+  | SetsquareRectangleElement
+  | SetsquareEllipseElement
+  | SetsquareDiamondElement
+  | SetsquareArrowElement
+  | SetsquareLineElement
+  | SetsquareFreeDrawElement
 >;
 
 type Shape = NonDeletedRecognizedShapeElement["type"];
@@ -501,7 +501,7 @@ function getArrowEndpoint<P extends LocalPoint | GlobalPoint>(
 // Recognizes common shapes from free-draw input points
 export const recognizeShape = <P extends LocalPoint | GlobalPoint>(
   points: P[],
-  previousElement: ExcalidrawElement | null,
+  previousElement: SetsquareElement | null,
   zoom: number = 1,
 ): ShapeRecognitionResult<P> => {
   // DEBUG (will be removed lated)
@@ -536,8 +536,8 @@ export const convertToShape = (
   points: GlobalPoint[],
   appState: AppState,
   elementsMap: ElementsMap,
-  previousElement: ExcalidrawElement | null,
-  frames?: readonly ExcalidrawFrameLikeElement[],
+  previousElement: SetsquareElement | null,
+  frames?: readonly SetsquareFrameLikeElement[],
 ): NonDeletedRecognizedShapeElement | undefined => {
   const recognizedShape = recognizeShape(
     points,
@@ -731,8 +731,8 @@ export const convertToShape = (
 // preview recompute on pointermove can skip setState (avoiding a no-op React
 // re-render and roughjs shape regeneration).
 const isDrawShapePreviewEqual = (
-  a: NonDeletedExcalidrawElement | null,
-  b: NonDeletedExcalidrawElement,
+  a: NonDeletedSetsquareElement | null,
+  b: NonDeletedSetsquareElement,
 ): boolean => {
   if (
     !a ||
@@ -780,7 +780,7 @@ export const convertToShapeHandlePointerMoveFromPointerDown = (
         app.scene.getNonDeletedElementsMap(),
         app.state.newElement,
         app.scene.getNonDeletedFramesLikes(),
-      ) as ExcalidrawNonSelectionElement | undefined;
+      ) as SetsquareNonSelectionElement | undefined;
 
       // Lines get no live preview — nearly every stroke reads as a line at
       // some early point, so previewing them is mostly flicker. Releasing

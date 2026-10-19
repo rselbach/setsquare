@@ -6,13 +6,13 @@ import {
   randomId,
   Emitter,
   toIterable,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type App from "@excalidraw/excalidraw/components/App";
+import type App from "@setsquare/setsquare/components/App";
 
-import type { DTO, ValueOf } from "@excalidraw/common/utility-types";
+import type { DTO, ValueOf } from "@setsquare/common/utility-types";
 
-import type { AppState, ObservedAppState } from "@excalidraw/excalidraw/types";
+import type { AppState, ObservedAppState } from "@setsquare/setsquare/types";
 
 import { deepCopyElement } from "./duplicate";
 import { newElementWith } from "./mutateElement";
@@ -30,8 +30,8 @@ import {
 import type { ApplyToOptions } from "./delta";
 
 import type {
-  ExcalidrawElement,
-  OrderedExcalidrawElement,
+  SetsquareElement,
+  OrderedSetsquareElement,
   SceneElementsMap,
 } from "./types";
 
@@ -118,7 +118,7 @@ export class Store {
     params:
       | {
           action: CaptureUpdateActionType;
-          elements: readonly ExcalidrawElement[] | undefined;
+          elements: readonly SetsquareElement[] | undefined;
           appState: AppState | ObservedAppState | undefined;
         }
       | {
@@ -433,7 +433,7 @@ export class StoreChange {
   // so figuring out what has changed should ideally be just quick reference checks
   // TODO: we might need to have binary files here as well, in order to be drop-in replacement for `onChange`
   private constructor(
-    public readonly elements: Record<string, OrderedExcalidrawElement>,
+    public readonly elements: Record<string, OrderedSetsquareElement>,
     public readonly appState: Partial<ObservedAppState>,
   ) {}
 
@@ -689,7 +689,7 @@ export class StoreSnapshot {
   }
 
   public getChangedElements(prevSnapshot: StoreSnapshot) {
-    const changedElements: Record<string, OrderedExcalidrawElement> = {};
+    const changedElements: Record<string, OrderedSetsquareElement> = {};
 
     for (const prevElement of toIterable(prevSnapshot.elements)) {
       const nextElement = this.elements.get(prevElement.id);

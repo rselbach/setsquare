@@ -1,0 +1,13 @@
+{
+  "name": "@setsquare/mermaid-to-setsquare",
+  "version": "2.2.2",
+  "private": true,
+  "description": "Mermaid to Setsquare Diagrams",
+  "type": "module",
+  "main": "./src/index.ts",
+  "license": "MIT",
+  "dependencies": {
+    "mermaid": "^11.12.1",
+    "nanoid": "4.0.2"
+  }
+}

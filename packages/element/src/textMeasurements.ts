@@ -5,14 +5,14 @@ import {
   getFontString,
   isTestEnv,
   normalizeEOL,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type { FontString, ExcalidrawTextElement } from "./types";
+import type { FontString, SetsquareTextElement } from "./types";
 
 export const measureText = (
   text: string,
   font: FontString,
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   const _text = text
     .split("\n")
@@ -31,7 +31,7 @@ const DUMMY_TEXT = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toLocaleUpperCase();
 // FIXME rename to getApproxMinContainerWidth
 export const getApproxMinLineWidth = (
   font: FontString,
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   const maxCharWidth = getMaxCharWidth(font);
   if (maxCharWidth === 0) {
@@ -45,7 +45,7 @@ export const getApproxMinLineWidth = (
 
 export const getMinTextElementWidth = (
   font: FontString,
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   return measureText("", font, lineHeight).width + BOUND_TEXT_PADDING * 2;
 };
@@ -77,11 +77,11 @@ const splitIntoLines = (text: string) => {
  * To get unitless line-height (if unknown) we can calculate it by dividing
  * height-per-line by fontSize.
  */
-export const detectLineHeight = (textElement: ExcalidrawTextElement) => {
+export const detectLineHeight = (textElement: SetsquareTextElement) => {
   const lineCount = splitIntoLines(textElement.text).length;
   return (textElement.height /
     lineCount /
-    textElement.fontSize) as ExcalidrawTextElement["lineHeight"];
+    textElement.fontSize) as SetsquareTextElement["lineHeight"];
 };
 
 /**
@@ -89,16 +89,16 @@ export const detectLineHeight = (textElement: ExcalidrawTextElement) => {
  * aligning with the W3C spec.
  */
 export const getLineHeightInPx = (
-  fontSize: ExcalidrawTextElement["fontSize"],
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  fontSize: SetsquareTextElement["fontSize"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   return fontSize * lineHeight;
 };
 
 // FIXME rename to getApproxMinContainerHeight
 export const getApproxMinLineHeight = (
-  fontSize: ExcalidrawTextElement["fontSize"],
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  fontSize: SetsquareTextElement["fontSize"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   return getLineHeightInPx(fontSize, lineHeight) + BOUND_TEXT_PADDING * 2;
 };
@@ -170,7 +170,7 @@ export const getTextWidth = (text: string, font: FontString) => {
 export const getTextHeight = (
   text: string,
   fontSize: number,
-  lineHeight: ExcalidrawTextElement["lineHeight"],
+  lineHeight: SetsquareTextElement["lineHeight"],
 ) => {
   const lineCount = splitIntoLines(text).length;
   return getLineHeightInPx(fontSize, lineHeight) * lineCount;

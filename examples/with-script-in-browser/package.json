@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@excalidraw/excalidraw": "*",
+    "@setsquare/setsquare": "*",
     "browser-fs-access": "0.38.0",
     "react": "19.0.0",
     "react-dom": "19.0.0"
@@ -13,10 +13,11 @@
     "vite": "5.0.12"
   },
   "scripts": {
-    "start": "vite",
-    "build": "vite build",
+    "start": "yarn copy:assets && vite",
+    "build": "yarn copy:assets && vite build",
     "preview": "vite preview --port 5002",
     "build:preview": "yarn build && yarn preview",
-    "build:packages": "yarn --cwd ../../ build:packages"
+    "build:packages": "yarn --cwd ../../ build:packages",
+    "copy:assets": "cp -r ../../packages/setsquare/dist/prod/fonts ./public"
   }
 }

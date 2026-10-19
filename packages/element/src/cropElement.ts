@@ -10,15 +10,15 @@ import {
   pointFromVector,
   clamp,
   isCloseTo,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import type { Bounds } from "@excalidraw/common";
+import type { Bounds } from "@setsquare/common";
 
 import { elementCenterPoint, getElementAbsoluteCoords } from "./bounds";
 import { getNextSingleWidthAndHeightFromPointer } from "./resizeElements";
 
 import type { TransformHandleDirection } from "./transformHandles";
-import type { ElementsMap, ExcalidrawImageElement, ImageCrop } from "./types";
+import type { ElementsMap, SetsquareImageElement, ImageCrop } from "./types";
 
 export const MINIMAL_CROP_SIZE = 10;
 
@@ -27,7 +27,7 @@ export const MINIMAL_CROP_SIZE = 10;
  * resize it, as far as the image reaches.
  */
 export const cropElement = (
-  element: ExcalidrawImageElement,
+  element: SetsquareImageElement,
   elementsMap: ElementsMap,
   transformHandle: TransformHandleDirection,
   naturalWidth: number,
@@ -130,7 +130,7 @@ export const cropElement = (
  * Crops the image to `bounds`, relative to the element as shown (flipped).
  */
 const cropElementToBounds = (
-  element: ExcalidrawImageElement,
+  element: SetsquareImageElement,
   elementsMap: ElementsMap,
   naturalWidth: number,
   naturalHeight: number,
@@ -178,7 +178,7 @@ const cropElementToBounds = (
  * opposite side(s) too.
  */
 export const uncropElementSides = (
-  element: ExcalidrawImageElement,
+  element: SetsquareImageElement,
   elementsMap: ElementsMap,
   handle: TransformHandleDirection,
   mirrored = false,
@@ -205,9 +205,8 @@ export const uncropElementSides = (
   );
 };
 
-// refer to https://link.excalidraw.com/l/6rfy1007QOo/6stx5PmRn0k
 export const getUncroppedImageElement = (
-  element: ExcalidrawImageElement,
+  element: SetsquareImageElement,
   elementsMap: ElementsMap,
 ) => {
   if (element.crop) {
@@ -262,7 +261,7 @@ export const getUncroppedImageElement = (
       -element.angle as Radians,
     );
 
-    const uncroppedElement: ExcalidrawImageElement = {
+    const uncroppedElement: SetsquareImageElement = {
       ...element,
       x: unrotatedTopLeft[0],
       y: unrotatedTopLeft[1],
@@ -277,7 +276,7 @@ export const getUncroppedImageElement = (
   return element;
 };
 
-export const getUncroppedWidthAndHeight = (element: ExcalidrawImageElement) => {
+export const getUncroppedWidthAndHeight = (element: SetsquareImageElement) => {
   if (element.crop) {
     const width =
       element.width / (element.crop.width / element.crop.naturalWidth);
@@ -298,7 +297,7 @@ export const getUncroppedWidthAndHeight = (element: ExcalidrawImageElement) => {
 
 const adjustCropPosition = (
   crop: ImageCrop,
-  scale: ExcalidrawImageElement["scale"],
+  scale: SetsquareImageElement["scale"],
 ) => {
   let cropX = crop.x;
   let cropY = crop.y;
@@ -321,7 +320,7 @@ const adjustCropPosition = (
 };
 
 export const getFlipAdjustedCropPosition = (
-  element: ExcalidrawImageElement,
+  element: SetsquareImageElement,
   natural = false,
 ) => {
   const crop = element.crop;

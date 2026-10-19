@@ -1,11 +1,11 @@
-import { isDevEnv, isTestEnv } from "@excalidraw/common";
+import { isDevEnv, isTestEnv } from "@setsquare/common";
 
 import { charWidth, getLineWidth } from "./textMeasurements";
 
 import type { FontString } from "./types";
 
 /**
- * This module approximates browser-like soft wrapping for Excalidraw text.
+ * This module approximates browser-like soft wrapping for Setsquare text.
  *
  * The flow is:
  * 1. `parseTokens()` splits a hard line into breakable tokens using a unicode-aware regex.
@@ -20,20 +20,8 @@ import type { FontString } from "./types";
  * that need metadata such as mapping visual lines back to `originalText`
  * for caret placement or future editor features.
  */
-let cachedCjkRegex: RegExp | undefined;
 let cachedLineBreakRegex: RegExp | undefined;
 let cachedEmojiRegex: RegExp | undefined;
-
-/**
- * Test if a given text contains any CJK characters (including symbols, punctuation, etc,).
- */
-export const containsCJK = (text: string) => {
-  if (!cachedCjkRegex) {
-    cachedCjkRegex = Regex.class(...Object.values(CJK));
-  }
-
-  return cachedCjkRegex.test(text);
-};
 
 const getLineBreakRegex = () => {
   if (!cachedLineBreakRegex) {
@@ -231,11 +219,6 @@ const Regex = {
    */
   group: (...regexes: RegExp[]): RegExp =>
     Regex.build(`(${Regex.join(...regexes)})`),
-  /**
-   * Puts regexes into a character class.
-   */
-  class: (...regexes: RegExp[]): RegExp =>
-    Regex.build(`[${Regex.join(...regexes)}]`),
 };
 
 /**

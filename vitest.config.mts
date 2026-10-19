@@ -6,69 +6,76 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@excalidraw\/common$/,
+        find: /^@setsquare\/common$/,
         replacement: path.resolve(__dirname, "./packages/common/src/index.ts"),
       },
       {
-        find: /^@excalidraw\/common\/(.*?)/,
+        find: /^@setsquare\/common\/(.*?)/,
         replacement: path.resolve(__dirname, "./packages/common/src/$1"),
       },
       {
-        find: /^@excalidraw\/element$/,
+        find: /^@setsquare\/element$/,
         replacement: path.resolve(__dirname, "./packages/element/src/index.ts"),
       },
       {
-        find: /^@excalidraw\/element\/(.*?)/,
+        find: /^@setsquare\/element\/(.*?)/,
         replacement: path.resolve(__dirname, "./packages/element/src/$1"),
       },
       {
-        find: /^@excalidraw\/excalidraw$/,
-        replacement: path.resolve(__dirname, "./packages/excalidraw/index.tsx"),
+        find: /^@setsquare\/setsquare$/,
+        replacement: path.resolve(__dirname, "./packages/setsquare/index.tsx"),
       },
       {
-        find: /^@excalidraw\/excalidraw\/(.*?)/,
-        replacement: path.resolve(__dirname, "./packages/excalidraw/$1"),
+        find: /^@setsquare\/setsquare\/(.*?)/,
+        replacement: path.resolve(__dirname, "./packages/setsquare/$1"),
       },
       {
-        find: /^@excalidraw\/math$/,
+        find: /^@setsquare\/math$/,
         replacement: path.resolve(__dirname, "./packages/math/src/index.ts"),
       },
       {
-        find: /^@excalidraw\/math\/(.*?)/,
+        find: /^@setsquare\/math\/(.*?)/,
         replacement: path.resolve(__dirname, "./packages/math/src/$1"),
       },
       {
-        find: /^@excalidraw\/utils$/,
+        find: /^@setsquare\/utils$/,
         replacement: path.resolve(__dirname, "./packages/utils/src/index.ts"),
       },
       {
-        find: /^@excalidraw\/utils\/(.*?)/,
+        find: /^@setsquare\/utils\/(.*?)/,
         replacement: path.resolve(__dirname, "./packages/utils/src/$1"),
       },
       {
-        find: /^@excalidraw\/fractional-indexing$/,
+        find: /^@setsquare\/fractional-indexing$/,
         replacement: path.resolve(
           __dirname,
           "./packages/fractional-indexing/src/index.ts",
         ),
       },
       {
-        find: /^@excalidraw\/fractional-indexing\/(.*?)/,
+        find: /^@setsquare\/fractional-indexing\/(.*?)/,
         replacement: path.resolve(
           __dirname,
           "./packages/fractional-indexing/src/$1",
         ),
       },
       {
-        find: /^@excalidraw\/laser-pointer$/,
+        find: /^@setsquare\/laser-pointer$/,
         replacement: path.resolve(
           __dirname,
           "./packages/laser-pointer/src/index.ts",
         ),
       },
       {
-        find: /^@excalidraw\/laser-pointer\/(.*?)/,
+        find: /^@setsquare\/laser-pointer\/(.*?)/,
         replacement: path.resolve(__dirname, "./packages/laser-pointer/src/$1"),
+      },
+      {
+        find: /^@setsquare\/mermaid-to-setsquare$/,
+        replacement: path.resolve(
+          __dirname,
+          "./packages/mermaid-to-setsquare/src/index.ts",
+        ),
       },
     ],
   },

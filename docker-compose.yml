@@ -1,10 +1,10 @@
 services:
-  excalidraw:
+  setsquare:
     build:
       context: .
       args:
         - NODE_ENV=development
-    container_name: excalidraw
+    container_name: setsquare
     ports:
       - "3000:80"
     restart: on-failure

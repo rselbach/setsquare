@@ -12,17 +12,17 @@ import {
   polygonIncludesPoint,
   polygonIncludesPointNonZero,
   polygonSignedArea,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import { isOpaqueColor, isTransparent } from "@excalidraw/common";
+import { isOpaqueColor, isTransparent } from "@setsquare/common";
 
-import type { Bounds } from "@excalidraw/common";
+import type { Bounds } from "@setsquare/common";
 import type {
   GlobalPoint,
   LineSegment,
   LocalPoint,
   Polygon,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import {
   doBoundsIntersect,
@@ -47,10 +47,10 @@ import type { Point } from "points-on-curve";
 
 import type {
   ElementsMap,
-  ExcalidrawElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawLineElement,
-  NonDeletedExcalidrawElement,
+  SetsquareElement,
+  SetsquareFreeDrawElement,
+  SetsquareLineElement,
+  NonDeletedSetsquareElement,
 } from "./types";
 
 /**
@@ -58,7 +58,7 @@ import type {
  *
  * Given a click point and the scene elements, this computes the closed polygon
  * (in scene/global coordinates) that fills the enclosed region under the
- * pointer. The Excalidraw app layer converts the returned `scenePoints` into a
+ * pointer. The Setsquare app layer converts the returned `scenePoints` into a
  * local `line` polygon and inserts it.
  *
  * All fills go through a single path: a planar segment arrangement is built
@@ -186,7 +186,7 @@ export type BucketFillFailureReason =
  */
 export type BucketFillInsertion = {
   placement: "above" | "below";
-  elementId: ExcalidrawElement["id"];
+  elementId: SetsquareElement["id"];
 };
 
 export type BucketFillGeometryResult =
@@ -196,8 +196,8 @@ export type BucketFillGeometryResult =
        * the closed element under the click, or null for fills resolved by
        * the owner-less fallback (regions formed by open lines)
        */
-      ownerId: ExcalidrawElement["id"] | null;
-      boundaryElementIds: ExcalidrawElement["id"][];
+      ownerId: SetsquareElement["id"] | null;
+      boundaryElementIds: SetsquareElement["id"][];
       /**
        * closed polygon ring in scene coordinates. When the region contains
        * islands, this is a keyhole path: the hole contours are spliced in
@@ -327,7 +327,7 @@ const subtractIntervals = (
  * boundaries makes the fill hug the inner pass and leaves an unfilled
  * sliver between the passes. The logical path runs down the stroke's
  * centerline, so the fill straddles the sketchy stroke — exactly how
- * Excalidraw draws shape backgrounds (fill from the ideal path, rough
+ * Setsquare draws shape backgrounds (fill from the ideal path, rough
  * stroke on top). It also makes line endpoints genuine degree-1 graph
  * nodes, which is what the bridging pass keys on.
  *
@@ -335,7 +335,7 @@ const subtractIntervals = (
  * the pre-smoothing polyline; the stroke width hides it.
  */
 const lineElementIdealSegments = (
-  element: ExcalidrawLineElement,
+  element: SetsquareLineElement,
   elementsMap: ElementsMap,
 ): LineSegment<GlobalPoint>[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -380,7 +380,7 @@ const lineElementIdealSegments = (
  * crossing itself near its start) are missed entirely.
  */
 const freedrawIdealSegments = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
   elementsMap: ElementsMap,
 ): LineSegment<GlobalPoint>[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -411,7 +411,7 @@ const freedrawIdealSegments = (
 const clipSegmentToVisible = (
   a: GlobalPoint,
   b: GlobalPoint,
-  coverers: readonly ExcalidrawElement[],
+  coverers: readonly SetsquareElement[],
   elementsMap: ElementsMap,
   eps: number,
   margin: number,
@@ -549,7 +549,7 @@ class NodeStore {
  * Shared with the app layer's z-order pass so "covers" means the same thing
  * in boundary clipping and in fill insertion.
  */
-export const rendersOpaqueFill = (element: ExcalidrawElement): boolean => {
+export const rendersOpaqueFill = (element: SetsquareElement): boolean => {
   if (
     !hasBackground(element.type) ||
     element.fillStyle !== "solid" ||
@@ -573,7 +573,7 @@ export const rendersOpaqueFill = (element: ExcalidrawElement): boolean => {
  * (when closed) and as boundaries. Text, image, embeddable, iframe and
  * arrows are excluded in v1.
  */
-const FILL_BOUNDARY_TYPES = new Set<ExcalidrawElement["type"]>([
+const FILL_BOUNDARY_TYPES = new Set<SetsquareElement["type"]>([
   "rectangle",
   "diamond",
   "ellipse",
@@ -584,7 +584,7 @@ const FILL_BOUNDARY_TYPES = new Set<ExcalidrawElement["type"]>([
 ]);
 
 /** fully invisible elements never participate in a fill */
-const isInvisible = (element: ExcalidrawElement): boolean =>
+const isInvisible = (element: SetsquareElement): boolean =>
   element.opacity <= 0;
 
 /**
@@ -592,7 +592,7 @@ const isInvisible = (element: ExcalidrawElement): boolean =>
  * as the text color for text elements), a background its type actually
  * paints, or image content.
  */
-const rendersAnyMark = (element: ExcalidrawElement): boolean =>
+const rendersAnyMark = (element: SetsquareElement): boolean =>
   !isInvisible(element) &&
   (element.type === "image" ||
     !isTransparent(element.strokeColor) ||
@@ -608,8 +608,8 @@ const rendersAnyMark = (element: ExcalidrawElement): boolean =>
  * restyles in place on re-click (see `isRestylableFill`).
  */
 export const isBucketFillCompatible = (
-  element: ExcalidrawElement,
-): element is ExcalidrawLineElement =>
+  element: SetsquareElement,
+): element is SetsquareLineElement =>
   isLineElement(element) &&
   element.polygon &&
   isValidPolygon(element.points) &&
@@ -617,7 +617,7 @@ export const isBucketFillCompatible = (
   !isTransparent(element.backgroundColor) &&
   isTransparent(element.strokeColor);
 
-const isClosedOwnerCandidate = (element: ExcalidrawElement): boolean => {
+const isClosedOwnerCandidate = (element: SetsquareElement): boolean => {
   if (!FILL_BOUNDARY_TYPES.has(element.type)) {
     return false;
   }
@@ -635,7 +635,7 @@ const isClosedOwnerCandidate = (element: ExcalidrawElement): boolean => {
 // default transparent stroke keeps them out of the boundary set — but once
 // the user gives a fill a visible stroke, that outline genuinely bounds
 // regions on screen and must bound new fills too.
-const isEligibleBoundary = (element: ExcalidrawElement): boolean =>
+const isEligibleBoundary = (element: SetsquareElement): boolean =>
   !isInvisible(element) &&
   FILL_BOUNDARY_TYPES.has(element.type) &&
   // skip outlines that don't render a visible stroke
@@ -643,9 +643,9 @@ const isEligibleBoundary = (element: ExcalidrawElement): boolean =>
 
 const findOwner = (
   point: GlobalPoint,
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   elementsMap: ElementsMap,
-): NonDeletedExcalidrawElement | null => {
+): NonDeletedSetsquareElement | null => {
   for (let i = elements.length - 1; i >= 0; i--) {
     const element = elements[i];
     // fill-compatible paint is deliberately never an OWNER (unlike its
@@ -1469,7 +1469,7 @@ const finalizePolygon = (
 
 export const computeBucketFillPolygon = (args: {
   point: GlobalPoint;
-  elements: readonly NonDeletedExcalidrawElement[];
+  elements: readonly NonDeletedSetsquareElement[];
   elementsMap: ElementsMap;
   options?: Partial<BucketFillOptions>;
 }): BucketFillGeometryResult => {
@@ -1491,9 +1491,9 @@ export const computeBucketFillPolygon = (args: {
   // actually sees can stop fill). Returns null when over the segment cap.
   const collectSegments = (
     candidateBounds: Bounds,
-    primary: NonDeletedExcalidrawElement | null,
+    primary: NonDeletedSetsquareElement | null,
   ): SourceSegment[] | null => {
-    const inRange = (element: ExcalidrawElement) =>
+    const inRange = (element: SetsquareElement) =>
       doBoundsIntersect(
         candidateBounds,
         getElementBounds(element, elementsMap),
@@ -1512,7 +1512,7 @@ export const computeBucketFillPolygon = (args: {
     );
 
     const rawSegments: SourceSegment[] = [];
-    const collect = (element: ExcalidrawElement) => {
+    const collect = (element: SetsquareElement) => {
       const elementIndex = indexOf.get(element.id) ?? 0;
       const coverersAbove = coverers.filter(
         (coverer) =>
@@ -1762,7 +1762,7 @@ export const computeBucketFillPolygon = (args: {
   const fillRegion = scenePoints as unknown as Polygon<GlobalPoint>;
   const [regionMinX, regionMinY, regionMaxX, regionMaxY] =
     getBoundsFromPoints(scenePoints);
-  const markInsideRegion = (element: ExcalidrawElement): boolean => {
+  const markInsideRegion = (element: SetsquareElement): boolean => {
     const [minX, minY, maxX, maxY] = getElementBounds(element, elementsMap);
     if (
       maxX < regionMinX ||
@@ -1801,7 +1801,7 @@ export const computeBucketFillPolygon = (args: {
    * way), plus the click point itself; exactness doesn't matter for a
    * z-order decision.
    */
-  const paintOverlapsRegion = (element: ExcalidrawElement): boolean => {
+  const paintOverlapsRegion = (element: SetsquareElement): boolean => {
     const [minX, minY, maxX, maxY] = getElementBounds(element, elementsMap);
     if (
       maxX < regionMinX ||
@@ -1830,8 +1830,8 @@ export const computeBucketFillPolygon = (args: {
     return false;
   };
 
-  let lowestAbove: ExcalidrawElement | null = null;
-  let covering: ExcalidrawElement | null = null;
+  let lowestAbove: SetsquareElement | null = null;
+  let covering: SetsquareElement | null = null;
   for (const element of elements) {
     // the coverer constraint is evaluated for EVERY element, not just the
     // `mustStayAbove` ones: an opaque element overlapping the region away
@@ -1883,7 +1883,7 @@ export const computeBucketFillPolygon = (args: {
  * creates a new (smaller) fill rather than restyling the old one.
  */
 export const isRestylableFill = (args: {
-  hitElement: ExcalidrawElement;
+  hitElement: SetsquareElement;
   scenePoints: readonly GlobalPoint[];
   elementsMap: ElementsMap;
 }): boolean => {

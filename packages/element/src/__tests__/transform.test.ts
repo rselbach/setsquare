@@ -4,8 +4,8 @@ import {
   STICKY_NOTE_MIN_FONT_SIZE,
   STICKY_NOTE_MIN_SIZE,
   getUpdatedTimestamp,
-} from "@excalidraw/common";
-import { pointFrom } from "@excalidraw/math";
+} from "@setsquare/common";
+import { pointFrom } from "@setsquare/math";
 import { vi } from "vitest";
 
 import {
@@ -16,14 +16,14 @@ import {
 } from "../newElement";
 
 import {
-  convertToExcalidrawElements,
-  type ExcalidrawElementSkeleton,
+  convertToSetsquareElements,
+  type SetsquareElementSkeleton,
 } from "../transform";
 
 import type {
-  ExcalidrawArrowElement,
-  ExcalidrawStickyNoteElement,
-  ExcalidrawTextElement,
+  SetsquareArrowElement,
+  SetsquareStickyNoteElement,
+  SetsquareTextElement,
 } from "../types";
 
 const opts = { regenerateIds: false };
@@ -38,14 +38,14 @@ describe("Test Transform", () => {
         id: "rect-1",
       },
     ];
-    let data = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    let data = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
     );
     expect(data.length).toBe(1);
     expect(data[0].id).toBe("id0");
 
-    data = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    data = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     );
     expect(data[0].id).toBe("rect-1");
@@ -102,8 +102,8 @@ describe("Test Transform", () => {
       },
     ];
 
-    convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     ).forEach((ele) => {
       expect(ele).toMatchSnapshot({
@@ -131,8 +131,8 @@ describe("Test Transform", () => {
         strokeColor: "#5f3dc4",
       },
     ];
-    convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     ).forEach((ele) => {
       expect(ele).toMatchSnapshot({
@@ -173,14 +173,14 @@ describe("Test Transform", () => {
         strokeStyle: "dotted",
       },
     ];
-    const excalidrawElements = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    const setsquareElements = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     );
 
-    expect(excalidrawElements.length).toBe(4);
+    expect(setsquareElements.length).toBe(4);
 
-    excalidrawElements.forEach((ele) => {
+    setsquareElements.forEach((ele) => {
       expect(ele).toMatchSnapshot({
         seed: expect.any(Number),
         versionNonce: expect.any(Number),
@@ -256,14 +256,14 @@ describe("Test Transform", () => {
         },
       },
     ];
-    const excalidrawElements = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    const setsquareElements = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     );
 
-    expect(excalidrawElements.length).toBe(12);
+    expect(setsquareElements.length).toBe(12);
 
-    excalidrawElements.forEach((ele) => {
+    setsquareElements.forEach((ele) => {
       expect(ele).toMatchSnapshot({
         seed: expect.any(Number),
         versionNonce: expect.any(Number),
@@ -314,14 +314,14 @@ describe("Test Transform", () => {
         },
       },
     ];
-    const excalidrawElements = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    const setsquareElements = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     );
 
-    expect(excalidrawElements.length).toBe(8);
+    expect(setsquareElements.length).toBe(8);
 
-    excalidrawElements.forEach((ele) => {
+    setsquareElements.forEach((ele) => {
       expect(ele).toMatchSnapshot({
         seed: expect.any(Number),
         versionNonce: expect.any(Number),
@@ -331,7 +331,7 @@ describe("Test Transform", () => {
   });
 
   describe("Test Frames", () => {
-    const elements: ExcalidrawElementSkeleton[] = [
+    const elements: SetsquareElementSkeleton[] = [
       {
         type: "rectangle",
         x: 10,
@@ -346,7 +346,7 @@ describe("Test Transform", () => {
         backgroundColor: "#fff3bf",
         strokeWidth: 2,
         label: {
-          text: "HELLO EXCALIDRAW",
+          text: "HELLO SETSQUARE",
           strokeColor: "#099268",
           fontSize: 30,
         },
@@ -355,7 +355,7 @@ describe("Test Transform", () => {
     ];
 
     it("should transform frames and update frame ids when regenerated", () => {
-      const elementsSkeleton: ExcalidrawElementSkeleton[] = [
+      const elementsSkeleton: SetsquareElementSkeleton[] = [
         ...elements,
         {
           type: "frame",
@@ -363,13 +363,13 @@ describe("Test Transform", () => {
           name: "My frame",
         },
       ];
-      const excalidrawElements = convertToExcalidrawElements(
+      const setsquareElements = convertToSetsquareElements(
         elementsSkeleton,
         opts,
       );
-      expect(excalidrawElements.length).toBe(4);
+      expect(setsquareElements.length).toBe(4);
 
-      excalidrawElements.forEach((ele) => {
+      setsquareElements.forEach((ele) => {
         expect(ele).toMatchObject({
           seed: expect.any(Number),
           versionNonce: expect.any(Number),
@@ -379,7 +379,7 @@ describe("Test Transform", () => {
     });
 
     it("should consider user defined frame dimensions over calculated when provided", () => {
-      const elementsSkeleton: ExcalidrawElementSkeleton[] = [
+      const elementsSkeleton: SetsquareElementSkeleton[] = [
         ...elements,
         {
           type: "frame",
@@ -389,17 +389,17 @@ describe("Test Transform", () => {
           height: 100,
         },
       ];
-      const excalidrawElements = convertToExcalidrawElements(
+      const setsquareElements = convertToSetsquareElements(
         elementsSkeleton,
         opts,
       );
-      const frame = excalidrawElements.find((ele) => ele.type === "frame")!;
+      const frame = setsquareElements.find((ele) => ele.type === "frame")!;
       expect(frame.width).toBe(800);
       expect(frame.height).toBe(100);
     });
 
     it("should consider user defined frame coordinates calculated when provided", () => {
-      const elementsSkeleton: ExcalidrawElementSkeleton[] = [
+      const elementsSkeleton: SetsquareElementSkeleton[] = [
         ...elements,
         {
           type: "frame",
@@ -409,11 +409,11 @@ describe("Test Transform", () => {
           y: 300,
         },
       ];
-      const excalidrawElements = convertToExcalidrawElements(
+      const setsquareElements = convertToSetsquareElements(
         elementsSkeleton,
         opts,
       );
-      const frame = excalidrawElements.find((ele) => ele.type === "frame")!;
+      const frame = setsquareElements.find((ele) => ele.type === "frame")!;
       expect(frame.x).toBe(100);
       expect(frame.y).toBe(300);
     });
@@ -437,13 +437,13 @@ describe("Test Transform", () => {
           },
         },
       ];
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
 
-      expect(excalidrawElements.length).toBe(4);
-      const [arrow, text, rectangle, ellipse] = excalidrawElements;
+      expect(setsquareElements.length).toBe(4);
+      const [arrow, text, rectangle, ellipse] = setsquareElements;
       expect(arrow).toMatchObject({
         type: "arrow",
         x: 255.5,
@@ -489,7 +489,7 @@ describe("Test Transform", () => {
         ],
       });
 
-      excalidrawElements.forEach((ele) => {
+      setsquareElements.forEach((ele) => {
         expect(ele).toMatchSnapshot({
           seed: expect.any(Number),
           versionNonce: expect.any(Number),
@@ -518,13 +518,13 @@ describe("Test Transform", () => {
         },
       ];
 
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
 
-      expect(excalidrawElements.length).toBe(4);
-      const [arrow, text1, text2, text3] = excalidrawElements;
+      expect(setsquareElements.length).toBe(4);
+      const [arrow, text1, text2, text3] = setsquareElements;
 
       expect(arrow).toMatchObject({
         type: "arrow",
@@ -571,7 +571,7 @@ describe("Test Transform", () => {
         ],
       });
 
-      excalidrawElements.forEach((ele) => {
+      setsquareElements.forEach((ele) => {
         expect(ele).toMatchSnapshot({
           seed: expect.any(Number),
           versionNonce: expect.any(Number),
@@ -631,14 +631,14 @@ describe("Test Transform", () => {
         },
       ];
 
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
 
-      expect(excalidrawElements.length).toBe(5);
+      expect(setsquareElements.length).toBe(5);
 
-      excalidrawElements.forEach((ele) => {
+      setsquareElements.forEach((ele) => {
         expect(ele).toMatchSnapshot({
           seed: expect.any(Number),
           versionNonce: expect.any(Number),
@@ -680,14 +680,14 @@ describe("Test Transform", () => {
         },
       ];
 
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
 
-      expect(excalidrawElements.length).toBe(4);
+      expect(setsquareElements.length).toBe(4);
 
-      excalidrawElements.forEach((ele) => {
+      setsquareElements.forEach((ele) => {
         expect(ele).toMatchSnapshot({
           seed: expect.any(Number),
           versionNonce: expect.any(Number),
@@ -734,13 +734,13 @@ describe("Test Transform", () => {
         },
       ];
 
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
 
-      expect(excalidrawElements.length).toBe(4);
-      const [, , arrow, text] = excalidrawElements;
+      expect(setsquareElements.length).toBe(4);
+      const [, , arrow, text] = setsquareElements;
       expect(arrow).toMatchObject({
         type: "arrow",
         x: 255.5,
@@ -785,13 +785,13 @@ describe("Test Transform", () => {
           backgroundColor: "#bac8ff",
         },
       ];
-      const excalidrawElements = convertToExcalidrawElements(
-        elements as ExcalidrawElementSkeleton[],
+      const setsquareElements = convertToSetsquareElements(
+        elements as SetsquareElementSkeleton[],
         opts,
       );
-      expect(excalidrawElements.length).toBe(2);
-      const [arrow, rect] = excalidrawElements;
-      expect((arrow as ExcalidrawArrowElement).endBinding).toStrictEqual({
+      expect(setsquareElements.length).toBe(2);
+      const [arrow, rect] = setsquareElements;
+      expect((arrow as SetsquareArrowElement).endBinding).toStrictEqual({
         elementId: "rect-1",
         fixedPoint: [-2.05, 0.5001],
         mode: "orbit",
@@ -828,13 +828,13 @@ describe("Test Transform", () => {
         height: 200,
       },
     ];
-    const excalidrawElements = convertToExcalidrawElements(
-      elements as ExcalidrawElementSkeleton[],
+    const setsquareElements = convertToSetsquareElements(
+      elements as SetsquareElementSkeleton[],
       opts,
     );
 
-    expect(excalidrawElements.length).toBe(1);
-    expect(excalidrawElements[0]).toMatchSnapshot({
+    expect(setsquareElements.length).toBe(1);
+    expect(setsquareElements[0]).toMatchSnapshot({
       seed: expect.any(Number),
       versionNonce: expect.any(Number),
     });
@@ -852,8 +852,8 @@ describe("Test Transform", () => {
         customData: { createdBy: "user01" },
       },
     ];
-    const convertedElements = convertToExcalidrawElements(
-      rawData as ExcalidrawElementSkeleton[],
+    const convertedElements = convertToSetsquareElements(
+      rawData as SetsquareElementSkeleton[],
       opts,
     );
     expect(convertedElements[0].customData).toStrictEqual({
@@ -862,7 +862,7 @@ describe("Test Transform", () => {
   });
 
   it("should transform the elements correctly when linear elements have single point", () => {
-    const elements: ExcalidrawElementSkeleton[] = [
+    const elements: SetsquareElementSkeleton[] = [
       {
         id: "B",
         type: "rectangle",
@@ -973,9 +973,9 @@ describe("Test Transform", () => {
       },
     ];
 
-    const excalidrawElements = convertToExcalidrawElements(elements, opts);
-    expect(excalidrawElements.length).toBe(12);
-    excalidrawElements.forEach((ele) => {
+    const setsquareElements = convertToSetsquareElements(elements, opts);
+    expect(setsquareElements.length).toBe(12);
+    setsquareElements.forEach((ele) => {
       expect(ele).toMatchSnapshot({
         seed: expect.any(Number),
         versionNonce: expect.any(Number),
@@ -1005,7 +1005,7 @@ describe("Test Transform", () => {
         ...element,
         created: 123,
       }));
-      const converted = convertToExcalidrawElements(elements);
+      const converted = convertToSetsquareElements(elements);
 
       expect(converted).toHaveLength(elements.length);
       converted.forEach((element, index) => {
@@ -1022,7 +1022,7 @@ describe("Test Transform", () => {
           ...element,
           created,
         }));
-        const converted = convertToExcalidrawElements(elements, opts);
+        const converted = convertToSetsquareElements(elements, opts);
 
         converted.forEach((element, index) => {
           expect(element.id).toBe(elements[index].id);
@@ -1036,8 +1036,8 @@ describe("Test Transform", () => {
       // skeleton type is a complete element
       const elements = createElements().map(
         ({ created, ...element }) => element,
-      ) as unknown as ExcalidrawElementSkeleton[];
-      const converted = convertToExcalidrawElements(elements, opts);
+      ) as unknown as SetsquareElementSkeleton[];
+      const converted = convertToSetsquareElements(elements, opts);
 
       converted.forEach((element, index) => {
         expect(element.id).toBe(elements[index].id);
@@ -1047,7 +1047,7 @@ describe("Test Transform", () => {
     });
 
     it("assigns fresh timestamps to generated labels and binding endpoints", () => {
-      const elements: ExcalidrawElementSkeleton[] = [
+      const elements: SetsquareElementSkeleton[] = [
         {
           type: "arrow",
           x: 100,
@@ -1059,7 +1059,7 @@ describe("Test Transform", () => {
           end: { type: "text", text: "end" },
         },
       ];
-      const converted = convertToExcalidrawElements(elements);
+      const converted = convertToSetsquareElements(elements);
 
       expect(converted).toHaveLength(4);
       expect(converted.map((element) => element.created)).toEqual(
@@ -1069,19 +1069,17 @@ describe("Test Transform", () => {
   });
 
   describe("sticky notes", () => {
-    const find = <
-      T extends ExcalidrawStickyNoteElement | ExcalidrawTextElement,
-    >(
+    const find = <T extends SetsquareStickyNoteElement | SetsquareTextElement>(
       elements: readonly { type: string }[],
       type: T["type"],
     ) => elements.find((element) => element.type === type) as T;
 
     it("creates a finalized note with the sticky defaults", () => {
-      const elements = convertToExcalidrawElements(
+      const elements = convertToSetsquareElements(
         [{ type: "stickynote", x: 100, y: 100 }],
         opts,
       );
-      const note = find<ExcalidrawStickyNoteElement>(elements, "stickynote");
+      const note = find<SetsquareStickyNoteElement>(elements, "stickynote");
 
       expect(elements).toHaveLength(1);
       expect(note.width).toBe(DEFAULT_STICKY_NOTE_SIZE);
@@ -1092,8 +1090,8 @@ describe("Test Transform", () => {
     });
 
     it("enforces the note invariants on the given properties", () => {
-      const note = find<ExcalidrawStickyNoteElement>(
-        convertToExcalidrawElements(
+      const note = find<SetsquareStickyNoteElement>(
+        convertToSetsquareElements(
           [
             {
               type: "stickynote",
@@ -1118,7 +1116,7 @@ describe("Test Transform", () => {
     });
 
     it("gives the note the color of a label that sets its own", () => {
-      const elements = convertToExcalidrawElements(
+      const elements = convertToSetsquareElements(
         [
           {
             type: "stickynote",
@@ -1130,15 +1128,15 @@ describe("Test Transform", () => {
         ],
         opts,
       );
-      const note = find<ExcalidrawStickyNoteElement>(elements, "stickynote");
-      const label = find<ExcalidrawTextElement>(elements, "text");
+      const note = find<SetsquareStickyNoteElement>(elements, "stickynote");
+      const label = find<SetsquareTextElement>(elements, "text");
 
       expect(label.strokeColor).toBe("#e03131");
       expect(note.strokeColor).toBe("#e03131");
     });
 
     it("binds a label whose font size becomes the note's ceiling", () => {
-      const elements = convertToExcalidrawElements(
+      const elements = convertToSetsquareElements(
         [
           {
             type: "stickynote",
@@ -1150,8 +1148,8 @@ describe("Test Transform", () => {
         ],
         opts,
       );
-      const note = find<ExcalidrawStickyNoteElement>(elements, "stickynote");
-      const label = find<ExcalidrawTextElement>(elements, "text");
+      const note = find<SetsquareStickyNoteElement>(elements, "stickynote");
+      const label = find<SetsquareTextElement>(elements, "text");
 
       expect(elements).toHaveLength(2);
       expect(label.containerId).toBe(note.id);
@@ -1164,7 +1162,7 @@ describe("Test Transform", () => {
     });
 
     it("grows the note for a label that overflows at the minimum font size", () => {
-      const elements = convertToExcalidrawElements(
+      const elements = convertToSetsquareElements(
         [
           {
             type: "stickynote",
@@ -1178,8 +1176,8 @@ describe("Test Transform", () => {
         ],
         opts,
       );
-      const note = find<ExcalidrawStickyNoteElement>(elements, "stickynote");
-      const label = find<ExcalidrawTextElement>(elements, "text");
+      const note = find<SetsquareStickyNoteElement>(elements, "stickynote");
+      const label = find<SetsquareTextElement>(elements, "text");
 
       expect(label.fontSize).toBe(STICKY_NOTE_MIN_FONT_SIZE);
       expect(label.baseFontSize).toBe(28);

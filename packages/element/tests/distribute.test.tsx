@@ -1,17 +1,17 @@
 import {
   distributeHorizontally,
   distributeVertically,
-} from "@excalidraw/excalidraw/actions";
-import { defaultLang, setLanguage } from "@excalidraw/excalidraw/i18n";
-import { Excalidraw } from "@excalidraw/excalidraw";
+} from "@setsquare/setsquare/actions";
+import { defaultLang, setLanguage } from "@setsquare/setsquare/i18n";
+import { Setsquare } from "@setsquare/setsquare";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { UI, Pointer, Keyboard } from "@excalidraw/excalidraw/tests/helpers/ui";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { UI, Pointer, Keyboard } from "@setsquare/setsquare/tests/helpers/ui";
 import {
   act,
   unmountComponent,
   render,
-} from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/setsquare/tests/test-utils";
 
 const mouse = new Pointer("mouse");
 
@@ -71,7 +71,7 @@ describe("distributing", () => {
     await act(() => {
       return setLanguage(defaultLang);
     });
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   it("should distribute selected elements horizontally", async () => {

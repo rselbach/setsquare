@@ -1,4 +1,4 @@
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type { AppState } from "@setsquare/setsquare/types";
 
 import { updateBoundElements } from "./binding";
 import { getCommonBoundingBox } from "./bounds";
@@ -9,7 +9,7 @@ import { getNonDeletedElements } from ".";
 import type { Scene } from "./Scene";
 
 import type { BoundingBox } from "./bounds";
-import type { ExcalidrawElement, NonDeletedExcalidrawElement } from "./types";
+import type { SetsquareElement, NonDeletedSetsquareElement } from "./types";
 
 export interface Alignment {
   position: "start" | "center" | "end";
@@ -17,11 +17,11 @@ export interface Alignment {
 }
 
 export const alignElements = (
-  selectedElements: NonDeletedExcalidrawElement[],
+  selectedElements: NonDeletedSetsquareElement[],
   alignment: Alignment,
   scene: Scene,
   appState: Readonly<AppState>,
-): NonDeletedExcalidrawElement[] => {
+): NonDeletedSetsquareElement[] => {
   const groups = getSelectedElementsByGroup(
     selectedElements,
     scene.getNonDeletedElementsMap(),
@@ -52,7 +52,7 @@ export const alignElements = (
 };
 
 const calculateTranslation = (
-  group: readonly ExcalidrawElement[],
+  group: readonly SetsquareElement[],
   selectionBoundingBox: BoundingBox,
   { axis, position }: Alignment,
 ): { x: number; y: number } => {

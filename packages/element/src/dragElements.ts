@@ -4,16 +4,16 @@ import {
   getGridPoint,
   getFontString,
   DRAGGING_THRESHOLD,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
 import type {
   AppState,
   NormalizedZoomValue,
   NullableGridSize,
   PointerDownState,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 
-import type { NonDeletedExcalidrawElement } from "@excalidraw/element/types";
+import type { NonDeletedSetsquareElement } from "@setsquare/element/types";
 
 import {
   getSimultaneouslyUpdatedElementIds,
@@ -34,11 +34,11 @@ import {
 
 import type { Scene } from "./Scene";
 
-import type { ExcalidrawElement, ExcalidrawTextElement } from "./types";
+import type { SetsquareElement, SetsquareTextElement } from "./types";
 
 export const dragSelectedElements = (
   pointerDownState: PointerDownState,
-  _selectedElements: NonDeletedExcalidrawElement[],
+  _selectedElements: NonDeletedSetsquareElement[],
   offset: { x: number; y: number },
   scene: Scene,
   snapOffset: {
@@ -73,7 +73,7 @@ export const dragSelectedElements = (
   // we do not want a frame and its elements to be selected at the same time
   // but when it happens (due to some bug), we want to avoid updating element
   // in the frame twice, hence the use of set
-  const elementsToUpdate = new Set<NonDeletedExcalidrawElement>(
+  const elementsToUpdate = new Set<NonDeletedSetsquareElement>(
     selectedElements,
   );
   const frames = selectedElements
@@ -88,7 +88,7 @@ export const dragSelectedElements = (
     }
   }
 
-  const origElements: ExcalidrawElement[] = [];
+  const origElements: SetsquareElement[] = [];
 
   for (const element of elementsToUpdate) {
     const origElement = pointerDownState.originalElements.get(element.id);
@@ -200,7 +200,7 @@ const calculateOffset = (
 
 const updateElementCoords = (
   pointerDownState: PointerDownState,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   scene: Scene,
   dragOffset: { x: number; y: number },
 ) => {
@@ -217,7 +217,7 @@ const updateElementCoords = (
 };
 
 export const getDragOffsetXY = (
-  selectedElements: NonDeletedExcalidrawElement[],
+  selectedElements: NonDeletedSetsquareElement[],
   x: number,
   y: number,
 ): [number, number] => {
@@ -249,7 +249,7 @@ export const dragNewTextElement = ({
   scene,
   informMutation = true,
 }: {
-  newElement: ExcalidrawTextElement;
+  newElement: SetsquareTextElement;
   anchorX: number;
   /** 0 = anchored by its left edge, 1 = by its right, 0.5 = by its centre */
   anchorRatio: number;
@@ -308,7 +308,7 @@ export const dragNewElement = ({
   originOffset = null,
   informMutation = true,
 }: {
-  newElement: NonDeletedExcalidrawElement;
+  newElement: NonDeletedSetsquareElement;
   elementType: AppState["activeTool"]["type"];
   originX: number;
   originY: number;

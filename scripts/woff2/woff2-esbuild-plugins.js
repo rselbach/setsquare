@@ -110,10 +110,6 @@ module.exports.woff2ServerPlugin = (options = {}) => {
           return;
         }
 
-        const xiaolaiPath = path.resolve(
-          __dirname,
-          "./assets/Xiaolai-Regular.ttf",
-        );
         const emojiPath = path.resolve(
           __dirname,
           "./assets/NotoEmoji-Regular.ttf",
@@ -136,9 +132,6 @@ module.exports.woff2ServerPlugin = (options = {}) => {
           "./assets/LiberationSans-Regular-2048.ttf",
         );
 
-        const xiaolaiFont = Font.create(fs.readFileSync(xiaolaiPath), {
-          type: "ttf",
-        });
         const emojiFont = Font.create(fs.readFileSync(emojiPath), {
           type: "ttf",
         });
@@ -153,11 +146,6 @@ module.exports.woff2ServerPlugin = (options = {}) => {
 
         // for now we are interested in the regular families only
         for (const [family, { Regular }] of sortedFonts) {
-          if (family.includes("Xiaolai")) {
-            // don't generate ttf for Xiaolai, as we have it hardcoded as one ttf
-            continue;
-          }
-
           const baseFont = Regular[0];
           const tempPaths = Regular.map((_, index) =>
             path.resolve(outputDir, `temp_${family}_${index}.ttf`),
@@ -176,11 +164,6 @@ module.exports.woff2ServerPlugin = (options = {}) => {
           const mergedFontPath = path.resolve(outputDir, `${family}.ttf`);
 
           const fallbackFontsPaths = [];
-          const shouldIncludeXiaolaiFallback = family.includes("Excalifont");
-
-          if (shouldIncludeXiaolaiFallback) {
-            fallbackFontsPaths.push(xiaolaiPath);
-          }
 
           // add liberation as fallback to all fonts, so that unknown characters are rendered similarly to how browser renders them (Helvetica, Arial, etc.)
           if (baseFont.data.head.unitsPerEm === 2048) {
@@ -212,14 +195,10 @@ module.exports.woff2ServerPlugin = (options = {}) => {
 
           const getNameField = (field) => {
             const base = baseFont.data.name[field];
-            const xiaolai = xiaolaiFont.data.name[field];
             const emoji = emojiFont.data.name[field];
             const liberation = liberationFont.data.name[field];
-            // liberation font
 
-            return shouldIncludeXiaolaiFallback
-              ? `${base} & ${xiaolai} & ${emoji} & ${liberation}`
-              : `${base} & ${emoji} & ${liberation}`;
+            return `${base} & ${emoji} & ${liberation}`;
           };
 
           mergedFont.set({

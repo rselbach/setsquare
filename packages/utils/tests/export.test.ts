@@ -1,9 +1,9 @@
-import { MIME_TYPES } from "@excalidraw/common";
-import * as clipboardModule from "@excalidraw/excalidraw/clipboard";
-import * as imageModule from "@excalidraw/excalidraw/data/image";
-import * as jsonModule from "@excalidraw/excalidraw/data/json";
-import * as mockedSceneExportUtils from "@excalidraw/excalidraw/scene/export";
-import { diagramFactory } from "@excalidraw/excalidraw/tests/fixtures/diagramFixture";
+import { MIME_TYPES } from "@setsquare/common";
+import * as clipboardModule from "@setsquare/setsquare/clipboard";
+import * as imageModule from "@setsquare/setsquare/data/image";
+import * as jsonModule from "@setsquare/setsquare/data/json";
+import * as mockedSceneExportUtils from "@setsquare/setsquare/scene/export";
+import { diagramFactory } from "@setsquare/setsquare/tests/fixtures/diagramFixture";
 import { vi } from "vitest";
 
 import * as utils from "../src";

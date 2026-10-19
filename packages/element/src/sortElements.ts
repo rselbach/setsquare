@@ -1,21 +1,21 @@
-import { arrayToMap } from "@excalidraw/common";
+import { arrayToMap } from "@setsquare/common";
 
-import type { ExcalidrawElement } from "./types";
+import type { SetsquareElement } from "./types";
 
-const defragmentGroups = (elements: readonly ExcalidrawElement[]) => {
-  const groupIdAtLevel = (element: ExcalidrawElement, level: number) => {
+const defragmentGroups = (elements: readonly SetsquareElement[]) => {
+  const groupIdAtLevel = (element: SetsquareElement, level: number) => {
     return element.groupIds[element.groupIds.length - level - 1];
   };
 
   const orderLevel = (
-    levelElements: readonly ExcalidrawElement[],
+    levelElements: readonly SetsquareElement[],
     level: number,
-  ): ExcalidrawElement[] => {
-    const buckets = new Map<string, ExcalidrawElement[]>();
+  ): SetsquareElement[] => {
+    const buckets = new Map<string, SetsquareElement[]>();
     // Slots preserve first-occurrence order: a groupId reserves its slot
     // the first time one of its members is seen; loose elements occupy
     // their own slot. Groups are then expanded (and recursed into) in place.
-    const slots: (ExcalidrawElement | string)[] = [];
+    const slots: (SetsquareElement | string)[] = [];
 
     for (const element of levelElements) {
       const groupId = groupIdAtLevel(element, level);
@@ -62,7 +62,7 @@ const defragmentGroups = (elements: readonly ExcalidrawElement[]) => {
  * original z-index of container (i.e. it moves bound text elements after
  * containers).
  */
-export const normalizeBoundElementsOrder = <T extends ExcalidrawElement>(
+export const normalizeBoundElementsOrder = <T extends SetsquareElement>(
   elements: readonly T[],
 ) => {
   const elementsMap = arrayToMap(elements);
@@ -113,7 +113,7 @@ export const normalizeBoundElementsOrder = <T extends ExcalidrawElement>(
 };
 
 export const normalizeElementOrder = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
 ) => {
   return normalizeBoundElementsOrder(defragmentGroups(elements));
 };

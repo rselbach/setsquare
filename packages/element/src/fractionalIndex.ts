@@ -1,9 +1,9 @@
-import { arrayToMap } from "@excalidraw/common";
+import { arrayToMap } from "@setsquare/common";
 
 import {
   validateOrderKey,
   generateNKeysBetween,
-} from "@excalidraw/fractional-indexing";
+} from "@setsquare/fractional-indexing";
 
 import { mutateElement, newElementWith } from "./mutateElement";
 import { getBoundTextElementId } from "./textElement";
@@ -13,10 +13,10 @@ import { isNonDeletedElement } from ".";
 
 import type {
   ElementsMap,
-  ExcalidrawElement,
+  SetsquareElement,
   FractionalIndex,
   Ordered,
-  OrderedExcalidrawElement,
+  OrderedSetsquareElement,
   SceneElementsMap,
 } from "./types";
 
@@ -30,7 +30,7 @@ export class InvalidFractionalIndexError extends Error {
  * 1) Array (or array-like ordered data structure) should be used as a cache of elements order, hiding the internal fractional indices implementation.
  * - it's undesirable to perform reorder for each related operation, therefore it's necessary to cache the order defined by fractional indices into an ordered data structure
  * - it's easy enough to define the order of the elements from the outside (boundaries), without worrying about the underlying structure of fractional indices (especially for the host apps)
- * - it's necessary to always keep the array support for backwards compatibility (restore) - old scenes, old libraries, supporting multiple excalidraw versions etc.
+ * - it's necessary to always keep the array support for backwards compatibility (restore) - old scenes, old libraries, supporting multiple setsquare versions etc.
  * - it's necessary to always keep the fractional indices in sync with the array order
  * - elements with invalid indices should be detected and synced, without altering the already valid indices
  *
@@ -47,7 +47,7 @@ export class InvalidFractionalIndexError extends Error {
  * @throws `InvalidFractionalIndexError` if invalid index is detected.
  */
 export const validateFractionalIndices = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   {
     shouldThrow = false,
     includeBoundTextValidation = false,
@@ -58,13 +58,13 @@ export const validateFractionalIndices = (
     includeBoundTextValidation: boolean;
     ignoreLogs?: true;
     reconciliationContext?: {
-      localElements: ReadonlyArray<ExcalidrawElement>;
-      remoteElements: ReadonlyArray<ExcalidrawElement>;
+      localElements: ReadonlyArray<SetsquareElement>;
+      remoteElements: ReadonlyArray<SetsquareElement>;
     };
   },
 ) => {
   const errorMessages = [];
-  const stringifyElement = (element: ExcalidrawElement | void) =>
+  const stringifyElement = (element: SetsquareElement | void) =>
     `${element?.index}:${element?.id}:${element?.type}:${element?.isDeleted}:${element?.version}:${element?.versionNonce}`;
 
   const elementsMap = includeBoundTextValidation ? arrayToMap(elements) : null;
@@ -147,9 +147,7 @@ export const validateFractionalIndices = (
  * - when fractional indices are identical, break the tie based on the element id
  * - when there is no fractional index in one of the elements, respect the order of the array
  */
-export const orderByFractionalIndex = (
-  elements: OrderedExcalidrawElement[],
-) => {
+export const orderByFractionalIndex = (elements: OrderedSetsquareElement[]) => {
   return elements.sort((a, b) => {
     // in case the indices are not the defined at runtime
     if (isOrderedElement(a) && isOrderedElement(b)) {
@@ -173,9 +171,9 @@ export const orderByFractionalIndex = (
  * If the synchronization fails or the result is invalid, it fallbacks to `syncInvalidIndices`.
  */
 export const syncMovedIndices = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   movedElements: ElementsMap,
-): OrderedExcalidrawElement[] => {
+): OrderedSetsquareElement[] => {
   try {
     const elementsMap = arrayToMap(elements);
     const indicesGroups = getMovedIndicesGroups(elements, movedElements);
@@ -212,7 +210,7 @@ export const syncMovedIndices = (
     syncInvalidIndices(elements);
   }
 
-  return elements as OrderedExcalidrawElement[];
+  return elements as OrderedSetsquareElement[];
 };
 
 /**
@@ -220,7 +218,7 @@ export const syncMovedIndices = (
  *
  * WARN: in edge cases it could modify the elements which were not moved, as it's impossible to guess the actually moved elements from the elements array itself.
  */
-export const syncInvalidIndices = <T extends ExcalidrawElement>(
+export const syncInvalidIndices = <T extends SetsquareElement>(
   elements: readonly T[],
 ): Ordered<T>[] => {
   const elementsMap = arrayToMap(elements);
@@ -240,7 +238,7 @@ export const syncInvalidIndices = <T extends ExcalidrawElement>(
  * WARN: in edge cases it could modify the elements which were not moved, as it's impossible to guess the actually moved elements from the elements array itself.
  */
 export const syncInvalidIndicesImmutable = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
 ): SceneElementsMap | undefined => {
   const syncedElements = arrayToMap(elements);
   const indicesGroups = getInvalidIndicesGroups(elements);
@@ -259,7 +257,7 @@ export const syncInvalidIndicesImmutable = (
  * NOTE: First and last elements within the groups are indices of lower and upper bounds.
  */
 const getMovedIndicesGroups = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   movedElements: ElementsMap,
 ) => {
   const indicesGroups: number[][] = [];
@@ -293,19 +291,19 @@ const getMovedIndicesGroups = (
  *
  * WARN: First and last items within the groups do NOT have to be contiguous, those are the found lower and upper bounds!
  */
-const getInvalidIndicesGroups = (elements: readonly ExcalidrawElement[]) => {
+const getInvalidIndicesGroups = (elements: readonly SetsquareElement[]) => {
   const indicesGroups: number[][] = [];
 
   // once we find lowerBound / upperBound, it cannot be lower than that, so we cache it for better perf.
-  let lowerBound: ExcalidrawElement["index"] | undefined = undefined;
-  let upperBound: ExcalidrawElement["index"] | undefined = undefined;
+  let lowerBound: SetsquareElement["index"] | undefined = undefined;
+  let upperBound: SetsquareElement["index"] | undefined = undefined;
   let lowerBoundIndex: number = -1;
   let upperBoundIndex: number = 0;
 
   /** @returns maybe valid lowerBound */
   const getLowerBound = (
     index: number,
-  ): [ExcalidrawElement["index"] | undefined, number] => {
+  ): [SetsquareElement["index"] | undefined, number] => {
     const lowerBound = elements[lowerBoundIndex]
       ? elements[lowerBoundIndex].index
       : undefined;
@@ -328,7 +326,7 @@ const getInvalidIndicesGroups = (elements: readonly ExcalidrawElement[]) => {
   /** @returns always valid upperBound */
   const getUpperBound = (
     index: number,
-  ): [ExcalidrawElement["index"] | undefined, number] => {
+  ): [SetsquareElement["index"] | undefined, number] => {
     const upperBound = elements[upperBoundIndex]
       ? elements[upperBoundIndex].index
       : undefined;
@@ -394,9 +392,9 @@ const getInvalidIndicesGroups = (elements: readonly ExcalidrawElement[]) => {
 };
 
 const isValidFractionalIndex = (
-  index: ExcalidrawElement["index"] | undefined,
-  predecessor: ExcalidrawElement["index"] | undefined,
-  successor: ExcalidrawElement["index"] | undefined,
+  index: SetsquareElement["index"] | undefined,
+  predecessor: SetsquareElement["index"] | undefined,
+  successor: SetsquareElement["index"] | undefined,
 ) => {
   if (!index) {
     return false;
@@ -428,11 +426,11 @@ const isValidFractionalIndex = (
 };
 
 const generateIndices = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   indicesGroups: number[][],
 ) => {
   const elementsUpdates = new Map<
-    ExcalidrawElement,
+    SetsquareElement,
     { index: FractionalIndex }
   >();
 
@@ -459,8 +457,8 @@ const generateIndices = (
 };
 
 const isOrderedElement = (
-  element: ExcalidrawElement,
-): element is OrderedExcalidrawElement => {
+  element: SetsquareElement,
+): element is OrderedSetsquareElement => {
   // for now it's sufficient whether the index is there
   // meaning, the element was already ordered in the past
   // meaning, it is not a newly inserted element, not an unrestored element, etc.

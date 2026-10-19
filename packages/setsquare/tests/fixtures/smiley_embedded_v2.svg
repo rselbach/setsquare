@@ -1,0 +1,16 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 77">
+  <!-- svg-source:setsquare -->
+  <!-- payload-type:application/vnd.setsquare+json --><!-- payload-version:2 --><!-- payload-start -->eyJ2ZXJzaW9uIjoiMSIsImVuY29kaW5nIjoiYnN0cmluZyIsImNvbXByZXNzZWQiOnRydWUsImVuY29kZWQiOiJ4nGVSy07kMFx1MDAxMLzzXHUwMDE1UbiuIJNs5nXjsSAue1x1MDAxOYlcdTAwMTVaIWSSnsSisU3cYcggpP1cZm78XCKfsG4nJJkhh0hd/SpX9etBXHUwMDEwhNRcdTAwMThcYpdBaIHsUy0qXGJ/MPxcZpWVWrlM7GOr6yrzhSWRWVx1MDAxZVx1MDAxZqPOXHUwMDA0ltrSMomiqG1cdTAwMDKER1BkXdlfXHUwMDE3XHUwMDA3wav/u4zMuXV1Ns9cdTAwMWG8uDTb0+hqs23Ob+Du2rf6oi8qXHUwMDA0LzSgL1x1MDAwZZrPp33cuDhJZ0dpj2xkTiWjQ1FcdLIoyWHprMeEKpDnRz1iqdJcdTAwMGZwplFXvPcwW8RcIlx1MDAxNsPqe5E9XHUwMDE0la5V3tdQJZQ1TiY1oriWiCtqsNVHZGXdyTja8qcjOdnD+z6r0anUZ93aolRg7U6PNlwik8RcdTAwMTJMouFcdTAwMWTM0Vxc5V732/35pahMNye0XHUwMDFjjJhcdTAwMDGwL3FcdTAwMWPNZsl0MaxcdTAwMTm5n+yDv7Xyh5Au0iSdXHUwMDBlaWnPnf/kJ65cdTAwMDVaXHUwMDE4ZGRcdTAwMDV/tbfRslQ14mA72+3IfX68/1x1MDAxYmmqXHUwMDE1reRcdTAwMTZ2fWX0QjxKbHZk4Vx1MDAxMScoXHUwMDBiZlx1MDAxY1wirEfeONYk3an2adJm7LBcdTAwMDWUirf8nHjwzf29hqEwZkWCONfecfgsYXP6/SZcdTAwMGXX/uumOjdk3jHnd1x1MDAxZfDMt/9cdTAwMDVU53oifQ==<!-- payload-end -->
+  <defs>
+    <style>
+      @font-face {
+        font-family: "Virgil";
+        src: url("Virgil.woff2");
+      }
+      @font-face {
+        font-family: "Cascadia";
+        src: url("Cascadia.woff2");
+      }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="56" height="77" fill="#ffffff"></rect><g transform="translate(10 10) rotate(0 18 28.5)"><text x="0" y="41" font-family="Virgil, Segoe UI Emoji" font-size="36px" fill="#c92a2a" text-anchor="start" style="white-space: pre;" direction="ltr">😀</text></g></svg>

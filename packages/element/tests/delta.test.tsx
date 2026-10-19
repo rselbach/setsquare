@@ -1,14 +1,14 @@
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { arrayToMap } from "@excalidraw/common";
-import { pointFrom } from "@excalidraw/math";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { arrayToMap } from "@setsquare/common";
+import { pointFrom } from "@setsquare/math";
 
-import type { ObservedAppState } from "@excalidraw/excalidraw/types";
-import type { LinearElementEditor } from "@excalidraw/element";
+import type { ObservedAppState } from "@setsquare/setsquare/types";
+import type { LinearElementEditor } from "@setsquare/element";
 import type {
-  ExcalidrawTextElement,
+  SetsquareTextElement,
   FractionalIndex,
   SceneElementsMap,
-} from "@excalidraw/element/types";
+} from "@setsquare/element/types";
 
 import { AppStateDelta, Delta, ElementsDelta } from "../src/delta";
 import { mutateElement, newElementWith } from "../src/mutateElement";
@@ -35,7 +35,7 @@ describe("ElementsDelta", () => {
           type === "arrow" ? [pointFrom(0, 0), pointFrom(250, 0)] : undefined,
         boundElements: [{ id: "label", type: "text" }],
       });
-      const label: ExcalidrawTextElement = {
+      const label: SetsquareTextElement = {
         ...API.createElement({
           type: "text",
           id: "label",
@@ -258,7 +258,7 @@ describe("ElementsDelta", () => {
     );
 
     it("keeps an empty text element's arrow bindings visible", () => {
-      const label: ExcalidrawTextElement = {
+      const label: SetsquareTextElement = {
         ...API.createElement({
           type: "text",
           id: "label",

@@ -1,7 +1,7 @@
-import type { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/element/transform";
-import type { FileId } from "@excalidraw/excalidraw/element/types";
+import type { SetsquareElementSkeleton } from "@setsquare/setsquare/element/transform";
+import type { FileId } from "@setsquare/setsquare/element/types";
 
-const elements: ExcalidrawElementSkeleton[] = [
+const elements: SetsquareElementSkeleton[] = [
   {
     type: "rectangle",
     x: 10,
@@ -16,7 +16,7 @@ const elements: ExcalidrawElementSkeleton[] = [
     backgroundColor: "#fff3bf",
     strokeWidth: 2,
     label: {
-      text: "HELLO EXCALIDRAW",
+      text: "HELLO SETSQUARE",
       strokeColor: "#099268",
       fontSize: 30,
     },

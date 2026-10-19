@@ -1,38 +1,38 @@
-import { MIME_TYPES } from "@excalidraw/common";
-import { getDefaultAppState } from "@excalidraw/excalidraw/appState";
+import { MIME_TYPES } from "@setsquare/common";
+import { getDefaultAppState } from "@setsquare/setsquare/appState";
 import {
   copyBlobToClipboardAsPng,
   copyTextToSystemClipboard,
   copyToClipboard,
-} from "@excalidraw/excalidraw/clipboard";
-import { encodePngMetadata } from "@excalidraw/excalidraw/data/image";
-import { getNonDeletedElements } from "@excalidraw/element";
-import { serializeAsJSON } from "@excalidraw/excalidraw/data/json";
+} from "@setsquare/setsquare/clipboard";
+import { encodePngMetadata } from "@setsquare/setsquare/data/image";
+import { getNonDeletedElements } from "@setsquare/element";
+import { serializeAsJSON } from "@setsquare/setsquare/data/json";
 import {
   restoreAppState,
   restoreElements,
-} from "@excalidraw/excalidraw/data/restore";
+} from "@setsquare/setsquare/data/restore";
 import {
   exportToCanvas as _exportToCanvas,
   exportToSvg as _exportToSvg,
-} from "@excalidraw/excalidraw/scene/export";
+} from "@setsquare/setsquare/scene/export";
 
 import type {
-  ExcalidrawFrameLikeElement,
+  SetsquareFrameLikeElement,
   NonDeleted,
-  NonDeletedExcalidrawElement,
-} from "@excalidraw/element/types";
-import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types";
+  NonDeletedSetsquareElement,
+} from "@setsquare/element/types";
+import type { AppState, BinaryFiles } from "@setsquare/setsquare/types";
 
 export { MIME_TYPES };
 
 type ExportOpts = {
   /** restored before exporting */
-  elements: readonly NonDeletedExcalidrawElement[];
+  elements: readonly NonDeletedSetsquareElement[];
   appState?: Partial<Omit<AppState, "offsetTop" | "offsetLeft">>;
   files: BinaryFiles | null;
   maxWidthOrHeight?: number;
-  exportingFrame?: NonDeleted<ExcalidrawFrameLikeElement> | null;
+  exportingFrame?: NonDeleted<SetsquareFrameLikeElement> | null;
   getDimensions?: (
     width: number,
     height: number,

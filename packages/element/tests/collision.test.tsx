@@ -3,21 +3,21 @@ import {
   arrayToMap,
   getSizeFromPoints,
   reseed,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 import {
   type GlobalPoint,
   type LocalPoint,
   lineSegment,
   pointFrom,
   pointRotateRads,
-} from "@excalidraw/math";
-import { Excalidraw } from "@excalidraw/excalidraw";
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { UI } from "@excalidraw/excalidraw/tests/helpers/ui";
-import "@excalidraw/utils/test-utils";
-import { render } from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/math";
+import { Setsquare } from "@setsquare/setsquare";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { UI } from "@setsquare/setsquare/tests/helpers/ui";
+import "@setsquare/utils/test-utils";
+import { render } from "@setsquare/setsquare/tests/test-utils";
 
-import type { Zoom } from "@excalidraw/excalidraw/types";
+import type { Zoom } from "@setsquare/setsquare/types";
 
 import * as distance from "../src/distance";
 import { getElementBounds } from "../src/bounds";
@@ -34,8 +34,8 @@ import { newFreeDrawElement } from "../src/newElement";
 import { getAllMidpoints } from "../src/utils";
 
 import type {
-  ExcalidrawDiamondElement,
-  NonDeletedExcalidrawElement,
+  SetsquareDiamondElement,
+  NonDeletedSetsquareElement,
   NonDeletedSceneElementsMap,
   Ordered,
 } from "../src/types";
@@ -44,7 +44,7 @@ describe("check rotated elements can be hit:", () => {
   beforeEach(async () => {
     localStorage.clear();
     reseed(7);
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   it("arrow", () => {
@@ -89,7 +89,7 @@ describe("hitElementItself cache", () => {
 
     localStorage.clear();
     reseed(7);
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   it("reuses cached result when threshold increases", () => {
@@ -690,7 +690,7 @@ describe("freedraw loop fill containment", () => {
 });
 
 describe("binding hit tests", () => {
-  type SceneElement = Ordered<NonDeletedExcalidrawElement>;
+  type SceneElement = Ordered<NonDeletedSetsquareElement>;
   const zoom = (value: number) => ({ value } as Zoom);
 
   const hitTest = (
@@ -925,7 +925,7 @@ describe("intersectElementWithLineSegment", () => {
       width: 200,
       height: 200,
       roundness: { type: ROUNDNESS.PROPORTIONAL_RADIUS },
-    }) as ExcalidrawDiamondElement;
+    }) as SetsquareDiamondElement;
     const elementsMap = arrayToMap([diamond]);
     const [, , left] = getAllMidpoints(diamond, elementsMap);
 

@@ -1,28 +1,28 @@
-import { ARROW_TYPE, DEFAULT_ZOOM } from "@excalidraw/common";
-import { pointFrom } from "@excalidraw/math";
-import { Excalidraw } from "@excalidraw/excalidraw";
-import { actionSelectAll } from "@excalidraw/excalidraw/actions";
-import { actionDuplicateSelection } from "@excalidraw/excalidraw/actions/actionDuplicateSelection";
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { Pointer, UI } from "@excalidraw/excalidraw/tests/helpers/ui";
+import { ARROW_TYPE, DEFAULT_ZOOM } from "@setsquare/common";
+import { pointFrom } from "@setsquare/math";
+import { Setsquare } from "@setsquare/setsquare";
+import { actionSelectAll } from "@setsquare/setsquare/actions";
+import { actionDuplicateSelection } from "@setsquare/setsquare/actions/actionDuplicateSelection";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { Pointer, UI } from "@setsquare/setsquare/tests/helpers/ui";
 import {
   act,
   fireEvent,
   GlobalTestState,
   queryByTestId,
   render,
-} from "@excalidraw/excalidraw/tests/test-utils";
-import "@excalidraw/utils/test-utils";
-import { bindBindingElement } from "@excalidraw/element";
+} from "@setsquare/setsquare/tests/test-utils";
+import "@setsquare/utils/test-utils";
+import { bindBindingElement } from "@setsquare/element";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { LocalPoint } from "@setsquare/math";
 
 import { Scene } from "../src/Scene";
 
 import type {
-  ExcalidrawArrowElement,
-  ExcalidrawBindableElement,
-  ExcalidrawElbowArrowElement,
+  SetsquareArrowElement,
+  SetsquareBindableElement,
+  SetsquareElbowArrowElement,
   NonDeleted,
 } from "../src/types";
 
@@ -33,7 +33,7 @@ const mouse = new Pointer("mouse");
 describe("elbow arrow segment move", () => {
   beforeEach(async () => {
     localStorage.clear();
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   it("can move the second segment of a fully connected elbow arrow", () => {
@@ -67,7 +67,7 @@ describe("elbow arrow segment move", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawElbowArrowElement;
+    )[0] as SetsquareElbowArrowElement;
 
     expect(h.state.selectedElementIds).toEqual({ [arrow.id]: true });
     expect(arrow.fixedSegments?.length).toBe(1);
@@ -109,7 +109,7 @@ describe("elbow arrow segment move", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
 
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
@@ -134,7 +134,7 @@ describe("elbow arrow segment move", () => {
 describe("elbow arrow routing", () => {
   beforeEach(async () => {
     localStorage.clear();
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   it("can properly generate orthogonal arrow points", () => {
@@ -142,7 +142,7 @@ describe("elbow arrow routing", () => {
     const arrow = API.createElement({
       type: "arrow",
       elbowed: true,
-    }) as NonDeleted<ExcalidrawElbowArrowElement>;
+    }) as NonDeleted<SetsquareElbowArrowElement>;
     scene.insertElement(arrow);
     h.app.scene.mutateElement(arrow, {
       points: [
@@ -169,14 +169,14 @@ describe("elbow arrow routing", () => {
       y: -150,
       width: 100,
       height: 100,
-    }) as NonDeleted<ExcalidrawBindableElement>;
+    }) as NonDeleted<SetsquareBindableElement>;
     const rectangle2 = API.createElement({
       type: "rectangle",
       x: 50,
       y: 50,
       width: 100,
       height: 100,
-    }) as NonDeleted<ExcalidrawBindableElement>;
+    }) as NonDeleted<SetsquareBindableElement>;
     const arrow = API.createElement({
       type: "arrow",
       elbowed: true,
@@ -185,7 +185,7 @@ describe("elbow arrow routing", () => {
       width: 90,
       height: 200,
       points: [pointFrom(0, 0), pointFrom(90, 200)],
-    }) as NonDeleted<ExcalidrawElbowArrowElement>;
+    }) as NonDeleted<SetsquareElbowArrowElement>;
     API.setElements([rectangle1, rectangle2, arrow]);
 
     bindBindingElement(
@@ -224,7 +224,7 @@ describe("elbow arrow routing", () => {
 describe("elbow arrow ui", () => {
   beforeEach(async () => {
     localStorage.clear();
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
 
     fireEvent.contextMenu(GlobalTestState.interactiveCanvas, {
       button: 2,
@@ -262,7 +262,7 @@ describe("elbow arrow ui", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
 
     expect(arrow.type).toBe("arrow");
     expect(arrow.elbowed).toBe(true);
@@ -299,7 +299,7 @@ describe("elbow arrow ui", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
 
     mouse.click(51, 51);
 
@@ -343,7 +343,7 @@ describe("elbow arrow ui", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
     const originalArrowId = arrow.id;
 
     expect(arrow.startBinding).not.toBe(null);
@@ -361,7 +361,7 @@ describe("elbow arrow ui", () => {
 
     const duplicatedArrow = h.scene.getSelectedElements(
       h.state,
-    )[2] as ExcalidrawArrowElement;
+    )[2] as SetsquareArrowElement;
 
     expect(duplicatedArrow.id).not.toBe(originalArrowId);
     expect(duplicatedArrow.type).toBe("arrow");
@@ -401,7 +401,7 @@ describe("elbow arrow ui", () => {
 
     const arrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
     const originalArrowId = arrow.id;
 
     expect(arrow.startBinding).not.toBe(null);
@@ -415,7 +415,7 @@ describe("elbow arrow ui", () => {
 
     const duplicatedArrow = h.scene.getSelectedElements(
       h.state,
-    )[0] as ExcalidrawArrowElement;
+    )[0] as SetsquareArrowElement;
 
     expect(duplicatedArrow.id).not.toBe(originalArrowId);
     expect(duplicatedArrow.type).toBe("arrow");

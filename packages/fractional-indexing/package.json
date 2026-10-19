@@ -1,5 +1,5 @@
 {
-  "name": "@excalidraw/fractional-indexing",
+  "name": "@setsquare/fractional-indexing",
   "version": "3.3.0",
   "description": "Provides functions for generating ordering strings",
   "type": "module",
@@ -20,8 +20,8 @@
     "order"
   ],
   "homepage": "https://github.com/rocicorp/fractional-indexing#readme",
-  "bugs": "https://github.com/excalidraw/excalidraw/issues",
-  "repository": "https://github.com/excalidraw/excalidraw",
+  "bugs": "https://github.com/rselbach/setsquare/issues",
+  "repository": "https://github.com/rselbach/setsquare",
   "author": "arv@rocicorp.dev",
   "license": "CC0-1.0",
   "devDependencies": {

@@ -5,7 +5,7 @@ import {
   pointRotateRads,
   type GlobalPoint,
   type Radians,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import { getBindingGap, normalizeFixedPoint } from "./binding";
 import { elementCenterPoint } from "./bounds";
@@ -16,8 +16,8 @@ import { isBindableElement } from "./typeChecks";
 import type { LinkDirection } from "./flowchart";
 import type {
   ElementsMap,
-  ExcalidrawArrowElement,
-  ExcalidrawBindableElement,
+  SetsquareArrowElement,
+  SetsquareBindableElement,
   FixedPoint,
   FixedPointBinding,
 } from "./types";
@@ -31,14 +31,14 @@ export type CardinalAnchor = {
 
 /** An arrow end: the element it's bound to, or the point it's left at. */
 type CardinalEnd = {
-  element: ExcalidrawBindableElement | null;
+  element: SetsquareBindableElement | null;
   point: GlobalPoint;
 };
 
 const SIDES = Object.keys(LINK_DIRECTION_VECTORS) as LinkDirection[];
 
 const getCardinalAnchors = (
-  element: ExcalidrawBindableElement,
+  element: SetsquareBindableElement,
   elementsMap: ElementsMap,
 ): CardinalAnchor[] => {
   const center = elementCenterPoint(element, elementsMap);
@@ -116,7 +116,7 @@ export const getClosestCardinalAnchors = (
 
 /** The binding ratio that puts the arrow end at `point` on `element`. */
 const getFixedPointAt = (
-  element: ExcalidrawBindableElement,
+  element: SetsquareBindableElement,
   point: GlobalPoint,
   elementsMap: ElementsMap,
 ): FixedPoint => {
@@ -137,7 +137,7 @@ const getFixedPointAt = (
 /** `binding`, moved to `anchor`; the same object when it's there already. */
 const getCardinalBinding = (
   binding: FixedPointBinding,
-  element: ExcalidrawBindableElement,
+  element: SetsquareBindableElement,
   anchor: CardinalAnchor,
   elementsMap: ElementsMap,
 ): FixedPointBinding => {
@@ -155,7 +155,7 @@ const getCardinalBinding = (
  */
 export const getCardinalBindingUpdates = (
   arrow: Pick<
-    ExcalidrawArrowElement,
+    SetsquareArrowElement,
     "x" | "y" | "points" | "startBinding" | "endBinding"
   >,
   elementsMap: ElementsMap,

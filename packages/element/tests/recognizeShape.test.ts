@@ -1,4 +1,4 @@
-import type { GlobalPoint } from "@excalidraw/math";
+import type { GlobalPoint } from "@setsquare/math";
 
 import { recognizeShape } from "../src/convertToShape";
 

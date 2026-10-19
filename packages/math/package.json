@@ -1,5 +1,5 @@
 {
-  "name": "@excalidraw/math",
+  "name": "@setsquare/math",
   "version": "0.18.0",
   "type": "module",
   "types": "./dist/types/math/src/index.d.ts",
@@ -22,14 +22,14 @@
   "files": [
     "dist/*"
   ],
-  "description": "Excalidraw math functions",
+  "description": "Setsquare math functions",
   "publishConfig": {
     "access": "public"
   },
   "license": "MIT",
   "keywords": [
-    "excalidraw",
-    "excalidraw-math",
+    "setsquare",
+    "setsquare-math",
     "math",
     "vector",
     "algebra",
@@ -54,13 +54,13 @@
       "last 1 safari version"
     ]
   },
-  "bugs": "https://github.com/excalidraw/excalidraw/issues",
-  "repository": "https://github.com/excalidraw/excalidraw",
+  "bugs": "https://github.com/rselbach/setsquare/issues",
+  "repository": "https://github.com/rselbach/setsquare",
   "scripts": {
     "gen:types": "rimraf types && tsc",
     "build:esm": "rimraf dist && node ../../scripts/buildBase.js && yarn gen:types"
   },
   "dependencies": {
-    "@excalidraw/common": "0.18.0"
+    "@setsquare/common": "0.18.0"
   }
 }

@@ -10,11 +10,11 @@ import {
   getFontString,
   isProdEnv,
   invariant,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import { pointFrom, pointRotateRads, type Radians } from "@excalidraw/math";
+import { pointFrom, pointRotateRads, type Radians } from "@setsquare/math";
 
-import type { ExtractSetType } from "@excalidraw/common/utility-types";
+import type { ExtractSetType } from "@setsquare/common/utility-types";
 
 import {
   resetOriginalContainerCache,
@@ -40,17 +40,17 @@ import type { Scene } from "./Scene";
 import type { MaybeTransformHandleType } from "./transformHandles";
 import type {
   ElementsMap,
-  ExcalidrawElement,
-  ExcalidrawElementType,
-  ExcalidrawTextContainer,
-  ExcalidrawTextElement,
-  ExcalidrawTextElementWithContainer,
+  SetsquareElement,
+  SetsquareElementType,
+  SetsquareTextContainer,
+  SetsquareTextElement,
+  SetsquareTextElementWithContainer,
   NonDeleted,
 } from "./types";
 
 export const redrawTextBoundingBox = (
-  textElement: ExcalidrawTextElement,
-  container: ExcalidrawElement | null,
+  textElement: SetsquareTextElement,
+  container: SetsquareElement | null,
   scene: Scene,
 ) => {
   const elementsMap = scene.getNonDeletedElementsMap();
@@ -113,7 +113,7 @@ export const redrawTextBoundingBox = (
   if (container) {
     const maxContainerHeight = getBoundTextMaxHeight(
       container,
-      textElement as ExcalidrawTextElementWithContainer,
+      textElement as SetsquareTextElementWithContainer,
     );
     const maxContainerWidth = getBoundTextMaxWidth(container, textElement);
 
@@ -137,7 +137,7 @@ export const redrawTextBoundingBox = (
     const updatedTextElement = {
       ...textElement,
       ...boundTextUpdates,
-    } as ExcalidrawTextElementWithContainer;
+    } as SetsquareTextElementWithContainer;
 
     const { x, y } = computeBoundTextPosition(
       container,
@@ -153,7 +153,7 @@ export const redrawTextBoundingBox = (
 };
 
 export const handleBindTextResize = (
-  container: ExcalidrawElement,
+  container: SetsquareElement,
   scene: Scene,
   transformHandleType: MaybeTransformHandleType,
   shouldMaintainAspectRatio = false,
@@ -247,8 +247,8 @@ export const handleBindTextResize = (
 };
 
 export const computeBoundTextPosition = (
-  container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElementWithContainer,
+  container: SetsquareElement,
+  boundTextElement: SetsquareTextElementWithContainer,
   elementsMap: ElementsMap,
 ) => {
   if (isArrowElement(container)) {
@@ -323,16 +323,16 @@ export const computeBoundTextPosition = (
   return { x, y };
 };
 
-export const getBoundTextElementId = (container: ExcalidrawElement | null) => {
+export const getBoundTextElementId = (container: SetsquareElement | null) => {
   return container?.boundElements?.length
     ? container?.boundElements?.find((ele) => ele.type === "text")?.id || null
     : null;
 };
 
 export const getBoundTextElement = (
-  element: ExcalidrawElement | null,
+  element: SetsquareElement | null,
   elementsMap: ElementsMap,
-): NonDeleted<ExcalidrawTextElementWithContainer> | null => {
+): NonDeleted<SetsquareTextElementWithContainer> | null => {
   if (!element) {
     return null;
   }
@@ -340,7 +340,7 @@ export const getBoundTextElement = (
 
   if (boundTextElementId) {
     const boundTextElement = (elementsMap.get(boundTextElementId) ||
-      null) as NonDeleted<ExcalidrawTextElementWithContainer> | null;
+      null) as NonDeleted<SetsquareTextElementWithContainer> | null;
 
     // SAFETY: This should never happen, but log it just in case
     if (boundTextElement && !isNonDeletedElement(boundTextElement)) {
@@ -355,8 +355,8 @@ export const getBoundTextElement = (
 };
 
 export const getContainerElement = <
-  T extends ExcalidrawTextElement,
-  R extends ExcalidrawTextContainer,
+  T extends SetsquareTextElement,
+  R extends SetsquareTextContainer,
 >(
   element: T | null,
   elementsMap: ElementsMap,
@@ -375,7 +375,7 @@ export const getContainerElement = <
  * point the text tool snaps a new label to.
  */
 export const getContainerCenter = (
-  container: ExcalidrawElement,
+  container: SetsquareElement,
   elementsMap: ElementsMap,
 ) => {
   if (!isArrowElement(container)) {
@@ -393,7 +393,7 @@ export const getContainerCenter = (
   return { x: center[0], y: center[1] };
 };
 
-export const getContainerCoords = (container: ExcalidrawElement) => {
+export const getContainerCoords = (container: SetsquareElement) => {
   const padding = isStickyNoteElement(container)
     ? STICKY_NOTE_PADDING
     : BOUND_TEXT_PADDING;
@@ -401,11 +401,9 @@ export const getContainerCoords = (container: ExcalidrawElement) => {
   let offsetY = padding;
 
   if (container.type === "ellipse") {
-    // The derivation of coordinates is explained in https://github.com/excalidraw/excalidraw/pull/6172
     offsetX += (container.width / 2) * (1 - Math.sqrt(2) / 2);
     offsetY += (container.height / 2) * (1 - Math.sqrt(2) / 2);
   }
-  // The derivation of coordinates is explained in https://github.com/excalidraw/excalidraw/pull/6265
   if (container.type === "diamond") {
     offsetX += container.width / 4;
     offsetY += container.height / 4;
@@ -417,8 +415,8 @@ export const getContainerCoords = (container: ExcalidrawElement) => {
 };
 
 export const getTextElementAngle = (
-  textElement: ExcalidrawTextElement,
-  container: ExcalidrawTextContainer | null,
+  textElement: SetsquareTextElement,
+  container: SetsquareTextContainer | null,
 ) => {
   if (isArrowElement(container)) {
     return 0;
@@ -430,8 +428,8 @@ export const getTextElementAngle = (
 };
 
 export const getBoundTextElementPosition = (
-  container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElementWithContainer,
+  container: SetsquareElement,
+  boundTextElement: SetsquareTextElementWithContainer,
   elementsMap: ElementsMap,
 ) => {
   if (isArrowElement(container)) {
@@ -450,7 +448,7 @@ export const getBoundTextElementPosition = (
  * consumers reading a label's coords directly must go through this helper.
  */
 export const getTextElementWithAccuratePosition = <
-  T extends ExcalidrawTextElement,
+  T extends SetsquareTextElement,
 >(
   textElement: T,
   elementsMap: ElementsMap,
@@ -466,14 +464,14 @@ export const getTextElementWithAccuratePosition = <
     ...textElement,
     ...LinearElementEditor.getBoundTextElementPosition(
       container,
-      textElement as ExcalidrawTextElementWithContainer,
+      textElement as SetsquareTextElementWithContainer,
       elementsMap,
     ),
   };
 };
 
 export const shouldAllowVerticalAlign = (
-  selectedElements: readonly ExcalidrawElement[],
+  selectedElements: readonly SetsquareElement[],
   elementsMap: ElementsMap,
 ) => {
   return selectedElements.some((element) => {
@@ -489,7 +487,7 @@ export const shouldAllowVerticalAlign = (
 };
 
 export const suppportsHorizontalAlign = (
-  selectedElements: readonly ExcalidrawElement[],
+  selectedElements: readonly SetsquareElement[],
   elementsMap: ElementsMap,
 ) => {
   return selectedElements.some((element) => {
@@ -514,8 +512,8 @@ const VALID_CONTAINER_TYPES = new Set([
 ]);
 
 export const isValidTextContainer = (element: {
-  type: ExcalidrawElementType;
-}): element is ExcalidrawTextContainer =>
+  type: SetsquareElementType;
+}): element is SetsquareTextContainer =>
   VALID_CONTAINER_TYPES.has(element.type);
 
 export const computeContainerDimensionForBoundText = (
@@ -538,8 +536,8 @@ export const computeContainerDimensionForBoundText = (
 };
 
 export const getBoundTextMaxWidth = (
-  container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElement | null,
+  container: SetsquareElement,
+  boundTextElement: SetsquareTextElement | null,
 ) => {
   const { width } = container;
   if (isArrowElement(container)) {
@@ -551,12 +549,12 @@ export const getBoundTextMaxWidth = (
   if (container.type === "ellipse") {
     // The width of the largest rectangle inscribed inside an ellipse is
     // Math.round((ellipse.width / 2) * Math.sqrt(2)) which is derived from
-    // equation of an ellipse -https://github.com/excalidraw/excalidraw/pull/6172
+    // equation of an ellipse
     return Math.round((width / 2) * Math.sqrt(2)) - BOUND_TEXT_PADDING * 2;
   }
   if (container.type === "diamond") {
     // The width of the largest rectangle inscribed inside a rhombus is
-    // Math.round(width / 2) - https://github.com/excalidraw/excalidraw/pull/6265
+    // Math.round(width / 2)
     return Math.round(width / 2) - BOUND_TEXT_PADDING * 2;
   }
   return (
@@ -569,8 +567,8 @@ export const getBoundTextMaxWidth = (
 };
 
 export const getBoundTextMaxHeight = (
-  container: ExcalidrawElement,
-  boundTextElement: ExcalidrawTextElementWithContainer,
+  container: SetsquareElement,
+  boundTextElement: SetsquareTextElementWithContainer,
 ) => {
   const { height } = container;
   if (isStickyNoteElement(container)) {
@@ -587,12 +585,12 @@ export const getBoundTextMaxHeight = (
   if (container.type === "ellipse") {
     // The height of the largest rectangle inscribed inside an ellipse is
     // Math.round((ellipse.height / 2) * Math.sqrt(2)) which is derived from
-    // equation of an ellipse - https://github.com/excalidraw/excalidraw/pull/6172
+    // equation of an ellipse
     return Math.round((height / 2) * Math.sqrt(2)) - BOUND_TEXT_PADDING * 2;
   }
   if (container.type === "diamond") {
     // The height of the largest rectangle inscribed inside a rhombus is
-    // Math.round(height / 2) - https://github.com/excalidraw/excalidraw/pull/6265
+    // Math.round(height / 2)
     return Math.round(height / 2) - BOUND_TEXT_PADDING * 2;
   }
   return height - BOUND_TEXT_PADDING * 2;
@@ -600,7 +598,7 @@ export const getBoundTextMaxHeight = (
 
 /** retrieves text from text elements and concatenates to a single string */
 export const getTextFromElements = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   separator = "\n\n",
 ) => {
   const text = elements

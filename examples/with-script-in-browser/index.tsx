@@ -1,29 +1,29 @@
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import "@excalidraw/excalidraw/index.css";
+import "@setsquare/setsquare/index.css";
 
-import type * as TExcalidraw from "@excalidraw/excalidraw";
+import type * as TSetsquare from "@setsquare/setsquare";
 
 import App from "./components/ExampleApp";
 
 declare global {
   interface Window {
-    ExcalidrawLib: typeof TExcalidraw;
+    SetsquareLib: typeof TSetsquare;
   }
 }
 
 const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);
-const { Excalidraw } = window.ExcalidrawLib;
+const { Setsquare } = window.SetsquareLib;
 root.render(
   <StrictMode>
     <App
-      appTitle={"Excalidraw Example"}
+      appTitle={"Setsquare Example"}
       useCustom={(api: any, args?: any[]) => {}}
-      excalidrawLib={window.ExcalidrawLib}
+      setsquareLib={window.SetsquareLib}
     >
-      <Excalidraw />
+      <Setsquare />
     </App>
   </StrictMode>,
 );

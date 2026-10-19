@@ -6,13 +6,13 @@
  * By definition one radian is the angle subtended at the centre
  * of a circle by an arc that is equal in length to the radius.
  */
-export type Radians = number & { _brand: "excalimath__radian" };
+export type Radians = number & { _brand: "setsquaremath__radian" };
 
 /**
  * An angle measurement of a plane angle in which one full
  * rotation is 360 degrees.
  */
-export type Degrees = number & { _brand: "excalimath_degree" };
+export type Degrees = number & { _brand: "setsquaremath_degree" };
 
 //
 // Range
@@ -21,7 +21,9 @@ export type Degrees = number & { _brand: "excalimath_degree" };
 /**
  * A number range which includes the start and end numbers in the range.
  */
-export type InclusiveRange = [number, number] & { _brand: "excalimath_degree" };
+export type InclusiveRange = [number, number] & {
+  _brand: "setsquaremath_degree";
+};
 
 //
 // Point
@@ -32,7 +34,7 @@ export type InclusiveRange = [number, number] & { _brand: "excalimath_degree" };
  * global coordinate.
  */
 export type GlobalPoint = [x: number, y: number] & {
-  _brand: "excalimath__globalpoint";
+  _brand: "setsquaremath__globalpoint";
 };
 
 /**
@@ -42,7 +44,7 @@ export type GlobalPoint = [x: number, y: number] & {
  * TODO remove this once we migrate the codebase to use Point tuples everywhere
  */
 export type GlobalCoord = { x: number; y: number } & {
-  _brand: "excalimath__globalcoord";
+  _brand: "setsquaremath__globalcoord";
 };
 
 /**
@@ -50,7 +52,7 @@ export type GlobalCoord = { x: number; y: number } & {
  * needed. A local coordinate.
  */
 export type LocalPoint = [x: number, y: number] & {
-  _brand: "excalimath__localpoint";
+  _brand: "setsquaremath__localpoint";
 };
 
 /**
@@ -60,7 +62,7 @@ export type LocalPoint = [x: number, y: number] & {
  * TODO remove this once we migrate the codebase to use Point tuples everywhere
  */
 export type LocalCoord = { x: number; y: number } & {
-  _brand: "excalimath__localcoord";
+  _brand: "setsquaremath__localcoord";
 };
 
 // Line
@@ -69,7 +71,7 @@ export type LocalCoord = { x: number; y: number } & {
  * A line is an infinitely long object with no width, depth, or curvature.
  */
 export type Line<P extends GlobalPoint | LocalPoint> = [p: P, q: P] & {
-  _brand: "excalimath_line";
+  _brand: "setsquaremath_line";
 };
 
 /**
@@ -78,7 +80,7 @@ export type Line<P extends GlobalPoint | LocalPoint> = [p: P, q: P] & {
  * contains every point on the line that is between its endpoints.
  */
 export type LineSegment<P extends GlobalPoint | LocalPoint> = [a: P, b: P] & {
-  _brand: "excalimath_linesegment";
+  _brand: "setsquaremath_linesegment";
 };
 
 //
@@ -89,7 +91,7 @@ export type LineSegment<P extends GlobalPoint | LocalPoint> = [a: P, b: P] & {
  * Represents a 2D vector
  */
 export type Vector = [u: number, v: number] & {
-  _brand: "excalimath__vector";
+  _brand: "setsquaremath__vector";
 };
 
 // Triangles
@@ -102,14 +104,14 @@ export type Triangle<P extends GlobalPoint | LocalPoint> = [
   b: P,
   c: P,
 ] & {
-  _brand: "excalimath__triangle";
+  _brand: "setsquaremath__triangle";
 };
 
 /**
  * A rectangular shape represented by 4 points at its corners
  */
 export type Rectangle<P extends GlobalPoint | LocalPoint> = [a: P, b: P] & {
-  _brand: "excalimath__rectangle";
+  _brand: "setsquaremath__rectangle";
 };
 
 //
@@ -121,7 +123,7 @@ export type Rectangle<P extends GlobalPoint | LocalPoint> = [a: P, b: P] & {
  * rectangles and diamonds are modelled by polygons
  */
 export type Polygon<Point extends GlobalPoint | LocalPoint> = Point[] & {
-  _brand: "excalimath_polygon";
+  _brand: "setsquaremath_polygon";
 };
 
 //
@@ -137,7 +139,7 @@ export type Curve<Point extends GlobalPoint | LocalPoint> = [
   Point,
   Point,
 ] & {
-  _brand: "excalimath_curve";
+  _brand: "setsquaremath_curve";
 };
 
 export type PolarCoords = [
@@ -156,7 +158,7 @@ export type Ellipse<Point extends GlobalPoint | LocalPoint> = {
   halfWidth: number;
   halfHeight: number;
 } & {
-  _brand: "excalimath_ellipse";
+  _brand: "setsquaremath_ellipse";
 };
 
 export type ElementsSegmentsMap = Map<string, LineSegment<GlobalPoint>[]>;

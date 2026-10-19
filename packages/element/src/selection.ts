@@ -1,10 +1,10 @@
-import { isShallowEqual, type Bounds } from "@excalidraw/common";
+import { isShallowEqual, type Bounds } from "@setsquare/common";
 
 import type {
   AppState,
   BoxSelectionMode,
   InteractiveCanvasAppState,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 
 import { elementsOverlappingBBox, getElementAbsoluteCoords } from "./bounds";
 import { isElementInViewport } from "./sizeHelpers";
@@ -20,18 +20,18 @@ import { isNonDeletedElement } from ".";
 import type {
   ElementsMap,
   ElementsMapOrArray,
-  ExcalidrawElement,
-  ExcalidrawFrameLikeElement,
+  SetsquareElement,
+  SetsquareFrameLikeElement,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
 } from "./types";
 
-export const shouldIgnoreElementFromSelection = (element: ExcalidrawElement) =>
+export const shouldIgnoreElementFromSelection = (element: SetsquareElement) =>
   element.locked || isBoundToContainer(element);
 
-const excludeElementsFromFrames = <T extends ExcalidrawElement>(
+const excludeElementsFromFrames = <T extends SetsquareElement>(
   selectedElements: readonly T[],
-  framesInSelection: Set<ExcalidrawFrameLikeElement["id"]>,
+  framesInSelection: Set<SetsquareFrameLikeElement["id"]>,
 ) => {
   return selectedElements.filter((element) => {
     if (element.frameId && framesInSelection.has(element.frameId)) {
@@ -48,7 +48,7 @@ const excludeElementsFromFrames = <T extends ExcalidrawElement>(
  * @param selectedElements
  */
 export const excludeElementsInFramesFromSelection = <
-  T extends ExcalidrawElement,
+  T extends SetsquareElement,
 >(
   selectedElements: readonly T[],
 ) => {
@@ -63,9 +63,9 @@ export const excludeElementsInFramesFromSelection = <
   return excludeElementsFromFrames(selectedElements, framesInSelection);
 };
 
-export const getElementsWithinSelection = <T extends ExcalidrawElement>(
+export const getElementsWithinSelection = <T extends SetsquareElement>(
   elements: readonly T[],
-  selection: ExcalidrawElement,
+  selection: SetsquareElement,
   elementsMap: ElementsMap,
   // TODO remove (this flag is effectively unused AFAIK)
   excludeElementsInFrames: boolean = true,
@@ -95,10 +95,10 @@ export const getElementsWithinSelection = <T extends ExcalidrawElement>(
 };
 
 export const getVisibleAndNonSelectedElements = <
-  T extends NonDeletedExcalidrawElement,
+  T extends NonDeletedSetsquareElement,
 >(
   elements: readonly T[],
-  selectedElements: readonly ExcalidrawElement[],
+  selectedElements: readonly SetsquareElement[],
   appState: AppState,
   elementsMap: ElementsMap,
 ) => {
@@ -120,12 +120,12 @@ export const getVisibleAndNonSelectedElements = <
 
 // FIXME move this into the editor instance to keep utility methods stateless
 export const isSomeElementSelected = (function () {
-  let lastElements: readonly NonDeletedExcalidrawElement[] | null = null;
+  let lastElements: readonly NonDeletedSetsquareElement[] | null = null;
   let lastSelectedElementIds: AppState["selectedElementIds"] | null = null;
   let isSelected: boolean | null = null;
 
   const ret = (
-    elements: readonly NonDeletedExcalidrawElement[],
+    elements: readonly NonDeletedSetsquareElement[],
     appState: Pick<AppState, "selectedElementIds">,
   ): boolean => {
     if (
@@ -162,13 +162,13 @@ export const getSelectedElements = (
     includeElementsInFrames?: boolean;
   },
 ) => {
-  const addedElements = new Set<ExcalidrawElement["id"]>();
+  const addedElements = new Set<SetsquareElement["id"]>();
   // selection can only contain non-deleted elements
-  const selectedElements: NonDeletedExcalidrawElement[] = [];
+  const selectedElements: NonDeletedSetsquareElement[] = [];
   for (const element of elements.values()) {
     if (appState.selectedElementIds[element.id]) {
       if (isNonDeletedElement(element)) {
-        selectedElements.push(element as NonDeletedExcalidrawElement);
+        selectedElements.push(element as NonDeletedSetsquareElement);
         addedElements.add(element.id);
       } else {
         console.error(
@@ -183,20 +183,20 @@ export const getSelectedElements = (
       isNonDeletedElement(element) &&
       appState.selectedElementIds[element?.containerId]
     ) {
-      selectedElements.push(element as NonDeletedExcalidrawElement);
+      selectedElements.push(element as NonDeletedSetsquareElement);
       addedElements.add(element.id);
       continue;
     }
   }
 
   if (opts?.includeElementsInFrames) {
-    const elementsToInclude: NonDeletedExcalidrawElement[] = [];
+    const elementsToInclude: NonDeletedSetsquareElement[] = [];
     selectedElements.forEach((element) => {
       if (isFrameLikeElement(element)) {
         getFrameChildren(elements, element.id).forEach(
           (e) =>
             !addedElements.has(e.id) &&
-            elementsToInclude.push(e as NonDeletedExcalidrawElement),
+            elementsToInclude.push(e as NonDeletedSetsquareElement),
         );
       }
       elementsToInclude.push(element);
@@ -245,7 +245,7 @@ export const makeNextSelectedElementIds = (
  * Returns editing or single-selected text element, if any.
  */
 export const getActiveTextElement = (
-  selectedElements: readonly NonDeleted<ExcalidrawElement>[],
+  selectedElements: readonly NonDeleted<SetsquareElement>[],
   appState: Pick<AppState, "editingTextElement">,
 ) => {
   const activeTextElement =

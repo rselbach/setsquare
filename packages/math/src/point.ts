@@ -157,7 +157,7 @@ export function pointRotateDegs<Point extends GlobalPoint | LocalPoint>(
 /**
  * Translate a point by a vector.
  *
- * WARNING: This is not for translating Excalidraw element points!
+ * WARNING: This is not for translating Setsquare element points!
  *          You need to account for rotation on base coordinates
  *          on your own.
  *          CONSIDER USING AN APPROPRIATE ELEMENT-AWARE TRANSLATE!

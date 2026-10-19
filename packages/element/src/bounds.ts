@@ -5,15 +5,15 @@ import {
   invariant,
   rescalePoints,
   sizeOf,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 import {
   degreesToRadians,
   lineSegment,
   pointFrom,
   pointFromArray,
   pointRotateRads,
-} from "@excalidraw/math";
-import { getCurvePathOps } from "@excalidraw/utils/shape";
+} from "@setsquare/math";
+import { getCurvePathOps } from "@setsquare/utils/shape";
 import { pointsOnBezierCurves } from "points-on-curve";
 
 import type {
@@ -23,9 +23,9 @@ import type {
   LineSegment,
   LocalPoint,
   Radians,
-} from "@excalidraw/math";
-import type { AppState } from "@excalidraw/excalidraw/types";
-import type { Mutable } from "@excalidraw/common/utility-types";
+} from "@setsquare/math";
+import type { AppState } from "@setsquare/setsquare/types";
+import type { Mutable } from "@setsquare/common/utility-types";
 
 import { generateRoughOptions } from "./shape";
 import { ShapeCache } from "./shape";
@@ -39,7 +39,7 @@ import {
   isLinearElement,
   isLineElement,
   isTextElement,
-  isExcalidrawElement,
+  isSetsquareElement,
 } from "./typeChecks";
 import { getElementShape } from "./shape";
 import {
@@ -55,14 +55,14 @@ import type {
   Arrowhead,
   ElementsMap,
   ElementsMapOrArray,
-  ExcalidrawElement,
-  ExcalidrawEllipseElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawLinearElement,
-  ExcalidrawRectanguloidElement,
-  ExcalidrawTextElementWithContainer,
+  SetsquareElement,
+  SetsquareEllipseElement,
+  SetsquareFreeDrawElement,
+  SetsquareLinearElement,
+  SetsquareRectanguloidElement,
+  SetsquareTextElementWithContainer,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
 } from "./types";
 
 export type RectangleBox = {
@@ -84,22 +84,22 @@ export type SceneBounds = readonly [
 
 export class ElementBounds {
   private static boundsCache = new WeakMap<
-    ExcalidrawElement,
+    SetsquareElement,
     {
       bounds: Bounds;
-      version: ExcalidrawElement["version"];
+      version: SetsquareElement["version"];
     }
   >();
   private static nonRotatedBoundsCache = new WeakMap<
-    ExcalidrawElement,
+    SetsquareElement,
     {
       bounds: Bounds;
-      version: ExcalidrawElement["version"];
+      version: SetsquareElement["version"];
     }
   >();
 
   static getBounds(
-    element: ExcalidrawElement,
+    element: SetsquareElement,
     elementsMap: ElementsMap,
     nonRotated: boolean = false,
   ) {
@@ -145,7 +145,7 @@ export class ElementBounds {
   }
 
   private static calculateBounds(
-    element: ExcalidrawElement,
+    element: SetsquareElement,
     elementsMap: ElementsMap,
   ): Bounds {
     let bounds: Bounds;
@@ -244,7 +244,7 @@ export class ElementBounds {
 // If the element is created from right to left, the width is going to be negative
 // This set of functions retrieves the absolute position of the 4 points.
 export const getElementAbsoluteCoords = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   includeBoundText: boolean = false,
 ): [number, number, number, number, number, number] => {
@@ -263,7 +263,7 @@ export const getElementAbsoluteCoords = (
     if (isArrowElement(container)) {
       const { x, y } = LinearElementEditor.getBoundTextElementPosition(
         container,
-        element as ExcalidrawTextElementWithContainer,
+        element as SetsquareTextElementWithContainer,
         elementsMap,
       );
       return [
@@ -297,7 +297,7 @@ export const getElementAbsoluteCoords = (
  * Uses helpers from /math
  */
 export const getElementLineSegments = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
 ): LineSegment<GlobalPoint>[] => {
   const shape = getElementShape(element, elementsMap);
@@ -386,7 +386,7 @@ export const getElementLineSegments = (
     }
     return segments;
   } else if (shape.type === "ellipse") {
-    return getSegmentsOnEllipse(element as ExcalidrawEllipseElement);
+    return getSegmentsOnEllipse(element as SetsquareEllipseElement);
   }
 
   const [nw, ne, sw, se, , , w, e] = (
@@ -415,8 +415,8 @@ export const getElementLineSegments = (
 };
 
 const _isRectanguloidElement = (
-  element: ExcalidrawElement,
-): element is ExcalidrawRectanguloidElement => {
+  element: SetsquareElement,
+): element is SetsquareRectanguloidElement => {
   return (
     element != null &&
     (element.type === "rectangle" ||
@@ -473,7 +473,7 @@ const getSegmentsOnCurve = (
 };
 
 const getSegmentsOnEllipse = (
-  ellipse: ExcalidrawEllipseElement,
+  ellipse: SetsquareEllipseElement,
 ): LineSegment<GlobalPoint>[] => {
   const center = pointFrom<GlobalPoint>(
     ellipse.x + ellipse.width / 2,
@@ -506,7 +506,7 @@ const getSegmentsOnEllipse = (
 /**
  * Scene -> Scene coords, but in x1,x2,y1,y2 format.
  *
- * Rectangle here means any rectangular frame, not an excalidraw element.
+ * Rectangle here means any rectangular frame, not an setsquare element.
  */
 export const getRectangleBoxAbsoluteCoords = (boxSceneCoords: RectangleBox) => {
   return [
@@ -519,7 +519,7 @@ export const getRectangleBoxAbsoluteCoords = (boxSceneCoords: RectangleBox) => {
   ];
 };
 
-export const getDiamondPoints = (element: ExcalidrawElement) => {
+export const getDiamondPoints = (element: SetsquareElement) => {
   // Here we add +1 to avoid these numbers to be 0
   // otherwise rough.js will throw an error complaining about it
   const topX = Math.floor(element.width / 2) + 1;
@@ -697,7 +697,7 @@ export const getBoundsFromPoints = <P extends GlobalPoint | LocalPoint>(
 };
 
 const getFreeDrawElementAbsoluteCoords = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
 ): [number, number, number, number, number, number] => {
   const [minX, minY, maxX, maxY] = getBoundsFromPoints(element.points);
   const x1 = minX + element.x;
@@ -744,7 +744,7 @@ export const getArrowheadAngle = (arrowhead: Arrowhead): Degrees => {
 };
 
 export const getArrowheadPoints = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
   shape: Drawable[],
   position: "start" | "end",
   arrowhead: Arrowhead,
@@ -910,7 +910,7 @@ export const getArrowheadPoints = (
 
 // TODO reuse shape.ts
 const generateLinearElementShape = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
 ): Drawable => {
   const generator = rough.generator();
   const options = generateRoughOptions(element);
@@ -932,7 +932,7 @@ const generateLinearElementShape = (
 };
 
 const getLinearElementRotatedBounds = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
   cx: number,
   cy: number,
   elementsMap: ElementsMap,
@@ -995,7 +995,7 @@ const getLinearElementRotatedBounds = (
 };
 
 export const getElementBounds = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   nonRotated: boolean = false,
 ): Bounds => {
@@ -1029,7 +1029,7 @@ export const getCommonBounds = (
 };
 
 export const getDraggedElementsBounds = (
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   dragOffset: { x: number; y: number },
 ) => {
   const [minX, minY, maxX, maxY] = getCommonBounds(elements);
@@ -1042,7 +1042,7 @@ export const getDraggedElementsBounds = (
 };
 
 export const getResizedElementAbsoluteCoords = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   nextWidth: number,
   nextHeight: number,
   normalizePoints: boolean,
@@ -1092,7 +1092,7 @@ export const getResizedElementAbsoluteCoords = (
 };
 
 export const getElementPointsCoords = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
   points: readonly (readonly [number, number])[],
 ): Bounds => {
   // This might be computationally heavey
@@ -1127,8 +1127,8 @@ export interface BoundingBox {
 
 export const getCommonBoundingBox = (
   elements:
-    | readonly ExcalidrawElement[]
-    | readonly NonDeleted<ExcalidrawElement>[],
+    | readonly SetsquareElement[]
+    | readonly NonDeleted<SetsquareElement>[],
 ): BoundingBox => {
   const [minX, minY, maxX, maxY] = getCommonBounds(elements);
   return {
@@ -1171,7 +1171,7 @@ export const getCenterForBounds = (bounds: Bounds): GlobalPoint =>
  * Get the axis-aligned bounding box for a given element
  */
 export const aabbForElement = (
-  element: Readonly<ExcalidrawElement>,
+  element: Readonly<SetsquareElement>,
   elementsMap: ElementsMap,
   offset?: [number, number, number, number],
 ) => {
@@ -1270,7 +1270,7 @@ export const boundsContainBounds = (outerBounds: Bounds, innerBounds: Bounds) =>
  * It can be used to get elements overlapping a selection box, for example.
  *
  */
-export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
+export const elementsOverlappingBBox = <T extends SetsquareElement>({
   elements,
   elementsMap,
   bounds,
@@ -1281,7 +1281,7 @@ export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
 }: {
   elements: readonly T[];
   elementsMap?: ElementsMap;
-  bounds: Bounds | ExcalidrawElement;
+  bounds: Bounds | SetsquareElement;
   /**
    * - overlap: elements overlapping or inside bounds
    * - contain: elements inside bounds
@@ -1295,7 +1295,7 @@ export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
   if (!elementsMap) {
     elementsMap = arrayToMap(elements) as ElementsMap;
   }
-  const selectionBounds = isExcalidrawElement(bounds)
+  const selectionBounds = isSetsquareElement(bounds)
     ? getElementBounds(bounds, elementsMap)
     : bounds;
   const [selectionX1, selectionY1, selectionX2, selectionY2] = selectionBounds;
@@ -1319,7 +1319,7 @@ export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
   ];
 
   const framesInSelection = excludeElementsInFrames
-    ? new Set<ExcalidrawElement["id"]>()
+    ? new Set<SetsquareElement["id"]>()
     : null;
   const groups: Record<string, T[]> = {};
   const elementsInSelection: Set<T> = new Set();
@@ -1537,7 +1537,6 @@ export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
     elementsInSelection.forEach((element) => {
       // note: currently we only support top-level group handling since
       // we don't support box selecting while editing the group/subgroup
-      // see https://github.com/excalidraw/excalidraw/pull/11234#issuecomment-4387654451
       const groupId = element.groupIds.at(-1);
 
       const group = groupId ? groups[groupId] : null;
@@ -1556,7 +1555,7 @@ export const elementsOverlappingBBox = <T extends ExcalidrawElement>({
 };
 
 export const elementCenterPoint = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   xOffset: number = 0,
   yOffset: number = 0,

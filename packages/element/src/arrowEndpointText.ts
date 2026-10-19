@@ -7,7 +7,7 @@
  * points) lives in `App.arrowText.ts`; the generic binding bookkeeping these
  * helpers rely on stays in `binding.ts`.
  */
-import { TEXT_ALIGN, VERTICAL_ALIGN } from "@excalidraw/common";
+import { TEXT_ALIGN, VERTICAL_ALIGN } from "@setsquare/common";
 
 import {
   pointDistance,
@@ -18,11 +18,11 @@ import {
   vectorFromPoint,
   vectorNormalize,
   vectorScale,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import type { GlobalPoint } from "@excalidraw/math";
+import type { GlobalPoint } from "@setsquare/math";
 
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type { AppState } from "@setsquare/setsquare/types";
 
 import { getBindingGap, normalizeFixedPoint } from "./binding";
 import {
@@ -39,17 +39,17 @@ import { isArrowElement, isElbowArrow } from "./typeChecks";
 import type { Heading } from "./heading";
 import type {
   ElementsMap,
-  ExcalidrawArrowElement,
-  ExcalidrawTextElement,
+  SetsquareArrowElement,
+  SetsquareTextElement,
   FixedPoint,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
   TextAlign,
   VerticalAlign,
 } from "./types";
 
 export type ArrowEndpoint = {
-  arrow: NonDeleted<ExcalidrawArrowElement>;
+  arrow: NonDeleted<SetsquareArrowElement>;
   startOrEnd: "start" | "end";
 };
 
@@ -60,7 +60,7 @@ export type ArrowEndpoint = {
  */
 export const getUnboundArrowEndpointAtPoint = (
   scenePointer: GlobalPoint,
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   elementsMap: ElementsMap,
   zoom: AppState["zoom"],
 ): ArrowEndpoint | null => {
@@ -131,7 +131,7 @@ export const getUnboundArrowEndpointAtPoint = (
  * typed, so the arrow doesn't swing around during editing.
  */
 export const getTextBindingForArrowEndpoint = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   startOrEnd: "start" | "end",
   elementsMap: ElementsMap,
   /**
@@ -258,7 +258,7 @@ export const getTextBindingForArrowEndpoint = (
  * arrow is the authoritative side of the relationship.
  */
 export const isEndpointBoundText = (
-  text: ExcalidrawTextElement,
+  text: SetsquareTextElement,
   elementsMap: ElementsMap,
 ): boolean =>
   !!text.boundElements?.some(({ id, type }) => {
@@ -277,7 +277,7 @@ export const isEndpointBoundText = (
 
 /** the anchor a text bound to an arrow endpoint grows away from */
 export const getEndpointBoundTextDragAnchor = (
-  newElement: ExcalidrawTextElement,
+  newElement: SetsquareTextElement,
 ) => {
   const anchorRatio = getTextAnchorRatios(newElement).x;
 

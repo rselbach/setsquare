@@ -1,33 +1,29 @@
 import React from "react";
 import { vi } from "vitest";
 
-import { KEYS, cloneJSON } from "@excalidraw/common";
+import { KEYS, cloneJSON } from "@setsquare/common";
 
-import {
-  Excalidraw,
-  exportToCanvas,
-  exportToSvg,
-} from "@excalidraw/excalidraw";
+import { Setsquare, exportToCanvas, exportToSvg } from "@setsquare/setsquare";
 import {
   actionFlipHorizontal,
   actionFlipVertical,
-} from "@excalidraw/excalidraw/actions";
+} from "@setsquare/setsquare/actions";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { Keyboard, Pointer, UI } from "@excalidraw/excalidraw/tests/helpers/ui";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { Keyboard, Pointer, UI } from "@setsquare/setsquare/tests/helpers/ui";
 import {
   act,
   GlobalTestState,
   render,
   unmountComponent,
-} from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/setsquare/tests/test-utils";
 
-import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
+import type { NormalizedZoomValue } from "@setsquare/setsquare/types";
 
 import { duplicateElement } from "../src/duplicate";
 
 import type {
-  ExcalidrawImageElement,
+  SetsquareImageElement,
   ImageCrop,
   NonDeleted,
 } from "../src/types";
@@ -46,7 +42,7 @@ beforeEach(async () => {
   Object.assign(document, {
     elementFromPoint: () => GlobalTestState.canvas,
   });
-  await render(<Excalidraw autoFocus={true} handleKeyboardGlobally={true} />);
+  await render(<Setsquare autoFocus={true} handleKeyboardGlobally={true} />);
   API.setAppState({
     zoom: {
       value: 1 as NormalizedZoomValue,
@@ -62,7 +58,7 @@ beforeEach(async () => {
   });
 });
 
-const generateRandomNaturalWidthAndHeight = (image: ExcalidrawImageElement) => {
+const generateRandomNaturalWidthAndHeight = (image: SetsquareImageElement) => {
   const initialWidth = image.width;
   const initialHeight = image.height;
 
@@ -153,7 +149,7 @@ describe("Enter and leave the crop editor", () => {
 
 describe("Crop an image", () => {
   it("Cropping changes the dimension", async () => {
-    const image = h.elements[0] as ExcalidrawImageElement;
+    const image = h.elements[0] as SetsquareImageElement;
 
     const initialWidth = image.width;
     const initialHeight = image.height;
@@ -337,7 +333,7 @@ describe("Crop an image", () => {
   });
 
   it("Cropping has minimal sizes", async () => {
-    const image = h.elements[0] as ExcalidrawImageElement;
+    const image = h.elements[0] as SetsquareImageElement;
     const initialWidth = image.width;
     const initialHeight = image.height;
 
@@ -354,7 +350,7 @@ describe("Crop an image", () => {
   });
 
   it("Preserve aspect ratio", async () => {
-    let image = h.elements[0] as ExcalidrawImageElement;
+    let image = h.elements[0] as SetsquareImageElement;
     const initialWidth = image.width;
     const initialHeight = image.height;
 
@@ -419,7 +415,7 @@ describe("Crop an image", () => {
 
 describe("Cropping and other features", async () => {
   it("Cropping works independently of duplication", async () => {
-    const image = h.elements[0] as ExcalidrawImageElement;
+    const image = h.elements[0] as SetsquareImageElement;
     const initialWidth = image.width;
     const initialHeight = image.height;
 
@@ -461,7 +457,7 @@ describe("Cropping and other features", async () => {
   });
 
   it("Resizing should not affect crop", async () => {
-    const image = h.elements[0] as ExcalidrawImageElement;
+    const image = h.elements[0] as SetsquareImageElement;
     const initialWidth = image.width;
     const initialHeight = image.height;
 
@@ -489,7 +485,7 @@ describe("Cropping and other features", async () => {
   });
 
   it("Flipping does not change crop", async () => {
-    const image = h.elements[0] as ExcalidrawImageElement;
+    const image = h.elements[0] as SetsquareImageElement;
     const initialWidth = image.width;
     const initialHeight = image.height;
 
@@ -516,7 +512,7 @@ describe("Cropping and other features", async () => {
   });
 
   it("Exports should preserve crops", async () => {
-    const image = h.elements[0] as NonDeleted<ExcalidrawImageElement>;
+    const image = h.elements[0] as NonDeleted<SetsquareImageElement>;
     const initialWidth = image.width;
     const initialHeight = image.height;
 

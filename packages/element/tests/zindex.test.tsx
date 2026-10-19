@@ -1,4 +1,4 @@
-import { reseed } from "@excalidraw/common";
+import { reseed } from "@setsquare/common";
 
 import {
   actionSendBackward,
@@ -6,26 +6,26 @@ import {
   actionBringToFront,
   actionSendToBack,
   actionDuplicateSelection,
-} from "@excalidraw/excalidraw/actions";
+} from "@setsquare/setsquare/actions";
 
-import { Excalidraw, getNonDeletedElements } from "@excalidraw/excalidraw";
+import { Setsquare, getNonDeletedElements } from "@setsquare/setsquare";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 import {
   act,
   getCloneByOrigId,
   render,
   unmountComponent,
-} from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/setsquare/tests/test-utils";
 
-import { selectGroupsForSelectedElements } from "@excalidraw/excalidraw/components/App.selection";
+import { selectGroupsForSelectedElements } from "@setsquare/setsquare/components/App.selection";
 
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type { AppState } from "@setsquare/setsquare/types";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawFrameElement,
-  ExcalidrawSelectionElement,
+  SetsquareElement,
+  SetsquareFrameElement,
+  SetsquareSelectionElement,
 } from "../src/types";
 
 unmountComponent();
@@ -37,15 +37,15 @@ beforeEach(() => {
 
 const { h } = window;
 
-type ExcalidrawElementType = Exclude<
-  ExcalidrawElement,
-  ExcalidrawSelectionElement
+type SetsquareElementType = Exclude<
+  SetsquareElement,
+  SetsquareSelectionElement
 >["type"];
 
 const populateElements = (
   elements: {
     id: string;
-    type?: ExcalidrawElementType;
+    type?: SetsquareElementType;
     isDeleted?: boolean;
     isSelected?: boolean;
     groupIds?: string[];
@@ -54,8 +54,8 @@ const populateElements = (
     width?: number;
     height?: number;
     containerId?: string;
-    frameId?: ExcalidrawFrameElement["id"];
-    index?: ExcalidrawElement["index"];
+    frameId?: SetsquareFrameElement["id"];
+    index?: SetsquareElement["index"];
   }[],
   appState?: Partial<AppState>,
 ) => {
@@ -145,8 +145,8 @@ const assertZindex = ({
     isSelected?: true;
     groupIds?: string[];
     containerId?: string;
-    frameId?: ExcalidrawFrameElement["id"];
-    type?: ExcalidrawElementType;
+    frameId?: SetsquareFrameElement["id"];
+    type?: SetsquareElementType;
   }[];
   appState?: Partial<AppState>;
   operations: [Actions, string[]][];
@@ -161,7 +161,7 @@ const assertZindex = ({
 
 describe("z-index manipulation", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   it("send back", () => {
@@ -1231,7 +1231,7 @@ describe("z-index manipulation", () => {
 
 describe("z-indexing with frames", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   // naming scheme:
@@ -1572,7 +1572,7 @@ describe("z-indexing with frames", () => {
  */
 describe("z-index reordering with broken contiguity (invariant-violating input)", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   const assertReorderPreservesElements = (
@@ -1667,7 +1667,7 @@ describe("z-index reordering with broken contiguity (invariant-violating input)"
 
 describe("z-index reordering with inconsistent group-editing state", () => {
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
   });
 
   it("does not duplicate or drop elements when selected elements fall outside the edited group scope", () => {

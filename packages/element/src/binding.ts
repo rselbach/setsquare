@@ -4,7 +4,7 @@ import {
   getGridPoint,
   invariant,
   isTransparent,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
 import {
   PRECISION,
@@ -21,12 +21,12 @@ import {
   vectorNormalize,
   vectorScale,
   type GlobalPoint,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import type { LineSegment, LocalPoint, Radians } from "@excalidraw/math";
-import type { AppState, NullableGridSize } from "@excalidraw/excalidraw/types";
-import type { MapEntry, Mutable } from "@excalidraw/common/utility-types";
-import type { Bounds } from "@excalidraw/common";
+import type { LineSegment, LocalPoint, Radians } from "@setsquare/math";
+import type { AppState, NullableGridSize } from "@setsquare/setsquare/types";
+import type { MapEntry, Mutable } from "@setsquare/common/utility-types";
+import type { Bounds } from "@setsquare/common";
 
 import { getCenterForBounds } from "./bounds";
 import {
@@ -75,16 +75,16 @@ import type { ElementUpdate } from "./mutateElement";
 import type {
   BindMode,
   ElementsMap,
-  ExcalidrawArrowElement,
-  ExcalidrawBindableElement,
-  ExcalidrawElbowArrowElement,
-  ExcalidrawElement,
-  ExcalidrawRectanguloidElement,
-  ExcalidrawTextElement,
+  SetsquareArrowElement,
+  SetsquareBindableElement,
+  SetsquareElbowArrowElement,
+  SetsquareElement,
+  SetsquareRectanguloidElement,
+  SetsquareTextElement,
   FixedPoint,
   FixedPointBinding,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
   NonDeletedSceneElementsMap,
   Ordered,
   PointsPositionUpdates,
@@ -94,7 +94,7 @@ export type BindingStrategy =
   // Create a new binding with this mode
   | {
       mode: BindMode;
-      element: NonDeleted<ExcalidrawBindableElement>;
+      element: NonDeleted<SetsquareBindableElement>;
       focusPoint: GlobalPoint;
     }
   // Break the binding
@@ -126,7 +126,7 @@ const MIN_BINDABLE_SIZE = 1;
 export const getBindingGap = (
   // only the stroke width is needed, so the gap can also be computed for a
   // bind target that doesn't exist yet (see `getTextBindingForArrowEndpoint`)
-  bindTarget: Pick<ExcalidrawBindableElement, "strokeWidth">,
+  bindTarget: Pick<SetsquareBindableElement, "strokeWidth">,
 ): number => {
   return BASE_BINDING_GAP + bindTarget.strokeWidth / 2;
 };
@@ -150,7 +150,7 @@ export const isBindingEnabled = (appState: {
 };
 
 export const bindOrUnbindBindingElement = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   scenePointerX: number,
   scenePointerY: number,
@@ -246,7 +246,7 @@ export const bindOrUnbindBindingElement = (
  * of their elements that lie closest to each other.
  */
 export const updateCardinalArrowEnds = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   scene: Scene,
 ) => {
   const elementsMap = scene.getNonDeletedElementsMap();
@@ -276,7 +276,7 @@ export const updateCardinalArrowEnds = (
 };
 
 const bindOrUnbindBindingElementEdge = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   { mode, element, focusPoint }: BindingStrategy,
   startOrEnd: "start" | "end",
   scene: Scene,
@@ -303,10 +303,10 @@ const bindOrUnbindBindingElementEdge = (
 };
 
 const bindingStrategyForElbowArrowEndpointDragging = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   zoom: AppState["zoom"],
 ): {
   start: BindingStrategy;
@@ -355,10 +355,10 @@ const bindingStrategyForElbowArrowEndpointDragging = (
 };
 
 const bindingStrategyForNewSimpleArrowEndpointDragging = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   startDragged: boolean,
   endDragged: boolean,
   startIdx: number,
@@ -439,7 +439,7 @@ const bindingStrategyForNewSimpleArrowEndpointDragging = (
       if (allHits.find((el) => el.id === startBinding.elementId)) {
         const otherElement = elementsMap.get(
           arrow.startBinding.elementId,
-        ) as NonDeleted<ExcalidrawBindableElement>;
+        ) as NonDeleted<SetsquareBindableElement>;
 
         invariant(otherElement, "Other element must be in the elements map");
 
@@ -464,7 +464,7 @@ const bindingStrategyForNewSimpleArrowEndpointDragging = (
     if (arrow.startBinding && arrow.startBinding.elementId !== hit?.id) {
       const otherElement = elementsMap.get(
         arrow.startBinding.elementId,
-      ) as NonDeleted<ExcalidrawBindableElement>;
+      ) as NonDeleted<SetsquareBindableElement>;
       invariant(otherElement, "Other element must be in the elements map");
 
       const otherIsInsideBinding =
@@ -527,9 +527,9 @@ const bindingStrategyForSimpleArrowEndpointDragging_complex = (
   currentBinding: FixedPointBinding | null,
   oppositeBinding: FixedPointBinding | null,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   globalBindMode: AppState["bindMode"],
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   zoom: AppState["zoom"],
   finalize?: boolean,
 ): { current: BindingStrategy; other: BindingStrategy } => {
@@ -546,7 +546,7 @@ const bindingStrategyForSimpleArrowEndpointDragging_complex = (
   const oppositeElement = oppositeBinding
     ? (elementsMap.get(
         oppositeBinding.elementId,
-      ) as NonDeleted<ExcalidrawBindableElement>)
+      ) as NonDeleted<SetsquareBindableElement>)
     : null;
   const otherIsTransparent =
     isOverlapping && oppositeElement
@@ -650,12 +650,12 @@ const bindingStrategyForSimpleArrowEndpointDragging_complex = (
 };
 
 export const getBindingStrategyForDraggingBindingElementEndpoints = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   screenPointerX: number,
   screenPointerY: number,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   appState: AppState,
   opts?: {
     newArrow?: boolean;
@@ -690,12 +690,12 @@ export const getBindingStrategyForDraggingBindingElementEndpoints = (
 };
 
 const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   scenePointerX: number,
   scenePointerY: number,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   appState: AppState,
   opts?: {
     newArrow?: boolean;
@@ -788,7 +788,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
   const otherBindableElement = otherBinding
     ? (elementsMap.get(
         otherBinding.elementId,
-      ) as NonDeleted<ExcalidrawBindableElement>)
+      ) as NonDeleted<SetsquareBindableElement>)
     : undefined;
   const otherFocusPoint =
     otherBinding &&
@@ -1000,10 +1000,10 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
 };
 
 const getBindingStrategyForDraggingBindingElementEndpoints_complex = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   draggingPoints: PointsPositionUpdates,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   appState: AppState,
   opts?: {
     newArrow?: boolean;
@@ -1134,7 +1134,7 @@ const getBindingStrategyForDraggingBindingElementEndpoints_complex = (
 };
 
 export const bindOrUnbindBindingElements = (
-  selectedArrows: NonDeleted<ExcalidrawArrowElement>[],
+  selectedArrows: NonDeleted<SetsquareArrowElement>[],
   scene: Scene,
   appState: AppState,
 ): void => {
@@ -1155,8 +1155,8 @@ export const bindOrUnbindBindingElements = (
  * keeping the two sides of the relationship in step.
  */
 const applyBinding = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
-  bindableElement: NonDeleted<ExcalidrawBindableElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
+  bindableElement: NonDeleted<SetsquareBindableElement>,
   binding: FixedPointBinding,
   startOrEnd: "start" | "end",
   scene: Scene,
@@ -1177,8 +1177,8 @@ const applyBinding = (
 };
 
 export const bindBindingElement = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
-  hoveredElement: NonDeleted<ExcalidrawBindableElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
+  hoveredElement: NonDeleted<SetsquareBindableElement>,
   mode: BindMode,
   startOrEnd: "start" | "end",
   scene: Scene,
@@ -1223,10 +1223,10 @@ export const bindBindingElement = (
 };
 
 export const unbindBindingElement = (
-  arrow: ExcalidrawArrowElement,
+  arrow: SetsquareArrowElement,
   startOrEnd: "start" | "end",
   scene: Scene,
-): ExcalidrawBindableElement["id"] | null => {
+): SetsquareBindableElement["id"] | null => {
   const field = startOrEnd === "start" ? "startBinding" : "endBinding";
   const binding = arrow[field];
 
@@ -1241,7 +1241,7 @@ export const unbindBindingElement = (
     // end is not bound to the same element
     const boundElement = scene
       .getNonDeletedElementsMap()
-      .get(binding.elementId) as NonDeleted<ExcalidrawBindableElement>;
+      .get(binding.elementId) as NonDeleted<SetsquareBindableElement>;
     scene.mutateElement(boundElement, {
       boundElements: boundElement.boundElements?.filter(
         (element) => element.id !== arrow.id,
@@ -1255,7 +1255,7 @@ export const unbindBindingElement = (
 };
 
 export const reanchorBindingsToOutline = (
-  changedElement: NonDeleted<ExcalidrawBindableElement>,
+  changedElement: NonDeleted<SetsquareBindableElement>,
   scene: Scene,
   zoom: AppState["zoom"],
 ) => {
@@ -1357,12 +1357,12 @@ export const reanchorBindingsToOutline = (
 // Supports translating, rotating and scaling `changedElement` with bound
 // linear elements.
 export const updateBoundElements = (
-  changedElement: NonDeletedExcalidrawElement,
+  changedElement: NonDeletedSetsquareElement,
   scene: Scene,
   options?: {
     /** see `getSimultaneouslyUpdatedElementIds` for how to pass it */
-    simultaneouslyUpdated?: readonly NonDeletedExcalidrawElement[];
-    changedElements?: Map<string, ExcalidrawElement>;
+    simultaneouslyUpdated?: readonly NonDeletedSetsquareElement[];
+    changedElements?: Map<string, SetsquareElement>;
   },
 ) => {
   if (!isBindableElement(changedElement)) {
@@ -1382,7 +1382,7 @@ export const updateBoundElements = (
     });
   }
 
-  const visitor = (element: ExcalidrawElement | undefined) => {
+  const visitor = (element: SetsquareElement | undefined) => {
     // SAFETY: This should never happen, but log it just in case
     if (element && !isNonDeletedElement(element)) {
       console.error(
@@ -1475,7 +1475,7 @@ export const updateBoundElements = (
 };
 
 const updateArrowBindings = (
-  latestElement: NonDeleted<ExcalidrawArrowElement>,
+  latestElement: NonDeleted<SetsquareArrowElement>,
   startOrEnd: "startBinding" | "endBinding",
   elementsMap: NonDeletedSceneElementsMap,
   scene: Scene,
@@ -1491,7 +1491,7 @@ const updateArrowBindings = (
     binding &&
     (elementsMap.get(
       binding.elementId,
-    ) as NonDeleted<ExcalidrawBindableElement>);
+    ) as NonDeleted<SetsquareBindableElement>);
   const point = LinearElementEditor.getPointAtIndexGlobalCoordinates(
     latestElement,
     startOrEnd === "startBinding" ? 0 : -1,
@@ -1540,11 +1540,11 @@ const updateArrowBindings = (
 };
 
 export const updateBindings = (
-  latestElement: NonDeletedExcalidrawElement,
+  latestElement: NonDeletedSetsquareElement,
   scene: Scene,
   appState: AppState,
   options?: {
-    simultaneouslyUpdated?: readonly NonDeletedExcalidrawElement[];
+    simultaneouslyUpdated?: readonly NonDeletedSetsquareElement[];
     newSize?: { width: number; height: number };
   },
 ) => {
@@ -1579,8 +1579,8 @@ export const updateBindings = (
 };
 
 const doesNeedUpdate = (
-  boundElement: NonDeleted<ExcalidrawArrowElement>,
-  changedElement: ExcalidrawBindableElement,
+  boundElement: NonDeleted<SetsquareArrowElement>,
+  changedElement: SetsquareBindableElement,
 ) => {
   return (
     boundElement.startBinding?.elementId === changedElement.id ||
@@ -1593,8 +1593,8 @@ const doesNeedUpdate = (
 // per array to avoid rebuilding it on every call (O(n^2) on multi-element
 // transforms)
 const simultaneouslyUpdatedElementIdsCache = new WeakMap<
-  readonly ExcalidrawElement[],
-  ReadonlySet<ExcalidrawElement["id"]>
+  readonly SetsquareElement[],
+  ReadonlySet<SetsquareElement["id"]>
 >();
 
 /**
@@ -1604,8 +1604,8 @@ const simultaneouslyUpdatedElementIdsCache = new WeakMap<
  * cached ids go stale.
  */
 export const getSimultaneouslyUpdatedElementIds = (
-  simultaneouslyUpdated: readonly ExcalidrawElement[] | undefined,
-): ReadonlySet<ExcalidrawElement["id"]> => {
+  simultaneouslyUpdated: readonly SetsquareElement[] | undefined,
+): ReadonlySet<SetsquareElement["id"]> => {
   if (!simultaneouslyUpdated) {
     return new Set();
   }
@@ -1620,7 +1620,7 @@ export const getSimultaneouslyUpdatedElementIds = (
 export const getHeadingForElbowArrowSnap = (
   p: Readonly<GlobalPoint>,
   otherPoint: Readonly<GlobalPoint>,
-  bindableElement: ExcalidrawBindableElement | undefined | null,
+  bindableElement: SetsquareBindableElement | undefined | null,
   aabb: Bounds | undefined | null,
   origPoint: GlobalPoint,
   elementsMap: ElementsMap,
@@ -1650,7 +1650,7 @@ export const getHeadingForElbowArrowSnap = (
 
 const getDistanceForBinding = (
   point: Readonly<GlobalPoint>,
-  bindableElement: ExcalidrawBindableElement,
+  bindableElement: SetsquareBindableElement,
   elementsMap: ElementsMap,
   zoom?: AppState["zoom"],
 ) => {
@@ -1661,8 +1661,8 @@ const getDistanceForBinding = (
 };
 
 export const bindPointToSnapToElementOutline = (
-  arrowElement: ExcalidrawArrowElement,
-  bindableElement: ExcalidrawBindableElement,
+  arrowElement: SetsquareArrowElement,
+  bindableElement: SetsquareBindableElement,
   startOrEnd: "start" | "end",
   elementsMap: ElementsMap,
   zoom: AppState["zoom"],
@@ -1809,8 +1809,8 @@ export const bindPointToSnapToElementOutline = (
 };
 
 export const avoidRectangularCorner = (
-  arrowElement: ExcalidrawArrowElement,
-  bindTarget: ExcalidrawBindableElement,
+  arrowElement: SetsquareArrowElement,
+  bindTarget: SetsquareBindableElement,
   elementsMap: ElementsMap,
   p: GlobalPoint,
 ): GlobalPoint => {
@@ -1900,7 +1900,7 @@ export const avoidRectangularCorner = (
 };
 
 const extractBinding = (
-  arrow: ExcalidrawArrowElement,
+  arrow: SetsquareArrowElement,
   startOrEnd: "startBinding" | "endBinding",
   elementsMap: ElementsMap,
 ) => {
@@ -1917,7 +1917,7 @@ const extractBinding = (
 
   const element = elementsMap.get(
     binding.elementId,
-  ) as NonDeleted<ExcalidrawBindableElement>;
+  ) as NonDeleted<SetsquareBindableElement>;
 
   return {
     element,
@@ -1941,10 +1941,10 @@ const extractBinding = (
  */
 const snapBoundPointToGrid = (
   outlinePoint: GlobalPoint,
-  bindableElement: ExcalidrawBindableElement,
+  bindableElement: SetsquareBindableElement,
   elementsMap: ElementsMap,
   gridSize: NullableGridSize,
-  arrowElement: ExcalidrawArrowElement,
+  arrowElement: SetsquareArrowElement,
   adjacentPoint?: GlobalPoint,
 ): GlobalPoint => {
   if (!gridSize) {
@@ -2012,14 +2012,14 @@ const snapBoundPointToGrid = (
   return intersection ?? pointFrom<GlobalPoint>(snappedX, outlinePoint[1]);
 };
 
-const elementArea = (element: ExcalidrawBindableElement) =>
+const elementArea = (element: SetsquareBindableElement) =>
   element.width * element.height;
 
 export const updateBoundPoint = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
   startOrEnd: "startBinding" | "endBinding",
   binding: FixedPointBinding | null | undefined,
-  bindableElement: ExcalidrawBindableElement,
+  bindableElement: SetsquareBindableElement,
   elementsMap: ElementsMap,
   dragging?: boolean,
 ): LocalPoint | null => {
@@ -2174,8 +2174,8 @@ export const updateBoundPoint = (
 };
 
 export const calculateFixedPointForElbowArrowBinding = (
-  linearElement: NonDeleted<ExcalidrawElbowArrowElement>,
-  hoveredElement: ExcalidrawBindableElement,
+  linearElement: NonDeleted<SetsquareElbowArrowElement>,
+  hoveredElement: SetsquareBindableElement,
   startOrEnd: "start" | "end",
   elementsMap: ElementsMap,
   zoom: AppState["zoom"],
@@ -2240,8 +2240,8 @@ export const calculateFixedPointForElbowArrowBinding = (
 };
 
 export const calculateFixedPointForNonElbowArrowBinding = (
-  linearElement: NonDeleted<ExcalidrawArrowElement>,
-  hoveredElement: NonDeleted<ExcalidrawBindableElement>,
+  linearElement: NonDeleted<SetsquareArrowElement>,
+  hoveredElement: NonDeleted<SetsquareBindableElement>,
   startOrEnd: "start" | "end",
   elementsMap: ElementsMap,
   focusPoint?: GlobalPoint,
@@ -2293,8 +2293,8 @@ export const calculateFixedPointForNonElbowArrowBinding = (
 };
 
 export const fixDuplicatedBindingsAfterDuplication = (
-  duplicatedElements: ExcalidrawElement[],
-  origIdToDuplicateId: Map<ExcalidrawElement["id"], ExcalidrawElement["id"]>,
+  duplicatedElements: SetsquareElement[],
+  origIdToDuplicateId: Map<SetsquareElement["id"], SetsquareElement["id"]>,
   duplicateElementsMap: NonDeletedSceneElementsMap,
 ) => {
   for (const duplicateElement of duplicatedElements) {
@@ -2302,7 +2302,7 @@ export const fixDuplicatedBindingsAfterDuplication = (
       Object.assign(duplicateElement, {
         boundElements: duplicateElement.boundElements.reduce(
           (
-            acc: Mutable<NonNullable<ExcalidrawElement["boundElements"]>>,
+            acc: Mutable<NonNullable<SetsquareElement["boundElements"]>>,
             binding,
           ) => {
             const newBindingId = origIdToDuplicateId.get(binding.id);
@@ -2365,8 +2365,8 @@ export const fixDuplicatedBindingsAfterDuplication = (
 };
 
 export const fixBindingsAfterDeletion = (
-  sceneElements: readonly ExcalidrawElement[],
-  deletedElements: readonly ExcalidrawElement[],
+  sceneElements: readonly SetsquareElement[],
+  deletedElements: readonly SetsquareElement[],
 ): void => {
   const elements = arrayToMap(sceneElements);
 
@@ -2381,9 +2381,9 @@ export const fixBindingsAfterDeletion = (
 };
 
 const newBoundElements = (
-  boundElements: ExcalidrawElement["boundElements"],
-  idsToRemove: Set<ExcalidrawElement["id"]>,
-  elementsToAdd: Array<ExcalidrawElement> = [],
+  boundElements: SetsquareElement["boundElements"],
+  idsToRemove: Set<SetsquareElement["id"]>,
+  elementsToAdd: Array<SetsquareElement> = [],
 ) => {
   if (!boundElements) {
     return null;
@@ -2397,8 +2397,8 @@ const newBoundElements = (
     ...elementsToAdd.map(
       (x) =>
         ({ id: x.id, type: x.type } as
-          | ExcalidrawArrowElement
-          | ExcalidrawTextElement),
+          | SetsquareArrowElement
+          | SetsquareTextElement),
     ),
   );
 
@@ -2422,13 +2422,13 @@ export type BindingProp =
   | "endBinding";
 
 type BoundElementsVisitingFunc = (
-  boundElement: ExcalidrawElement | undefined,
+  boundElement: SetsquareElement | undefined,
   bindingProp: BindableProp,
   bindingId: string,
 ) => void;
 
 type BindableElementVisitingFunc<T> = (
-  bindableElement: ExcalidrawElement | undefined,
+  bindableElement: SetsquareElement | undefined,
   bindingProp: BindingProp,
   bindingId: string,
 ) => T;
@@ -2438,7 +2438,7 @@ type BindableElementVisitingFunc<T> = (
  */
 const boundElementsVisitor = (
   elements: ElementsMap,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   visit: BoundElementsVisitingFunc,
 ) => {
   if (isBindableElement(element)) {
@@ -2457,7 +2457,7 @@ const boundElementsVisitor = (
  */
 const bindableElementsVisitor = <T>(
   elements: ElementsMap,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   visit: BindableElementVisitingFunc<T>,
 ): T[] => {
   const result: T[] = [];
@@ -2498,10 +2498,10 @@ export class BoundElement {
    */
   public static unbindAffected(
     elements: ElementsMap,
-    boundElement: ExcalidrawElement | undefined,
+    boundElement: SetsquareElement | undefined,
     updateElementWith: (
-      affected: ExcalidrawElement,
-      updates: ElementUpdate<ExcalidrawElement>,
+      affected: SetsquareElement,
+      updates: ElementUpdate<SetsquareElement>,
     ) => void,
   ) {
     if (!boundElement) {
@@ -2540,10 +2540,10 @@ export class BoundElement {
    */
   public static rebindAffected = (
     elements: ElementsMap,
-    boundElement: ExcalidrawElement | undefined,
+    boundElement: SetsquareElement | undefined,
     updateElementWith: (
-      affected: ExcalidrawElement,
-      updates: ElementUpdate<ExcalidrawElement>,
+      affected: SetsquareElement,
+      updates: ElementUpdate<SetsquareElement>,
     ) => void,
   ) => {
     // don't try to rebind element that is deleted
@@ -2614,10 +2614,10 @@ export class BindableElement {
    */
   public static unbindAffected(
     elements: ElementsMap,
-    bindableElement: ExcalidrawElement | undefined,
+    bindableElement: SetsquareElement | undefined,
     updateElementWith: (
-      affected: ExcalidrawElement,
-      updates: ElementUpdate<ExcalidrawElement>,
+      affected: SetsquareElement,
+      updates: ElementUpdate<SetsquareElement>,
     ) => void,
   ) {
     if (!bindableElement) {
@@ -2652,10 +2652,10 @@ export class BindableElement {
    */
   public static rebindAffected = (
     elements: ElementsMap,
-    bindableElement: ExcalidrawElement | undefined,
+    bindableElement: SetsquareElement | undefined,
     updateElementWith: (
-      affected: ExcalidrawElement,
-      updates: ElementUpdate<ExcalidrawElement>,
+      affected: SetsquareElement,
+      updates: ElementUpdate<SetsquareElement>,
     ) => void,
   ) => {
     // don't try to rebind element that is deleted (i.e. updated as deleted)
@@ -2689,14 +2689,14 @@ export class BindableElement {
               // rebind if not bound already!
               updateElementWith(boundElement, {
                 containerId: bindableElement.id,
-              } as ElementUpdate<ExcalidrawTextElement>);
+              } as ElementUpdate<SetsquareTextElement>);
             }
           } else {
             if (boundElement.containerId !== null) {
               // unbind if not unbound already
               updateElementWith(boundElement, {
                 containerId: null,
-              } as ElementUpdate<ExcalidrawTextElement>);
+              } as ElementUpdate<SetsquareTextElement>);
             }
 
             // unbind from boundElements as the element got bound to some other element in the meantime
@@ -2715,7 +2715,7 @@ export class BindableElement {
 
 export const getGlobalFixedPointForBindableElement = (
   fixedPointRatio: FixedPoint,
-  element: ExcalidrawBindableElement,
+  element: SetsquareBindableElement,
   elementsMap: ElementsMap,
 ): GlobalPoint => {
   const [fixedX, fixedY] = normalizeFixedPoint(fixedPointRatio);
@@ -2731,24 +2731,24 @@ export const getGlobalFixedPointForBindableElement = (
 };
 
 export const getGlobalFixedPoints = (
-  arrow: ExcalidrawArrowElement,
+  arrow: SetsquareArrowElement,
   elementsMap: ElementsMap,
 ): [GlobalPoint, GlobalPoint] => {
   const startElement =
     arrow.startBinding &&
     (elementsMap.get(arrow.startBinding.elementId) as
-      | ExcalidrawBindableElement
+      | SetsquareBindableElement
       | undefined);
   const endElement =
     arrow.endBinding &&
     (elementsMap.get(arrow.endBinding.elementId) as
-      | ExcalidrawBindableElement
+      | SetsquareBindableElement
       | undefined);
   const startPoint =
     startElement && arrow.startBinding
       ? getGlobalFixedPointForBindableElement(
           arrow.startBinding.fixedPoint,
-          startElement as ExcalidrawBindableElement,
+          startElement as SetsquareBindableElement,
           elementsMap,
         )
       : pointFrom<GlobalPoint>(
@@ -2759,7 +2759,7 @@ export const getGlobalFixedPoints = (
     endElement && arrow.endBinding
       ? getGlobalFixedPointForBindableElement(
           arrow.endBinding.fixedPoint,
-          endElement as ExcalidrawBindableElement,
+          endElement as SetsquareBindableElement,
           elementsMap,
         )
       : pointFrom<GlobalPoint>(
@@ -2771,7 +2771,7 @@ export const getGlobalFixedPoints = (
 };
 
 export const getArrowLocalFixedPoints = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   elementsMap: ElementsMap,
 ) => {
   const [startPoint, endPoint] = getGlobalFixedPoints(arrow, elementsMap);
@@ -2832,7 +2832,7 @@ type Side =
   | "left"
   | "top-left";
 type ShapeType = "rectangle" | "ellipse" | "diamond";
-const getShapeType = (element: ExcalidrawBindableElement): ShapeType => {
+const getShapeType = (element: SetsquareBindableElement): ShapeType => {
   if (element.type === "ellipse" || element.type === "diamond") {
     return element.type;
   }
@@ -3146,7 +3146,7 @@ export const getBindingSideMidPoint = (
 
   if (isRectangularElement(bindableElement)) {
     const [sides, corners] = deconstructRectanguloidElement(
-      bindableElement as ExcalidrawRectanguloidElement,
+      bindableElement as SetsquareRectanguloidElement,
     );
     const [top, right, bottom, left] = sides;
 
@@ -3260,8 +3260,8 @@ const getMidPoint = (p1: GlobalPoint, p2: GlobalPoint): GlobalPoint => {
  * the arrow rather than the other way round.
  */
 export const bindBindingElementToFixedPoint = (
-  arrow: NonDeleted<ExcalidrawArrowElement>,
-  bindableElement: NonDeleted<ExcalidrawBindableElement>,
+  arrow: NonDeleted<SetsquareArrowElement>,
+  bindableElement: NonDeleted<SetsquareBindableElement>,
   startOrEnd: "start" | "end",
   fixedPoint: FixedPoint,
   scene: Scene,

@@ -1,9 +1,13 @@
 import type {
-  ExcalidrawTextElement,
+  SetsquareTextElement,
   FontFamilyValues,
-} from "@excalidraw/element/types";
+} from "@setsquare/element/types";
 
-import { FONT_FAMILY, FONT_FAMILY_FALLBACKS } from "./constants";
+import {
+  DEFAULT_FONT_FAMILY,
+  FONT_FAMILY,
+  FONT_FAMILY_FALLBACKS,
+} from "./constants";
 
 /**
  * Encapsulates font metrics with additional font metadata.
@@ -17,7 +21,7 @@ export interface FontMetadata {
     ascender: number;
     /** hhea.descender metric */
     descender: number;
-    /** harcoded unitless line-height, https://github.com/excalidraw/excalidraw/pull/6360#issuecomment-1477635971 */
+    /** harcoded unitless line-height */
     lineHeight: number;
   };
   /** flag to indicate a deprecated font */
@@ -33,14 +37,6 @@ export interface FontMetadata {
 }
 
 export const FONT_METADATA: Record<number, FontMetadata> = {
-  [FONT_FAMILY.Excalifont]: {
-    metrics: {
-      unitsPerEm: 1000,
-      ascender: 886,
-      descender: -374,
-      lineHeight: 1.25,
-    },
-  },
   [FONT_FAMILY.Nunito]: {
     metrics: {
       unitsPerEm: 1000,
@@ -72,7 +68,6 @@ export const FONT_METADATA: Record<number, FontMetadata> = {
       descender: -374,
       lineHeight: 1.25,
     },
-    deprecated: true,
   },
   [FONT_FAMILY.Helvetica]: {
     metrics: {
@@ -111,18 +106,8 @@ export const FONT_METADATA: Record<number, FontMetadata> = {
     },
     private: true,
   },
-  [FONT_FAMILY_FALLBACKS.Xiaolai]: {
-    metrics: {
-      unitsPerEm: 1000,
-      ascender: 880,
-      descender: -144,
-      lineHeight: 1.25,
-    },
-    fallback: true,
-  },
   [FONT_FAMILY_FALLBACKS["Segoe UI Emoji"]]: {
     metrics: {
-      // reusing Excalifont metrics
       unitsPerEm: 1000,
       ascender: 886,
       descender: -374,
@@ -153,13 +138,13 @@ export const LOCAL_FONT_PROTOCOL = "local:";
  * Calculates vertical offset for a text with alphabetic baseline.
  */
 export const getVerticalOffset = (
-  fontFamily: ExcalidrawTextElement["fontFamily"],
-  fontSize: ExcalidrawTextElement["fontSize"],
+  fontFamily: SetsquareTextElement["fontFamily"],
+  fontSize: SetsquareTextElement["fontSize"],
   lineHeightPx: number,
 ) => {
   const { unitsPerEm, ascender, descender } =
     FONT_METADATA[fontFamily]?.metrics ||
-    FONT_METADATA[FONT_FAMILY.Excalifont].metrics;
+    FONT_METADATA[DEFAULT_FONT_FAMILY].metrics;
 
   const fontSizeEm = fontSize / unitsPerEm;
   const lineGap =
@@ -175,7 +160,7 @@ export const getVerticalOffset = (
 export const getLineHeight = (fontFamily: FontFamilyValues) => {
   const { lineHeight } =
     FONT_METADATA[fontFamily]?.metrics ||
-    FONT_METADATA[FONT_FAMILY.Excalifont].metrics;
+    FONT_METADATA[DEFAULT_FONT_FAMILY].metrics;
 
-  return lineHeight as ExcalidrawTextElement["lineHeight"];
+  return lineHeight as SetsquareTextElement["lineHeight"];
 };

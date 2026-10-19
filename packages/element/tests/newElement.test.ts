@@ -1,6 +1,6 @@
-import * as common from "@excalidraw/common";
+import * as common from "@setsquare/common";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
 import { newElement, newLinearElement } from "../src/newElement";
 import { mutateElement, newElementWith } from "../src/mutateElement";

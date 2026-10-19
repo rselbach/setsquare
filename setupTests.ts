@@ -6,13 +6,13 @@ import "@testing-library/jest-dom";
 import { configure } from "@testing-library/react";
 import { vi } from "vitest";
 
-import polyfill from "./packages/excalidraw/polyfill";
-import { mockThrottleRAF } from "./packages/excalidraw/tests/helpers/mocks";
-import { yellow } from "./packages/excalidraw/tests/helpers/colorize";
+import polyfill from "./packages/setsquare/polyfill";
+import { mockThrottleRAF } from "./packages/setsquare/tests/helpers/mocks";
+import { yellow } from "./packages/setsquare/tests/helpers/colorize";
 import {
   PolyfillLocalStorage,
   testPolyfills,
-} from "./packages/excalidraw/tests/helpers/polyfills";
+} from "./packages/setsquare/tests/helpers/polyfills";
 
 Object.assign(globalThis, testPolyfills);
 PolyfillLocalStorage();
@@ -32,8 +32,8 @@ if (!debugDom) {
   });
 }
 
-vi.mock("@excalidraw/common", async (importOriginal) => {
-  const module = await importOriginal<typeof import("@excalidraw/common")>();
+vi.mock("@setsquare/common", async (importOriginal) => {
+  const module = await importOriginal<typeof import("@setsquare/common")>();
 
   return {
     ...module,
@@ -94,22 +94,22 @@ Object.defineProperty(document, "fonts", {
   },
 });
 
-Object.defineProperty(window, "EXCALIDRAW_ASSET_PATH", {
+Object.defineProperty(window, "SETSQUARE_ASSET_PATH", {
   value: `file://${__dirname}/`,
 });
 
 // mock the font fetch only, so that everything else, as font subsetting, can run inside of the (snapshot) tests
 vi.mock(
-  "./packages/excalidraw/fonts/ExcalidrawFontFace",
+  "./packages/setsquare/fonts/SetsquareFontFace",
   async (importOriginal) => {
     const mod = await importOriginal<
-      typeof import("./packages/excalidraw/fonts/ExcalidrawFontFace")
+      typeof import("./packages/setsquare/fonts/SetsquareFontFace")
     >();
-    const ExcalidrawFontFaceImpl = mod.ExcalidrawFontFace;
+    const SetsquareFontFaceImpl = mod.SetsquareFontFace;
 
     return {
       ...mod,
-      ExcalidrawFontFace: class extends ExcalidrawFontFaceImpl {
+      SetsquareFontFace: class extends SetsquareFontFaceImpl {
         public async fetchFont(url: URL): Promise<ArrayBuffer> {
           if (!url.toString().startsWith("file://")) {
             return super.fetchFont(url);

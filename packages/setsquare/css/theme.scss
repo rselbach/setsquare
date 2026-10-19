@@ -1,0 +1,249 @@
+@use "sass:color";
+@use "./variables.module" as *;
+@forward "./variables.module";
+
+.setsquare {
+  // Setsquare's drafting-office palette. The chrome is vellum laid around
+  // the white paper, controls are graphite, and non-photo blue (`--ink`,
+  // `--guide`) marks what the editor draws that never prints: selection,
+  // handles, guides, the grid and keyboard focus.
+  --vellum: #f3f5f1;
+  --vellum-2: #e7ece6;
+  --vellum-3: #dae1d9;
+  --field: #ffffff;
+  --graphite: #2a2f2b;
+  --lead: #5e665f;
+  --rule: #d3d9d2;
+  --rule-strong: #848d85;
+  --guide: #2399bf;
+  --ink: #0b7ea3;
+  --redline: #c4313b;
+
+  --theme-filter: none;
+  --button-destructive-bg-color: #fbe9ea;
+  --button-destructive-color: var(--redline);
+  --button-gray-1: var(--vellum-2);
+  --button-gray-2: var(--vellum-3);
+  --button-gray-3: var(--rule);
+  --mobile-action-button-bg: rgba(255, 255, 255, 0.35);
+  --button-special-active-bg-color: #{$color-green-0};
+  --dialog-border-color: var(--rule);
+  --dropdown-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="292.4" height="292.4" viewBox="0 0 292 292"><path d="M287 197L159 69c-4-3-8-5-13-5s-9 2-13 5L5 197c-3 4-5 8-5 13s2 9 5 13c4 4 8 5 13 5h256c5 0 9-1 13-5s5-8 5-13-1-9-5-13z"/></svg>');
+  --focus-highlight-color: var(--ink);
+  --icon-fill-color: var(--color-on-surface);
+  --icon-green-fill-color: #{$color-green-9};
+  --default-bg-color: var(--field);
+  --input-bg-color: var(--field);
+  --input-border-color: var(--rule-strong);
+  --input-hover-bg-color: var(--vellum);
+  --input-label-color: var(--lead);
+  --island-bg-color: var(--vellum);
+  --island-bg-color-alt: var(--vellum);
+  --keybinding-color: var(--lead);
+  --link-color: var(--graphite);
+  --link-color-hover: var(--lead);
+  --link-color-active: var(--ink);
+  --overlay-bg-color: rgba(22, 29, 26, 0.4);
+  --popup-bg-color: var(--island-bg-color);
+  --popup-secondary-bg-color: var(--vellum-2);
+  --popup-text-color: var(--graphite);
+  --popup-text-inverted-color: var(--vellum);
+  --select-highlight-color: var(--ink);
+  // only floating layers (menus, popovers, the undocked library) cast a
+  // shadow; docked chrome is separated from the paper by tone alone
+  --shadow-island: 0 0 0 1px var(--rule), 0 6px 16px rgba(42, 47, 43, 0.12);
+  --shadow-island-stronger: 0 0 0 1px var(--rule-strong),
+    0 8px 24px rgba(42, 47, 43, 0.18);
+
+  --button-hover-bg: var(--vellum-2);
+  --button-active-bg: var(--vellum-3);
+  --button-active-border: var(--graphite);
+  --default-border-color: var(--rule);
+
+  --default-button-size: 2rem;
+  --default-icon-size: 1rem;
+  --lg-button-size: 2.25rem;
+  --lg-icon-size: 1rem;
+  --editor-container-padding: 1rem;
+  --mobile-action-button-size: 2rem;
+
+  --scrollbar-thumb: var(--rule);
+  --scrollbar-thumb-hover: var(--rule-strong);
+
+  --color-slider-track: var(--vellum-3);
+  --color-slider-thumb: var(--graphite);
+
+  --modal-shadow: 0 0 0 1px var(--rule-strong),
+    0 16px 48px rgba(22, 29, 26, 0.24);
+  --avatar-border-color: var(--rule);
+  --sidebar-shadow: var(--shadow-island-stronger);
+  --sidebar-border-color: var(--rule);
+  --sidebar-bg-color: var(--island-bg-color);
+  --library-dropdown-shadow: var(--shadow-island);
+  --chat-msg-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+  --space-factor: 0.25rem;
+  --text-primary-color: var(--color-on-surface);
+
+  --color-selection: #0b7ea3;
+
+  --color-icon-white: #fff;
+
+  --color-primary: var(--graphite);
+  --color-primary-darker: #1d211e;
+  --color-primary-darkest: #121513;
+  --color-primary-light: var(--vellum-3);
+  --color-primary-light-darker: var(--rule);
+  --color-primary-hover: #3e453f;
+
+  --color-gray-10: #f3f5f1;
+  --color-gray-20: #e7ece6;
+  --color-gray-30: #d3d9d2;
+  --color-gray-40: #b3bbb3;
+  --color-gray-50: #969f97;
+  --color-gray-60: #7a837b;
+  --color-gray-70: #5e665f;
+  --color-gray-80: #3e443f;
+  --color-gray-85: #2f3530;
+  --color-gray-90: #2a2f2b;
+  --color-gray-100: #161a17;
+
+  --color-disabled: var(--color-gray-40);
+
+  --color-warning: #fceeca;
+  --color-warning-dark: #f5c354;
+  --color-warning-darker: #f3ab2c;
+  --color-warning-darkest: #ec8b14;
+  --color-text-warning: var(--text-primary-color);
+
+  --color-danger: var(--redline);
+  --color-danger-dark: var(--redline);
+  --color-danger-darker: #a92a33;
+  --color-danger-darkest: #8f232b;
+  --color-danger-text: black;
+
+  --color-danger-background: #fbe9ea;
+  --color-danger-icon-background: #f6d3d5;
+  --color-danger-color: #7a1d24;
+  --color-danger-icon-color: #7a1d24;
+
+  --color-warning-background: var(--color-warning);
+  --color-warning-icon-background: var(--color-warning-dark);
+  --color-warning-color: var(--text-primary-color);
+  --color-warning-icon-color: var(--text-primary-color);
+
+  --color-muted: var(--color-gray-30);
+  --color-muted-darker: var(--color-gray-60);
+  --color-muted-darkest: var(--color-gray-100);
+  --color-muted-background: var(--color-gray-80);
+  --color-muted-background-darker: var(--color-gray-100);
+
+  --color-promo: var(--color-primary);
+
+  --color-success: #cafccc;
+  --color-success-darker: #bafabc;
+  --color-success-darkest: #a5eba8;
+  --color-success-text: #268029;
+  --color-success-contrast: #65bb6a;
+  --color-success-contrast-hover: #6bcf70;
+  --color-success-contrast-active: #6edf74;
+
+  --color-logo-icon: var(--graphite);
+  --color-logo-text: var(--graphite);
+
+  --border-radius-md: 0.1875rem;
+  --border-radius-lg: 0.25rem;
+
+  --color-surface-high: var(--vellum-2);
+  --color-surface-mid: var(--vellum);
+  --color-surface-low: var(--vellum-2);
+  --color-surface-lowest: var(--field);
+  --color-on-surface: var(--graphite);
+  --color-brand-hover: var(--color-primary-hover);
+  --color-on-primary-container: var(--graphite);
+  --color-surface-primary-container: var(--vellum-3);
+  --color-brand-active: var(--color-primary-darker);
+  --color-border-outline: var(--rule-strong);
+  --color-border-outline-variant: var(--rule);
+
+  --color-badge: #0b6513;
+  --background-color-badge: #d3ffd2;
+
+  @include isMobile {
+    --editor-container-padding: 0.75rem;
+  }
+
+  @media screen and (min-device-width: 1921px) {
+    --lg-button-size: 2.375rem;
+    --lg-icon-size: 1.25rem;
+    --default-button-size: 2.25rem;
+    --default-icon-size: 1.25rem;
+  }
+
+  &.theme--dark {
+    &.theme--dark-background-none {
+      background: none;
+    }
+  }
+
+  &.theme--dark {
+    --vellum: #1f2724;
+    --vellum-2: #28322e;
+    --vellum-3: #323d38;
+    --field: #171e1b;
+    --graphite: #e2e8e3;
+    --lead: #97a39a;
+    --rule: #303a35;
+    --rule-strong: #66726b;
+    --guide: #4cc3e6;
+    --ink: #5cc8ea;
+    --redline: #f06a70;
+
+    --theme-filter: invert(93%) hue-rotate(180deg);
+    --button-destructive-bg-color: #3d1d20;
+
+    --mobile-action-button-bg: var(--island-bg-color);
+    --button-special-active-bg-color: #204624;
+    --dropdown-icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="292.4" height="292.4" viewBox="0 0 292 292"><path fill="%23ced4da" d="M287 197L159 69c-4-3-8-5-13-5s-9 2-13 5L5 197c-3 4-5 8-5 13s2 9 5 13c4 4 8 5 13 5h256c5 0 9-1 13-5s5-8 5-13-1-9-5-13z"/></svg>');
+    --icon-green-fill-color: #{$color-green-4};
+    --overlay-bg-color: rgba(8, 12, 10, 0.6);
+
+    --shadow-island: 0 0 0 1px var(--rule), 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-island-stronger: 0 0 0 1px var(--rule-strong),
+      0 12px 32px rgba(0, 0, 0, 0.5);
+    --modal-shadow: 0 0 0 1px var(--rule-strong), 0 16px 48px rgba(0, 0, 0, 0.5);
+
+    --color-selection: #5cc8ea;
+
+    --color-icon-white: var(--color-gray-90);
+
+    --color-primary-darker: #f0f4f1;
+    --color-primary-darkest: #ffffff;
+    --color-primary-hover: #c9d1cb;
+
+    --color-disabled: var(--color-gray-70);
+
+    --color-text-warning: var(--color-gray-80);
+
+    --color-danger-dark: #672120;
+    --color-danger-darker: #8f2625;
+    --color-danger-darkest: #ac2b29;
+    --color-danger-text: #fbcbcc;
+
+    --color-danger-background: #fbcbcc;
+    --color-danger-icon-background: #672120;
+    --color-danger-color: #261919;
+    --color-danger-icon-color: #fbcbcc;
+
+    --color-warning-background: var(--color-warning);
+    --color-warning-icon-background: var(--color-warning-dark);
+    --color-warning-color: var(--color-gray-80);
+    --color-warning-icon-color: var(--color-gray-80);
+
+    --color-muted: var(--color-gray-80);
+    --color-muted-darker: var(--color-gray-60);
+    --color-muted-darkest: var(--color-gray-20);
+    --color-muted-background: var(--color-gray-40);
+    --color-muted-background-darker: var(--color-gray-20);
+  }
+}

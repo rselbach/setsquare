@@ -1,10 +1,10 @@
-import { toIterable } from "@excalidraw/common";
+import { toIterable } from "@setsquare/common";
 
 import { isInvisiblySmallElement } from "./sizeHelpers";
 
 import type {
-  ExcalidrawElement,
-  NonDeletedExcalidrawElement,
+  SetsquareElement,
+  NonDeletedSetsquareElement,
   NonDeleted,
   ElementsMapOrArray,
 } from "./types";
@@ -12,7 +12,7 @@ import type {
 /**
  * @deprecated unsafe, use hashElementsVersion instead
  */
-export const getSceneVersion = (elements: readonly ExcalidrawElement[]) =>
+export const getSceneVersion = (elements: readonly SetsquareElement[]) =>
   elements.reduce((acc, el) => acc + el.version, 0);
 
 /**
@@ -40,19 +40,19 @@ export const hashString = (s: string): number => {
   return hash >>> 0; // Ensure unsigned 32-bit integer
 };
 
-export const isNonDeletedElement = <T extends ExcalidrawElement>(
+export const isNonDeletedElement = <T extends SetsquareElement>(
   element: T,
 ): element is NonDeleted<T> => !element.isDeleted;
 
 export const getVisibleElements = (
-  elements: readonly ExcalidrawElement[],
-): readonly NonDeletedExcalidrawElement[] =>
+  elements: readonly SetsquareElement[],
+): readonly NonDeletedSetsquareElement[] =>
   elements.filter(
-    (el): el is NonDeletedExcalidrawElement =>
+    (el): el is NonDeletedSetsquareElement =>
       isNonDeletedElement(el) && !isInvisiblySmallElement(el),
   );
 
-export const getNonDeletedElements = <T extends ExcalidrawElement>(
+export const getNonDeletedElements = <T extends SetsquareElement>(
   elements: readonly T[],
 ): readonly NonDeleted<T>[] => elements.filter(isNonDeletedElement);
 

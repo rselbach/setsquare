@@ -12,14 +12,14 @@ import {
   STICKY_NOTE_PADDING,
   VERTICAL_ALIGN,
   arrayToMap,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 import {
   lineSegment,
   pointFrom,
   pointRotateRads,
   type GlobalPoint,
   type Radians,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 import { vi } from "vitest";
 
 import { Scene } from "../Scene";
@@ -49,25 +49,25 @@ import {
 } from "../textElement";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawStickyNoteElement,
-  ExcalidrawTextElementWithContainer,
+  SetsquareElement,
+  SetsquareStickyNoteElement,
+  SetsquareTextElementWithContainer,
   NonDeleted,
 } from "../types";
 
 const STICKY_FONT_SIZE = 28;
 
 const getSticky = (scene: Scene, id: string) =>
-  scene.getNonDeletedElement(id) as NonDeleted<ExcalidrawStickyNoteElement>;
+  scene.getNonDeletedElement(id) as NonDeleted<SetsquareStickyNoteElement>;
 
 const getBoundText = (scene: Scene, id: string) =>
   scene.getNonDeletedElement(
     id,
-  ) as NonDeleted<ExcalidrawTextElementWithContainer>;
+  ) as NonDeleted<SetsquareTextElementWithContainer>;
 
 const createStickyWithText = (
   originalText: string,
-  extraElements: ExcalidrawElement[] = [],
+  extraElements: SetsquareElement[] = [],
 ) => {
   const baseSticky = newStickyNoteElement({
     type: "stickynote",
@@ -665,7 +665,7 @@ describe("sticky note text layout", () => {
     const text = getBoundText(scene, textId);
     scene.mutateElement(sticky, { angle: 0.6 as Radians });
     scene.mutateElement(text, { angle: 0.6 as Radians });
-    const topEdgeMidpoint = (element: ExcalidrawStickyNoteElement) =>
+    const topEdgeMidpoint = (element: SetsquareStickyNoteElement) =>
       pointRotateRads(
         pointFrom(element.x + element.width / 2, element.y),
         pointFrom(
@@ -753,7 +753,7 @@ describe("sticky note text layout", () => {
     expect(
       getStickyNoteMinSize({
         fontSize: 20,
-        fontFamily: FONT_FAMILY.Excalifont,
+        fontFamily: FONT_FAMILY.Virgil,
       }),
     ).toEqual({
       width: STICKY_NOTE_MIN_SIZE,
@@ -763,7 +763,7 @@ describe("sticky note text layout", () => {
     expect(
       getStickyNoteMinSize({
         fontSize: 48,
-        fontFamily: FONT_FAMILY.Excalifont,
+        fontFamily: FONT_FAMILY.Virgil,
       }),
     ).toEqual({
       width: 60 + STICKY_NOTE_PADDING * 2,
@@ -780,7 +780,7 @@ describe("sticky note text layout", () => {
     // 28 × 1.25 = 35px line: 75 wide (floor), 35 + the vertical inset high
     const minSize = getStickyNoteMinSize({
       fontSize: STICKY_FONT_SIZE,
-      fontFamily: FONT_FAMILY.Excalifont,
+      fontFamily: FONT_FAMILY.Virgil,
     });
     expect(minSize).toEqual({
       width: STICKY_NOTE_MIN_SIZE,
@@ -1083,7 +1083,7 @@ describe("sticky note ink", () => {
       label,
     ] as const;
   };
-  const inks = (elements: readonly ExcalidrawElement[]) =>
+  const inks = (elements: readonly SetsquareElement[]) =>
     elements.map((element) => element.strokeColor);
 
   it("is a no-op when the note and its label agree", () => {

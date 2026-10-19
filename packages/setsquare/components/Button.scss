@@ -1,0 +1,7 @@
+@use "../css/theme" as *;
+
+.setsquare {
+  .setsquare-button {
+    @include outlineButtonStyles;
+  }
+}

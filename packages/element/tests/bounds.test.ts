@@ -1,8 +1,8 @@
-import { pointFrom } from "@excalidraw/math";
-import { arrayToMap, type Bounds, ROUNDNESS } from "@excalidraw/common";
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { pointFrom } from "@setsquare/math";
+import { arrayToMap, type Bounds, ROUNDNESS } from "@setsquare/common";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
-import type { LocalPoint } from "@excalidraw/math";
+import type { LocalPoint } from "@setsquare/math";
 
 import {
   elementsOverlappingBBox,
@@ -10,7 +10,7 @@ import {
   getElementBounds,
 } from "../src/bounds";
 
-import type { ExcalidrawElement, ExcalidrawLinearElement } from "../src/types";
+import type { SetsquareElement, SetsquareLinearElement } from "../src/types";
 
 const _ce = ({
   x,
@@ -41,7 +41,7 @@ const _ce = ({
     width: w,
     height: h,
     angle: a,
-  } as ExcalidrawElement);
+  } as SetsquareElement);
 
 describe("getElementAbsoluteCoords", () => {
   it("test x1 coordinate", () => {
@@ -136,7 +136,7 @@ describe("getElementBounds", () => {
         pointFrom<LocalPoint>(67.33984375, 92.48828125),
         pointFrom<LocalPoint>(-102.7890625, 52.15625),
       ],
-    } as ExcalidrawLinearElement;
+    } as SetsquareLinearElement;
 
     const [x1, y1, x2, y2] = getElementBounds(element, arrayToMap([element]));
     expect(x1).toEqual(360.9291017525165);

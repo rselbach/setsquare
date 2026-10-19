@@ -1,0 +1,16 @@
+[
+  {
+    "path": "dist/setsquare.production.min.js",
+    "limit": "340 kB"
+  },
+  {
+    "path": "dist/setsquare-assets/locales",
+    "name": "dist/setsquare-assets/locales",
+    "limit": "290 kB"
+  },
+  {
+    "path": "dist/setsquare-assets/vendor-*.js",
+    "name": "dist/setsquare-assets/vendor*.js",
+    "limit": "900 kB"
+  }
+]

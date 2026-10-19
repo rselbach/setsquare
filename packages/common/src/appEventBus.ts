@@ -1,4 +1,4 @@
-import type { UnsubscribeCallback } from "@excalidraw/excalidraw/types";
+import type { UnsubscribeCallback } from "@setsquare/setsquare/types";
 
 import { Emitter } from "./emitter";
 import { isProdEnv } from "./utils";

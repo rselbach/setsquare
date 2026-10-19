@@ -1,0 +1,11 @@
+@use "../css/variables.module" as *;
+
+.setsquare {
+  .confirm-dialog {
+    &-buttons {
+      display: flex;
+      column-gap: 0.5rem;
+      justify-content: flex-end;
+    }
+  }
+}

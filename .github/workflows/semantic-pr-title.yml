@@ -33,7 +33,7 @@ jobs:
           scopes: |
             app
             editor
-            packages/excalidraw
+            packages/setsquare
             packages/utils
             docker
             repo

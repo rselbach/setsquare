@@ -1,4 +1,4 @@
-import { invariant, isTransparent, type Bounds } from "@excalidraw/common";
+import { invariant, isTransparent, type Bounds } from "@setsquare/common";
 import {
   curveIntersectLineSegment,
   isPointWithinBounds,
@@ -12,12 +12,12 @@ import {
   vectorFromPoint,
   vectorNormalize,
   vectorScale,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import {
   ellipse,
   ellipseSegmentInterceptPoints,
-} from "@excalidraw/math/ellipse";
+} from "@setsquare/math/ellipse";
 
 import type {
   Curve,
@@ -25,9 +25,9 @@ import type {
   LineSegment,
   LocalPoint,
   Radians,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import type { AppState, FrameNameBounds } from "@excalidraw/excalidraw/types";
+import type { AppState, FrameNameBounds } from "@setsquare/setsquare/types";
 
 import { isPathALoop } from "./utils";
 import {
@@ -71,15 +71,15 @@ import { getFreedrawFillPolygon, getFreedrawMaxStrokeRadius } from "./shape";
 
 import type {
   ElementsMap,
-  ExcalidrawBindableElement,
-  ExcalidrawDiamondElement,
-  ExcalidrawElement,
-  ExcalidrawEllipseElement,
-  ExcalidrawFreeDrawElement,
-  ExcalidrawLinearElement,
-  ExcalidrawRectanguloidElement,
+  SetsquareBindableElement,
+  SetsquareDiamondElement,
+  SetsquareElement,
+  SetsquareEllipseElement,
+  SetsquareFreeDrawElement,
+  SetsquareLinearElement,
+  SetsquareRectanguloidElement,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
   NonDeletedSceneElementsMap,
   Ordered,
 } from "./types";
@@ -88,14 +88,14 @@ import type {
  * Whether the element's inside is painted (a fill, a label, text, an image or
  * an embed), so it hides what's behind it from the pointer.
  */
-export const hasSolidInterior = (element: ExcalidrawElement) =>
+export const hasSolidInterior = (element: SetsquareElement) =>
   (hasBackground(element.type) && !isTransparent(element.backgroundColor)) ||
   hasBoundTextElement(element) ||
   isIframeLikeElement(element) ||
   isTextElement(element) ||
   isImageElement(element);
 
-export const shouldTestInside = (element: ExcalidrawElement) => {
+export const shouldTestInside = (element: SetsquareElement) => {
   if (element.type === "arrow" || isFrameLikeElement(element)) {
     return false;
   }
@@ -116,7 +116,7 @@ export const shouldTestInside = (element: ExcalidrawElement) => {
  */
 export const isHollowInteriorHit = (
   point: GlobalPoint,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   threshold: number,
 ) =>
@@ -125,7 +125,7 @@ export const isHollowInteriorHit = (
 
 export type HitTestArgs = {
   point: GlobalPoint;
-  element: ExcalidrawElement;
+  element: SetsquareElement;
   threshold: number;
   elementsMap: ElementsMap;
   frameNameBound?: FrameNameBounds | null;
@@ -133,7 +133,7 @@ export type HitTestArgs = {
 };
 
 let cachedPoint: GlobalPoint | null = null;
-let cachedElement: WeakRef<ExcalidrawElement> | null = null;
+let cachedElement: WeakRef<SetsquareElement> | null = null;
 let cachedThreshold: number = Infinity;
 let cachedHit: boolean = false;
 let cachedOverrideShouldTestInside = false;
@@ -266,7 +266,7 @@ const isPointInRotatedBounds = (
 
 export const hitElementBoundingBox = (
   point: GlobalPoint,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   tolerance = 0,
 ) => {
@@ -285,7 +285,7 @@ export const hitElementBoundingBoxOnly = (
 
 export const hitElementBoundText = (
   point: GlobalPoint,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
 ): boolean => {
   const boundTextElementCandidate = getBoundTextElement(element, elementsMap);
@@ -304,7 +304,7 @@ export const hitElementBoundText = (
 // Frame children are clipped to their enclosing frame, so a point outside
 // the frame cannot hit them
 const isPointClippedByEnclosingFrame = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   point: Readonly<GlobalPoint>,
   elementsMap: ElementsMap,
 ) => {
@@ -322,7 +322,7 @@ const isPointClippedByEnclosingFrame = (
 };
 
 const bindableElementBorderDistanceIfClose = (
-  element: NonDeleted<ExcalidrawBindableElement>,
+  element: NonDeleted<SetsquareBindableElement>,
   point: GlobalPoint,
   elementsMap: ElementsMap,
   tolerance: number = 0,
@@ -357,7 +357,7 @@ const bindableElementBorderDistanceIfClose = (
 };
 
 type BindingCandidate = {
-  element: NonDeleted<ExcalidrawBindableElement>;
+  element: NonDeleted<SetsquareBindableElement>;
   /** distance to the outline: positive inside, negative outside */
   distance: number;
 };
@@ -367,7 +367,7 @@ type BindingCandidate = {
  * text label's. Images count as opaque, and frames once they support a
  * background.
  */
-export const isOpaqueForBinding = (element: ExcalidrawElement) =>
+export const isOpaqueForBinding = (element: SetsquareElement) =>
   isImageElement(element) ||
   (hasBackground(element.type) && !isTransparent(element.backgroundColor));
 
@@ -379,7 +379,7 @@ export const isOpaqueForBinding = (element: ExcalidrawElement) =>
  */
 const getBindingCandidates = (
   point: Readonly<GlobalPoint>,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   elementsMap: NonDeletedSceneElementsMap,
   zoom: AppState["zoom"],
 ): BindingCandidate[] => {
@@ -387,7 +387,7 @@ const getBindingCandidates = (
   const candidates: BindingCandidate[] = [];
   // A frame's children sit just below it in z-order, so a frame's background
   // can't end the search: it only hides the non-children behind it
-  let occludingFrameId: ExcalidrawElement["id"] | null = null;
+  let occludingFrameId: SetsquareElement["id"] | null = null;
   // We need to do hit testing from front (end of the array) to back (beginning of the array)
   // because array is ordered from lower z-index to highest and we want element z-index
   // with higher z-index
@@ -443,20 +443,20 @@ const getBindingCandidates = (
  */
 export const getAllHoveredElementAtPoint = (
   point: Readonly<GlobalPoint>,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   elementsMap: NonDeletedSceneElementsMap,
   zoom: AppState["zoom"],
-): NonDeleted<ExcalidrawBindableElement>[] =>
+): NonDeleted<SetsquareBindableElement>[] =>
   getBindingCandidates(point, elements, elementsMap, zoom).map(
     ({ element }) => element,
   );
 
 export const getHoveredElementForBinding = (
   point: Readonly<GlobalPoint>,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   elementsMap: NonDeletedSceneElementsMap,
   zoom: AppState["zoom"],
-): NonDeleted<ExcalidrawBindableElement> | null => {
+): NonDeleted<SetsquareBindableElement> | null => {
   const candidates = getBindingCandidates(point, elements, elementsMap, zoom);
 
   if (candidates.length === 0) {
@@ -510,7 +510,7 @@ export const getHoveredElementForBinding = (
  * @returns
  */
 export const intersectElementWithLineSegment = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   line: LineSegment<GlobalPoint>,
   offset: number = 0,
@@ -642,7 +642,7 @@ const lineIntersections = (
 };
 
 const intersectLinearOrFreeDrawWithLineSegment = (
-  element: ExcalidrawLinearElement | ExcalidrawFreeDrawElement,
+  element: SetsquareLinearElement | SetsquareFreeDrawElement,
   segment: LineSegment<GlobalPoint>,
   elementsMap: ElementsMap,
   onlyFirst = false,
@@ -697,7 +697,7 @@ const intersectLinearOrFreeDrawWithLineSegment = (
 };
 
 const intersectRectanguloidWithLineSegment = (
-  element: ExcalidrawRectanguloidElement,
+  element: SetsquareRectanguloidElement,
   elementsMap: ElementsMap,
   segment: LineSegment<GlobalPoint>,
   offset: number = 0,
@@ -756,7 +756,7 @@ const intersectRectanguloidWithLineSegment = (
  * @returns
  */
 const intersectDiamondWithLineSegment = (
-  element: ExcalidrawDiamondElement,
+  element: SetsquareDiamondElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
   offset: number = 0,
@@ -806,7 +806,7 @@ const intersectDiamondWithLineSegment = (
  * @returns
  */
 const intersectEllipseWithLineSegment = (
-  element: ExcalidrawEllipseElement,
+  element: SetsquareEllipseElement,
   elementsMap: ElementsMap,
   l: LineSegment<GlobalPoint>,
   offset: number = 0,
@@ -832,7 +832,7 @@ const intersectEllipseWithLineSegment = (
  */
 const isPointOnElementOutline = (
   point: GlobalPoint,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   tolerance = 1,
 ) => distanceToElement(element, elementsMap, point) <= tolerance;
@@ -846,7 +846,7 @@ const isPointOnElementOutline = (
  */
 export const isPointInElement = (
   point: GlobalPoint,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
 ) => {
   if (
@@ -902,13 +902,13 @@ export const isPointInElement = (
 };
 
 export const isBindableElementInsideOtherBindable = (
-  innerElement: ExcalidrawBindableElement,
-  outerElement: ExcalidrawBindableElement,
+  innerElement: SetsquareBindableElement,
+  outerElement: SetsquareBindableElement,
   elementsMap: ElementsMap,
 ): boolean => {
   // Get corner points of the inner element based on its type
   const getCornerPoints = (
-    element: ExcalidrawElement,
+    element: SetsquareElement,
     offset: number,
   ): GlobalPoint[] => {
     const { x, y, width, height, angle } = element;

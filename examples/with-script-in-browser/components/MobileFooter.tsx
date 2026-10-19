@@ -1,27 +1,24 @@
 import React from "react";
 
-import type * as TExcalidraw from "@excalidraw/excalidraw";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type * as TSetsquare from "@setsquare/setsquare";
+import type { SetsquareImperativeAPI } from "@setsquare/setsquare/types";
 
 import CustomFooter from "./CustomFooter";
 
 const MobileFooter = ({
-  excalidrawAPI,
-  excalidrawLib,
+  setsquareAPI,
+  setsquareLib,
 }: {
-  excalidrawAPI: ExcalidrawImperativeAPI;
-  excalidrawLib: typeof TExcalidraw;
+  setsquareAPI: SetsquareImperativeAPI;
+  setsquareLib: typeof TSetsquare;
 }) => {
-  const { useEditorInterface, Footer } = excalidrawLib;
+  const { useEditorInterface, Footer } = setsquareLib;
 
   const editorInterface = useEditorInterface();
   if (editorInterface.formFactor === "phone") {
     return (
       <Footer>
-        <CustomFooter
-          excalidrawAPI={excalidrawAPI}
-          excalidrawLib={excalidrawLib}
-        />
+        <CustomFooter setsquareAPI={setsquareAPI} setsquareLib={setsquareLib} />
       </Footer>
     );
   }

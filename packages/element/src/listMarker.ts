@@ -1,4 +1,4 @@
-import { arrayToMap } from "@excalidraw/common";
+import { arrayToMap } from "@setsquare/common";
 
 import { refreshTextDimensions } from "./newElement";
 import {
@@ -9,7 +9,7 @@ import {
 import { isBoundToContainer, isTextElement } from "./typeChecks";
 
 import type { Scene } from "./Scene";
-import type { ExcalidrawElement, ExcalidrawTextElement } from "./types";
+import type { SetsquareElement, SetsquareTextElement } from "./types";
 
 /**
  * A list marker a text starts with: `1.`, `1)`, `(1)`, `[1]`, `a.`, `a)`,
@@ -191,7 +191,7 @@ const renumberListMarker = (
 
 /** a list marker advanced by duplication, to go back and forth */
 export type ListMarkerAdvance = {
-  elementId: ExcalidrawTextElement["id"];
+  elementId: SetsquareTextElement["id"];
   prevOriginalText: string;
   nextOriginalText: string;
   /**
@@ -204,8 +204,8 @@ export type ListMarkerAdvance = {
 };
 
 const setText = (
-  element: ExcalidrawTextElement,
-  container: ExcalidrawElement | null,
+  element: SetsquareTextElement,
+  container: SetsquareElement | null,
   originalText: string,
   scene: Scene,
 ) => {
@@ -239,7 +239,7 @@ const setText = (
  * is duplicated.
  */
 export const advanceDuplicatedListMarkers = (
-  duplicatedElements: readonly ExcalidrawElement[],
+  duplicatedElements: readonly SetsquareElement[],
   scene: Scene,
 ): ListMarkerAdvance[] => {
   const duplicatesMap = arrayToMap(duplicatedElements);
@@ -249,8 +249,8 @@ export const advanceDuplicatedListMarkers = (
   const itemsByStyle = new Map<
     string,
     {
-      element: ExcalidrawTextElement;
-      container: ExcalidrawElement | null;
+      element: SetsquareTextElement;
+      container: SetsquareElement | null;
       marker: ListMarker;
     }[]
   >();

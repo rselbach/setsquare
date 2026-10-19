@@ -34,11 +34,11 @@
   }
 }
 
-.excalidraw .App-menu_top .buttonList {
+.setsquare .App-menu_top .buttonList {
   display: flex;
 }
 
-.excalidraw-wrapper {
+.setsquare-wrapper {
   height: 800px;
   margin: 50px;
   position: relative;
@@ -46,13 +46,13 @@
 }
 
 :root[dir="ltr"]
-  .excalidraw
+  .setsquare
   .layer-ui__wrapper
   .zen-mode-transition.App-menu_bottom--transition-left {
   transform: none;
 }
 
-.excalidraw .selected-shape-actions {
+.setsquare .selected-shape-actions {
   text-align: left;
 }
 
@@ -66,7 +66,7 @@
   }
 }
 
-.excalidraw {
+.setsquare {
   --color-primary: #faa2c1;
   --color-primary-darker: #f783ac;
   --color-primary-darkest: #e64980;

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "proseWrap": "never",
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": ["*.json"],
+      "options": {
+        "printWidth": 256
+      }
+    }
+  ]
+}

@@ -13,11 +13,11 @@ import {
   getFontString,
   getUpdatedTimestamp,
   getLineHeight,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type { Radians } from "@excalidraw/math";
+import type { Radians } from "@setsquare/math";
 
-import type { MarkOptional, Merge } from "@excalidraw/common/utility-types";
+import type { MarkOptional, Merge } from "@setsquare/common/utility-types";
 
 import {
   getElementAbsoluteCoords,
@@ -35,31 +35,31 @@ import { wrapText } from "./textWrapping";
 import { isLineElement } from "./typeChecks";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElement,
-  ExcalidrawLinearElement,
-  ExcalidrawGenericElement,
+  SetsquareElement,
+  SetsquareImageElement,
+  SetsquareTextElement,
+  SetsquareLinearElement,
+  SetsquareGenericElement,
   NonDeleted,
   TextAlign,
   VerticalAlign,
   Arrowhead,
-  ExcalidrawFreeDrawElement,
+  SetsquareFreeDrawElement,
   FontFamilyValues,
-  ExcalidrawTextContainer,
-  ExcalidrawFrameElement,
-  ExcalidrawEmbeddableElement,
-  ExcalidrawMagicFrameElement,
-  ExcalidrawIframeElement,
+  SetsquareTextContainer,
+  SetsquareFrameElement,
+  SetsquareEmbeddableElement,
+  SetsquareMagicFrameElement,
+  SetsquareIframeElement,
   ElementsMap,
-  ExcalidrawArrowElement,
-  ExcalidrawElbowArrowElement,
-  ExcalidrawLineElement,
-  ExcalidrawStickyNoteElement,
+  SetsquareArrowElement,
+  SetsquareElbowArrowElement,
+  SetsquareLineElement,
+  SetsquareStickyNoteElement,
 } from "./types";
 
 export type ElementConstructorOpts = MarkOptional<
-  Omit<ExcalidrawGenericElement, "id" | "type" | "isDeleted" | "updated">,
+  Omit<SetsquareGenericElement, "id" | "type" | "isDeleted" | "updated">,
   | "width"
   | "height"
   | "angle"
@@ -84,7 +84,7 @@ export type ElementConstructorOpts = MarkOptional<
   | "created"
 >;
 
-const _newElementBase = <T extends ExcalidrawElement>(
+const _newElementBase = <T extends SetsquareElement>(
   type: T["type"],
   {
     x,
@@ -107,7 +107,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
     link = null,
     locked = DEFAULT_ELEMENT_PROPS.locked,
     ...rest
-  }: ElementConstructorOpts & Omit<Partial<ExcalidrawGenericElement>, "type">,
+  }: ElementConstructorOpts & Omit<Partial<SetsquareGenericElement>, "type">,
 ) => {
   // NOTE (mtolmacs): This is a temporary check to detect extremely large
   // element position or sizing
@@ -135,7 +135,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
 
   // assign type to guard against excess properties
   const element: Merge<
-    ExcalidrawGenericElement,
+    SetsquareGenericElement,
     { type: T["type"]; isDeleted: false }
   > = {
     id: rest.id || randomId(),
@@ -173,20 +173,20 @@ const _newElementBase = <T extends ExcalidrawElement>(
 
 export const newElement = (
   opts: {
-    type: ExcalidrawGenericElement["type"];
+    type: SetsquareGenericElement["type"];
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawGenericElement> =>
-  _newElementBase<ExcalidrawGenericElement>(opts.type, opts);
+): NonDeleted<SetsquareGenericElement> =>
+  _newElementBase<SetsquareGenericElement>(opts.type, opts);
 
 /**
  * Style invariants of a sticky note: never-transparent colors, solid fill.
  * Applied by the constructor and by every normalization pass. Returns the
  * same object when nothing needs fixing.
  */
-export const normalizeStickyNoteStyle = <T extends ExcalidrawStickyNoteElement>(
+export const normalizeStickyNoteStyle = <T extends SetsquareStickyNoteElement>(
   element: T,
 ): T => {
-  return newElementWith(element as ExcalidrawStickyNoteElement, {
+  return newElementWith(element as SetsquareStickyNoteElement, {
     backgroundColor: normalizeStickyNoteBackgroundColor(
       element.backgroundColor,
     ),
@@ -203,7 +203,7 @@ export const normalizeStickyNoteStyle = <T extends ExcalidrawStickyNoteElement>(
  * action post-passes enforce this.
  */
 export const normalizeStickyNoteGeometry = <
-  T extends ExcalidrawStickyNoteElement,
+  T extends SetsquareStickyNoteElement,
 >(
   element: T,
 ): T => {
@@ -213,7 +213,7 @@ export const normalizeStickyNoteGeometry = <
     STICKY_NOTE_MIN_SIZE,
   );
 
-  return newElementWith(element as ExcalidrawStickyNoteElement, {
+  return newElementWith(element as SetsquareStickyNoteElement, {
     width,
     height: Math.max(element.height, baseHeight),
     baseHeight,
@@ -221,7 +221,7 @@ export const normalizeStickyNoteGeometry = <
 };
 
 /** all sticky note invariants (style + finalized geometry) */
-export const normalizeStickyNote = <T extends ExcalidrawStickyNoteElement>(
+export const normalizeStickyNote = <T extends SetsquareStickyNoteElement>(
   element: T,
 ): T => {
   return normalizeStickyNoteGeometry(normalizeStickyNoteStyle(element));
@@ -232,8 +232,8 @@ export const newStickyNoteElement = (
     type: "stickynote";
     baseHeight?: number;
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawStickyNoteElement> => {
-  const base = _newElementBase<ExcalidrawStickyNoteElement>("stickynote", opts);
+): NonDeleted<SetsquareStickyNoteElement> => {
+  const base = _newElementBase<SetsquareStickyNoteElement>("stickynote", opts);
 
   // no size inflation here (see `normalizeStickyNoteGeometry`)
   return normalizeStickyNoteStyle({
@@ -246,17 +246,17 @@ export const newEmbeddableElement = (
   opts: {
     type: "embeddable";
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawEmbeddableElement> => {
-  return _newElementBase<ExcalidrawEmbeddableElement>("embeddable", opts);
+): NonDeleted<SetsquareEmbeddableElement> => {
+  return _newElementBase<SetsquareEmbeddableElement>("embeddable", opts);
 };
 
 export const newIframeElement = (
   opts: {
     type: "iframe";
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawIframeElement> => {
+): NonDeleted<SetsquareIframeElement> => {
   return {
-    ..._newElementBase<ExcalidrawIframeElement>("iframe", opts),
+    ..._newElementBase<SetsquareIframeElement>("iframe", opts),
   };
 };
 
@@ -264,10 +264,10 @@ export const newFrameElement = (
   opts: {
     name?: string;
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawFrameElement> => {
+): NonDeleted<SetsquareFrameElement> => {
   const frameElement = newElementWith(
     {
-      ..._newElementBase<ExcalidrawFrameElement>("frame", opts),
+      ..._newElementBase<SetsquareFrameElement>("frame", opts),
       type: "frame",
       name: opts?.name || null,
     },
@@ -281,10 +281,10 @@ export const newMagicFrameElement = (
   opts: {
     name?: string;
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawMagicFrameElement> => {
+): NonDeleted<SetsquareMagicFrameElement> => {
   const frameElement = newElementWith(
     {
-      ..._newElementBase<ExcalidrawMagicFrameElement>("magicframe", opts),
+      ..._newElementBase<SetsquareMagicFrameElement>("magicframe", opts),
       type: "magicframe",
       name: opts?.name || null,
     },
@@ -301,8 +301,8 @@ export const newMagicFrameElement = (
  * `adjustXYWithRotation` in `getAdjustedDimensions`.
  */
 export const getTextAnchorRatios = (opts: {
-  textAlign: ExcalidrawTextElement["textAlign"];
-  verticalAlign: ExcalidrawTextElement["verticalAlign"];
+  textAlign: SetsquareTextElement["textAlign"];
+  verticalAlign: SetsquareTextElement["verticalAlign"];
 }) => ({
   x: opts.textAlign === "center" ? 0.5 : opts.textAlign === "right" ? 1 : 0,
   y:
@@ -316,8 +316,8 @@ export const getTextAnchorRatios = (opts: {
 /** computes element x/y offset based on textAlign/verticalAlign */
 const getTextElementPositionOffsets = (
   opts: {
-    textAlign: ExcalidrawTextElement["textAlign"];
-    verticalAlign: ExcalidrawTextElement["verticalAlign"];
+    textAlign: SetsquareTextElement["textAlign"];
+    verticalAlign: SetsquareTextElement["verticalAlign"];
   },
   metrics: {
     width: number;
@@ -340,13 +340,13 @@ export const newTextElement = (
     fontFamily?: FontFamilyValues;
     textAlign?: TextAlign;
     verticalAlign?: VerticalAlign;
-    containerId?: ExcalidrawTextContainer["id"] | null;
-    lineHeight?: ExcalidrawTextElement["lineHeight"];
-    autoResize?: ExcalidrawTextElement["autoResize"];
-    labelPosition?: ExcalidrawTextElement["labelPosition"];
-    baseFontSize?: ExcalidrawTextElement["baseFontSize"];
+    containerId?: SetsquareTextContainer["id"] | null;
+    lineHeight?: SetsquareTextElement["lineHeight"];
+    autoResize?: SetsquareTextElement["autoResize"];
+    labelPosition?: SetsquareTextElement["labelPosition"];
+    baseFontSize?: SetsquareTextElement["baseFontSize"];
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawTextElement> => {
+): NonDeleted<SetsquareTextElement> => {
   const fontFamily = opts.fontFamily || DEFAULT_FONT_FAMILY;
   const fontSize = opts.fontSize || DEFAULT_FONT_SIZE;
   const lineHeight = opts.lineHeight || getLineHeight(fontFamily);
@@ -363,8 +363,8 @@ export const newTextElement = (
     metrics,
   );
 
-  const textElementProps: NonDeleted<ExcalidrawTextElement> = {
-    ..._newElementBase<ExcalidrawTextElement>("text", opts),
+  const textElementProps: NonDeleted<SetsquareTextElement> = {
+    ..._newElementBase<SetsquareTextElement>("text", opts),
     text,
     fontSize,
     baseFontSize: opts.baseFontSize ?? null,
@@ -382,7 +382,7 @@ export const newTextElement = (
     labelPosition: opts.labelPosition ?? null,
   };
 
-  const textElement: NonDeleted<ExcalidrawTextElement> = newElementWith(
+  const textElement: NonDeleted<SetsquareTextElement> = newElementWith(
     textElementProps,
     {},
   );
@@ -391,7 +391,7 @@ export const newTextElement = (
 };
 
 const getAdjustedDimensions = (
-  element: ExcalidrawTextElement,
+  element: SetsquareTextElement,
   elementsMap: ElementsMap,
   nextText: string,
   /** the width the text is to take regardless of its content */
@@ -531,8 +531,8 @@ const adjustXYWithRotation = (
 };
 
 export const refreshTextDimensions = (
-  textElement: ExcalidrawTextElement,
-  container: ExcalidrawTextContainer | null,
+  textElement: SetsquareTextElement,
+  container: SetsquareTextContainer | null,
   elementsMap: ElementsMap,
   text = textElement.text,
   /**
@@ -583,14 +583,14 @@ export const refreshTextDimensions = (
 export const newFreeDrawElement = (
   opts: {
     type: "freedraw";
-    points?: ExcalidrawFreeDrawElement["points"];
+    points?: SetsquareFreeDrawElement["points"];
     simulatePressure: boolean;
-    strokeOptions?: ExcalidrawFreeDrawElement["strokeOptions"];
-    pressures?: ExcalidrawFreeDrawElement["pressures"];
+    strokeOptions?: SetsquareFreeDrawElement["strokeOptions"];
+    pressures?: SetsquareFreeDrawElement["pressures"];
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawFreeDrawElement> => {
+): NonDeleted<SetsquareFreeDrawElement> => {
   return {
-    ..._newElementBase<ExcalidrawFreeDrawElement>(opts.type, opts),
+    ..._newElementBase<SetsquareFreeDrawElement>(opts.type, opts),
     points: opts.points || [],
     pressures: opts.pressures || [],
     simulatePressure: opts.simulatePressure,
@@ -603,13 +603,13 @@ export const newFreeDrawElement = (
 
 export const newLinearElement = (
   opts: {
-    type: ExcalidrawLinearElement["type"];
-    points?: ExcalidrawLinearElement["points"];
-    polygon?: ExcalidrawLineElement["polygon"];
+    type: SetsquareLinearElement["type"];
+    points?: SetsquareLinearElement["points"];
+    polygon?: SetsquareLineElement["polygon"];
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawLinearElement> => {
+): NonDeleted<SetsquareLinearElement> => {
   const element = {
-    ..._newElementBase<ExcalidrawLinearElement>(opts.type, opts),
+    ..._newElementBase<SetsquareLinearElement>(opts.type, opts),
     points: opts.points || [],
 
     startBinding: null,
@@ -619,7 +619,7 @@ export const newLinearElement = (
   };
 
   if (isLineElement(element)) {
-    const lineElement: NonDeleted<ExcalidrawLineElement> = {
+    const lineElement: NonDeleted<SetsquareLineElement> = {
       ...element,
       polygon: opts.polygon ?? false,
     };
@@ -632,20 +632,20 @@ export const newLinearElement = (
 
 export const newArrowElement = <T extends boolean>(
   opts: {
-    type: ExcalidrawArrowElement["type"];
+    type: SetsquareArrowElement["type"];
     startArrowhead?: Arrowhead | null;
     endArrowhead?: Arrowhead | null;
-    points?: ExcalidrawArrowElement["points"];
+    points?: SetsquareArrowElement["points"];
     elbowed?: T;
     cardinal?: boolean;
-    fixedSegments?: ExcalidrawElbowArrowElement["fixedSegments"] | null;
+    fixedSegments?: SetsquareElbowArrowElement["fixedSegments"] | null;
   } & ElementConstructorOpts,
 ): T extends true
-  ? NonDeleted<ExcalidrawElbowArrowElement>
-  : NonDeleted<ExcalidrawArrowElement> => {
+  ? NonDeleted<SetsquareElbowArrowElement>
+  : NonDeleted<SetsquareArrowElement> => {
   if (opts.elbowed) {
     return {
-      ..._newElementBase<ExcalidrawElbowArrowElement>(opts.type, opts),
+      ..._newElementBase<SetsquareElbowArrowElement>(opts.type, opts),
       points: opts.points || [],
       startBinding: null,
       endBinding: null,
@@ -656,11 +656,11 @@ export const newArrowElement = <T extends boolean>(
       fixedSegments: opts.fixedSegments || [],
       startIsSpecial: false,
       endIsSpecial: false,
-    } as NonDeleted<ExcalidrawElbowArrowElement>;
+    } as NonDeleted<SetsquareElbowArrowElement>;
   }
 
   return {
-    ..._newElementBase<ExcalidrawArrowElement>(opts.type, opts),
+    ..._newElementBase<SetsquareArrowElement>(opts.type, opts),
     points: opts.points || [],
     startBinding: null,
     endBinding: null,
@@ -669,21 +669,21 @@ export const newArrowElement = <T extends boolean>(
     elbowed: false,
     cardinal: opts.cardinal ?? false,
   } as T extends true
-    ? NonDeleted<ExcalidrawElbowArrowElement>
-    : NonDeleted<ExcalidrawArrowElement>;
+    ? NonDeleted<SetsquareElbowArrowElement>
+    : NonDeleted<SetsquareArrowElement>;
 };
 
 export const newImageElement = (
   opts: {
-    type: ExcalidrawImageElement["type"];
-    status?: ExcalidrawImageElement["status"];
-    fileId?: ExcalidrawImageElement["fileId"];
-    scale?: ExcalidrawImageElement["scale"];
-    crop?: ExcalidrawImageElement["crop"];
+    type: SetsquareImageElement["type"];
+    status?: SetsquareImageElement["status"];
+    fileId?: SetsquareImageElement["fileId"];
+    scale?: SetsquareImageElement["scale"];
+    crop?: SetsquareImageElement["crop"];
   } & ElementConstructorOpts,
-): NonDeleted<ExcalidrawImageElement> => {
+): NonDeleted<SetsquareImageElement> => {
   return {
-    ..._newElementBase<ExcalidrawImageElement>("image", opts),
+    ..._newElementBase<SetsquareImageElement>("image", opts),
     // in the future we'll support changing stroke color for some SVG elements,
     // and `transparent` will likely mean "use original colors of the image"
     strokeColor: "transparent",

@@ -1,5 +1,5 @@
 {
-  "extends": ["@excalidraw/eslint-config", "react-app"],
+  "extends": ["./.eslintrc.base.json", "react-app"],
   "rules": {
     "import/order": [
       "warn",
@@ -7,7 +7,7 @@
         "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "object", "type"],
         "pathGroups": [
           {
-            "pattern": "@excalidraw/**",
+            "pattern": "@setsquare/**",
             "group": "external",
             "position": "after"
           }
@@ -42,15 +42,15 @@
   },
   "overrides": [
     {
-      "files": ["packages/excalidraw/**/*.{ts,tsx}"],
-      "excludedFiles": ["packages/excalidraw/**/*.test.{ts,tsx}", "packages/excalidraw/**/*.test.*.{ts,tsx}"],
+      "files": ["packages/setsquare/**/*.{ts,tsx}"],
+      "excludedFiles": ["packages/setsquare/**/*.test.{ts,tsx}", "packages/setsquare/**/*.test.*.{ts,tsx}"],
       "rules": {
         "@typescript-eslint/no-restricted-imports": [
           "error",
           {
             "patterns": [
               {
-                "group": ["@excalidraw/excalidraw"],
+                "group": ["@setsquare/setsquare"],
                 "message": "Do not import from the barrel 'index.tsx' files. Use direct relative imports to the specific module instead.",
                 "allowTypeImports": true
               }

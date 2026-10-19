@@ -1,27 +1,27 @@
 /* eslint-disable no-lone-blocks */
-import { arrayToMap } from "@excalidraw/common";
+import { arrayToMap } from "@setsquare/common";
 
 import {
   InvalidFractionalIndexError,
   syncInvalidIndices,
   syncMovedIndices,
   validateFractionalIndices,
-} from "@excalidraw/element";
+} from "@setsquare/element";
 
-import { deepCopyElement } from "@excalidraw/element";
+import { deepCopyElement } from "@setsquare/element";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
 import {
   generateKeyBetween,
   validateOrderKey,
-} from "@excalidraw/fractional-indexing";
+} from "@setsquare/fractional-indexing";
 
 import type {
   ElementsMap,
-  ExcalidrawElement,
+  SetsquareElement,
   FractionalIndex,
-} from "@excalidraw/element/types";
+} from "@setsquare/element/types";
 
 describe("fractional index format validation", () => {
   it("should reject malformed base62 order keys", () => {
@@ -810,7 +810,7 @@ function testInvalidIndicesSync(args: {
 function prepareArguments(
   elementsLike: { id: string; index?: string }[],
   movedElementsIds?: string[],
-): [ExcalidrawElement[], ElementsMap | undefined] {
+): [SetsquareElement[], ElementsMap | undefined] {
   const elements = elementsLike.map((x) =>
     API.createElement({ id: x.id, index: x.index as FractionalIndex }),
   );
@@ -824,7 +824,7 @@ function prepareArguments(
 
 function test(
   name: string,
-  elements: ExcalidrawElement[],
+  elements: SetsquareElement[],
   movedElements: ElementsMap | undefined,
   expectUnchangedElements: Map<string, { id: string }>,
   expectValidInput?: boolean,

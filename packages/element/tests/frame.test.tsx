@@ -1,27 +1,24 @@
-import {
-  convertToExcalidrawElements,
-  Excalidraw,
-} from "@excalidraw/excalidraw";
-import { arrayToMap } from "@excalidraw/common";
+import { convertToSetsquareElements, Setsquare } from "@setsquare/setsquare";
+import { arrayToMap } from "@setsquare/common";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { Keyboard, Pointer, UI } from "@excalidraw/excalidraw/tests/helpers/ui";
-import { getTextEditor } from "@excalidraw/excalidraw/tests/queries/dom";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { Keyboard, Pointer, UI } from "@setsquare/setsquare/tests/helpers/ui";
+import { getTextEditor } from "@setsquare/setsquare/tests/queries/dom";
 import {
   act,
   getCloneByOrigId,
   render,
-} from "@excalidraw/excalidraw/tests/test-utils";
+} from "@setsquare/setsquare/tests/test-utils";
 
-import { getSelectedElements } from "@excalidraw/excalidraw/scene";
+import { getSelectedElements } from "@setsquare/setsquare/scene";
 
 import { elementOverlapsWithFrame, shouldApplyFrameClip } from "../src/frame";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawFrameLikeElement,
+  SetsquareElement,
+  SetsquareFrameLikeElement,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
 } from "../src/types";
 
 const { h } = window;
@@ -47,8 +44,8 @@ describe("adding elements to frames", () => {
   };
 
   function resizeFrameOverElement(
-    frame: ExcalidrawElement,
-    element: ExcalidrawElement,
+    frame: SetsquareElement,
+    element: SetsquareElement,
   ) {
     mouse.clickAt(0, 0);
     mouse.downAt(frame.x + frame.width, frame.y + frame.height);
@@ -60,8 +57,8 @@ describe("adding elements to frames", () => {
   }
 
   function dragElementIntoFrame(
-    frame: ExcalidrawElement,
-    element: ExcalidrawElement,
+    frame: SetsquareElement,
+    element: SetsquareElement,
   ) {
     mouse.clickAt(element.x, element.y);
     mouse.downAt(element.x + element.width / 2, element.y + element.height / 2);
@@ -70,7 +67,7 @@ describe("adding elements to frames", () => {
   }
 
   function selectElementAndDuplicate(
-    element: ExcalidrawElement,
+    element: SetsquareElement,
     moveTo: [number, number] = [element.x + 25, element.y + 25],
   ) {
     const [x, y] = [
@@ -85,20 +82,20 @@ describe("adding elements to frames", () => {
     });
   }
 
-  function expectEqualIds(expected: ExcalidrawElement[]) {
+  function expectEqualIds(expected: SetsquareElement[]) {
     expect(h.elements.map((x) => x.id)).toEqual(expected.map((x) => x.id));
   }
 
-  let frame: ExcalidrawElement;
-  let rect1: ExcalidrawElement;
-  let rect2: ExcalidrawElement;
-  let rect3: ExcalidrawElement;
-  let rect4: ExcalidrawElement;
-  let text: ExcalidrawElement;
-  let arrow: ExcalidrawElement;
+  let frame: SetsquareElement;
+  let rect1: SetsquareElement;
+  let rect2: SetsquareElement;
+  let rect3: SetsquareElement;
+  let rect4: SetsquareElement;
+  let text: SetsquareElement;
+  let arrow: SetsquareElement;
 
   beforeEach(async () => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
 
     frame = API.createElement({ id: "id0", type: "frame", x: 0, width: 150 });
     rect1 = API.createElement({
@@ -151,7 +148,7 @@ describe("adding elements to frames", () => {
     expect(
       elementOverlapsWithFrame(
         containingRect,
-        frame as ExcalidrawFrameLikeElement,
+        frame as SetsquareFrameLikeElement,
         arrayToMap(h.elements),
       ),
     ).toBe(true);
@@ -228,7 +225,7 @@ describe("adding elements to frames", () => {
     expect(
       shouldApplyFrameClip(
         child,
-        frame as ExcalidrawFrameLikeElement,
+        frame as SetsquareFrameLikeElement,
         h.state,
         arrayToMap(h.elements),
       ),
@@ -248,7 +245,7 @@ describe("adding elements to frames", () => {
     expect(
       shouldApplyFrameClip(
         child,
-        frame as ExcalidrawFrameLikeElement,
+        frame as SetsquareFrameLikeElement,
         {
           ...h.state,
           selectedElementIds: { [child.id]: true },
@@ -615,7 +612,7 @@ describe("adding elements to frames", () => {
     initialOrder: ElementType[],
     expectedOrder: ElementType[],
   ) => {
-    await render(<Excalidraw />);
+    await render(<Setsquare />);
 
     const frame = API.createElement({ type: "frame", x: 0, y: 0 });
 
@@ -623,7 +620,7 @@ describe("adding elements to frames", () => {
       reorderElements(
         [
           frame,
-          ...convertToExcalidrawElements([
+          ...convertToSetsquareElements([
             {
               type: containerType,
               x: 100,
@@ -862,7 +859,7 @@ describe("adding elements to frames", () => {
       });
 
       API.setElements([rect2, frame, frameChild]);
-      API.setSelectedElements([rect2] as NonDeletedExcalidrawElement[]);
+      API.setSelectedElements([rect2] as NonDeletedSetsquareElement[]);
       API.updateElement(rect2, {
         x: 10,
         y: 10,
@@ -884,7 +881,7 @@ describe("adding elements to frames", () => {
             newElement: h.state.newElement,
             selectedElements: getSelectedElements(h.elements, h.state),
             selectedElementsAreBeingDragged,
-            frameToHighlight: frame as NonDeleted<ExcalidrawFrameLikeElement>,
+            frameToHighlight: frame as NonDeleted<SetsquareFrameLikeElement>,
           })
           .visibleElements.map((element) => element.id);
       };
@@ -948,7 +945,7 @@ describe("adding elements to frames", () => {
           newElement: h.state.newElement,
           selectedElements: getSelectedElements(h.elements, h.state),
           selectedElementsAreBeingDragged: true,
-          frameToHighlight: frame as NonDeleted<ExcalidrawFrameLikeElement>,
+          frameToHighlight: frame as NonDeleted<SetsquareFrameLikeElement>,
         })
         .visibleElements.map((element) => element.id);
 

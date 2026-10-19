@@ -3,7 +3,7 @@ import {
   COLOR_PALETTE,
   removeDarkModeFilter,
   rgbToHex,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
 describe("COLOR_PALETTE", () => {
   it("color palette doesn't regress", () => {

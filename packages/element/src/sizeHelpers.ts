@@ -1,17 +1,17 @@
 import {
   SHIFT_LOCKING_ANGLE,
   viewportCoordsToSceneCoords,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 import {
   normalizeRadians,
   radiansBetweenAngles,
   radiansDifference,
   type Radians,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
-import { pointsEqual } from "@excalidraw/math";
+import { pointsEqual } from "@setsquare/math";
 
-import type { AppState, Offsets, Zoom } from "@excalidraw/excalidraw/types";
+import type { AppState, Offsets, Zoom } from "@setsquare/setsquare/types";
 
 import { getCommonBounds, getElementBounds } from "./bounds";
 import {
@@ -20,13 +20,13 @@ import {
   isLinearElement,
 } from "./typeChecks";
 
-import type { ElementsMap, ExcalidrawElement } from "./types";
+import type { ElementsMap, SetsquareElement } from "./types";
 
 export type VerticalResizeAnchor = "top" | "bottom" | "center";
 
 /** Keeps the chosen edge or center fixed when an element's height changes. */
 export const getPositionAfterHeightChange = (
-  element: Pick<ExcalidrawElement, "x" | "y" | "height" | "angle">,
+  element: Pick<SetsquareElement, "x" | "y" | "height" | "angle">,
   nextHeight: number,
   anchor: VerticalResizeAnchor = "top",
 ) => {
@@ -58,9 +58,7 @@ export const INVISIBLY_SMALL_ELEMENT_SIZE = 0.1;
 // TODO:  remove invisible elements consistently actions, so that invisible elements are not recorded by the store, exported, broadcasted or persisted
 //        - perhaps could be as part of a standalone 'cleanup' action, in addition to 'finalize'
 //        - could also be part of `_clearElements`
-export const isInvisiblySmallElement = (
-  element: ExcalidrawElement,
-): boolean => {
+export const isInvisiblySmallElement = (element: SetsquareElement): boolean => {
   if (isLinearElement(element) || isFreeDrawElement(element)) {
     return (
       element.points.length < 2 ||
@@ -78,7 +76,7 @@ export const isInvisiblySmallElement = (
 };
 
 export const isElementInViewport = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   width: number,
   height: number,
   viewTransformations: {
@@ -115,7 +113,7 @@ export const isElementInViewport = (
 };
 
 export const isElementCompletelyInViewport = (
-  elements: ExcalidrawElement[],
+  elements: SetsquareElement[],
   width: number,
   height: number,
   viewTransformations: {
@@ -254,12 +252,12 @@ export const getLockedLinearCursorAlignSize = (
 };
 
 export const getNormalizedDimensions = (
-  element: Pick<ExcalidrawElement, "width" | "height" | "x" | "y">,
+  element: Pick<SetsquareElement, "width" | "height" | "x" | "y">,
 ): {
-  width: ExcalidrawElement["width"];
-  height: ExcalidrawElement["height"];
-  x: ExcalidrawElement["x"];
-  y: ExcalidrawElement["y"];
+  width: SetsquareElement["width"];
+  height: SetsquareElement["height"];
+  x: SetsquareElement["x"];
+  y: SetsquareElement["y"];
 } => {
   const ret = {
     width: element.width,

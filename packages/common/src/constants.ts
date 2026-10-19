@@ -1,12 +1,12 @@
 import type {
-  ExcalidrawElement,
+  SetsquareElement,
   FontFamilyValues,
-} from "@excalidraw/element/types";
+} from "@setsquare/element/types";
 import type {
   AppProps,
   AppState,
   NormalizedZoomValue,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 
 import { COLOR_PALETTE } from "./colors";
 
@@ -15,7 +15,7 @@ export { DEFAULT_STICKY_NOTE_BG } from "./colors";
 export const supportsResizeObserver =
   typeof window !== "undefined" && "ResizeObserver" in window;
 
-export const APP_NAME = "Excalidraw";
+export const APP_NAME = "Setsquare";
 
 // distance when creating text before it's considered `autoResize: false`
 // we're using higher threshold so that clicks that end up being drags
@@ -90,7 +90,7 @@ export enum EVENT {
   VISIBILITY_CHANGE = "visibilitychange",
   SCROLL = "scroll",
   // custom events
-  EXCALIDRAW_LINK = "excalidraw-link",
+  SETSQUARE_LINK = "setsquare-link",
   MENU_ITEM_SELECT = "menu.itemSelect",
   MESSAGE = "message",
   FULLSCREENCHANGE = "fullscreenchange",
@@ -129,7 +129,6 @@ export const FONT_SIZES = {
   xl: 36,
 } as const;
 
-export const CJK_HAND_DRAWN_FALLBACK_FONT = "Xiaolai";
 export const WINDOWS_EMOJI_FALLBACK_FONT = "Segoe UI Emoji";
 
 /**
@@ -144,8 +143,7 @@ export const FONT_FAMILY = {
   Virgil: 1,
   Helvetica: 2,
   Cascadia: 3,
-  // leave 4 unused as it was historically used for Assistant (which we don't use anymore) or custom font (Obsidian)
-  Excalifont: 5,
+  // leave 4 and 5 unused, as older drawings may still reference them
   Nunito: 6,
   "Lilita One": 7,
   "Comic Shanns": 8,
@@ -164,7 +162,6 @@ export const FONT_FAMILY_GENERIC_FALLBACKS = {
 };
 
 export const FONT_FAMILY_FALLBACKS = {
-  [CJK_HAND_DRAWN_FALLBACK_FONT]: 100,
   ...FONT_FAMILY_GENERIC_FALLBACKS,
   [WINDOWS_EMOJI_FALLBACK_FONT]: 1000,
 };
@@ -185,18 +182,10 @@ export function getGenericFontFamilyFallback(
 export const getFontFamilyFallbacks = (
   fontFamily: number,
 ): Array<keyof typeof FONT_FAMILY_FALLBACKS> => {
-  const genericFallbackFont = getGenericFontFamilyFallback(fontFamily);
-
-  switch (fontFamily) {
-    case FONT_FAMILY.Excalifont:
-      return [
-        CJK_HAND_DRAWN_FALLBACK_FONT,
-        genericFallbackFont,
-        WINDOWS_EMOJI_FALLBACK_FONT,
-      ];
-    default:
-      return [genericFallbackFont, WINDOWS_EMOJI_FALLBACK_FONT];
-  }
+  return [
+    getGenericFontFamilyFallback(fontFamily),
+    WINDOWS_EMOJI_FALLBACK_FONT,
+  ];
 };
 
 export const THEME = {
@@ -207,13 +196,13 @@ export const THEME = {
 export const DARK_THEME_FILTER = "invert(93%) hue-rotate(180deg)";
 
 export const FRAME_STYLE = {
-  strokeColor: "#bbb" as ExcalidrawElement["strokeColor"],
-  strokeWidth: 2 as ExcalidrawElement["strokeWidth"],
-  strokeStyle: "solid" as ExcalidrawElement["strokeStyle"],
-  fillStyle: "solid" as ExcalidrawElement["fillStyle"],
-  roughness: 0 as ExcalidrawElement["roughness"],
-  roundness: null as ExcalidrawElement["roundness"],
-  backgroundColor: "transparent" as ExcalidrawElement["backgroundColor"],
+  strokeColor: "#bbb" as SetsquareElement["strokeColor"],
+  strokeWidth: 2 as SetsquareElement["strokeWidth"],
+  strokeStyle: "solid" as SetsquareElement["strokeStyle"],
+  fillStyle: "solid" as SetsquareElement["fillStyle"],
+  roughness: 0 as SetsquareElement["roughness"],
+  roundness: null as SetsquareElement["roundness"],
+  backgroundColor: "transparent" as SetsquareElement["backgroundColor"],
   radius: 8,
   nameOffsetY: 3,
   nameColorLightTheme: "#999999",
@@ -273,7 +262,7 @@ export const STICKY_NOTE_EDGE_SHADOW_OPACITY = 0.08;
 export const DEFAULT_FONT_FAMILY: FontFamilyValues = FONT_FAMILY.Nunito;
 /** number of slots in the font-picker top-picks strip — pick customization
  * (replace / reorder) preserves it. Must equal `DEFAULT_FONTS.length` in
- * `packages/excalidraw/components/FontPicker/FontPicker.tsx` (enforced by
+ * `packages/setsquare/components/FontPicker/FontPicker.tsx` (enforced by
  * `fontTopPicks.test.ts`) */
 export const FONT_TOP_PICKS_SLOTS = 3;
 export const DEFAULT_TEXT_ALIGN = "left";
@@ -314,20 +303,20 @@ export const STRING_MIME_TYPES = {
   text: "text/plain",
   html: "text/html",
   json: "application/json",
-  // excalidraw data
-  excalidraw: "application/vnd.excalidraw+json",
-  excalidrawClipboard: "application/vnd.excalidraw.clipboard+json",
+  // setsquare data
+  setsquare: "application/vnd.setsquare+json",
+  setsquareClipboard: "application/vnd.setsquare.clipboard+json",
   // LEGACY: fully-qualified library JSON data
-  excalidrawlib: "application/vnd.excalidrawlib+json",
-  // list of excalidraw library item ids
-  excalidrawlibIds: "application/vnd.excalidrawlib.ids+json",
+  setsquarelib: "application/vnd.setsquarelib+json",
+  // list of setsquare library item ids
+  setsquarelibIds: "application/vnd.setsquarelib.ids+json",
 } as const;
 
 export const MIME_TYPES = {
   ...STRING_MIME_TYPES,
-  // image-encoded excalidraw data
-  "excalidraw.svg": "image/svg+xml",
-  "excalidraw.png": "image/png",
+  // image-encoded setsquare data
+  "setsquare.svg": "image/svg+xml",
+  "setsquare.png": "image/png",
   // binary
   binary: "application/octet-stream",
   // image
@@ -347,14 +336,14 @@ export const EXPORT_IMAGE_TYPES = {
 } as const;
 
 export const EXPORT_DATA_TYPES = {
-  excalidraw: "excalidraw",
-  excalidrawClipboard: "excalidraw/clipboard",
-  excalidrawLibrary: "excalidrawlib",
-  excalidrawClipboardWithAPI: "excalidraw-api/clipboard",
+  setsquare: "setsquare",
+  setsquareClipboard: "setsquare/clipboard",
+  setsquareLibrary: "setsquarelib",
+  setsquareClipboardWithAPI: "setsquare-api/clipboard",
 } as const;
 
 export const getExportSource = () =>
-  window.EXCALIDRAW_EXPORT_SOURCE || window.location.origin;
+  window.SETSQUARE_EXPORT_SOURCE || window.location.origin;
 
 // time in milliseconds
 export const IMAGE_RENDER_TIMEOUT = 500;
@@ -411,8 +400,8 @@ export const SVG_DOCUMENT_PREAMBLE = `<?xml version="1.0" standalone="no"?>
 export const ENCRYPTION_KEY_BITS = 128;
 
 export const VERSIONS = {
-  excalidraw: 2,
-  excalidrawLibrary: 2,
+  setsquare: 2,
+  setsquareLibrary: 2,
 } as const;
 
 export const BOUND_TEXT_PADDING = 5;
@@ -475,7 +464,7 @@ export const STROKE_WIDTH_KEYS: readonly StrokeWidthKey[] = [
 ];
 
 export const STROKE_WIDTH: Readonly<
-  Record<StrokeWidthKey | "extraBold", ExcalidrawElement["strokeWidth"]>
+  Record<StrokeWidthKey | "extraBold", SetsquareElement["strokeWidth"]>
 > = {
   thin: 1,
   medium: 2,
@@ -489,7 +478,7 @@ export const STROKE_WIDTH: Readonly<
 //
 // note that in the UI, STROKE_WIDTH.thin == FREEDRAW_STROKE_WIDTH.thin still
 export const FREEDRAW_STROKE_WIDTH: Readonly<
-  Record<StrokeWidthKey | "extraBold", ExcalidrawElement["strokeWidth"]>
+  Record<StrokeWidthKey | "extraBold", SetsquareElement["strokeWidth"]>
 > = {
   thin: 0.5,
   medium: 1,
@@ -498,9 +487,9 @@ export const FREEDRAW_STROKE_WIDTH: Readonly<
 };
 
 export const getStrokeWidthByKey = (
-  elementType: ExcalidrawElement["type"],
+  elementType: SetsquareElement["type"],
   strokeWidthKey: StrokeWidthKey,
-): ExcalidrawElement["strokeWidth"] => {
+): SetsquareElement["strokeWidth"] => {
   return elementType === "freedraw"
     ? FREEDRAW_STROKE_WIDTH[strokeWidthKey]
     : STROKE_WIDTH[strokeWidthKey];
@@ -509,14 +498,14 @@ export const getStrokeWidthByKey = (
 export const DEFAULT_ELEMENT_STROKE_WIDTH_KEY: StrokeWidthKey = "medium";
 
 export const DEFAULT_ELEMENT_PROPS: {
-  strokeColor: ExcalidrawElement["strokeColor"];
-  backgroundColor: ExcalidrawElement["backgroundColor"];
-  fillStyle: ExcalidrawElement["fillStyle"];
-  strokeWidth: ExcalidrawElement["strokeWidth"];
-  strokeStyle: ExcalidrawElement["strokeStyle"];
-  roughness: ExcalidrawElement["roughness"];
-  opacity: ExcalidrawElement["opacity"];
-  locked: ExcalidrawElement["locked"];
+  strokeColor: SetsquareElement["strokeColor"];
+  backgroundColor: SetsquareElement["backgroundColor"];
+  fillStyle: SetsquareElement["fillStyle"];
+  strokeWidth: SetsquareElement["strokeWidth"];
+  strokeStyle: SetsquareElement["strokeStyle"];
+  roughness: SetsquareElement["roughness"];
+  opacity: SetsquareElement["opacity"];
+  locked: SetsquareElement["locked"];
 } = {
   strokeColor: COLOR_PALETTE.black,
   backgroundColor: COLOR_PALETTE.transparent,
@@ -566,9 +555,9 @@ export const TOOL_TYPE = {
 } as const;
 
 export const EDITOR_LS_KEYS = {
-  OAI_API_KEY: "excalidraw-oai-api-key",
+  OAI_API_KEY: "setsquare-oai-api-key",
   // legacy naming (non)scheme
-  MERMAID_TO_EXCALIDRAW: "mermaid-to-excalidraw",
+  MERMAID_TO_SETSQUARE: "mermaid-to-setsquare",
 } as const;
 
 /**

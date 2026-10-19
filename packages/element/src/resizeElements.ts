@@ -5,7 +5,7 @@ import {
   pointRotateRads,
   type Radians,
   type LocalPoint,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import {
   MIN_FONT_SIZE,
@@ -13,13 +13,13 @@ import {
   STICKY_NOTE_MIN_SIZE,
   rescalePoints,
   getFontString,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type { GlobalPoint } from "@excalidraw/math";
+import type { GlobalPoint } from "@setsquare/math";
 
-import type { PointerDownState } from "@excalidraw/excalidraw/types";
+import type { PointerDownState } from "@setsquare/setsquare/types";
 
-import type { Mutable } from "@excalidraw/common/utility-types";
+import type { Mutable } from "@setsquare/common/utility-types";
 
 import {
   getArrowLocalFixedPoints,
@@ -77,16 +77,16 @@ import type {
   TransformHandleDirection,
 } from "./transformHandles";
 import type {
-  ExcalidrawLinearElement,
-  ExcalidrawTextElement,
-  NonDeletedExcalidrawElement,
+  SetsquareLinearElement,
+  SetsquareTextElement,
+  NonDeletedSetsquareElement,
   NonDeleted,
-  ExcalidrawElement,
-  ExcalidrawTextElementWithContainer,
-  ExcalidrawImageElement,
+  SetsquareElement,
+  SetsquareTextElementWithContainer,
+  SetsquareImageElement,
   ElementsMap,
-  ExcalidrawElbowArrowElement,
-  ExcalidrawArrowElement,
+  SetsquareElbowArrowElement,
+  SetsquareArrowElement,
 } from "./types";
 import type { ElementUpdate } from "./mutateElement";
 
@@ -94,7 +94,7 @@ import type { ElementUpdate } from "./mutateElement";
 export const transformElements = (
   originalElements: PointerDownState["originalElements"],
   transformHandleType: MaybeTransformHandleType,
-  selectedElements: readonly NonDeletedExcalidrawElement[],
+  selectedElements: readonly NonDeletedSetsquareElement[],
   scene: Scene,
   shouldRotateWithDiscreteAngle: boolean,
   shouldResizeFromCenter: boolean,
@@ -208,7 +208,7 @@ export const transformElements = (
 };
 
 const rotateSingleElement = (
-  element: NonDeletedExcalidrawElement,
+  element: NonDeletedSetsquareElement,
   scene: Scene,
   pointerX: number,
   pointerY: number,
@@ -234,14 +234,14 @@ const rotateSingleElement = (
   }
   const boundTextElementId = getBoundTextElementId(element);
 
-  let update: ElementUpdate<NonDeletedExcalidrawElement> = {
+  let update: ElementUpdate<NonDeletedSetsquareElement> = {
     angle,
   };
 
   if (isBindingElement(element)) {
     update = {
       ...update,
-    } as ElementUpdate<NonDeletedExcalidrawElement>;
+    } as ElementUpdate<NonDeletedSetsquareElement>;
 
     if (element.startBinding) {
       unbindBindingElement(element, "start", scene);
@@ -255,7 +255,7 @@ const rotateSingleElement = (
 
   if (boundTextElementId) {
     const textElement =
-      scene.getElement<ExcalidrawTextElementWithContainer>(boundTextElementId);
+      scene.getElement<SetsquareTextElementWithContainer>(boundTextElementId);
 
     if (textElement && !isArrowElement(element)) {
       const { x, y } = computeBoundTextPosition(
@@ -273,7 +273,7 @@ const rotateSingleElement = (
 };
 
 export const rescalePointsInElement = (
-  element: NonDeletedExcalidrawElement,
+  element: NonDeletedSetsquareElement,
   width: number,
   height: number,
   normalizePoints: boolean,
@@ -290,7 +290,7 @@ export const rescalePointsInElement = (
     : {};
 
 export const measureFontSizeFromWidth = (
-  element: NonDeleted<ExcalidrawTextElement>,
+  element: NonDeleted<SetsquareTextElement>,
   elementsMap: ElementsMap,
   nextWidth: number,
 ): { size: number } | null => {
@@ -315,8 +315,8 @@ export const measureFontSizeFromWidth = (
 };
 
 export const resizeSingleTextElement = (
-  origElement: NonDeleted<ExcalidrawTextElement>,
-  element: NonDeleted<ExcalidrawTextElement>,
+  origElement: NonDeleted<SetsquareTextElement>,
+  element: NonDeleted<SetsquareTextElement>,
   scene: Scene,
   transformHandleType: TransformHandleDirection,
   shouldResizeFromCenter: boolean,
@@ -404,7 +404,7 @@ export const resizeSingleTextElement = (
       shouldResizeFromCenter,
     );
 
-    const resizedElement: Partial<NonDeleted<ExcalidrawTextElement>> = {
+    const resizedElement: Partial<NonDeleted<SetsquareTextElement>> = {
       width: Math.abs(newWidth),
       height: Math.abs(metrics.height),
       x: newOrigin.x,
@@ -419,7 +419,7 @@ export const resizeSingleTextElement = (
 
 const rotateMultipleElements = (
   originalElements: PointerDownState["originalElements"],
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   scene: Scene,
   pointerX: number,
   pointerY: number,
@@ -436,8 +436,8 @@ const rotateMultipleElements = (
   }
 
   const rotatedElementsMap = new Map<
-    ExcalidrawElement["id"],
-    NonDeletedExcalidrawElement
+    SetsquareElement["id"],
+    NonDeletedSetsquareElement
   >(elements.map((element) => [element.id, element]));
 
   for (const element of elements) {
@@ -505,7 +505,7 @@ const rotateMultipleElements = (
 
 export const getResizeOffsetXY = (
   transformHandleType: MaybeTransformHandleType,
-  selectedElements: NonDeletedExcalidrawElement[],
+  selectedElements: NonDeletedSetsquareElement[],
   elementsMap: ElementsMap,
   x: number,
   y: number,
@@ -564,7 +564,7 @@ export const getResizeOffsetXY = (
 
 export const getResizeArrowDirection = (
   transformHandleType: MaybeTransformHandleType,
-  element: NonDeleted<ExcalidrawLinearElement>,
+  element: NonDeleted<SetsquareLinearElement>,
 ): "origin" | "end" => {
   const [, [px, py]] = element.points;
   const isResizeEnd =
@@ -738,8 +738,8 @@ const getResizedOrigin = (
 export const resizeSingleElement = (
   nextWidth: number,
   nextHeight: number,
-  latestElement: NonDeletedExcalidrawElement,
-  origElement: NonDeletedExcalidrawElement,
+  latestElement: NonDeletedSetsquareElement,
+  origElement: NonDeletedSetsquareElement,
   originalElementsMap: ElementsMap,
   scene: Scene,
   handleDirection: TransformHandleDirection,
@@ -929,7 +929,7 @@ export const resizeSingleElement = (
     Number.isFinite(newOrigin.x) &&
     Number.isFinite(newOrigin.y)
   ) {
-    let updates: ElementUpdate<ExcalidrawElement> = {
+    let updates: ElementUpdate<SetsquareElement> = {
       ...newOrigin,
       width: Math.abs(nextWidth),
       height: Math.abs(nextHeight),
@@ -940,7 +940,7 @@ export const resizeSingleElement = (
       if (latestElement.startBinding) {
         updates = {
           ...updates,
-        } as ElementUpdate<ExcalidrawArrowElement>;
+        } as ElementUpdate<SetsquareArrowElement>;
 
         if (latestElement.startBinding) {
           unbindBindingElement(latestElement, "start", scene);
@@ -951,7 +951,7 @@ export const resizeSingleElement = (
         updates = {
           ...updates,
           endBinding: null,
-        } as ElementUpdate<ExcalidrawArrowElement>;
+        } as ElementUpdate<SetsquareArrowElement>;
       }
     }
 
@@ -995,8 +995,8 @@ export const resizeSingleElement = (
 };
 
 export const getNextSingleWidthAndHeightFromPointer = (
-  latestElement: ExcalidrawElement,
-  origElement: ExcalidrawElement,
+  latestElement: SetsquareElement,
+  origElement: SetsquareElement,
   handleDirection: TransformHandleDirection,
   pointerX: number,
   pointerY: number,
@@ -1089,7 +1089,7 @@ export const getNextSingleWidthAndHeightFromPointer = (
 };
 
 const getNextMultipleWidthAndHeightFromPointer = (
-  selectedElements: readonly NonDeletedExcalidrawElement[],
+  selectedElements: readonly NonDeletedSetsquareElement[],
   originalElementsMap: ElementsMap,
   elementsMap: ElementsMap,
   handleDirection: TransformHandleDirection,
@@ -1134,7 +1134,7 @@ const getNextMultipleWidthAndHeightFromPointer = (
         ),
       },
     ];
-  }, [] as ExcalidrawTextElementWithContainer[]);
+  }, [] as SetsquareTextElementWithContainer[]);
 
   const originalBoundingBox = getCommonBoundingBox(
     originalElementsArray.map((orig) => orig).concat(boundTextElements),
@@ -1216,7 +1216,7 @@ const getNextMultipleWidthAndHeightFromPointer = (
 };
 
 export const resizeMultipleElements = (
-  selectedElements: readonly NonDeletedExcalidrawElement[],
+  selectedElements: readonly NonDeletedSetsquareElement[],
   elementsMap: ElementsMap,
   handleDirection: TransformHandleDirection,
   scene: Scene,
@@ -1263,15 +1263,15 @@ export const resizeMultipleElements = (
     (
       acc: {
         /** element at resize start */
-        orig: NonDeletedExcalidrawElement;
+        orig: NonDeletedSetsquareElement;
         /** latest element */
-        latest: NonDeletedExcalidrawElement;
+        latest: NonDeletedSetsquareElement;
       }[],
       element,
     ) => {
       // originalElementsMap holds snapshots of the (non-deleted) selection
       const origElement = originalElementsMap!.get(element.id) as
-        | NonDeletedExcalidrawElement
+        | NonDeletedSetsquareElement
         | undefined;
       if (origElement) {
         acc.push({ orig: origElement, latest: element });
@@ -1309,7 +1309,7 @@ export const resizeMultipleElements = (
           ),
         },
       ];
-    }, [] as ExcalidrawTextElementWithContainer[]);
+    }, [] as SetsquareTextElementWithContainer[]);
 
     boundingBox = getCommonBoundingBox([
       ...targetElements.map(({ orig }) => orig),
@@ -1401,17 +1401,17 @@ export const resizeMultipleElements = (
     const [flipFactorX, flipFactorY] = [flipByX ? -1 : 1, flipByY ? -1 : 1];
 
     const elementsAndUpdates: {
-      element: NonDeletedExcalidrawElement;
+      element: NonDeletedSetsquareElement;
       update: Mutable<
-        Pick<ExcalidrawElement, "x" | "y" | "width" | "height" | "angle">
+        Pick<SetsquareElement, "x" | "y" | "width" | "height" | "angle">
       > & {
-        points?: ExcalidrawLinearElement["points"];
-        fontSize?: ExcalidrawTextElement["fontSize"];
-        scale?: ExcalidrawImageElement["scale"];
-        boundTextFontSize?: ExcalidrawTextElement["fontSize"];
-        startBinding?: ExcalidrawElbowArrowElement["startBinding"];
-        endBinding?: ExcalidrawElbowArrowElement["endBinding"];
-        fixedSegments?: ExcalidrawElbowArrowElement["fixedSegments"];
+        points?: SetsquareLinearElement["points"];
+        fontSize?: SetsquareTextElement["fontSize"];
+        scale?: SetsquareImageElement["scale"];
+        boundTextFontSize?: SetsquareTextElement["fontSize"];
+        startBinding?: SetsquareElbowArrowElement["startBinding"];
+        endBinding?: SetsquareElbowArrowElement["endBinding"];
+        fixedSegments?: SetsquareElbowArrowElement["fixedSegments"];
       };
     }[] = [];
 
@@ -1507,7 +1507,7 @@ export const resizeMultipleElements = (
 
       const boundTextElement = originalElementsMap.get(
         getBoundTextElementId(orig) ?? "",
-      ) as ExcalidrawTextElementWithContainer | undefined;
+      ) as SetsquareTextElementWithContainer | undefined;
 
       // sticky notes derive their label's size from the layout below
       if (boundTextElement && !isStickyNoteElement(orig)) {
@@ -1530,8 +1530,8 @@ export const resizeMultipleElements = (
 
     const elementsToUpdate = elementsAndUpdates.map(({ element }) => element);
     const resizedElementsMap = new Map<
-      ExcalidrawElement["id"],
-      NonDeletedExcalidrawElement
+      SetsquareElement["id"],
+      NonDeletedSetsquareElement
     >(elementsAndUpdates.map(({ element }) => [element.id, element]));
 
     for (const {

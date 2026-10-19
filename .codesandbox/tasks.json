@@ -25,7 +25,7 @@
       "runAtStart": false
     },
     "start": {
-      "name": "Start Excalidraw",
+      "name": "Start Setsquare",
       "command": "yarn start",
       "runAtStart": true,
       "preview": {

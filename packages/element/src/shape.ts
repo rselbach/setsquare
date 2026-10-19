@@ -1,6 +1,6 @@
 import { pointsOnBezierCurves, simplify } from "points-on-curve";
 import { getStroke, getStrokePoints } from "perfect-freehand";
-import { LaserPointer } from "@excalidraw/laser-pointer";
+import { LaserPointer } from "@setsquare/laser-pointer";
 
 import {
   type GeometricShape,
@@ -9,7 +9,7 @@ import {
   getEllipseShape,
   getFreedrawShape,
   getPolygonShape,
-} from "@excalidraw/utils/shape";
+} from "@setsquare/utils/shape";
 
 import {
   pointFrom,
@@ -17,7 +17,7 @@ import {
   type LocalPoint,
   pointRotateRads,
   polygonFromPoints,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 import {
   ROUGHNESS,
   THEME,
@@ -27,23 +27,23 @@ import {
   LINE_POLYGON_POINT_MERGE_DISTANCE,
   applyDarkModeFilter,
   DEFAULT_STROKE_STREAMLINE,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
 import { RoughGenerator } from "roughjs/bin/generator";
 
-import type { GlobalPoint, Polygon } from "@excalidraw/math";
+import type { GlobalPoint, Polygon } from "@setsquare/math";
 
-import type { Mutable } from "@excalidraw/common/utility-types";
+import type { Mutable } from "@setsquare/common/utility-types";
 
 import type {
   AppState,
   EmbedsValidationStatus,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 import type {
   ElementShape,
   ElementShapes,
   SVGPathString,
-} from "@excalidraw/excalidraw/scene/types";
+} from "@setsquare/setsquare/scene/types";
 
 import { elementWithCanvasCache } from "./renderElement";
 
@@ -68,12 +68,12 @@ import {
 import { shouldTestInside } from "./collision";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawSelectionElement,
-  ExcalidrawLinearElement,
-  ExcalidrawFreeDrawElement,
+  SetsquareElement,
+  SetsquareSelectionElement,
+  SetsquareLinearElement,
+  SetsquareFreeDrawElement,
   ElementsMap,
-  ExcalidrawLineElement,
+  SetsquareLineElement,
   Arrowhead,
 } from "./types";
 
@@ -83,7 +83,7 @@ import type { Point as RoughPoint } from "roughjs/bin/geometry";
 export class ShapeCache {
   private static rg = new RoughGenerator();
   private static cache = new WeakMap<
-    ExcalidrawElement,
+    SetsquareElement,
     { shape: ElementShape; theme: AppState["theme"] }
   >();
 
@@ -91,7 +91,7 @@ export class ShapeCache {
    * Retrieves shape from cache if available. Use this only if shape
    * is optional and you have a fallback in case it's not cached.
    */
-  public static get = <T extends ExcalidrawElement>(
+  public static get = <T extends SetsquareElement>(
     element: T,
     theme: AppState["theme"] | null,
   ) => {
@@ -104,7 +104,7 @@ export class ShapeCache {
     return undefined;
   };
 
-  public static delete = (element: ExcalidrawElement) => {
+  public static delete = (element: SetsquareElement) => {
     ShapeCache.cache.delete(element);
     elementWithCanvasCache.delete(element);
   };
@@ -118,7 +118,7 @@ export class ShapeCache {
    * returns cached shape.
    */
   public static generateElementShape = <
-    T extends Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,
+    T extends Exclude<SetsquareElement, SetsquareSelectionElement>,
   >(
     element: T,
     renderConfig: {
@@ -169,7 +169,7 @@ const getDashArrayDashed = (strokeWidth: number) => [8, 8 + strokeWidth];
 
 const getDashArrayDotted = (strokeWidth: number) => [1.5, 6 + strokeWidth];
 
-function adjustRoughness(element: ExcalidrawElement): number {
+function adjustRoughness(element: SetsquareElement): number {
   const roughness = element.roughness;
 
   const maxSize = Math.max(element.width, element.height);
@@ -193,7 +193,7 @@ function adjustRoughness(element: ExcalidrawElement): number {
 }
 
 export const generateRoughOptions = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   continuousPath = false,
   isDarkMode: boolean = false,
 ): Options => {
@@ -260,7 +260,7 @@ export const generateRoughOptions = (
 };
 
 const modifyIframeLikeForRoughOptions = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   isExporting: boolean,
   embedsValidationStatus: EmbedsValidationStatus | null,
 ) => {
@@ -324,7 +324,7 @@ const generateArrowheadLinesToTip = (
 };
 
 const getArrowheadLineOptions = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
   options: Options,
 ) => {
   const lineOptions = { ...options };
@@ -369,7 +369,7 @@ const generateArrowheadOutlineCircle = (
 };
 
 const getArrowheadShapes = (
-  element: ExcalidrawLinearElement,
+  element: SetsquareLinearElement,
   shape: Drawable[],
   position: "start" | "end",
   arrowhead: Arrowhead,
@@ -577,11 +577,11 @@ const getArrowheadShapes = (
 };
 
 /** The simplified centerline the freedraw fill is drawn along. */
-const getFreedrawFillCurvePoints = (element: ExcalidrawFreeDrawElement) =>
+const getFreedrawFillCurvePoints = (element: SetsquareFreeDrawElement) =>
   simplify(element.points as Mutable<LocalPoint[]>, 0.75) as [number, number][];
 
 const freedrawFillPolygonCache = new WeakMap<
-  ExcalidrawFreeDrawElement,
+  SetsquareFreeDrawElement,
   { version: number; polygon: Polygon<LocalPoint> }
 >();
 
@@ -589,7 +589,7 @@ const freedrawFillPolygonCache = new WeakMap<
  * Returns the flattened fill contour of a freedraw loop in local, unrotated
  * coordinates, following the rendered fill rather than the stroke outline.
  */
-export const getFreedrawFillPolygon = (element: ExcalidrawFreeDrawElement) => {
+export const getFreedrawFillPolygon = (element: SetsquareFreeDrawElement) => {
   const cached = freedrawFillPolygonCache.get(element);
   if (cached?.version === element.version) {
     return cached.polygon;
@@ -619,7 +619,7 @@ export const getFreedrawFillPolygon = (element: ExcalidrawFreeDrawElement) => {
 };
 
 export const generateLinearCollisionShape = (
-  element: ExcalidrawLinearElement | ExcalidrawFreeDrawElement,
+  element: SetsquareLinearElement | SetsquareFreeDrawElement,
   elementsMap: ElementsMap,
 ): {
   op: string;
@@ -768,7 +768,7 @@ export const generateLinearCollisionShape = (
  * @private
  */
 const _generateElementShape = (
-  element: Exclude<ExcalidrawElement, ExcalidrawSelectionElement>,
+  element: Exclude<SetsquareElement, SetsquareSelectionElement>,
   generator: RoughGenerator,
   {
     isExporting,
@@ -1081,11 +1081,11 @@ const generateElbowArrowShape = (
 };
 
 /**
- * get the pure geometric shape of an excalidraw elementw
+ * get the pure geometric shape of an setsquare elementw
  * which is then used for hit detection
  */
 export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
 ): GeometricShape<Point> => {
   switch (element.type) {
@@ -1136,11 +1136,11 @@ export const getElementShape = <Point extends GlobalPoint | LocalPoint>(
 };
 
 export const toggleLinePolygonState = (
-  element: ExcalidrawLineElement,
+  element: SetsquareLineElement,
   nextPolygonState: boolean,
 ): {
-  polygon: ExcalidrawLineElement["polygon"];
-  points: ExcalidrawLineElement["points"];
+  polygon: SetsquareLineElement["polygon"];
+  points: SetsquareLineElement["points"];
 } | null => {
   const updatedPoints = [...element.points];
 
@@ -1170,7 +1170,7 @@ export const toggleLinePolygonState = (
     }
   }
 
-  // TODO: satisfies ElementUpdate<ExcalidrawLineElement>
+  // TODO: satisfies ElementUpdate<SetsquareLineElement>
   const ret = {
     polygon: nextPolygonState,
     points: updatedPoints,
@@ -1184,7 +1184,7 @@ export const toggleLinePolygonState = (
 // -----------------------------------------------------------------------------
 
 // NOTE not cached (-> for SVG export)
-const getFreeDrawSvgPath = (element: ExcalidrawFreeDrawElement) => {
+const getFreeDrawSvgPath = (element: SetsquareFreeDrawElement) => {
   return getSvgPathFromStroke(
     getFreedrawOutlinePoints(element),
   ) as SVGPathString;
@@ -1214,15 +1214,15 @@ const CONSTANT_WIDTH_FREEDRAW = {
   COLLISION_SIMPLIFY_TOLERANCE: 0.2,
 } as const;
 
-const getFreedrawStreamline = (element: ExcalidrawFreeDrawElement) =>
+const getFreedrawStreamline = (element: SetsquareFreeDrawElement) =>
   element.strokeOptions?.streamline ?? DEFAULT_STROKE_STREAMLINE;
 
 /**
  * Pressure-sensitive (variable width) freedraw outline, rendered with
- * perfect-freehand. This is the original Excalidraw freedraw look.
+ * perfect-freehand. This is the original Setsquare freedraw look.
  */
 const getVariableWidthFreedrawOutline = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
 ): [number, number][] => {
   // If input points are empty (should they ever be?) return a dot
   const inputPoints = element.simulatePressure
@@ -1244,7 +1244,7 @@ const getVariableWidthFreedrawOutline = (
   }) as [number, number][];
 };
 
-const createLaserPointer = (element: ExcalidrawFreeDrawElement) =>
+const createLaserPointer = (element: SetsquareFreeDrawElement) =>
   new LaserPointer({
     size: element.strokeWidth * CONSTANT_WIDTH_FREEDRAW.SIZE_FACTOR,
     streamline: getFreedrawStreamline(element),
@@ -1257,7 +1257,7 @@ const createLaserPointer = (element: ExcalidrawFreeDrawElement) =>
  * geometry. Pressure is pinned to 1 so the stroke keeps a constant width.
  */
 const getConstantWidthFreedrawOutline = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
 ): [number, number][] => {
   const laserPointer = createLaserPointer(element);
   element.points.map(([x, y]) => laserPointer.addPoint([x, y, 1]));
@@ -1268,7 +1268,7 @@ const getConstantWidthFreedrawOutline = (
 };
 
 export const getFreedrawOutlinePoints = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
 ): [number, number][] => {
   // Unknown/absent variability falls back to the original variable rendering.
   return element.strokeOptions?.variability === "constant"
@@ -1284,9 +1284,7 @@ export const getFreedrawOutlinePoints = (
  * around the first point from an outline point of the last one (reaching
  * sqrt(size² + 3²)), and a single point gets a synthetic neighbor 1px away.
  */
-export const getFreedrawMaxStrokeRadius = (
-  element: ExcalidrawFreeDrawElement,
-) =>
+export const getFreedrawMaxStrokeRadius = (element: SetsquareFreeDrawElement) =>
   element.strokeOptions?.variability === "constant"
     ? element.strokeWidth * CONSTANT_WIDTH_FREEDRAW.SIZE_FACTOR
     : element.strokeWidth * VARIABLE_WIDTH_FREEDRAW.SIZE_FACTOR + 3;
@@ -1303,7 +1301,7 @@ export const getFreedrawMaxStrokeRadius = (
  * `streamline` is a close approximation the stroke width hides.
  */
 export const getFreedrawStrokeCenterPoints = (
-  element: ExcalidrawFreeDrawElement,
+  element: SetsquareFreeDrawElement,
 ): [number, number][] =>
   getStrokePoints(element.points as unknown as number[][], {
     size: element.strokeWidth * VARIABLE_WIDTH_FREEDRAW.SIZE_FACTOR,

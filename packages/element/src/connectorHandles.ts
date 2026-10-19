@@ -1,12 +1,12 @@
-import { pointDistance, pointFrom, type GlobalPoint } from "@excalidraw/math";
+import { pointDistance, pointFrom, type GlobalPoint } from "@setsquare/math";
 
-import type { Bounds } from "@excalidraw/common";
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type { Bounds } from "@setsquare/common";
+import type { AppState } from "@setsquare/setsquare/types";
 
 import { getElementBounds } from "./bounds";
 
 import type { LinkDirection } from "./flowchart";
-import type { ElementsMap, ExcalidrawElement } from "./types";
+import type { ElementsMap, SetsquareElement } from "./types";
 
 /** A handle beside a shape that offers to connect it in a direction. */
 export type ConnectorHandle = {
@@ -67,7 +67,7 @@ export const getLinkDirectionBetween = (
 };
 
 export const getConnectorHandles = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   zoom: AppState["zoom"],
 ): ConnectorHandle[] => {
@@ -90,7 +90,7 @@ export const getConnectorHandleAt = (
 
 /** Whether the point is close enough to the element to be on its way to one of its handles. */
 export const isNearConnectorHandles = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   point: GlobalPoint,
   zoom: AppState["zoom"],

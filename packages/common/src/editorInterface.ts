@@ -13,7 +13,7 @@ export type EditorInterface = Readonly<{
 }>;
 
 // storage key
-const DESKTOP_UI_MODE_STORAGE_KEY = "excalidraw.desktopUIMode";
+const DESKTOP_UI_MODE_STORAGE_KEY = "setsquare.desktopUIMode";
 
 // breakpoints
 export const MQ_MAX_MOBILE = 599;

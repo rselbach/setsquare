@@ -1,6 +1,14 @@
 MIT License
 
+Copyright (c) 2026 Roberto Selbach
+
+Setsquare is based on Excalidraw (https://github.com/excalidraw/excalidraw),
+including its laser-pointer and mermaid-to-excalidraw packages. Those portions
+are covered by the following notices, under the same license terms:
+
 Copyright (c) 2020 Excalidraw
+Copyright (c) 2023 Excalidraw (laser-pointer, mermaid-to-excalidraw)
+Copyright (c) 2020 Daniel Esteves (markdown-to-text, used by the Mermaid converter)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

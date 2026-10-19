@@ -16,9 +16,9 @@ import {
   getLineHeight,
   isTransparent,
   seededRandom,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import { clamp } from "@excalidraw/math";
+import { clamp } from "@setsquare/math";
 
 import { updateBoundElements } from "./binding";
 import { newElementWith } from "./mutateElement";
@@ -33,11 +33,11 @@ import type { VerticalResizeAnchor } from "./sizeHelpers";
 import type { TransformHandleDirection } from "./transformHandles";
 import type {
   ElementsMap,
-  ExcalidrawElement,
-  ExcalidrawStickyNoteElement,
-  ExcalidrawTextElement,
-  ExcalidrawTextElementWithContainer,
-  NonDeletedExcalidrawElement,
+  SetsquareElement,
+  SetsquareStickyNoteElement,
+  SetsquareTextElement,
+  SetsquareTextElementWithContainer,
+  NonDeletedSetsquareElement,
 } from "./types";
 
 export type StickyNoteRenderPoint = {
@@ -93,10 +93,10 @@ export const normalizeStickyNoteBackgroundColor = (
  * editing it — goes to the note; everything else colors itself.
  */
 export const getColorTargetElement = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   property: "strokeColor" | "backgroundColor",
   elementsMap: ElementsMap,
-): ExcalidrawElement => {
+): SetsquareElement => {
   if (
     property === "backgroundColor" &&
     isTextElement(element) &&
@@ -108,7 +108,7 @@ export const getColorTargetElement = (
 };
 
 export const getColorUpdate = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   property: "strokeColor" | "backgroundColor",
   color: string,
   elementsMap: ElementsMap,
@@ -143,7 +143,7 @@ export const getColorUpdate = (
  * the text the user styled. A transparent label always takes the note's
  * color. Returns the same array when nothing needs to change.
  */
-export const syncStickyNoteInk = <T extends ExcalidrawElement>(
+export const syncStickyNoteInk = <T extends SetsquareElement>(
   elements: readonly T[],
   prevElementsMap: ElementsMap,
 ): readonly T[] => {
@@ -183,7 +183,7 @@ export const syncStickyNoteInk = <T extends ExcalidrawElement>(
     const strokeColor = inkById.get(element.id);
     return strokeColor === undefined
       ? element
-      : (newElementWith(element as ExcalidrawElement, { strokeColor }) as T);
+      : (newElementWith(element as SetsquareElement, { strokeColor }) as T);
   });
 };
 
@@ -211,7 +211,7 @@ const pointAtDistance = (
 };
 
 export const getStickyNoteCornerRadius = (
-  element: ExcalidrawStickyNoteElement,
+  element: SetsquareStickyNoteElement,
 ) => {
   if (!element.roundness) {
     return 0;
@@ -224,7 +224,7 @@ export const getStickyNoteCornerRadius = (
 };
 
 export const getStickyNoteRenderPoints = (
-  element: ExcalidrawStickyNoteElement,
+  element: SetsquareStickyNoteElement,
   {
     offsetX = 0,
     offsetY = 0,
@@ -273,7 +273,7 @@ export const getStickyNoteRenderPoints = (
 };
 
 export const getStickyNotePathCommands = (
-  element: ExcalidrawStickyNoteElement,
+  element: SetsquareStickyNoteElement,
   { shadow = false }: { shadow?: boolean } = {},
 ): StickyNotePathCommand[] => {
   const points = getStickyNoteRenderPoints(
@@ -385,7 +385,7 @@ export const normalizeStickyNoteFontSize = (fontSize: number) => {
 
 /** whether the text element is the label of a sticky note */
 export const isStickyNoteBoundText = (
-  textElement: ExcalidrawTextElement,
+  textElement: SetsquareTextElement,
   elementsMap: ElementsMap,
 ) => {
   return (
@@ -403,7 +403,7 @@ export const isStickyNoteBoundText = (
  * `baseFontSize` alone does not prove the text is still sticky-bound.
  */
 export const getBaseFontSize = (
-  textElement: ExcalidrawTextElement,
+  textElement: SetsquareTextElement,
   elementsMap: ElementsMap,
 ) => {
   return isStickyNoteBoundText(textElement, elementsMap)
@@ -413,7 +413,7 @@ export const getBaseFontSize = (
 
 /** the update that applies a user-picked font size (see `getBaseFontSize`) */
 export const getBaseFontSizeUpdate = (
-  textElement: ExcalidrawTextElement,
+  textElement: SetsquareTextElement,
   fontSize: number,
   elementsMap: ElementsMap,
 ): { fontSize: number } | { baseFontSize: number } => {
@@ -445,7 +445,7 @@ const MONTHS = [
  * locale, and the footer is chosen by width bucket rather than measured.
  */
 export const getStickyNoteDateLabel = (
-  created: ExcalidrawStickyNoteElement["created"],
+  created: SetsquareStickyNoteElement["created"],
   { short = false, now = Date.now() }: { short?: boolean; now?: number } = {},
 ): string | null => {
   if (created === null || !Number.isFinite(created)) {
@@ -469,7 +469,7 @@ export const getStickyNoteDateLabel = (
  * the data floor, where the band would overlap the top padding.
  */
 export const getStickyNoteFooter = (
-  element: Pick<ExcalidrawStickyNoteElement, "created" | "width" | "height">,
+  element: Pick<SetsquareStickyNoteElement, "created" | "width" | "height">,
   now = Date.now(),
 ) => {
   if (
@@ -504,7 +504,7 @@ export const getStickyNoteFooter = (
 export const getStickyNoteMinSize = ({
   fontSize,
   fontFamily,
-}: Pick<ExcalidrawTextElement, "fontSize" | "fontFamily">) => {
+}: Pick<SetsquareTextElement, "fontSize" | "fontFamily">) => {
   const lineHeightPx = Math.ceil(
     normalizeStickyNoteFontSize(fontSize) * getLineHeight(fontFamily),
   );
@@ -547,11 +547,11 @@ export type StickyNoteLayoutOpts = {
 
 export type StickyNoteLayout = {
   container: Pick<
-    ExcalidrawStickyNoteElement,
+    SetsquareStickyNoteElement,
     "x" | "y" | "width" | "height" | "baseHeight"
   >;
   text: Pick<
-    ExcalidrawTextElement,
+    SetsquareTextElement,
     | "text"
     | "fontSize"
     | "baseFontSize"
@@ -573,7 +573,7 @@ type FontFit = {
 // `computeBoundTextPosition` only consults the map for arrow containers
 const NO_ELEMENTS: ElementsMap = new Map();
 
-const getStickyNoteBaseWidth = (container: ExcalidrawStickyNoteElement) => {
+const getStickyNoteBaseWidth = (container: SetsquareStickyNoteElement) => {
   return Math.max(container.width, STICKY_NOTE_MIN_SIZE);
 };
 
@@ -667,8 +667,8 @@ const fitStickyNoteFont = (
  * positions the label inside. Pure — returns the updates for both elements.
  */
 export const getStickyNoteLayout = (
-  container: ExcalidrawStickyNoteElement,
-  textElement: ExcalidrawTextElement | null,
+  container: SetsquareStickyNoteElement,
+  textElement: SetsquareTextElement | null,
   opts: StickyNoteLayoutOpts = {},
 ): StickyNoteLayout => {
   const baseWidth = getStickyNoteBaseWidth(container);
@@ -742,7 +742,7 @@ export const getStickyNoteLayout = (
       fontSize: fitted.fontSize,
       width: fitted.width,
       height: fitted.height,
-    } as ExcalidrawTextElementWithContainer,
+    } as SetsquareTextElementWithContainer,
     NO_ELEMENTS,
   );
 
@@ -776,7 +776,7 @@ export const getStickyNoteLayout = (
  */
 export const getStickyNoteResizeIntent = (
   /** the note with the requested geometry already applied */
-  container: ExcalidrawStickyNoteElement,
+  container: SetsquareStickyNoteElement,
   originalElementsMap: ElementsMap,
   handleDirection: TransformHandleDirection,
   {
@@ -830,7 +830,7 @@ export const getStickyNoteResizeIntent = (
  * skips them only when told).
  */
 export const updateStickyNoteLayout = (
-  container: ExcalidrawStickyNoteElement,
+  container: SetsquareStickyNoteElement,
   scene: Scene,
   {
     text,
@@ -838,9 +838,9 @@ export const updateStickyNoteLayout = (
     ...layoutOpts
   }: StickyNoteLayoutOpts & {
     /** the label to lay out when it is an uncommitted clone (font actions clone before install) */
-    text?: ExcalidrawTextElement | null;
+    text?: SetsquareTextElement | null;
     bindings?:
-      | { simultaneouslyUpdated?: readonly NonDeletedExcalidrawElement[] }
+      | { simultaneouslyUpdated?: readonly NonDeletedSetsquareElement[] }
       | false;
   } = {},
 ): StickyNoteLayout => {
@@ -855,7 +855,7 @@ export const updateStickyNoteLayout = (
   }
   if (bindings !== false && !container.isDeleted) {
     updateBoundElements(
-      container as NonDeletedExcalidrawElement,
+      container as NonDeletedSetsquareElement,
       scene,
       bindings || undefined,
     );
@@ -877,8 +877,8 @@ const STICKY_NOTE_LAYOUT_INPUTS = {
 } as const;
 
 const hasStickyNoteLayoutInputChanged = (
-  container: ExcalidrawStickyNoteElement,
-  textElement: ExcalidrawTextElement | null,
+  container: SetsquareStickyNoteElement,
+  textElement: SetsquareTextElement | null,
   prevElementsMap: ElementsMap,
 ) => {
   const prevContainer = prevElementsMap.get(container.id);
@@ -910,16 +910,16 @@ const hasStickyNoteLayoutInputChanged = (
  * is given, notes whose layout inputs did not change skip the fit entirely.
  * Bound arrows are the caller's job once the result is installed.
  */
-export const relayoutStickyNotes = <T extends ExcalidrawElement>(
+export const relayoutStickyNotes = <T extends SetsquareElement>(
   elements: readonly T[],
-  affectedIds: ReadonlySet<ExcalidrawElement["id"]>,
+  affectedIds: ReadonlySet<SetsquareElement["id"]>,
   opts?: { prevElementsMap?: ElementsMap },
 ): readonly T[] => {
   if (!affectedIds.size) {
     return elements;
   }
   const elementsMap = arrayToMap(elements);
-  const containerIds = new Set<ExcalidrawElement["id"]>();
+  const containerIds = new Set<SetsquareElement["id"]>();
   for (const id of affectedIds) {
     const element = elementsMap.get(id);
     if (!element || element.isDeleted) {
@@ -938,9 +938,9 @@ export const relayoutStickyNotes = <T extends ExcalidrawElement>(
     return elements;
   }
 
-  const replacements = new Map<ExcalidrawElement["id"], T>();
+  const replacements = new Map<SetsquareElement["id"], T>();
   for (const id of containerIds) {
-    const container = elementsMap.get(id) as ExcalidrawStickyNoteElement;
+    const container = elementsMap.get(id) as SetsquareStickyNoteElement;
     const textElement = getBoundTextElement(container, elementsMap);
     if (
       opts?.prevElementsMap &&

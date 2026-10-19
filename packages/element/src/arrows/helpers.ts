@@ -1,4 +1,4 @@
-import type { App } from "@excalidraw/excalidraw/types";
+import type { App } from "@setsquare/setsquare/types";
 
 import { LinearElementEditor } from "../linearElementEditor";
 

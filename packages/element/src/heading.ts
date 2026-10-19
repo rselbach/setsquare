@@ -1,9 +1,4 @@
-import {
-  invariant,
-  isDevEnv,
-  isTestEnv,
-  type Bounds,
-} from "@excalidraw/common";
+import { invariant, isDevEnv, isTestEnv, type Bounds } from "@setsquare/common";
 
 import {
   pointFrom,
@@ -15,18 +10,18 @@ import {
   vectorCross,
   vectorFromPoint,
   vectorScale,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import type {
   LocalPoint,
   GlobalPoint,
   Triangle,
   Vector,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import { getCenterForBounds } from "./bounds";
 
-import type { ExcalidrawBindableElement } from "./types";
+import type { SetsquareBindableElement } from "./types";
 
 export const HEADING_RIGHT = [1, 0] as Heading;
 export const HEADING_DOWN = [0, 1] as Heading;
@@ -67,7 +62,7 @@ export const headingIsHorizontal = (a: Heading) =>
 export const headingIsVertical = (a: Heading) => !headingIsHorizontal(a);
 
 const headingForPointFromDiamondElement = (
-  element: Readonly<ExcalidrawBindableElement>,
+  element: Readonly<SetsquareBindableElement>,
   aabb: Readonly<Bounds>,
   point: Readonly<GlobalPoint>,
 ): Heading => {
@@ -229,7 +224,7 @@ const headingForPointFromDiamondElement = (
 // close fitting bounding box, then creating 4 search cones around the center of
 // the external bbox.
 export const headingForPointFromElement = <Point extends GlobalPoint>(
-  element: Readonly<ExcalidrawBindableElement>,
+  element: Readonly<SetsquareBindableElement>,
   aabb: Readonly<Bounds>,
   p: Readonly<Point>,
 ): Heading => {

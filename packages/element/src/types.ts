@@ -1,4 +1,4 @@
-import type { LocalPoint, Radians } from "@excalidraw/math";
+import type { LocalPoint, Radians } from "@setsquare/math";
 
 import type {
   FONT_FAMILY,
@@ -6,14 +6,14 @@ import type {
   TEXT_ALIGN,
   THEME,
   VERTICAL_ALIGN,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
 import type {
   MakeBrand,
   MarkNonNullable,
   Merge,
   ValueOf,
-} from "@excalidraw/common/utility-types";
+} from "@setsquare/common/utility-types";
 
 export type ChartType = "bar" | "line" | "radar";
 export type FillStyle = "hachure" | "cross-hatch" | "solid" | "zigzag";
@@ -33,11 +33,11 @@ export type VerticalAlign = typeof VERTICAL_ALIGN[VerticalAlignKeys];
 export type FractionalIndex = string & { _brand: "franctionalIndex" };
 
 export type BoundElement = Readonly<{
-  id: ExcalidrawLinearElement["id"];
+  id: SetsquareLinearElement["id"];
   type: "arrow" | "text";
 }>;
 
-type _ExcalidrawElementBase = Readonly<{
+type _SetsquareElementBase = Readonly<{
   id: string;
   x: number;
   y: number;
@@ -86,15 +86,15 @@ type _ExcalidrawElementBase = Readonly<{
   customData?: Record<string, any>;
 }>;
 
-export type ExcalidrawSelectionElement = _ExcalidrawElementBase & {
+export type SetsquareSelectionElement = _SetsquareElementBase & {
   type: "selection";
 };
 
-export type ExcalidrawRectangleElement = _ExcalidrawElementBase & {
+export type SetsquareRectangleElement = _SetsquareElementBase & {
   type: "rectangle";
 };
 
-export type ExcalidrawStickyNoteElement = _ExcalidrawElementBase &
+export type SetsquareStickyNoteElement = _SetsquareElementBase &
   Readonly<{
     type: "stickynote";
     /**
@@ -104,15 +104,15 @@ export type ExcalidrawStickyNoteElement = _ExcalidrawElementBase &
     baseHeight: number;
   }>;
 
-export type ExcalidrawDiamondElement = _ExcalidrawElementBase & {
+export type SetsquareDiamondElement = _SetsquareElementBase & {
   type: "diamond";
 };
 
-export type ExcalidrawEllipseElement = _ExcalidrawElementBase & {
+export type SetsquareEllipseElement = _SetsquareElementBase & {
   type: "ellipse";
 };
 
-export type ExcalidrawEmbeddableElement = _ExcalidrawElementBase &
+export type SetsquareEmbeddableElement = _SetsquareElementBase &
   Readonly<{
     type: "embeddable";
   }>;
@@ -128,16 +128,16 @@ export type MagicGenerationData =
       code: "ERR_GENERATION_INTERRUPTED" | string;
     };
 
-export type ExcalidrawIframeElement = _ExcalidrawElementBase &
+export type SetsquareIframeElement = _SetsquareElementBase &
   Readonly<{
     type: "iframe";
     // TODO move later to AI-specific frame
     customData?: { generationData?: MagicGenerationData };
   }>;
 
-export type ExcalidrawIframeLikeElement =
-  | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement;
+export type SetsquareIframeLikeElement =
+  | SetsquareIframeElement
+  | SetsquareEmbeddableElement;
 
 export type IframeData =
   | {
@@ -158,7 +158,7 @@ export type ImageCrop = {
   naturalHeight: number;
 };
 
-export type ExcalidrawImageElement = _ExcalidrawElementBase &
+export type SetsquareImageElement = _SetsquareElementBase &
   Readonly<{
     type: "image";
     fileId: FileId | null;
@@ -170,87 +170,87 @@ export type ExcalidrawImageElement = _ExcalidrawElementBase &
     crop: ImageCrop | null;
   }>;
 
-export type InitializedExcalidrawImageElement = MarkNonNullable<
-  ExcalidrawImageElement,
+export type InitializedSetsquareImageElement = MarkNonNullable<
+  SetsquareImageElement,
   "fileId"
 >;
 
-export type ExcalidrawFrameElement = _ExcalidrawElementBase & {
+export type SetsquareFrameElement = _SetsquareElementBase & {
   type: "frame";
   name: string | null;
 };
 
-export type ExcalidrawMagicFrameElement = _ExcalidrawElementBase & {
+export type SetsquareMagicFrameElement = _SetsquareElementBase & {
   type: "magicframe";
   name: string | null;
 };
 
-export type ExcalidrawFrameLikeElement =
-  | ExcalidrawFrameElement
-  | ExcalidrawMagicFrameElement;
+export type SetsquareFrameLikeElement =
+  | SetsquareFrameElement
+  | SetsquareMagicFrameElement;
 
 /**
  * These are elements that don't have any additional properties.
  */
-export type ExcalidrawGenericElement =
-  | ExcalidrawSelectionElement
-  | ExcalidrawRectangleElement
-  | ExcalidrawDiamondElement
-  | ExcalidrawEllipseElement;
+export type SetsquareGenericElement =
+  | SetsquareSelectionElement
+  | SetsquareRectangleElement
+  | SetsquareDiamondElement
+  | SetsquareEllipseElement;
 
-export type ExcalidrawFlowchartNodeElement =
-  | ExcalidrawRectangleElement
-  | ExcalidrawStickyNoteElement
-  | ExcalidrawDiamondElement
-  | ExcalidrawEllipseElement;
+export type SetsquareFlowchartNodeElement =
+  | SetsquareRectangleElement
+  | SetsquareStickyNoteElement
+  | SetsquareDiamondElement
+  | SetsquareEllipseElement;
 
-export type ExcalidrawRectanguloidElement =
-  | ExcalidrawRectangleElement
-  | ExcalidrawStickyNoteElement
-  | ExcalidrawImageElement
-  | ExcalidrawTextElement
-  | ExcalidrawFreeDrawElement
-  | ExcalidrawIframeLikeElement
-  | ExcalidrawFrameLikeElement
-  | ExcalidrawEmbeddableElement
-  | ExcalidrawSelectionElement;
+export type SetsquareRectanguloidElement =
+  | SetsquareRectangleElement
+  | SetsquareStickyNoteElement
+  | SetsquareImageElement
+  | SetsquareTextElement
+  | SetsquareFreeDrawElement
+  | SetsquareIframeLikeElement
+  | SetsquareFrameLikeElement
+  | SetsquareEmbeddableElement
+  | SetsquareSelectionElement;
 
 /**
- * ExcalidrawElement should be JSON serializable and (eventually) contain
- * no computed data. The list of all ExcalidrawElements should be shareable
+ * SetsquareElement should be JSON serializable and (eventually) contain
+ * no computed data. The list of all SetsquareElements should be shareable
  * between peers and contain no state local to the peer.
  */
-export type ExcalidrawElement =
-  | ExcalidrawGenericElement
-  | ExcalidrawStickyNoteElement
-  | ExcalidrawTextElement
-  | ExcalidrawLinearElement
-  | ExcalidrawArrowElement
-  | ExcalidrawFreeDrawElement
-  | ExcalidrawImageElement
-  | ExcalidrawFrameElement
-  | ExcalidrawMagicFrameElement
-  | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement;
+export type SetsquareElement =
+  | SetsquareGenericElement
+  | SetsquareStickyNoteElement
+  | SetsquareTextElement
+  | SetsquareLinearElement
+  | SetsquareArrowElement
+  | SetsquareFreeDrawElement
+  | SetsquareImageElement
+  | SetsquareFrameElement
+  | SetsquareMagicFrameElement
+  | SetsquareIframeElement
+  | SetsquareEmbeddableElement;
 
-export type ExcalidrawNonSelectionElement = Exclude<
-  ExcalidrawElement,
-  ExcalidrawSelectionElement
+export type SetsquareNonSelectionElement = Exclude<
+  SetsquareElement,
+  SetsquareSelectionElement
 >;
 
-export type Ordered<TElement extends ExcalidrawElement> = TElement & {
+export type Ordered<TElement extends SetsquareElement> = TElement & {
   index: FractionalIndex;
 };
 
-export type OrderedExcalidrawElement = Ordered<ExcalidrawElement>;
+export type OrderedSetsquareElement = Ordered<SetsquareElement>;
 
-export type NonDeleted<TElement extends ExcalidrawElement> = TElement & {
+export type NonDeleted<TElement extends SetsquareElement> = TElement & {
   isDeleted: false;
 };
 
-export type NonDeletedExcalidrawElement = NonDeleted<ExcalidrawElement>;
+export type NonDeletedSetsquareElement = NonDeleted<SetsquareElement>;
 
-export type ExcalidrawTextElement = _ExcalidrawElementBase &
+export type SetsquareTextElement = _SetsquareElementBase &
   Readonly<{
     type: "text";
     fontSize: number;
@@ -267,7 +267,7 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
     text: string;
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
-    containerId: ExcalidrawTextContainer["id"] | null;
+    containerId: SetsquareTextContainer["id"] | null;
     originalText: string;
     /**
      * If `true` the width will fit the text. If `false`, the text will
@@ -290,35 +290,35 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
     labelPosition?: number | null;
   }>;
 
-export type ExcalidrawBindableElement =
-  | ExcalidrawRectangleElement
-  | ExcalidrawStickyNoteElement
-  | ExcalidrawDiamondElement
-  | ExcalidrawEllipseElement
-  | ExcalidrawTextElement
-  | ExcalidrawImageElement
-  | ExcalidrawIframeElement
-  | ExcalidrawEmbeddableElement
-  | ExcalidrawFrameElement
-  | ExcalidrawMagicFrameElement;
+export type SetsquareBindableElement =
+  | SetsquareRectangleElement
+  | SetsquareStickyNoteElement
+  | SetsquareDiamondElement
+  | SetsquareEllipseElement
+  | SetsquareTextElement
+  | SetsquareImageElement
+  | SetsquareIframeElement
+  | SetsquareEmbeddableElement
+  | SetsquareFrameElement
+  | SetsquareMagicFrameElement;
 
-export type ExcalidrawTextContainer =
-  | ExcalidrawRectangleElement
-  | ExcalidrawStickyNoteElement
-  | ExcalidrawDiamondElement
-  | ExcalidrawEllipseElement
-  | ExcalidrawArrowElement;
+export type SetsquareTextContainer =
+  | SetsquareRectangleElement
+  | SetsquareStickyNoteElement
+  | SetsquareDiamondElement
+  | SetsquareEllipseElement
+  | SetsquareArrowElement;
 
-export type ExcalidrawTextElementWithContainer = {
-  containerId: ExcalidrawTextContainer["id"];
-} & ExcalidrawTextElement;
+export type SetsquareTextElementWithContainer = {
+  containerId: SetsquareTextContainer["id"];
+} & SetsquareTextElement;
 
 export type FixedPoint = [number, number];
 
 export type BindMode = "inside" | "orbit" | "skip";
 
 export type FixedPointBinding = {
-  elementId: ExcalidrawBindableElement["id"];
+  elementId: SetsquareBindableElement["id"];
 
   // Represents the fixed point binding information in form of a vertical and
   // horizontal ratio (i.e. a percentage value in the 0.0-1.0 range). This ratio
@@ -366,7 +366,7 @@ export type Arrowhead =
 
 export type AnyArrowhead = Arrowhead | ArrowheadLegacy;
 
-export type ExcalidrawLinearElement = _ExcalidrawElementBase &
+export type SetsquareLinearElement = _SetsquareElementBase &
   Readonly<{
     type: "line" | "arrow";
     points: readonly LocalPoint[];
@@ -376,7 +376,7 @@ export type ExcalidrawLinearElement = _ExcalidrawElementBase &
     endArrowhead: Arrowhead | null;
   }>;
 
-export type ExcalidrawLineElement = ExcalidrawLinearElement &
+export type SetsquareLineElement = SetsquareLinearElement &
   Readonly<{
     type: "line";
     polygon: boolean;
@@ -388,7 +388,7 @@ export type FixedSegment = {
   index: Index;
 };
 
-export type ExcalidrawArrowElement = ExcalidrawLinearElement &
+export type SetsquareArrowElement = SetsquareLinearElement &
   Readonly<{
     type: "arrow";
     elbowed: boolean;
@@ -400,8 +400,8 @@ export type ExcalidrawArrowElement = ExcalidrawLinearElement &
     cardinal: boolean;
   }>;
 
-export type ExcalidrawElbowArrowElement = Merge<
-  ExcalidrawArrowElement,
+export type SetsquareElbowArrowElement = Merge<
+  SetsquareArrowElement,
   {
     elbowed: true;
     fixedSegments: readonly FixedSegment[] | null;
@@ -433,7 +433,7 @@ export type StrokeOptions = Readonly<{
   streamline: number;
 }>;
 
-export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &
+export type SetsquareFreeDrawElement = _SetsquareElementBase &
   Readonly<{
     type: "freedraw";
     points: readonly LocalPoint[];
@@ -444,32 +444,32 @@ export type ExcalidrawFreeDrawElement = _ExcalidrawElementBase &
 
 export type FileId = string & { _brand: "FileId" };
 
-export type ExcalidrawElementType = ExcalidrawElement["type"];
+export type SetsquareElementType = SetsquareElement["type"];
 
 /**
- * Map of excalidraw elements.
+ * Map of setsquare elements.
  * Unspecified whether deleted or non-deleted.
  * Can be a subset of Scene elements.
  */
-export type ElementsMap = Map<ExcalidrawElement["id"], ExcalidrawElement>;
+export type ElementsMap = Map<SetsquareElement["id"], SetsquareElement>;
 
 /**
  * Map of non-deleted elements.
  * Can be a subset of Scene elements.
  */
 export type NonDeletedElementsMap = Map<
-  ExcalidrawElement["id"],
-  NonDeletedExcalidrawElement
+  SetsquareElement["id"],
+  NonDeletedSetsquareElement
 > &
   MakeBrand<"NonDeletedElementsMap">;
 
 /**
- * Map of all excalidraw Scene elements, including deleted.
+ * Map of all setsquare Scene elements, including deleted.
  * Not a subset. Use this type when you need access to current Scene elements.
  */
 export type SceneElementsMap = Map<
-  ExcalidrawElement["id"],
-  Ordered<ExcalidrawElement>
+  SetsquareElement["id"],
+  Ordered<SetsquareElement>
 > &
   MakeBrand<"SceneElementsMap">;
 
@@ -478,25 +478,25 @@ export type SceneElementsMap = Map<
  * Not a subset. Use this type when you need access to current Scene elements.
  */
 export type NonDeletedSceneElementsMap = Map<
-  ExcalidrawElement["id"],
-  Ordered<NonDeletedExcalidrawElement>
+  SetsquareElement["id"],
+  Ordered<NonDeletedSetsquareElement>
 > &
   MakeBrand<"NonDeletedSceneElementsMap">;
 
 export type ElementsMapOrArray =
-  | readonly ExcalidrawElement[]
+  | readonly SetsquareElement[]
   | Readonly<ElementsMap>;
 
 export type NonDeletedElementsMapOrArray =
-  | readonly NonDeletedExcalidrawElement[]
+  | readonly NonDeletedSetsquareElement[]
   | Readonly<NonDeletedElementsMap | NonDeletedSceneElementsMap>;
 
-export type ExcalidrawLinearElementSubType =
+export type SetsquareLinearElementSubType =
   | "line"
   | "sharpArrow"
   | "curvedArrow"
   | "elbowArrow";
 
 export type ConvertibleGenericTypes = "rectangle" | "diamond" | "ellipse";
-export type ConvertibleLinearTypes = ExcalidrawLinearElementSubType;
+export type ConvertibleLinearTypes = SetsquareLinearElementSubType;
 export type ConvertibleTypes = ConvertibleGenericTypes | ConvertibleLinearTypes;

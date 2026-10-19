@@ -1,22 +1,18 @@
-import { KEYS, ROUNDNESS, arrayToMap, DEFAULT_ZOOM } from "@excalidraw/common";
+import { KEYS, ROUNDNESS, arrayToMap, DEFAULT_ZOOM } from "@setsquare/common";
 
-import { pointFrom } from "@excalidraw/math";
+import { pointFrom } from "@setsquare/math";
 
-import { actionWrapTextInContainer } from "@excalidraw/excalidraw/actions/actionBoundText";
+import { actionWrapTextInContainer } from "@setsquare/setsquare/actions/actionBoundText";
 
-import { Excalidraw, isLinearElement } from "@excalidraw/excalidraw";
+import { Setsquare, isLinearElement } from "@setsquare/setsquare";
 
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { UI, Pointer, Keyboard } from "@excalidraw/excalidraw/tests/helpers/ui";
-import {
-  act,
-  fireEvent,
-  render,
-} from "@excalidraw/excalidraw/tests/test-utils";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { UI, Pointer, Keyboard } from "@setsquare/setsquare/tests/helpers/ui";
+import { act, fireEvent, render } from "@setsquare/setsquare/tests/test-utils";
 
-import { defaultLang, setLanguage } from "@excalidraw/excalidraw/i18n";
+import { defaultLang, setLanguage } from "@setsquare/setsquare/i18n";
 
-import type { Radians } from "@excalidraw/math";
+import type { Radians } from "@setsquare/math";
 
 import {
   bindBindingElement,
@@ -28,12 +24,12 @@ import { getTransformHandles } from "../src/transformHandles";
 import {
   getTextEditor,
   TEXT_EDITOR_SELECTOR,
-} from "../../excalidraw/tests/queries/dom";
+} from "../../setsquare/tests/queries/dom";
 
 import type {
-  ExcalidrawArrowElement,
-  ExcalidrawBindableElement,
-  ExcalidrawLinearElement,
+  SetsquareArrowElement,
+  SetsquareBindableElement,
+  SetsquareLinearElement,
   FixedPointBinding,
   NonDeleted,
 } from "../src/types";
@@ -50,7 +46,7 @@ describe("binding for simple arrows", () => {
       await act(() => {
         return setLanguage(defaultLang);
       });
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     it("should create an `inside` binding", () => {
@@ -69,7 +65,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(160, 160);
       mouse.up();
 
-      const arrow = API.getSelectedElement() as ExcalidrawLinearElement;
+      const arrow = API.getSelectedElement() as SetsquareLinearElement;
       expect(arrow.x).toBe(110);
       expect(arrow.y).toBe(110);
 
@@ -198,7 +194,7 @@ describe("binding for simple arrows", () => {
     beforeEach(async () => {
       mouse.reset();
       await act(() => setLanguage(defaultLang));
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
       UI.createElement("rectangle", {
         x: 200,
         y: 200,
@@ -220,7 +216,7 @@ describe("binding for simple arrows", () => {
     it("orbit -> orbit finalizes on a single click", () => {
       drawSelfArrow(ORBIT_LEFT, ORBIT_RIGHT);
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       expect(h.state.multiElement).toBe(null);
       expect(h.state.activeTool.type).toBe("selection");
       expect(arrow.startBinding?.elementId).toBe(arrow.endBinding?.elementId);
@@ -230,7 +226,7 @@ describe("binding for simple arrows", () => {
     it("inside -> orbit finalizes on a single click", () => {
       drawSelfArrow(INSIDE, ORBIT_RIGHT);
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       expect(h.state.multiElement).toBe(null);
       expect(h.state.activeTool.type).toBe("selection");
       expect(arrow.startBinding?.elementId).toBe(arrow.endBinding?.elementId);
@@ -275,7 +271,7 @@ describe("binding for simple arrows", () => {
     beforeEach(async () => {
       mouse.reset();
       await act(() => setLanguage(defaultLang));
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
 
       const frame = API.createElement({
         id: "frame",
@@ -305,7 +301,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(...end);
       mouse.up();
 
-      return h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      return h.elements[h.elements.length - 1] as SetsquareArrowElement;
     };
 
     it("doesn't bind an arrow ending in the frame's empty interior", () => {
@@ -336,7 +332,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(550, 550);
       mouse.up();
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       expect(arrow.elbowed).toBe(true);
       // no self-orbit binding to the frame, which would route the arrow
       // around the frame's outside
@@ -352,7 +348,7 @@ describe("binding for simple arrows", () => {
     beforeEach(async () => {
       mouse.reset();
       await act(() => setLanguage(defaultLang));
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     it("binds an arrow dropped at a circle's exact center", () => {
@@ -372,7 +368,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(200, 0);
       mouse.up();
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       expect(arrow.endBinding?.elementId).toBe(circle.id);
     });
   });
@@ -381,7 +377,7 @@ describe("binding for simple arrows", () => {
     beforeEach(async () => {
       mouse.reset();
       await act(() => setLanguage(defaultLang));
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     for (const rounded of [false, true]) {
@@ -398,7 +394,7 @@ describe("binding for simple arrows", () => {
             width: 200,
             height: 200,
             roundness: rounded ? { type: ROUNDNESS.PROPORTIONAL_RADIUS } : null,
-          }) as ExcalidrawBindableElement;
+          }) as SetsquareBindableElement;
           API.setElements([diamond]);
           const [, , left] = getAllMidpoints(diamond, arrayToMap([diamond]));
 
@@ -415,7 +411,7 @@ describe("binding for simple arrows", () => {
 
           const arrow = h.elements[
             h.elements.length - 1
-          ] as ExcalidrawArrowElement;
+          ] as SetsquareArrowElement;
           const [endX, endY] = arrow.points[arrow.points.length - 1];
 
           expect(arrow.endBinding?.elementId).toBe(diamond.id);
@@ -437,7 +433,7 @@ describe("binding for simple arrows", () => {
           width: 300,
           height: 300,
           roundness: rounded ? { type: ROUNDNESS.PROPORTIONAL_RADIUS } : null,
-        }) as ExcalidrawBindableElement;
+        }) as SetsquareBindableElement;
         API.setElements([diamond]);
         const [, , , top] = getAllMidpoints(diamond, arrayToMap([diamond]));
 
@@ -452,7 +448,7 @@ describe("binding for simple arrows", () => {
 
         const arrow = h.elements[
           h.elements.length - 1
-        ] as ExcalidrawArrowElement;
+        ] as SetsquareArrowElement;
         const points = arrow.points;
         const [endX, endY] = points[points.length - 1];
 
@@ -473,7 +469,7 @@ describe("binding for simple arrows", () => {
         height: 100,
         angle: ((15 * Math.PI) / 180) as Radians,
         roundness: { type: ROUNDNESS.PROPORTIONAL_RADIUS },
-      }) as ExcalidrawBindableElement;
+      }) as SetsquareBindableElement;
       API.setElements([diamond]);
       const [right] = getAllMidpoints(diamond, arrayToMap([diamond]));
 
@@ -486,7 +482,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(right[0] + 4, right[1] + 1);
       mouse.up();
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       const [endX, endY] = arrow.points[arrow.points.length - 1];
 
       expect(arrow.endBinding?.elementId).toBe(diamond.id);
@@ -503,7 +499,7 @@ describe("binding for simple arrows", () => {
         y: -100,
         width: 200,
         height: 200,
-      }) as ExcalidrawBindableElement;
+      }) as SetsquareBindableElement;
       API.setElements([diamond]);
       // midpoint of the top-left edge
       const edgeMidpoint = [150, -50] as const;
@@ -517,7 +513,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(edgeMidpoint[0] - 9, edgeMidpoint[1] - 3);
       mouse.up();
 
-      const arrow = h.elements[h.elements.length - 1] as ExcalidrawArrowElement;
+      const arrow = h.elements[h.elements.length - 1] as SetsquareArrowElement;
       const [, endY] = arrow.points[arrow.points.length - 1];
 
       expect(arrow.endBinding?.elementId).toBe(diamond.id);
@@ -532,7 +528,7 @@ describe("binding for simple arrows", () => {
       await act(() => {
         return setLanguage(defaultLang);
       });
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     it("should handle new arrow start point binding", () => {
@@ -550,7 +546,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(250, 150); // End outside
       mouse.up();
 
-      const arrow = API.getSelectedElement() as ExcalidrawLinearElement;
+      const arrow = API.getSelectedElement() as SetsquareLinearElement;
 
       // Arrow should have start binding to rectangle
       expect(arrow.startBinding?.elementId).toBe(rectangle.id);
@@ -573,7 +569,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(95, 95); // End near rectangle edge (should bind as orbit)
       mouse.up();
 
-      const arrow = API.getSelectedElement() as ExcalidrawLinearElement;
+      const arrow = API.getSelectedElement() as SetsquareLinearElement;
 
       // Arrow should have end binding to rectangle
       expect(arrow.endBinding?.elementId).toBe(rectangle.id);
@@ -601,7 +597,7 @@ describe("binding for simple arrows", () => {
       mouse.moveTo(160, 160);
       mouse.up();
 
-      const arrow = API.getSelectedElement() as ExcalidrawLinearElement;
+      const arrow = API.getSelectedElement() as SetsquareLinearElement;
       expect(arrow.x).toBe(10);
       expect(arrow.y).toBe(10);
       expect(arrow.width).toBeCloseTo(85.75985931287957);
@@ -665,7 +661,7 @@ describe("binding for simple arrows", () => {
       await act(() => {
         return setLanguage(defaultLang);
       });
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     it(
@@ -800,7 +796,7 @@ describe("binding for simple arrows", () => {
       mouse.clickAt(410, 251);
       mouse.clickAt(410, 251);
 
-      const arrow = API.getSelectedElement() as ExcalidrawArrowElement;
+      const arrow = API.getSelectedElement() as SetsquareArrowElement;
 
       expect(arrow.startBinding?.elementId).toBe(rectLeft.id);
       expect(arrow.endBinding?.elementId).toBe(rectRight.id);
@@ -866,7 +862,7 @@ describe("binding for simple arrows", () => {
       await act(() => {
         return setLanguage(defaultLang);
       });
-      await render(<Excalidraw handleKeyboardGlobally={true} />);
+      await render(<Setsquare handleKeyboardGlobally={true} />);
     });
 
     it("should update binding when text containerized", async () => {
@@ -1041,7 +1037,7 @@ describe("binding to a point-like (sub-pixel) element", () => {
   beforeEach(async () => {
     mouse.reset();
     await act(() => setLanguage(defaultLang));
-    await render(<Excalidraw handleKeyboardGlobally={true} />);
+    await render(<Setsquare handleKeyboardGlobally={true} />);
   });
 
   // Regression: binding to a zero/near-zero-size element used to yield an
@@ -1060,7 +1056,7 @@ describe("binding to a point-like (sub-pixel) element", () => {
         y: 50,
         width: 0.00005,
         height: 0.00005,
-      }) as NonDeleted<ExcalidrawBindableElement>;
+      }) as NonDeleted<SetsquareBindableElement>;
       const arrow = API.createElement({
         type: "arrow",
         elbowed,
@@ -1069,7 +1065,7 @@ describe("binding to a point-like (sub-pixel) element", () => {
         width: 195,
         height: 0,
         points: [pointFrom(0, 0), pointFrom(195, 0)],
-      }) as NonDeleted<ExcalidrawArrowElement>;
+      }) as NonDeleted<SetsquareArrowElement>;
       API.setElements([rect, arrow]);
 
       bindBindingElement(arrow, rect, "orbit", "end", h.scene, DEFAULT_ZOOM);

@@ -1,8 +1,8 @@
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
-import { pointFrom } from "@excalidraw/math";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { pointFrom } from "@setsquare/math";
 
-import type { PointerDownState } from "@excalidraw/excalidraw/types";
-import type { LocalPoint } from "@excalidraw/math";
+import type { PointerDownState } from "@setsquare/setsquare/types";
+import type { LocalPoint } from "@setsquare/math";
 
 import { Scene } from "../src/Scene";
 import { updateBoundElements } from "../src/binding";
@@ -10,7 +10,7 @@ import { dragSelectedElements } from "../src/dragElements";
 import { syncInvalidIndices } from "../src/fractionalIndex";
 import { LinearElementEditor } from "../src/linearElementEditor";
 
-import type { NonDeletedExcalidrawElement } from "../src/types";
+import type { NonDeletedSetsquareElement } from "../src/types";
 
 vi.mock("../src/binding", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/binding")>();
@@ -33,7 +33,7 @@ const pointerDownStateFor = (scene: Scene): PointerDownState => {
 
 const drag = (
   scene: Scene,
-  selectedElements: NonDeletedExcalidrawElement[],
+  selectedElements: NonDeletedSetsquareElement[],
   offset = { x: 20, y: 30 },
   pointerDownState = pointerDownStateFor(scene),
 ) => {

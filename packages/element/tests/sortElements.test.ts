@@ -1,14 +1,14 @@
-import { API } from "@excalidraw/excalidraw/tests/helpers/api";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
-import { mutateElement } from "@excalidraw/element";
+import { mutateElement } from "@setsquare/element";
 
 import { normalizeElementOrder } from "../src/sortElements";
 
-import type { ExcalidrawElement } from "../src/types";
+import type { SetsquareElement } from "../src/types";
 
 const { h } = window;
 const assertOrder = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
   expectedOrder: string[],
 ) => {
   const actualOrder = elements.map((element) => element.id);
@@ -412,7 +412,7 @@ describe("normalizeElementsOrder", () => {
   // should take around <100ms for 10K iterations (@dwelle's PC 22-05-25)
   it.skip("normalizeElementsOrder() perf", () => {
     const makeElements = (iterations: number) => {
-      const elements: ExcalidrawElement[] = [];
+      const elements: SetsquareElement[] = [];
       while (iterations--) {
         const container = API.createElement({
           type: "rectangle",

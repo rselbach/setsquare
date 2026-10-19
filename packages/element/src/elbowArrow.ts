@@ -11,7 +11,7 @@ import {
   vectorScale,
   type GlobalPoint,
   type LocalPoint,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import {
   type Bounds,
@@ -22,9 +22,9 @@ import {
   isDevEnv,
   arrayToMap,
   DEFAULT_ZOOM,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type { AppState } from "@setsquare/setsquare/types";
 
 import {
   bindPointToSnapToElementOutline,
@@ -49,7 +49,7 @@ import {
 import { type ElementUpdate } from "./mutateElement";
 import { isBindableElement } from "./typeChecks";
 import {
-  type ExcalidrawElbowArrowElement,
+  type SetsquareElbowArrowElement,
   type NonDeletedSceneElementsMap,
 } from "./types";
 import { aabbForElement, pointInsideBounds } from "./bounds";
@@ -63,10 +63,10 @@ import type { Heading } from "./heading";
 import type {
   Arrowhead,
   ElementsMap,
-  ExcalidrawBindableElement,
+  SetsquareBindableElement,
   FixedPointBinding,
   FixedSegment,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
   Ordered,
 } from "./types";
 
@@ -107,15 +107,15 @@ type ElbowArrowData = {
   endGlobalPoint: GlobalPoint;
   endHeading: Heading;
   commonBounds: Bounds;
-  hoveredStartElement: ExcalidrawBindableElement | null;
-  hoveredEndElement: ExcalidrawBindableElement | null;
+  hoveredStartElement: SetsquareBindableElement | null;
+  hoveredEndElement: SetsquareBindableElement | null;
 };
 
 const DEDUP_TRESHOLD = 1;
 export const BASE_PADDING = 40;
 
 const handleSegmentRenormalization = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   elementsMap: NonDeletedSceneElementsMap,
 ) => {
   const nextFixedSegments: FixedSegment[] | null = arrow.fixedSegments
@@ -284,7 +284,7 @@ const handleSegmentRenormalization = (
 };
 
 const handleSegmentRelease = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   fixedSegments: readonly FixedSegment[],
   elementsMap: NonDeletedSceneElementsMap,
 ) => {
@@ -468,13 +468,13 @@ const handleSegmentRelease = (
  *
  */
 const handleSegmentMove = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   fixedSegments: readonly FixedSegment[],
   startHeading: Heading,
   endHeading: Heading,
-  hoveredStartElement: ExcalidrawBindableElement | null,
-  hoveredEndElement: ExcalidrawBindableElement | null,
-): ElementUpdate<ExcalidrawElbowArrowElement> => {
+  hoveredStartElement: SetsquareBindableElement | null,
+  hoveredEndElement: SetsquareBindableElement | null,
+): ElementUpdate<SetsquareElbowArrowElement> => {
   const activelyModifiedSegmentIdx = fixedSegments
     .map((segment, i) => {
       if (
@@ -709,16 +709,16 @@ const handleSegmentMove = (
 };
 
 const handleEndpointDrag = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   updatedPoints: readonly LocalPoint[],
   fixedSegments: readonly FixedSegment[],
   startHeading: Heading,
   endHeading: Heading,
   startGlobalPoint: GlobalPoint,
   endGlobalPoint: GlobalPoint,
-  hoveredStartElement: ExcalidrawBindableElement | null,
-  hoveredEndElement: ExcalidrawBindableElement | null,
-): ElementUpdate<ExcalidrawElbowArrowElement> => {
+  hoveredStartElement: SetsquareBindableElement | null,
+  hoveredEndElement: SetsquareBindableElement | null,
+): ElementUpdate<SetsquareElbowArrowElement> => {
   let startIsSpecial = arrow.startIsSpecial ?? null;
   let endIsSpecial = arrow.endIsSpecial ?? null;
   const globalUpdatedPoints = updatedPoints.map((p, i) =>
@@ -912,11 +912,11 @@ const MAX_POS = 1e6;
  * each other, so the update carries their new bindings.
  */
 export const updateElbowArrowPoints = (
-  arrow: Readonly<ExcalidrawElbowArrowElement>,
+  arrow: Readonly<SetsquareElbowArrowElement>,
   elementsMap: NonDeletedSceneElementsMap,
   updates: Parameters<typeof routeElbowArrowPoints>[2],
   options?: Parameters<typeof routeElbowArrowPoints>[3],
-): ElementUpdate<ExcalidrawElbowArrowElement> => {
+): ElementUpdate<SetsquareElbowArrowElement> => {
   // while dragging, the ends preview their sides without being bound to them
   const bindings =
     arrow.cardinal && !options?.isDragging
@@ -949,7 +949,7 @@ export const updateElbowArrowPoints = (
 };
 
 const routeElbowArrowPoints = (
-  arrow: Readonly<ExcalidrawElbowArrowElement>,
+  arrow: Readonly<SetsquareElbowArrowElement>,
   elementsMap: NonDeletedSceneElementsMap,
   updates: {
     points?: readonly LocalPoint[];
@@ -962,7 +962,7 @@ const routeElbowArrowPoints = (
     isBindingEnabled?: boolean;
     isMidpointSnappingEnabled?: boolean;
   },
-): ElementUpdate<ExcalidrawElbowArrowElement> => {
+): ElementUpdate<SetsquareElbowArrowElement> => {
   if (arrow.points.length < 2) {
     return { points: updates.points ?? arrow.points };
   }
@@ -1307,7 +1307,7 @@ const getElbowArrowData = (
         type: "arrow",
         elbowed: true,
         points: nextPoints,
-      } as ExcalidrawElbowArrowElement,
+      } as SetsquareElbowArrowElement,
       "start",
       arrow.startBinding?.fixedPoint,
       origStartGlobalPoint,
@@ -1327,7 +1327,7 @@ const getElbowArrowData = (
         type: "arrow",
         elbowed: true,
         points: nextPoints,
-      } as ExcalidrawElbowArrowElement,
+      } as SetsquareElbowArrowElement,
       "end",
       arrow.endBinding?.fixedPoint,
       origEndGlobalPoint,
@@ -2151,7 +2151,7 @@ const commonAABB = (aabbs: Bounds[]): Bounds => [
 const getBindableElementForId = (
   id: string,
   elementsMap: ElementsMap,
-): ExcalidrawBindableElement | null => {
+): SetsquareBindableElement | null => {
   const element = elementsMap.get(id);
   if (element && isBindableElement(element)) {
     return element;
@@ -2163,9 +2163,9 @@ const getBindableElementForId = (
 const normalizeArrowElementUpdate = (
   global: GlobalPoint[],
   nextFixedSegments: readonly FixedSegment[] | null,
-  startIsSpecial?: ExcalidrawElbowArrowElement["startIsSpecial"],
-  endIsSpecial?: ExcalidrawElbowArrowElement["startIsSpecial"],
-): ElementUpdate<ExcalidrawElbowArrowElement> => {
+  startIsSpecial?: SetsquareElbowArrowElement["startIsSpecial"],
+  endIsSpecial?: SetsquareElbowArrowElement["startIsSpecial"],
+): ElementUpdate<SetsquareElbowArrowElement> => {
   const offsetX = global[0][0];
   const offsetY = global[0][1];
   let points = global.map((p) =>
@@ -2273,12 +2273,12 @@ const neighborIndexToHeading = (idx: number): Heading => {
 };
 
 const getGlobalPoint = (
-  arrow: ExcalidrawElbowArrowElement,
+  arrow: SetsquareElbowArrowElement,
   startOrEnd: "start" | "end",
   fixedPointRatio: [number, number] | undefined | null,
   initialPoint: GlobalPoint,
   zoom: AppState["zoom"],
-  element?: ExcalidrawBindableElement | null,
+  element?: SetsquareBindableElement | null,
   elementsMap?: ElementsMap,
   isDragging?: boolean,
   isBindingEnabled = true,
@@ -2314,7 +2314,7 @@ const getGlobalPoint = (
 const getBindPointHeading = (
   p: GlobalPoint,
   otherPoint: GlobalPoint,
-  hoveredElement: ExcalidrawBindableElement | null | undefined,
+  hoveredElement: SetsquareBindableElement | null | undefined,
   origPoint: GlobalPoint,
   elementsMap: ElementsMap,
   zoom?: AppState["zoom"],
@@ -2342,7 +2342,7 @@ const getBindPointHeading = (
 const getHoveredElement = (
   origPoint: GlobalPoint,
   elementsMap: NonDeletedSceneElementsMap,
-  elements: readonly Ordered<NonDeletedExcalidrawElement>[],
+  elements: readonly Ordered<NonDeletedSetsquareElement>[],
   zoom: AppState["zoom"],
 ) => {
   return getHoveredElementForBinding(origPoint, elements, elementsMap, zoom);

@@ -3,17 +3,17 @@ import {
   pointOnLineSegment,
   pointRotateRads,
   type Radians,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import {
   SIDE_RESIZING_THRESHOLD,
   type EditorInterface,
-} from "@excalidraw/common";
+} from "@setsquare/common";
 
-import type { GlobalPoint, LineSegment, LocalPoint } from "@excalidraw/math";
+import type { GlobalPoint, LineSegment, LocalPoint } from "@setsquare/math";
 
-import type { AppState, Zoom } from "@excalidraw/excalidraw/types";
-import type { Bounds } from "@excalidraw/common";
+import type { AppState, Zoom } from "@setsquare/setsquare/types";
+import type { Bounds } from "@setsquare/common";
 
 import { getElementAbsoluteCoords } from "./bounds";
 import {
@@ -30,9 +30,9 @@ import type {
   MaybeTransformHandleType,
 } from "./transformHandles";
 import type {
-  ExcalidrawElement,
+  SetsquareElement,
   PointerType,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
   ElementsMap,
 } from "./types";
 
@@ -47,7 +47,7 @@ const isInsideTransformHandle = (
   y <= transformHandle[1] + transformHandle[3];
 
 export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
-  element: NonDeletedExcalidrawElement,
+  element: NonDeletedSetsquareElement,
   elementsMap: ElementsMap,
   appState: AppState,
   x: number,
@@ -130,7 +130,7 @@ export const resizeTest = <Point extends GlobalPoint | LocalPoint>(
 };
 
 export const getElementWithTransformHandleType = (
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   appState: AppState,
   scenePointerX: number,
   scenePointerY: number,
@@ -154,7 +154,7 @@ export const getElementWithTransformHandleType = (
       editorInterface,
     );
     return transformHandleType ? { element, transformHandleType } : null;
-  }, null as { element: NonDeletedExcalidrawElement; transformHandleType: MaybeTransformHandleType } | null);
+  }, null as { element: NonDeletedSetsquareElement; transformHandleType: MaybeTransformHandleType } | null);
 };
 
 export const getTransformHandleTypeFromCoords = <
@@ -232,7 +232,7 @@ const rotateResizeCursor = (cursor: string, angle: number) => {
  * Returns bi-directional cursor for the element being resized
  */
 export const getCursorForResizingElement = (resizingElement: {
-  element?: ExcalidrawElement;
+  element?: SetsquareElement;
   transformHandleType: MaybeTransformHandleType;
 }): string => {
   const { element, transformHandleType } = resizingElement;

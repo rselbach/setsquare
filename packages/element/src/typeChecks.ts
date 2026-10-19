@@ -1,156 +1,156 @@
-import { ROUNDNESS, assertNever } from "@excalidraw/common";
+import { ROUNDNESS, assertNever } from "@setsquare/common";
 
-import { pointsEqual } from "@excalidraw/math";
+import { pointsEqual } from "@setsquare/math";
 
-import type { ElementOrToolType } from "@excalidraw/excalidraw/types";
+import type { ElementOrToolType } from "@setsquare/setsquare/types";
 
-import type { MarkNonNullable } from "@excalidraw/common/utility-types";
+import type { MarkNonNullable } from "@setsquare/common/utility-types";
 
 import type {
-  ExcalidrawElement,
-  ExcalidrawTextElement,
-  ExcalidrawEmbeddableElement,
-  ExcalidrawLinearElement,
-  ExcalidrawBindableElement,
-  ExcalidrawFreeDrawElement,
-  InitializedExcalidrawImageElement,
-  ExcalidrawImageElement,
-  ExcalidrawTextElementWithContainer,
-  ExcalidrawTextContainer,
-  ExcalidrawFrameElement,
+  SetsquareElement,
+  SetsquareTextElement,
+  SetsquareEmbeddableElement,
+  SetsquareLinearElement,
+  SetsquareBindableElement,
+  SetsquareFreeDrawElement,
+  InitializedSetsquareImageElement,
+  SetsquareImageElement,
+  SetsquareTextElementWithContainer,
+  SetsquareTextContainer,
+  SetsquareFrameElement,
   RoundnessType,
-  ExcalidrawFrameLikeElement,
-  ExcalidrawElementType,
-  ExcalidrawIframeElement,
-  ExcalidrawIframeLikeElement,
-  ExcalidrawMagicFrameElement,
-  ExcalidrawArrowElement,
-  ExcalidrawElbowArrowElement,
-  ExcalidrawLineElement,
-  ExcalidrawFlowchartNodeElement,
-  ExcalidrawLinearElementSubType,
-  ExcalidrawStickyNoteElement,
+  SetsquareFrameLikeElement,
+  SetsquareElementType,
+  SetsquareIframeElement,
+  SetsquareIframeLikeElement,
+  SetsquareMagicFrameElement,
+  SetsquareArrowElement,
+  SetsquareElbowArrowElement,
+  SetsquareLineElement,
+  SetsquareFlowchartNodeElement,
+  SetsquareLinearElementSubType,
+  SetsquareStickyNoteElement,
 } from "./types";
 
-export const isInitializedImageElement = <T extends ExcalidrawElement>(
+export const isInitializedImageElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & InitializedExcalidrawImageElement => {
+): element is T & InitializedSetsquareImageElement => {
   return !!element && element.type === "image" && !!element.fileId;
 };
 
-export const isImageElement = <T extends ExcalidrawElement>(
+export const isImageElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawImageElement => {
+): element is T & SetsquareImageElement => {
   return !!element && element.type === "image";
 };
 
-export const isEmbeddableElement = <T extends ExcalidrawElement>(
+export const isEmbeddableElement = <T extends SetsquareElement>(
   element: T | null | undefined,
-): element is T & ExcalidrawEmbeddableElement => {
+): element is T & SetsquareEmbeddableElement => {
   return !!element && element.type === "embeddable";
 };
 
-export const isIframeElement = <T extends ExcalidrawElement>(
+export const isIframeElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawIframeElement => {
+): element is T & SetsquareIframeElement => {
   return !!element && element.type === "iframe";
 };
 
-export const isIframeLikeElement = <T extends ExcalidrawElement>(
+export const isIframeLikeElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawIframeLikeElement => {
+): element is T & SetsquareIframeLikeElement => {
   return (
     !!element && (element.type === "iframe" || element.type === "embeddable")
   );
 };
 
-export const isTextElement = <T extends ExcalidrawElement>(
+export const isTextElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawTextElement => {
+): element is T & SetsquareTextElement => {
   return element != null && element.type === "text";
 };
 
-export const isStickyNoteElement = <T extends ExcalidrawElement>(
+export const isStickyNoteElement = <T extends SetsquareElement>(
   element: T | null | undefined,
-): element is T & ExcalidrawStickyNoteElement => {
+): element is T & SetsquareStickyNoteElement => {
   return element != null && element.type === "stickynote";
 };
 
-export const isFrameElement = <T extends ExcalidrawElement>(
+export const isFrameElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawFrameElement => {
+): element is T & SetsquareFrameElement => {
   return element != null && element.type === "frame";
 };
 
-export const isMagicFrameElement = <T extends ExcalidrawElement>(
+export const isMagicFrameElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawMagicFrameElement => {
+): element is T & SetsquareMagicFrameElement => {
   return element != null && element.type === "magicframe";
 };
 
-export const isFrameLikeElement = <T extends ExcalidrawElement>(
+export const isFrameLikeElement = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawFrameLikeElement => {
+): element is T & SetsquareFrameLikeElement => {
   return (
     element != null &&
     (element.type === "frame" || element.type === "magicframe")
   );
 };
 
-export const isFreeDrawElement = <T extends ExcalidrawElement>(
+export const isFreeDrawElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawFreeDrawElement => {
+): element is T & SetsquareFreeDrawElement => {
   return element != null && isFreeDrawElementType(element.type);
 };
 
 export const isFreeDrawElementType = (
-  elementType: ExcalidrawElementType,
+  elementType: SetsquareElementType,
 ): boolean => {
   return elementType === "freedraw";
 };
 
-export const isLinearElement = <T extends ExcalidrawElement>(
+export const isLinearElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawLinearElement => {
+): element is T & SetsquareLinearElement => {
   return element != null && isLinearElementType(element.type);
 };
 
-export const isLineElement = <T extends ExcalidrawElement>(
+export const isLineElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawLineElement => {
+): element is T & SetsquareLineElement => {
   return element != null && element.type === "line";
 };
 
-export const isArrowElement = <T extends ExcalidrawElement>(
+export const isArrowElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawArrowElement => {
+): element is T & SetsquareArrowElement => {
   return element != null && element.type === "arrow";
 };
 
-export const isElbowArrow = <T extends ExcalidrawElement>(
+export const isElbowArrow = <T extends SetsquareElement>(
   element?: T,
-): element is T & ExcalidrawElbowArrowElement => {
+): element is T & SetsquareElbowArrowElement => {
   return isArrowElement(element) && element.elbowed;
 };
 
 /**
  * sharp or curved arrow, but not elbow
  */
-export const isSimpleArrow = <T extends ExcalidrawElement>(
+export const isSimpleArrow = <T extends SetsquareElement>(
   element?: T,
-): element is T & ExcalidrawArrowElement => {
+): element is T & SetsquareArrowElement => {
   return isArrowElement(element) && !element.elbowed;
 };
 
-export const isSharpArrow = <T extends ExcalidrawElement>(
+export const isSharpArrow = <T extends SetsquareElement>(
   element?: T,
-): element is T & ExcalidrawArrowElement => {
+): element is T & SetsquareArrowElement => {
   return isArrowElement(element) && !element.elbowed && !element.roundness;
 };
 
-export const isCurvedArrow = <T extends ExcalidrawElement>(
+export const isCurvedArrow = <T extends SetsquareElement>(
   element?: T,
-): element is T & ExcalidrawArrowElement => {
+): element is T & SetsquareArrowElement => {
   return (
     isArrowElement(element) && !element.elbowed && element.roundness !== null
   );
@@ -164,10 +164,10 @@ export const isLinearElementType = (
   );
 };
 
-export const isBindingElement = <T extends ExcalidrawElement>(
+export const isBindingElement = <T extends SetsquareElement>(
   element?: T | null,
   includeLocked = true,
-): element is T & ExcalidrawArrowElement => {
+): element is T & SetsquareArrowElement => {
   return (
     element != null &&
     (!element.locked || includeLocked === true) &&
@@ -181,10 +181,10 @@ export const isBindingElementType = (
   return elementType === "arrow";
 };
 
-export const isBindableElement = <T extends ExcalidrawElement>(
+export const isBindableElement = <T extends SetsquareElement>(
   element: T | null | undefined,
   includeLocked = true,
-): element is T & ExcalidrawBindableElement => {
+): element is T & SetsquareBindableElement => {
   return (
     element != null &&
     (!element.locked || includeLocked === true) &&
@@ -201,9 +201,9 @@ export const isBindableElement = <T extends ExcalidrawElement>(
   );
 };
 
-export const isRectanguloidElement = <T extends ExcalidrawElement>(
+export const isRectanguloidElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawBindableElement => {
+): element is T & SetsquareBindableElement => {
   return (
     element != null &&
     (element.type === "rectangle" ||
@@ -220,9 +220,9 @@ export const isRectanguloidElement = <T extends ExcalidrawElement>(
 
 // TODO: Remove this when proper distance calculation is introduced
 // @see binding.ts:distanceToBindableElement()
-export const isRectangularElement = <T extends ExcalidrawElement>(
+export const isRectangularElement = <T extends SetsquareElement>(
   element?: T | null,
-): element is T & ExcalidrawBindableElement => {
+): element is T & SetsquareBindableElement => {
   return (
     element != null &&
     (element.type === "rectangle" ||
@@ -237,10 +237,10 @@ export const isRectangularElement = <T extends ExcalidrawElement>(
   );
 };
 
-export const isTextBindableContainer = <T extends ExcalidrawElement>(
+export const isTextBindableContainer = <T extends SetsquareElement>(
   element: T | null,
   includeLocked = true,
-): element is T & ExcalidrawTextContainer => {
+): element is T & SetsquareTextContainer => {
   return (
     element != null &&
     (!element.locked || includeLocked === true) &&
@@ -252,10 +252,10 @@ export const isTextBindableContainer = <T extends ExcalidrawElement>(
   );
 };
 
-export const isExcalidrawElement = (
+export const isSetsquareElement = (
   element: any,
-): element is ExcalidrawElement => {
-  const type: ExcalidrawElementType | undefined = element?.type;
+): element is SetsquareElement => {
+  const type: SetsquareElementType | undefined = element?.type;
   if (!type) {
     return false;
   }
@@ -283,9 +283,9 @@ export const isExcalidrawElement = (
   }
 };
 
-export const isFlowchartNodeElement = <T extends ExcalidrawElement>(
+export const isFlowchartNodeElement = <T extends SetsquareElement>(
   element: T,
-): element is T & ExcalidrawFlowchartNodeElement => {
+): element is T & SetsquareFlowchartNodeElement => {
   return (
     element.type === "rectangle" ||
     element.type === "stickynote" ||
@@ -294,19 +294,19 @@ export const isFlowchartNodeElement = <T extends ExcalidrawElement>(
   );
 };
 
-export const hasBoundTextElement = <T extends ExcalidrawElement>(
+export const hasBoundTextElement = <T extends SetsquareElement>(
   element: T | null,
 ): element is T &
-  MarkNonNullable<ExcalidrawBindableElement, "boundElements"> => {
+  MarkNonNullable<SetsquareBindableElement, "boundElements"> => {
   return (
     isTextBindableContainer(element) &&
     !!element.boundElements?.some(({ type }) => type === "text")
   );
 };
 
-export const isBoundToContainer = <T extends ExcalidrawElement>(
+export const isBoundToContainer = <T extends SetsquareElement>(
   element: T | null,
-): element is T & ExcalidrawTextElementWithContainer => {
+): element is T & SetsquareTextElementWithContainer => {
   return (
     element !== null &&
     "containerId" in element &&
@@ -315,7 +315,7 @@ export const isBoundToContainer = <T extends ExcalidrawElement>(
   );
 };
 
-export const isArrowBoundToElement = (element: ExcalidrawArrowElement) => {
+export const isArrowBoundToElement = (element: SetsquareArrowElement) => {
   return !!element.startBinding || !!element.endBinding;
 };
 
@@ -333,7 +333,7 @@ export const isUsingProportionalRadius = (type: string) =>
 
 export const canApplyRoundnessTypeToElement = (
   roundnessType: RoundnessType,
-  element: ExcalidrawElement,
+  element: SetsquareElement,
 ) => {
   if (
     (roundnessType === ROUNDNESS.ADAPTIVE_RADIUS ||
@@ -355,7 +355,7 @@ export const canApplyRoundnessTypeToElement = (
 };
 
 export const getDefaultRoundnessTypeForElement = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
 ) => {
   if (isUsingProportionalRadius(element.type)) {
     return {
@@ -373,8 +373,8 @@ export const getDefaultRoundnessTypeForElement = (
 };
 
 export const getLinearElementSubType = (
-  element: ExcalidrawLinearElement,
-): ExcalidrawLinearElementSubType => {
+  element: SetsquareLinearElement,
+): SetsquareLinearElementSubType => {
   if (isSharpArrow(element)) {
     return "sharpArrow";
   }
@@ -395,13 +395,13 @@ export const getLinearElementSubType = (
  *  canBecomePolygon(points).
  */
 export const isValidPolygon = (
-  points: ExcalidrawLineElement["points"],
+  points: SetsquareLineElement["points"],
 ): boolean => {
   return points.length > 3 && pointsEqual(points[0], points[points.length - 1]);
 };
 
 export const canBecomePolygon = (
-  points: ExcalidrawLineElement["points"],
+  points: SetsquareLineElement["points"],
 ): boolean => {
   return (
     points.length > 3 ||

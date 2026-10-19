@@ -1,21 +1,21 @@
 // -----------------------------------------------------------------------------
-// ExcalidrawImageElement & related helpers
+// SetsquareImageElement & related helpers
 // -----------------------------------------------------------------------------
 
-import { MIME_TYPES, SVG_NS } from "@excalidraw/common";
+import { MIME_TYPES, SVG_NS } from "@setsquare/common";
 
 import type {
   AppClassProperties,
   DataURL,
   BinaryFiles,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 
 import { isInitializedImageElement } from "./typeChecks";
 
 import type {
-  ExcalidrawElement,
+  SetsquareElement,
   FileId,
-  InitializedExcalidrawImageElement,
+  InitializedSetsquareImageElement,
 } from "./types";
 
 export const loadHTMLImageElement = (dataURL: DataURL) => {
@@ -89,11 +89,11 @@ export const updateImageCache = async ({
 };
 
 export const getInitializedImageElements = (
-  elements: readonly ExcalidrawElement[],
+  elements: readonly SetsquareElement[],
 ) =>
   elements.filter((element) =>
     isInitializedImageElement(element),
-  ) as InitializedExcalidrawImageElement[];
+  ) as InitializedSetsquareImageElement[];
 
 export const isHTMLSVGElement = (node: Node | null): node is SVGElement => {
   // lower-casing due to XML/HTML convention differences

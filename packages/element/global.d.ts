@@ -1,3 +1,3 @@
 /// <reference types="vite/client" />
-import "@excalidraw/excalidraw/global";
-import "@excalidraw/excalidraw/css";
+import "@setsquare/setsquare/global";
+import "@setsquare/setsquare/css";

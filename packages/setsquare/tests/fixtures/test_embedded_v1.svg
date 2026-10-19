@@ -1,0 +1,16 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 97 77">
+  <!-- svg-source:setsquare -->
+  <!-- payload-type:application/vnd.setsquare+json --><!-- payload-start -->ewogICJ0eXBlIjogInNldHNxdWFyZSIsCiAgInZlcnNpb24iOiAyLAogICJzb3VyY2UiOiAiaHR0cHM6Ly9ncmVlbmRhbGUuZWR1IiwKICAiZWxlbWVudHMiOiBbCiAgICB7CiAgICAgICJpZCI6ICJ0Wm1RcGtHMkJWdkszcU9NYnB1V3oiLAogICAgICAidHlwZSI6ICJ0ZXh0IiwKICAgICAgIngiOiA4NjEuMTExMTExMTExMTExMSwKICAgICAgInkiOiAzNTYuMzMzMzMzMzMzMzMzMywKICAgICAgIndpZHRoIjogNzcsCiAgICAgICJoZWlnaHQiOiA1NywKICAgICAgImFuZ2xlIjogMCwKICAgICAgInN0cm9rZUNvbG9yIjogIiMwMDAwMDAiLAogICAgICAiYmFja2dyb3VuZENvbG9yIjogIiM4NjhlOTYiLAogICAgICAiZmlsbFN0eWxlIjogImNyb3NzLWhhdGNoIiwKICAgICAgInN0cm9rZVdpZHRoIjogMiwKICAgICAgInN0cm9rZVN0eWxlIjogInNvbGlkIiwKICAgICAgInJvdWdobmVzcyI6IDEsCiAgICAgICJvcGFjaXR5IjogMTAwLAogICAgICAiZ3JvdXBJZHMiOiBbXSwKICAgICAgInN0cm9rZVNoYXJwbmVzcyI6ICJyb3VuZCIsCiAgICAgICJzZWVkIjogNDc2MzYzNzkzLAogICAgICAidmVyc2lvbiI6IDIzLAogICAgICAidmVyc2lvbk5vbmNlIjogNTk3NDM1MTM1LAogICAgICAiaXNEZWxldGVkIjogZmFsc2UsCiAgICAgICJib3VuZEVsZW1lbnRJZHMiOiBudWxsLAogICAgICAidGV4dCI6ICJ0ZXN0IiwKICAgICAgImZvbnRTaXplIjogMzYsCiAgICAgICJmb250RmFtaWx5IjogMSwKICAgICAgInRleHRBbGlnbiI6ICJsZWZ0IiwKICAgICAgInZlcnRpY2FsQWxpZ24iOiAidG9wIiwKICAgICAgImJhc2VsaW5lIjogNDEKICAgIH0KICBdLAogICJhcHBTdGF0ZSI6IHsKICAgICJ2aWV3QmFja2dyb3VuZENvbG9yIjogIiNmZmZmZmYiLAogICAgImdyaWRTaXplIjogbnVsbAogIH0KfQ==<!-- payload-end -->
+  <defs>
+    <style>
+      @font-face {
+        font-family: "Virgil";
+        src: url("Virgil.woff2");
+      }
+      @font-face {
+        font-family: "Cascadia";
+        src: url("Cascadia.woff2");
+      }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="97" height="77" fill="#ffffff"></rect><g transform="translate(10 10) rotate(0 38.5 28.5)"><text x="0" y="41" font-family="Virgil, Segoe UI Emoji" font-size="36px" fill="#000000" text-anchor="start" style="white-space: pre;" direction="ltr">test</text></g></svg>

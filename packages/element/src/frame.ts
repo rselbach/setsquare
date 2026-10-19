@@ -1,18 +1,18 @@
-import { arrayToMap, type Bounds } from "@excalidraw/common";
+import { arrayToMap, type Bounds } from "@setsquare/common";
 import {
   isPointWithinBounds,
   pointFrom,
   PRECISION,
   segmentsIntersectAt,
-} from "@excalidraw/math";
+} from "@setsquare/math";
 
 import type {
   AppClassProperties,
   AppState,
   StaticCanvasAppState,
-} from "@excalidraw/excalidraw/types";
+} from "@setsquare/setsquare/types";
 
-import type { ReadonlySetLike } from "@excalidraw/common/utility-types";
+import type { ReadonlySetLike } from "@setsquare/common/utility-types";
 
 import {
   getSelectedElements,
@@ -40,26 +40,26 @@ import {
 
 import { getNonDeletedElements } from ".";
 
-import type { ExcalidrawElementsIncludingDeleted } from "./Scene";
+import type { SetsquareElementsIncludingDeleted } from "./Scene";
 
 import type {
   ElementsMap,
   ElementsMapOrArray,
-  ExcalidrawElement,
-  ExcalidrawFrameLikeElement,
+  SetsquareElement,
+  SetsquareFrameLikeElement,
   NonDeleted,
-  NonDeletedExcalidrawElement,
+  NonDeletedSetsquareElement,
 } from "./types";
 
 // --------------------------- Frame State ------------------------------------
 export const bindElementsToFramesAfterDuplication = (
-  nextElements: readonly ExcalidrawElement[],
-  origElements: readonly ExcalidrawElement[],
-  origIdToDuplicateId: Map<ExcalidrawElement["id"], ExcalidrawElement["id"]>,
+  nextElements: readonly SetsquareElement[],
+  origElements: readonly SetsquareElement[],
+  origIdToDuplicateId: Map<SetsquareElement["id"], SetsquareElement["id"]>,
 ) => {
   const nextElementMap = arrayToMap(nextElements) as Map<
-    ExcalidrawElement["id"],
-    ExcalidrawElement
+    SetsquareElement["id"],
+    SetsquareElement
   >;
 
   for (const element of origElements) {
@@ -78,8 +78,8 @@ export const bindElementsToFramesAfterDuplication = (
 };
 
 export function isElementIntersectingFrame(
-  element: ExcalidrawElement,
-  frame: ExcalidrawFrameLikeElement,
+  element: SetsquareElement,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) {
   const frameLineSegments = getElementLineSegments(frame, elementsMap);
@@ -100,7 +100,7 @@ export function isElementIntersectingFrame(
  * element's (or an element to its) leaves the element at.
  */
 const getFrameInnerBounds = (
-  frame: ExcalidrawFrameLikeElement,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ): Bounds => {
   const [x1, y1, x2, y2] = getElementBounds(frame, elementsMap);
@@ -108,8 +108,8 @@ const getFrameInnerBounds = (
 };
 
 export const getElementsCompletelyInFrame = (
-  elements: readonly ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elements: readonly SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) =>
   omitGroupsContainingFrameLikes(
@@ -130,8 +130,8 @@ export const getElementsCompletelyInFrame = (
   );
 
 export const isElementContainingFrame = (
-  element: ExcalidrawElement,
-  frame: ExcalidrawFrameLikeElement,
+  element: SetsquareElement,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) => {
   return boundsContainBounds(
@@ -141,8 +141,8 @@ export const isElementContainingFrame = (
 };
 
 export const getElementsIntersectingFrame = (
-  elements: readonly ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elements: readonly SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
 ) => {
   const elementsMap = arrayToMap(elements);
   return elements.filter((element) =>
@@ -151,8 +151,8 @@ export const getElementsIntersectingFrame = (
 };
 
 export const elementsAreInFrameBounds = (
-  elements: readonly ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elements: readonly SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) => {
   const [frameX1, frameY1, frameX2, frameY2] = getFrameInnerBounds(
@@ -172,8 +172,8 @@ export const elementsAreInFrameBounds = (
 };
 
 export const elementOverlapsWithFrame = (
-  element: ExcalidrawElement,
-  frame: ExcalidrawFrameLikeElement,
+  element: SetsquareElement,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) => {
   return (
@@ -188,7 +188,7 @@ export const isCursorInFrame = (
     x: number;
     y: number;
   },
-  frame: NonDeleted<ExcalidrawFrameLikeElement>,
+  frame: NonDeleted<SetsquareFrameLikeElement>,
   elementsMap: ElementsMap,
 ) => {
   const [fx1, fy1, fx2, fy2] = getElementAbsoluteCoords(frame, elementsMap);
@@ -201,9 +201,9 @@ export const isCursorInFrame = (
 };
 
 export const groupsAreAtLeastIntersectingTheFrame = (
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   groupIds: readonly string[],
-  frame: ExcalidrawFrameLikeElement,
+  frame: SetsquareFrameLikeElement,
 ) => {
   const elementsMap = arrayToMap(elements);
   const elementsInGroup = groupIds.flatMap((groupId) =>
@@ -222,9 +222,9 @@ export const groupsAreAtLeastIntersectingTheFrame = (
 };
 
 export const groupsAreCompletelyOutOfFrame = (
-  elements: readonly NonDeletedExcalidrawElement[],
+  elements: readonly NonDeletedSetsquareElement[],
   groupIds: readonly string[],
-  frame: ExcalidrawFrameLikeElement,
+  frame: SetsquareFrameLikeElement,
 ) => {
   const elementsMap = arrayToMap(elements);
   const elementsInGroup = groupIds.flatMap((groupId) =>
@@ -249,10 +249,10 @@ export const groupsAreCompletelyOutOfFrame = (
 /**
  * Returns a map of frameId to frame elements. Includes empty frames.
  */
-export const groupByFrameLikes = (elements: readonly ExcalidrawElement[]) => {
+export const groupByFrameLikes = (elements: readonly SetsquareElement[]) => {
   const frameElementsMap = new Map<
-    ExcalidrawElement["id"],
-    ExcalidrawElement[]
+    SetsquareElement["id"],
+    SetsquareElement[]
   >();
 
   for (const element of elements) {
@@ -269,7 +269,7 @@ export const getFrameChildren = (
   allElements: ElementsMapOrArray,
   frameId: string,
 ) => {
-  const frameChildren: ExcalidrawElement[] = [];
+  const frameChildren: SetsquareElement[] = [];
   for (const element of allElements.values()) {
     if (element.frameId === frameId) {
       frameChildren.push(element);
@@ -279,22 +279,22 @@ export const getFrameChildren = (
 };
 
 export const getFrameLikeElements = (
-  allElements: ExcalidrawElementsIncludingDeleted,
-): ExcalidrawFrameLikeElement[] => {
-  return allElements.filter((element): element is ExcalidrawFrameLikeElement =>
+  allElements: SetsquareElementsIncludingDeleted,
+): SetsquareFrameLikeElement[] => {
+  return allElements.filter((element): element is SetsquareFrameLikeElement =>
     isFrameLikeElement(element),
   );
 };
 
 /**
- * Returns ExcalidrawFrameElements and non-frame-children elements.
+ * Returns SetsquareFrameElements and non-frame-children elements.
  *
  * Considers children as root elements if they point to a frame parent
  * non-existing in the elements set.
  *
  * Considers non-frame bound elements (container or arrow labels) as root.
  */
-export const getRootElements = <T extends ExcalidrawElement>(
+export const getRootElements = <T extends SetsquareElement>(
   allElements: readonly T[],
 ) => {
   const frameElements = arrayToMap(getFrameLikeElements(allElements));
@@ -307,13 +307,13 @@ export const getRootElements = <T extends ExcalidrawElement>(
 };
 
 export const getElementsInResizingFrame = (
-  allElements: ExcalidrawElementsIncludingDeleted,
-  frame: ExcalidrawFrameLikeElement,
+  allElements: SetsquareElementsIncludingDeleted,
+  frame: SetsquareFrameLikeElement,
   appState: AppState,
   elementsMap: ElementsMap,
-): ExcalidrawElement[] => {
+): SetsquareElement[] => {
   const prevElementsInFrame = getFrameChildren(allElements, frame.id);
-  const nextElementsInFrame = new Set<ExcalidrawElement>(prevElementsInFrame);
+  const nextElementsInFrame = new Set<SetsquareElement>(prevElementsInFrame);
 
   const elementsCompletelyInFrame = new Set([
     ...getElementsCompletelyInFrame(allElements, frame, elementsMap),
@@ -404,8 +404,8 @@ export const getElementsInResizingFrame = (
 };
 
 export const getElementsInNewFrame = (
-  elements: ExcalidrawElementsIncludingDeleted,
-  frame: ExcalidrawFrameLikeElement,
+  elements: SetsquareElementsIncludingDeleted,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) => {
   return omitPartialGroups(
@@ -419,8 +419,8 @@ export const getElementsInNewFrame = (
 };
 
 export const omitPartialGroups = (
-  elements: ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elements: SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
   allElementsMap: ElementsMap,
 ) => {
   const elementsToReturn = [];
@@ -460,24 +460,24 @@ export const omitPartialGroups = (
 };
 
 export const getContainingFrame = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
 ) => {
   if (!element.frameId) {
     return null;
   }
   return (elementsMap.get(element.frameId) ||
-    null) as null | ExcalidrawFrameLikeElement;
+    null) as null | SetsquareFrameLikeElement;
 };
 
 // --------------------------- Frame Operations -------------------------------
 
 /** */
 export const filterElementsEligibleAsFrameChildren = (
-  elements: readonly ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elements: readonly SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
 ) => {
-  const otherFrames = new Set<ExcalidrawFrameLikeElement["id"]>();
+  const otherFrames = new Set<SetsquareFrameLikeElement["id"]>();
   const elementsMap = arrayToMap(elements);
   elements = omitGroupsContainingFrameLikes(elements);
 
@@ -487,9 +487,9 @@ export const filterElementsEligibleAsFrameChildren = (
     }
   }
 
-  const processedGroups = new Set<ExcalidrawElement["id"]>();
+  const processedGroups = new Set<SetsquareElement["id"]>();
 
-  const eligibleElements: ExcalidrawElement[] = [];
+  const eligibleElements: SetsquareElement[] = [];
 
   for (const element of elements) {
     // don't add frames or their children
@@ -526,8 +526,8 @@ export const filterElementsEligibleAsFrameChildren = (
   return eligibleElements;
 };
 
-export const getCommonFrameId = (elements: readonly ExcalidrawElement[]) => {
-  let commonFrameId: ExcalidrawElement["frameId"] | undefined;
+export const getCommonFrameId = (elements: readonly SetsquareElement[]) => {
+  let commonFrameId: SetsquareElement["frameId"] | undefined;
 
   for (const element of elements) {
     if (isFrameLikeElement(element) || !element.frameId) {
@@ -545,8 +545,8 @@ export const getCommonFrameId = (elements: readonly ExcalidrawElement[]) => {
 };
 
 export const getFrameChildrenInsertionIndex = (
-  elements: readonly ExcalidrawElement[],
-  frameId: ExcalidrawFrameLikeElement["id"],
+  elements: readonly SetsquareElement[],
+  frameId: SetsquareFrameLikeElement["id"],
 ): number | null => {
   for (let index = elements.length - 1; index >= 0; index--) {
     const element = elements[index];
@@ -569,15 +569,15 @@ export const getFrameChildrenInsertionIndex = (
  */
 export const addElementsToFrame = <T extends ElementsMapOrArray>(
   allElements: T,
-  elementsToAdd: ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  elementsToAdd: SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
 ): T => {
   const elementsMap = arrayToMap(allElements);
   const commonFrameId = getCommonFrameId(elementsToAdd);
 
-  const finalElementsToAdd = new Set<ExcalidrawElement>();
+  const finalElementsToAdd = new Set<SetsquareElement>();
 
-  const otherFrames = new Set<ExcalidrawFrameLikeElement["id"]>();
+  const otherFrames = new Set<SetsquareFrameLikeElement["id"]>();
 
   for (const element of elementsToAdd) {
     if (isFrameLikeElement(element) && element.id !== frame.id) {
@@ -661,17 +661,14 @@ export const addElementsToFrame = <T extends ElementsMapOrArray>(
 };
 
 export const removeElementsFromFrame = (
-  elementsToRemove: ReadonlySetLike<ExcalidrawElement>,
+  elementsToRemove: ReadonlySetLike<SetsquareElement>,
   elementsMap: ElementsMap,
 ) => {
-  const _elementsToRemove = new Map<
-    ExcalidrawElement["id"],
-    ExcalidrawElement
-  >();
+  const _elementsToRemove = new Map<SetsquareElement["id"], SetsquareElement>();
 
   const toRemoveElementsByFrame = new Map<
-    ExcalidrawFrameLikeElement["id"],
-    ExcalidrawElement[]
+    SetsquareFrameLikeElement["id"],
+    SetsquareElement[]
   >();
 
   for (const element of elementsToRemove) {
@@ -698,19 +695,19 @@ export const removeElementsFromFrame = (
   }
 };
 
-export const removeAllElementsFromFrame = <T extends ExcalidrawElement>(
+export const removeAllElementsFromFrame = <T extends SetsquareElement>(
   allElements: readonly T[],
-  frame: ExcalidrawFrameLikeElement,
+  frame: SetsquareFrameLikeElement,
 ) => {
   const elementsInFrame = getFrameChildren(allElements, frame.id);
   removeElementsFromFrame(elementsInFrame, arrayToMap(allElements));
   return allElements;
 };
 
-export const replaceAllElementsInFrame = <T extends ExcalidrawElement>(
+export const replaceAllElementsInFrame = <T extends SetsquareElement>(
   allElements: readonly T[],
-  nextElementsInFrame: ExcalidrawElement[],
-  frame: ExcalidrawFrameLikeElement,
+  nextElementsInFrame: SetsquareElement[],
+  frame: SetsquareFrameLikeElement,
 ): T[] => {
   return addElementsToFrame(
     removeAllElementsFromFrame(allElements, frame),
@@ -732,7 +729,7 @@ export const updateFrameMembershipOfSelectedElements = <
     // supplying elements explicitly in case we're passed non-state elements
     elements: allElements,
   });
-  const elementsToFilter = new Set<ExcalidrawElement>(selectedElements);
+  const elementsToFilter = new Set<SetsquareElement>(selectedElements);
 
   if (appState.editingGroupId) {
     for (const element of selectedElements) {
@@ -746,7 +743,7 @@ export const updateFrameMembershipOfSelectedElements = <
     }
   }
 
-  const elementsToRemove = new Set<ExcalidrawElement>();
+  const elementsToRemove = new Set<SetsquareElement>();
 
   const elementsMap = arrayToMap(allElements);
 
@@ -775,7 +772,7 @@ export const omitGroupsContainingFrameLikes = (
   /** subset of elements you want to filter. Optional perf optimization so we
    * don't have to filter all elements unnecessarily
    */
-  selectedElements?: readonly ExcalidrawElement[],
+  selectedElements?: readonly SetsquareElement[],
 ) => {
   const uniqueGroupIds = new Set<string>();
   const elements = selectedElements || allElements;
@@ -798,7 +795,7 @@ export const omitGroupsContainingFrameLikes = (
     }
   }
 
-  const ret: ExcalidrawElement[] = [];
+  const ret: SetsquareElement[] = [];
 
   for (const element of elements.values()) {
     if (!rejectedGroupIds.has(element.groupIds[element.groupIds.length - 1])) {
@@ -814,7 +811,7 @@ export const omitGroupsContainingFrameLikes = (
  * is going to be added to or remove from
  */
 export const getTargetFrame = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   elementsMap: ElementsMap,
   appState: StaticCanvasAppState,
 ) => {
@@ -841,11 +838,11 @@ export const getTargetFrame = (
 // TODO: this a huge bottleneck for large scenes, optimise
 // given an element, return if the element is in some frame
 export const isElementInFrame = (
-  element: ExcalidrawElement,
+  element: SetsquareElement,
   allElementsMap: ElementsMap,
   appState: StaticCanvasAppState,
   opts?: {
-    targetFrame?: ExcalidrawFrameLikeElement;
+    targetFrame?: SetsquareFrameLikeElement;
     checkedGroups?: Map<string, boolean>;
   },
 ) => {
@@ -935,8 +932,8 @@ export const isElementInFrame = (
 };
 
 export const shouldApplyFrameClip = (
-  element: ExcalidrawElement,
-  frame: ExcalidrawFrameLikeElement,
+  element: SetsquareElement,
+  frame: SetsquareFrameLikeElement,
   appState: StaticCanvasAppState,
   elementsMap: ElementsMap,
   checkedGroups?: Map<string, boolean>,
@@ -1001,18 +998,18 @@ export const shouldApplyFrameClip = (
 const DEFAULT_FRAME_NAME = "Frame";
 const DEFAULT_AI_FRAME_NAME = "AI Frame";
 
-export const getDefaultFrameName = (element: ExcalidrawFrameLikeElement) => {
+export const getDefaultFrameName = (element: SetsquareFrameLikeElement) => {
   // TODO name frames "AI" only if specific to AI frames
   return isFrameElement(element) ? DEFAULT_FRAME_NAME : DEFAULT_AI_FRAME_NAME;
 };
 
-export const getFrameLikeTitle = (element: ExcalidrawFrameLikeElement) => {
+export const getFrameLikeTitle = (element: SetsquareFrameLikeElement) => {
   return element.name === null ? getDefaultFrameName(element) : element.name;
 };
 
-export const getElementsOverlappingFrame = <T extends ExcalidrawElement>(
+export const getElementsOverlappingFrame = <T extends SetsquareElement>(
   elements: readonly T[],
-  frame: ExcalidrawFrameLikeElement,
+  frame: SetsquareFrameLikeElement,
   elementsMap: ElementsMap,
 ) => {
   return elements.filter(
@@ -1028,7 +1025,7 @@ export const getElementsOverlappingFrame = <T extends ExcalidrawElement>(
 };
 
 export const frameAndChildrenSelectedTogether = (
-  selectedElements: readonly ExcalidrawElement[],
+  selectedElements: readonly SetsquareElement[],
 ) => {
   const selectedElementsMap = arrayToMap(selectedElements);
 
