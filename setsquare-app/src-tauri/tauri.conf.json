@@ -53,5 +53,12 @@
         }
       }
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEI3QzBDRUQ0NDk5RkZENjgKUldSby9aOUoxTTdBdDF2dzVJK2RzOEJPaTg2ajU5RFRTUXNXY3JBYXRnazM5TlNqTU5HenlOU1QK",
+      "endpoints": ["https://github.com/rselbach/setsquare/releases/latest/download/latest.json"],
+      "requireSignedVersion": true
+    }
   }
 }

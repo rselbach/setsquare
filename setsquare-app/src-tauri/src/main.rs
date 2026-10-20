@@ -4,14 +4,24 @@
 #[cfg(target_os = "macos")]
 mod menu;
 mod opened_files;
+mod updater;
 
 fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(opened_files::OpenedFiles::default())
-        .invoke_handler(tauri::generate_handler![opened_files::take_opened_files]);
+        .invoke_handler(tauri::generate_handler![opened_files::take_opened_files])
+        .setup(|app| {
+            // development builds aren't installed anywhere an update could
+            // replace
+            if !cfg!(debug_assertions) {
+                updater::check_in_background(app.handle());
+            }
+            Ok(())
+        });
     #[cfg(target_os = "macos")]
     let builder = builder.menu(menu::build).on_menu_event(menu::forward);
 
