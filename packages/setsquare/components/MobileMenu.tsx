@@ -14,6 +14,7 @@ import { FixedSideContainer } from "./FixedSideContainer";
 import { Island } from "./Island";
 
 import { PenModeButton } from "./PenModeButton";
+import { ExportButton } from "./ExportButton";
 import { ViewportStatusBadge } from "./ViewportStatusFrame/ViewportStatusFrame";
 
 import type { ActionManager } from "../actions/manager";
@@ -82,6 +83,7 @@ export const MobileMenu = ({
                   penDetected={appState.penDetected}
                 />
               )}
+              {defaultUIEnabled && <ExportButton />}
               <DefaultSidebarTriggerTunnel.Out />
             </>
           ))}

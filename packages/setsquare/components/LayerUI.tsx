@@ -44,6 +44,7 @@ import { Section } from "./Section";
 import Stack from "./Stack";
 import { UserList } from "./UserList";
 import { PenModeButton } from "./PenModeButton";
+import { ExportButton } from "./ExportButton";
 import Footer from "./footer/Footer";
 import { isSidebarDockedAtom } from "./Sidebar/Sidebar";
 import MainMenu from "./main-menu/MainMenu";
@@ -387,6 +388,10 @@ const LayerUI = ({
               editorInterface.formFactor === "phone",
               appState,
             )}
+            {defaultUIEnabled &&
+              appState.openDialog?.name !== "elementLinkSelector" && (
+                <ExportButton />
+              )}
             {!appState.viewModeEnabled &&
               appState.openDialog?.name !== "elementLinkSelector" &&
               // hide button when sidebar docked

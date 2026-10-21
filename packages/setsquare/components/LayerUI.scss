@@ -172,7 +172,7 @@
     left: 0;
   }
 
-  // buttons in the bar are quiet until hovered; the tools and Share carry
+  // buttons in the bar are quiet until hovered; the tools and Export carry
   // the bar's weight
   .App-menu_top {
     .main-menu-trigger,
@@ -238,7 +238,7 @@
       top: calc(100% + 0.5rem);
     }
 
-    // same width as the Share button's label (`MQ_MAX_TABLET`)
+    // same width as the Export button's label (`MQ_MAX_TABLET`)
     @media (max-width: 1180px) {
       .sidebar-trigger__label {
         display: none;

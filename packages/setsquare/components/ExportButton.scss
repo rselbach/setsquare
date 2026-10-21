@@ -1,0 +1,39 @@
+@use "../css/variables.module" as *;
+
+.setsquare {
+  .export-button {
+    @include outlineButtonStyles;
+    @include filledButtonOnCanvas;
+
+    width: auto;
+    height: 2rem;
+    padding: 0 0.625rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    font-size: 0.875rem;
+    line-height: 0;
+
+    svg {
+      width: var(--lg-icon-size);
+      height: var(--lg-icon-size);
+    }
+
+    &__label {
+      white-space: nowrap;
+    }
+  }
+
+  // same breakpoint as the Library label (`MQ_MAX_TABLET`)
+  @media (max-width: 1180px) {
+    .export-button__label {
+      display: none;
+    }
+  }
+
+  &.setsquare--mobile .export-button__label {
+    display: none;
+  }
+}
