@@ -6,22 +6,11 @@ interface ImportMetaEnv {
   // The port to run the dev server
   VITE_APP_PORT: string;
 
-  // whether to disable live reload / HMR. Usuaully what you want to do when
-  // debugging Service Workers.
-  VITE_APP_DEV_DISABLE_LIVE_RELOAD: string;
   // To enable bounding box for text containers
   VITE_APP_DEBUG_ENABLE_TEXT_CONTAINER_BOUNDING_BOX: string;
 
-  FAST_REFRESH: string;
-
-  // MATOMO
-  VITE_APP_MATOMO_URL: string;
-  VITE_APP_CDN_MATOMO_TRACKER_URL: string;
-  VITE_APP_MATOMO_SITE_ID: string;
-
   //Debug flags
 
-  VITE_APP_DISABLE_SENTRY: string;
   // Set this flag to false if you want to open the overlay by default
   VITE_APP_COLLAPSE_OVERLAY: string;
   // Enable eslint in dev server

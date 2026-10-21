@@ -5,15 +5,15 @@ const { pathToFileURL } = require("url");
 const { build } = require("esbuild");
 const { sassPlugin } = require("esbuild-sass-plugin");
 
-const { parseEnvVariables } = require("../packages/setsquare/env.cjs");
-
 const ENV_VARS = {
   development: {
-    ...parseEnvVariables(`${__dirname}/../.env.development`),
+    MODE: "development",
     DEV: true,
+    PROD: false,
   },
   production: {
-    ...parseEnvVariables(`${__dirname}/../.env.production`),
+    MODE: "production",
+    DEV: false,
     PROD: true,
   },
 };

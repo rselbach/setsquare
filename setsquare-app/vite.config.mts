@@ -6,15 +6,18 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { VitePWA } from "vite-plugin-pwa";
 import checker from "vite-plugin-checker";
 import { createHtmlPlugin } from "vite-plugin-html";
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   // To load .env variables
   const envVars = loadEnv(mode, `../`);
   // set by the Tauri CLI when it runs the desktop app's build hooks
   const isTauri = Boolean(process.env.TAURI_ENV_PLATFORM);
+  const enableESLint =
+    envVars.VITE_APP_ENABLE_ESLINT === "true" ||
+    (command === "serve" && envVars.VITE_APP_ENABLE_ESLINT !== "false");
   // https://vitejs.dev/config/
   return {
     server: {
-      port: Number(envVars.VITE_APP_PORT || 3000),
+      port: Number(envVars.VITE_APP_PORT || 3001),
       // the desktop window loads a fixed dev URL
       strictPort: isTauri,
       // open the browser
@@ -144,10 +147,12 @@ export default defineConfig(({ mode }) => {
       react(),
       checker({
         typescript: true,
-        eslint:
-          envVars.VITE_APP_ENABLE_ESLINT === "false"
-            ? undefined
-            : { lintCommand: 'eslint "./**/*.{js,ts,tsx}"' },
+        eslint: enableESLint
+          ? {
+              lintCommand:
+                'eslint --ignore-path ../.eslintignore "./**/*.{js,ts,tsx}"',
+            }
+          : undefined,
         overlay: {
           initialIsOpen: envVars.VITE_APP_COLLAPSE_OVERLAY === "false",
           badgeStyle: "margin-bottom: 4rem; margin-left: 1rem",
