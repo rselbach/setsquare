@@ -100,3 +100,13 @@ describe("Test internal component fallback rendering", () => {
     ).toBe(1);
   });
 });
+
+describe("UIOptions.mainMenu", () => {
+  it("renders no main menu when disabled and the host renders none", async () => {
+    const { container } = await render(
+      <Setsquare UIOptions={{ mainMenu: false }} />,
+    );
+
+    expect(queryAllByTestId(container, "main-menu-trigger").length).toBe(0);
+  });
+});

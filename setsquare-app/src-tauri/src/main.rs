@@ -1,8 +1,6 @@
 // Prevents an extra console window on Windows in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-#[cfg(target_os = "macos")]
-mod menu;
 mod opened_files;
 mod updater;
 
@@ -22,8 +20,6 @@ fn main() {
             }
             Ok(())
         });
-    #[cfg(target_os = "macos")]
-    let builder = builder.menu(menu::build).on_menu_event(menu::forward);
 
     let app = builder
         .build(tauri::generate_context!())

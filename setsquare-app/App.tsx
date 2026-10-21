@@ -62,7 +62,7 @@ import { AppFooter } from "./components/AppFooter";
 import { AppMainMenu } from "./components/AppMainMenu";
 import { AppWelcomeScreen } from "./components/AppWelcomeScreen";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
-import { DesktopMenuCommands } from "./desktop/DesktopMenuCommands";
+import { DesktopMenu } from "./desktop/DesktopMenu";
 
 import { updateStaleImageStatuses } from "./data/FileManager";
 import { FileStatusStore } from "./data/fileStatusStore";
@@ -571,6 +571,8 @@ const SetsquareWrapper = () => {
           canvasActions: {
             toggleTheme: true,
           },
+          // the desktop app's menu bar carries the main menu's items
+          mainMenu: !isTauri(),
         }}
         langCode={langCode}
         renderCustomStats={renderCustomStats}
@@ -596,11 +598,14 @@ const SetsquareWrapper = () => {
           }
         }}
       >
-        {isTauri() && <DesktopMenuCommands />}
-        <AppMainMenu
-          theme={appTheme}
-          refresh={() => forceRefresh((prev) => !prev)}
-        />
+        {isTauri() ? (
+          <DesktopMenu theme={appTheme} setTheme={setAppTheme} />
+        ) : (
+          <AppMainMenu
+            theme={appTheme}
+            refresh={() => forceRefresh((prev) => !prev)}
+          />
+        )}
         <AppWelcomeScreen />
         <OverwriteConfirmDialog>
           <OverwriteConfirmDialog.Actions.ExportToImage />

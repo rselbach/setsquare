@@ -700,6 +700,21 @@
       "isSpeaking": "User is speaking"
     }
   },
+  "desktopMenu": {
+    "file": "File",
+    "edit": "Edit",
+    "view": "View",
+    "window": "Window",
+    "help": "Help",
+    "appearance": "Appearance",
+    "background": {
+      "white": "White",
+      "gray": "Gray",
+      "blue": "Blue",
+      "yellow": "Yellow",
+      "bronze": "Bronze"
+    }
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

@@ -484,7 +484,9 @@ const LayerUI = ({
           rendering into the outlets below even when defaults are disabled. */}
       {defaultUIEnabled && (
         <>
-          <DefaultMainMenu UIOptions={UIOptions} />
+          {UIOptions.mainMenu !== false && (
+            <DefaultMainMenu UIOptions={UIOptions} />
+          )}
           <DefaultSidebar.Trigger
             __fallback
             icon={sidebarRightIcon}

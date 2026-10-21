@@ -1146,6 +1146,12 @@ export type UIOptions = Partial<{
     image: boolean;
   };
   /**
+   * Whether to render the default main menu when the host app renders none.
+   * A host with its own entry point, such as a native menu bar, sets it to
+   * `false`. Defaults to `true`.
+   */
+  mainMenu?: boolean;
+  /**
    * Optionally control the editor form factor and desktop UI mode from the host app.
    * If not provided, we will take care of it internally.
    */
