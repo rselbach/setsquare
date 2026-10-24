@@ -18,7 +18,7 @@ import type {
   NonDeletedSetsquareElement,
 } from "@setsquare/element/types";
 
-import { Setsquare, getCommonBounds } from "../..";
+import { Setsquare, getCommonBounds } from "../../index";
 import { actionGroup } from "../../actions";
 import { t } from "../../i18n";
 import * as StaticScene from "../../renderer/staticScene";

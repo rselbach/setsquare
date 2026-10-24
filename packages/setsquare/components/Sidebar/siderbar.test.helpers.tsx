@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Setsquare } from "../..";
+import { Setsquare } from "../../index";
 import {
   GlobalTestState,
   queryByTestId,
