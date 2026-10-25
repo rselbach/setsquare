@@ -14,7 +14,7 @@ import {
   PredefinedMenuItem,
   Submenu,
 } from "@tauri-apps/api/menu";
-import { useEffect, useRef } from "react";
+import { useEffect, useReducer, useRef } from "react";
 
 import {
   DEFAULT_CANVAS_BACKGROUND_PICKS,
@@ -511,6 +511,9 @@ export const DesktopMenu = ({
   const applied = useRef(
     new Map<string, { text: string; enabled: boolean; checked: boolean }>(),
   );
+  // renders again so the effect below brings the bar in line with editor
+  // state even when nothing else changed
+  const [, refresh] = useReducer((count: number) => count + 1, 0);
 
   // built once; replacing the bar later stalls when it happens from a menu
   // action, so labels are updated in place instead
@@ -524,9 +527,15 @@ export const DesktopMenu = ({
         tree,
         (id) => {
           const entry = latest.current.get(id);
-          if (entry && entry.kind !== "submenu") {
-            entry.run();
+          if (!entry || entry.kind === "submenu") {
+            return;
           }
+          // macOS flips a check mark itself when its item is clicked,
+          // whatever the click does to editor state, so the bar no longer
+          // shows what was applied
+          applied.current.delete(id);
+          entry.run();
+          refresh();
         },
         built,
         roles,
@@ -542,6 +551,8 @@ export const DesktopMenu = ({
         [...index(tree)].map(([id, entry]) => [id, state(entry)]),
       );
       handles.current = built;
+      // editor state may have changed while the bar was being built
+      refresh();
     })().catch(report);
     return () => {
       cancelled = true;

@@ -11,16 +11,19 @@ import type { Theme } from "@setsquare/element/types";
 import { DesktopMenu } from "../desktop/DesktopMenu";
 
 // stands in for the native menu bar, keeping each item by its ID
-const { items } = vi.hoisted(() => ({
+const { items, menuBuilt } = vi.hoisted(() => ({
   items: new Map<
     string,
     {
       text: string;
       enabled: boolean;
       checked: boolean;
+      checkable?: boolean;
       action?: (id: string) => void;
     }
   >(),
+  // lets a test change editor state while the bar is being built
+  menuBuilt: { current: Promise.resolve() },
 }));
 
 vi.mock("@tauri-apps/api/menu", () => {
@@ -70,10 +73,17 @@ vi.mock("@tauri-apps/api/menu", () => {
 
   return {
     MenuItem: class extends Item {},
-    CheckMenuItem: class extends Item {},
+    CheckMenuItem: class extends Item {
+      checkable = true;
+    },
     Submenu,
     PredefinedMenuItem: { new: async () => ({}) },
-    Menu: { new: async () => ({ setAsAppMenu: async () => {} }) },
+    Menu: {
+      new: async () => {
+        await menuBuilt.current;
+        return { setAsAppMenu: async () => {} };
+      },
+    },
   };
 });
 
@@ -87,9 +97,13 @@ const item = (id: string) => {
   return found;
 };
 
-// what macOS does when a menu item is clicked
+// what macOS does when a menu item is clicked: a check item flips its own
+// mark before the app hears of the click
 const click = (id: string) => {
   const clicked = item(id);
+  if (clicked.checkable) {
+    clicked.checked = !clicked.checked;
+  }
   act(() => clicked.action!(id));
 };
 
@@ -110,6 +124,7 @@ const renderMenu = async () => {
 describe("DesktopMenu", () => {
   beforeEach(() => {
     items.clear();
+    menuBuilt.current = Promise.resolve();
   });
 
   afterEach(() => {
@@ -146,6 +161,55 @@ describe("DesktopMenu", () => {
       await waitFor(() => expect(fileSave).toHaveBeenCalled());
       expect(fileSave.mock.calls[0][1].fileHandle).toBe(fileHandle);
       expect(h.state.fileHandle).toBe(fileHandle);
+    });
+  });
+
+  describe("check marks", () => {
+    it("stay on the selected theme when it is clicked again", async () => {
+      await renderMenu();
+      expect(item("theme-light").checked).toBe(true);
+
+      click("theme-light");
+
+      await waitFor(() => expect(item("theme-light").checked).toBe(true));
+    });
+
+    it("follow the theme picked", async () => {
+      await renderMenu();
+
+      click("theme-dark");
+
+      await waitFor(() => {
+        expect(item("theme-dark").checked).toBe(true);
+        expect(item("theme-light").checked).toBe(false);
+      });
+    });
+
+    it("don't flip for a toggle that view mode blocks", async () => {
+      await renderMenu();
+      act(() => API.setAppState({ viewModeEnabled: true }));
+      const showHints = h.state.showHints;
+      await waitFor(() => expect(item("show-hints").checked).toBe(showHints));
+
+      click("show-hints");
+
+      await waitFor(() => expect(item("show-hints").checked).toBe(showHints));
+      expect(h.state.showHints).toBe(showHints);
+    });
+
+    it("show state that changed while the bar was being built", async () => {
+      let finishBuilding = () => {};
+      menuBuilt.current = new Promise((resolve) => {
+        finishBuilding = resolve;
+      });
+      await render(<App />);
+      await waitFor(() => expect(items.has("grid")).toBe(true));
+      expect(item("grid").checked).toBe(false);
+
+      act(() => API.setAppState({ gridModeEnabled: true }));
+      await act(async () => finishBuilding());
+
+      await waitFor(() => expect(item("grid").checked).toBe(true));
     });
   });
 });
