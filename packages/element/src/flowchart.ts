@@ -350,7 +350,41 @@ export const getConnectorElements = (
       elementCenterPoint(endNode, scene.getNonDeletedElementsMap()),
     ),
   );
-  return "target" in end ? [arrow] : [endNode, arrow];
+  return joinStartNodeFrame(
+    startNode,
+    "target" in end ? [arrow] : [endNode, arrow],
+    scene.getNonDeletedElementsMap(),
+  );
+};
+
+/**
+ * Adds new elements to the same frame as the start node, if every one of
+ * them at least intersects with the frame.
+ */
+const joinStartNodeFrame = (
+  startNode: NonDeleted<SetsquareFlowchartNodeElement>,
+  elements: NonDeletedSetsquareElement[],
+  elementsMap: ElementsMap,
+) => {
+  if (!startNode.frameId) {
+    return elements;
+  }
+  const frame = elementsMap.get(startNode.frameId);
+
+  invariant(frame && isFrameElement(frame), "not an SetsquareFrameElement");
+
+  if (
+    !elements.every(
+      (element) =>
+        elementsAreInFrameBounds([element], frame, elementsMap) ||
+        elementOverlapsWithFrame(element, frame, elementsMap),
+    )
+  ) {
+    return elements;
+  }
+  return elements.map((element) =>
+    mutateElement(element, elementsMap, { frameId: startNode.frameId }),
+  );
 };
 
 const createBindingArrow = (
@@ -759,30 +793,7 @@ export class FlowChartCreator {
     this.isCreatingChart = true;
     this.direction = direction;
     this.clusterCrossStart = crossStart;
-    this.pendingNodes = nodes;
-
-    // add pending nodes to the same frame as the start node
-    // if every pending node is at least intersecting with the frame
-    if (startNode.frameId) {
-      const frame = elementsMap.get(startNode.frameId);
-
-      invariant(frame && isFrameElement(frame), "not an SetsquareFrameElement");
-
-      if (
-        frame &&
-        this.pendingNodes.every(
-          (node) =>
-            elementsAreInFrameBounds([node], frame, elementsMap) ||
-            elementOverlapsWithFrame(node, frame, elementsMap),
-        )
-      ) {
-        this.pendingNodes = this.pendingNodes.map((node) =>
-          mutateElement(node, elementsMap, {
-            frameId: startNode.frameId,
-          }),
-        );
-      }
-    }
+    this.pendingNodes = joinStartNodeFrame(startNode, nodes, elementsMap);
   }
 
   clear() {

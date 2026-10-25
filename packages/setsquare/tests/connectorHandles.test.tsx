@@ -242,6 +242,30 @@ describe("connector handles", () => {
     expect(arrows()[0].endBinding?.elementId).toBe(copy.id);
   });
 
+  it("adds the copy to the shape's frame", () => {
+    const frame = API.createElement({
+      type: "frame",
+      id: "frame",
+      x: -50,
+      y: -50,
+      width: 500,
+      height: 300,
+    });
+    API.setElements([frame, { ...source(), frameId: "frame" }]);
+
+    hoverRightHandle();
+    mouse.downAt(...RIGHT_HANDLE);
+    mouse.moveTo(250, 100);
+    mouse.moveTo(300, 100);
+    mouse.upAt(300, 100);
+
+    const copy = shapes().find(
+      ({ id, type }) => type === "rectangle" && id !== "source",
+    );
+    expect(copy?.frameId).toBe("frame");
+    expect(arrows()[0].frameId).toBe("frame");
+  });
+
   it("adds nothing when a handle is dropped back on its shape", () => {
     API.setElements([source()]);
 
