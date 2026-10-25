@@ -62,6 +62,33 @@ describe("appState", () => {
     });
   });
 
+  it("names the drawing after the file it was opened from", async () => {
+    await render(
+      <Setsquare initialData={{ appState: { name: "Troy Barnes" } }} />,
+    );
+    await waitFor(() => expect(h.state.name).toBe("Troy Barnes"));
+
+    const scene = JSON.stringify({
+      type: EXPORT_DATA_TYPES.setsquare,
+      elements: [API.createElement({ type: "rectangle", id: "A" })],
+    });
+
+    await API.drop([
+      {
+        kind: "file",
+        file: new File([scene], "Greendale campus map.setsquare", {
+          type: MIME_TYPES.json,
+        }),
+      },
+    ]);
+    await waitFor(() => expect(h.state.name).toBe("Greendale campus map"));
+
+    await API.drop([
+      { kind: "file", file: new Blob([scene], { type: MIME_TYPES.json }) },
+    ]);
+    await waitFor(() => expect(h.state.name).toBe(null));
+  });
+
   it("changing fontSize with text tool selected (no element created yet)", async () => {
     const { container } = await render(
       <Setsquare

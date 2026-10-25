@@ -170,6 +170,9 @@ export const loadSceneOrLibraryFromBlob = async (
             {
               theme: localAppState?.theme,
               fileHandle: fileHandle || blob.handle || null,
+              // files don't store the drawing's name: name it after the file
+              // rather than keep the name of the drawing it replaces
+              name: blob.name?.replace(/\.[^.]+$/, "") || null,
               ...cleanAppStateForExport(data.appState || {}),
               ...(localAppState
                 ? getScrollToContentState(elements, localAppState)
