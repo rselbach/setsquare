@@ -174,7 +174,6 @@ export default defineConfig(({ command, mode }) => {
           globIgnores: [
             "fonts.css",
             "**/locales/**",
-            "service-worker.js",
             "**/*.chunk-*.js",
             // CodeMirrorEditor can't be assigned a `.chunk` name via
             // manualChunks because Rollup would hoist shared deps (React)
