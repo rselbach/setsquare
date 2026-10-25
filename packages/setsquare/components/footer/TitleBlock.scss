@@ -49,6 +49,13 @@
         background-color: var(--input-bg-color);
         box-shadow: inset 0 0 0 2px var(--focus-highlight-color);
       }
+
+      // view mode shows the name without inviting edits
+      &:read-only {
+        cursor: default;
+        background-color: transparent;
+        box-shadow: none;
+      }
     }
 
     .zoom-actions {

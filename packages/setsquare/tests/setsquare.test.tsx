@@ -522,6 +522,14 @@ describe("<Setsquare/>", () => {
       ).toBe("Greendale");
     });
 
+    it("should show the name read-only in view mode", async () => {
+      const { container } = await render(<Setsquare viewModeEnabled />);
+      expect(
+        container.querySelector<HTMLInputElement>(".TitleBlock__name")!
+          .readOnly,
+      ).toBe(true);
+    });
+
     it("should discard a title block edit on Escape", async () => {
       const { container } = await render(<Setsquare />);
       const nameInput =

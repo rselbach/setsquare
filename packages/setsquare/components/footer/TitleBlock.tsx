@@ -15,9 +15,11 @@ import type { UIAppState } from "../../types";
 
 const DrawingName = ({
   name,
+  readOnly,
   actionManager,
 }: {
   name: UIAppState["name"];
+  readOnly: boolean;
   actionManager: ActionManager;
 }) => {
   const [value, setValue] = useState(name ?? "");
@@ -33,6 +35,7 @@ const DrawingName = ({
       value={value}
       placeholder={t("labels.untitled")}
       aria-label={t("labels.fileTitle")}
+      readOnly={readOnly}
       spellCheck={false}
       onChange={(event) => setValue(event.target.value)}
       onBlur={(event) => {
@@ -92,7 +95,11 @@ export const TitleBlock = ({
             { "transition-right": appState.zenModeEnabled },
           )}
         >
-          <DrawingName name={appState.name} actionManager={actionManager} />
+          <DrawingName
+            name={appState.name}
+            readOnly={appState.viewModeEnabled}
+            actionManager={actionManager}
+          />
         </div>
       )}
       {showZoom && (
