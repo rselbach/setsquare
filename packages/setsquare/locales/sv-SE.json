@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Vinklad",
     "fontSize": "Teckenstorlek",
     "fontFamily": "Teckensnitt",
-    "addWatermark": "Lägg till \"Skapad med Setsquare\"",
     "handDrawn": "Handritad",
     "normal": "Normal",
     "code": "Kod",
@@ -105,7 +104,6 @@
     "untitled": "Namnlös",
     "name": "Namn",
     "yourName": "Ditt namn",
-    "madeWithSetsquare": "Skapad med Setsquare",
     "group": "Gruppera markering",
     "ungroup": "Avgruppera markering",
     "collaborators": "Medarbetare",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Om omladdning inte fungerar, försök <button>rensa canvasen.</button>",
     "clearCanvasCaveat": " Detta kommer att leda till förlust av arbete ",
     "sceneContent": "Skissinnehåll:"
-  },
-  "shareDialog": {
-    "or": "Eller"
   },
   "roomDialog": {
     "desc_intro": "Bjud in personer att samarbeta på din ritning.",

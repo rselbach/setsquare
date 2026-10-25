@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Hoek pijl",
     "fontSize": "Tekstgrootte",
     "fontFamily": "Lettertype",
-    "addWatermark": "Voeg \"Gemaakt met Setsquare\" toe",
     "handDrawn": "Handgetekend",
     "normal": "Normaal",
     "code": "Code",
@@ -105,7 +104,6 @@
     "untitled": "Naamloos",
     "name": "Naam",
     "yourName": "Jouw naam",
-    "madeWithSetsquare": "Gemaakt met Setsquare",
     "group": "Groeperen",
     "ungroup": "Groep opheffen",
     "collaborators": "Deelnemers",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Als herladen niet werkt, probeer <button>het canvas te wissen.</button>",
     "clearCanvasCaveat": " Dit zal leiden tot verlies van je werk ",
     "sceneContent": "Scène-inhoud:"
-  },
-  "shareDialog": {
-    "or": "Of"
   },
   "roomDialog": {
     "desc_intro": "Nodig mensen uit om samen te werken aan je tekening.",

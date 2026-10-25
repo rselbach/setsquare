@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Қаріп өлшемі",
     "fontFamily": "Қаріп тобы",
-    "addWatermark": "",
     "handDrawn": "",
     "normal": "Қалыпты",
     "code": "",
@@ -105,7 +104,6 @@
     "untitled": "Атауысыз",
     "name": "",
     "yourName": "",
-    "madeWithSetsquare": "",
     "group": "",
     "ungroup": "",
     "collaborators": "",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

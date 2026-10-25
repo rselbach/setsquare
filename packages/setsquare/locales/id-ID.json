@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Panah siku",
     "fontSize": "Ukuran font",
     "fontFamily": "Jenis font",
-    "addWatermark": "Tambahkan \"Dibuat dengan Setsquare\"",
     "handDrawn": "Tulisan tangan",
     "normal": "Normal",
     "code": "Kode",
@@ -105,7 +104,6 @@
     "untitled": "Tanpa judul",
     "name": "Nama",
     "yourName": "Nama Anda",
-    "madeWithSetsquare": "Dibuat dengan Setsquare",
     "group": "Kelompokan pilihan",
     "ungroup": "Pisahkan pilihan",
     "collaborators": "Kolaborator",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Jika memuat ulang tidak bekerja, cobalah <button>bersihkan canvas.</button>",
     "clearCanvasCaveat": " Ini akan menghasilkan hilangnya pekerjaan ",
     "sceneContent": "Pemandangan konten:"
-  },
-  "shareDialog": {
-    "or": "Atau"
   },
   "roomDialog": {
     "desc_intro": "Ajak orang-orang ikut menggambar denganmu.",

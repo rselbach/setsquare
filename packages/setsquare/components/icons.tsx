@@ -613,26 +613,6 @@ export const warning = createIcon(
   "M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z",
 );
 
-export const shareIOS = createIcon(
-  "M16 5l-1.42 1.42-1.59-1.59V16h-1.98V4.83L9.42 6.42 8 5l4-4 4 4zm4 5v11c0 1.1-.9 2-2 2H6c-1.11 0-2-.9-2-2V10c0-1.11.89-2 2-2h3v2H6v11h12V10h-3V8h3c1.1 0 2 .89 2 2z",
-  { width: 24, height: 24 },
-);
-
-export const shareWindows = createIcon(
-  <>
-    <path
-      fill="currentColor"
-      d="M40 5.6v6.1l-4.1.7c-8.9 1.4-16.5 6.9-20.6 15C13 32 10.9 43 12.4 43c.4 0 2.4-1.3 4.4-3 5-3.9 12.1-7 18.2-7.7l5-.6v12.8l11.2-11.3L62.5 22 51.2 10.8 40-.5v6.1zm10.2 22.6L44 34.5v-6.8l-6.9.6c-3.9.3-9.8 1.7-13.2 3.1-3.5 1.4-6.5 2.4-6.7 2.2-.9-1 3-7.5 6.4-10.8C28 18.6 34.4 16 40.1 16c3.7 0 3.9-.1 3.9-3.2V9.5l6.2 6.3 6.3 6.2-6.3 6.2z"
-    />
-    <path
-      stroke="currentColor"
-      fill="currentColor"
-      d="M0 36v20h48v-6.2c0-6 0-6.1-2-4.3-1.1 1-2 2.9-2 4.2V52H4V34c0-17.3-.1-18-2-18s-2 .7-2 20z"
-    />
-  </>,
-  { width: 64, height: 64 },
-);
-
 // Icon imported form Storybook
 // Storybook is licensed under MIT https://github.com/storybookjs/storybook/blob/next/LICENSE
 export const resetZoom = createIcon(
@@ -865,12 +845,6 @@ export const CloseIcon = createIcon(
 export const clone = createIcon(
   "M464 0c26.51 0 48 21.49 48 48v288c0 26.51-21.49 48-48 48H176c-26.51 0-48-21.49-48-48V48c0-26.51 21.49-48 48-48h288M176 416c-44.112 0-80-35.888-80-80V128H48c-26.51 0-48 21.49-48 48v288c0 26.51 21.49 48 48 48h288c26.51 0 48-21.49 48-48v-48H176z",
   { mirror: true },
-);
-
-// modified https://feathericons.com/?query=shield
-export const shield = createIcon(
-  "M11.553 22.894a.998.998 0 00.894 0s3.037-1.516 5.465-4.097C19.616 16.987 21 14.663 21 12V5a1 1 0 00-.649-.936l-8-3a.998.998 0 00-.702 0l-8 3A1 1 0 003 5v7c0 2.663 1.384 4.987 3.088 6.797 2.428 2.581 5.465 4.097 5.465 4.097zm-1.303-8.481l6.644-6.644a.856.856 0 111.212 1.212l-7.25 7.25a.856.856 0 01-1.212 0l-3.75-3.75a.856.856 0 111.212-1.212l3.144 3.144z",
-  { width: 24 },
 );
 
 export const file = createIcon(
@@ -1802,26 +1776,6 @@ export const helpIcon = createIcon(
   tablerIconProps,
 );
 
-export const playerPlayIcon = createIcon(
-  <>
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-    <path d="M7 4v16l13 -8z"></path>
-  </>,
-  tablerIconProps,
-);
-
-export const playerStopFilledIcon = createIcon(
-  <>
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-    <path
-      d="M17 4h-10a3 3 0 0 0 -3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3 -3v-10a3 3 0 0 0 -3 -3z"
-      strokeWidth="0"
-      fill="currentColor"
-    ></path>
-  </>,
-  tablerIconProps,
-);
-
 export const tablerCheckIcon = createIcon(
   <>
     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
@@ -2233,17 +2187,6 @@ export const DeviceDesktopIcon = createIcon(
   { ...tablerIconProps, strokeWidth: 1.5 },
 );
 
-// login
-export const loginIcon = createIcon(
-  <g strokeWidth={1.5}>
-    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-    <path d="M15 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-    <path d="M21 12h-13l3 -3" />
-    <path d="M11 15l-3 -3" />
-  </g>,
-  tablerIconProps,
-);
-
 export const gridIcon = createIcon(
   <g strokeWidth={1.5}>
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -2427,18 +2370,6 @@ export const messageCircleIcon = createIcon(
   <g strokeWidth="1.25">
     <path stroke="none" d="M0 0h24v24H0z" fill="none" />
     <path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" />
-  </g>,
-  tablerIconProps,
-);
-
-export const presentationIcon = createIcon(
-  <g strokeWidth="1.25">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-    <path d="M3 4l18 0" />
-    <path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" />
-    <path d="M12 16l0 4" />
-    <path d="M9 20l6 0" />
-    <path d="M8 12l3 -3l2 2l3 -3" />
   </g>,
   tablerIconProps,
 );

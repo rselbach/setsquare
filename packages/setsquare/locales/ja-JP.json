@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "折れ線矢印",
     "fontSize": "フォントの大きさ",
     "fontFamily": "フォントの種類",
-    "addWatermark": "\"Made with Setsquare\"と表示",
     "handDrawn": "手描き風",
     "normal": "普通",
     "code": "コード",
@@ -105,7 +104,6 @@
     "untitled": "無題",
     "name": "名前",
     "yourName": "あなたの名前",
-    "madeWithSetsquare": "Setsquareで作成",
     "group": "グループ化",
     "ungroup": "グループ化を解除",
     "collaborators": "共同編集者",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "再読み込みがうまくいかない場合は、<button>キャンバスを消去</button>してみてください。",
     "clearCanvasCaveat": " これにより作業が失われます ",
     "sceneContent": "シーンの内容:"
-  },
-  "shareDialog": {
-    "or": "または"
   },
   "roomDialog": {
     "desc_intro": "他の人を描画の共同編集に招待しましょう。",

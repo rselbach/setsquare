@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "قەبارەی فۆنت",
     "fontFamily": "خێزانی فۆنت",
-    "addWatermark": "زیادبکە \"Made with Setsquare\"",
     "handDrawn": "دەست کێشراو",
     "normal": "ئاسایی",
     "code": "کۆد",
@@ -105,7 +104,6 @@
     "untitled": "بێ ناونیشان",
     "name": "ناو",
     "yourName": "ناوەکەت",
-    "madeWithSetsquare": "دروستکراوە بە Setsquare",
     "group": "دیاریکردنی گروپ",
     "ungroup": "گروپی دیاریکراوەکان لابەرە",
     "collaborators": "هاوکارەکان",
@@ -395,9 +393,6 @@
     "clearCanvasMessage": "ئەگەر دووبارە بارکردنەوە کار ناکات، هەوڵبدە <button>خاوێنکردنەوەی تابلۆکە.</button>",
     "clearCanvasCaveat": " ئەمە دەبێتە هۆی لەدەستدانی ئەوەی کە کردوتە ",
     "sceneContent": "پێکهاتەی ناو دیمەنەکە:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

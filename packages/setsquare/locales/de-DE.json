@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Abgewinkelter Pfeil",
     "fontSize": "Schriftgröße",
     "fontFamily": "Schriftfamilie",
-    "addWatermark": "\"Made with Setsquare\" hinzufügen",
     "handDrawn": "Handgezeichnet",
     "normal": "Normal",
     "code": "Code",
@@ -105,7 +104,6 @@
     "untitled": "Unbenannt",
     "name": "Name",
     "yourName": "Dein Name",
-    "madeWithSetsquare": "Made with Setsquare",
     "group": "Auswahl gruppieren",
     "ungroup": "Gruppierung aufheben",
     "collaborators": "Mitarbeitende",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Wenn das Neuladen nicht funktioniert, versuche <button>die Zeichenfläche zu löschen.</button>",
     "clearCanvasCaveat": " Dies wird zum Verlust von Daten führen ",
     "sceneContent": "Zeichnungsinhalt:"
-  },
-  "shareDialog": {
-    "or": "Oder"
   },
   "roomDialog": {
     "desc_intro": "Lade Leute ein, an deiner Zeichnung mitzuarbeiten.",

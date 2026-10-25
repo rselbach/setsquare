@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Seta em cotovelo",
     "fontSize": "Tamanho do tipo de letra",
     "fontFamily": "Família do tipo de letra",
-    "addWatermark": "Adicionar \"Feito com Setsquare\"",
     "handDrawn": "Manuscrito",
     "normal": "Normal",
     "code": "Código",
@@ -105,7 +104,6 @@
     "untitled": "Sem título",
     "name": "Nome",
     "yourName": "O seu nome",
-    "madeWithSetsquare": "Feito com Setsquare",
     "group": "Agrupar seleção",
     "ungroup": "Desagrupar seleção",
     "collaborators": "Colaboradores",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Se o recarregar da página não funcionar, tente <button>limpar a área de desenho</button>.",
     "clearCanvasCaveat": " Isto resultará na perda do trabalho ",
     "sceneContent": "Conteúdo da cena:"
-  },
-  "shareDialog": {
-    "or": "Ou"
   },
   "roomDialog": {
     "desc_intro": "Convide pessoas para colaborar no seu desenho.",

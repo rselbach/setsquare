@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Skriftstorleik",
     "fontFamily": "Skrifttype",
-    "addWatermark": "Legg til «Laga med Setsquare»",
     "handDrawn": "Handteikna",
     "normal": "",
     "code": "Kode",
@@ -105,7 +104,6 @@
     "untitled": "Utan namn",
     "name": "Namn",
     "yourName": "Namnet ditt",
-    "madeWithSetsquare": "Laga med Setsquare",
     "group": "Grupper utval",
     "ungroup": "Avgrupper utval",
     "collaborators": "Samarbeidarar",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Om ny sidelasting ikkje fungerer, prøv <button>å tømme lerretet.</button>",
     "clearCanvasCaveat": " Dette vil føre til tap av arbeid ",
     "sceneContent": "Scene-innhald:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

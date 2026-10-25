@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Mũi tên gấp khúc",
     "fontSize": "Cỡ chữ",
     "fontFamily": "Phông chữ",
-    "addWatermark": "Làm với Setsquare\"",
     "handDrawn": "Vẽ tay",
     "normal": "Bình thường",
     "code": "Mã",
@@ -105,7 +104,6 @@
     "untitled": "Không có tiêu đề",
     "name": "Tên",
     "yourName": "Tên của bạn",
-    "madeWithSetsquare": "Làm với Setsquare",
     "group": "Gộp nhóm lại lựa chọn",
     "ungroup": "Tách nhóm lựa chọn",
     "collaborators": "Cộng tác viên",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Nếu không tải lại được, hãy thử <button>dọn canvas.</button>",
     "clearCanvasCaveat": " Điều này sẽ dẫn đến mất dữ liệu bạn đã làm ",
     "sceneContent": "Nội dung bản vẽ:"
-  },
-  "shareDialog": {
-    "or": "Hoặc"
   },
   "roomDialog": {
     "desc_intro": "Mời mọi người cùng cộng tác trong bản vẽ của bạn.",

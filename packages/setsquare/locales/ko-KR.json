@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "꺾인 화살표",
     "fontSize": "글자 크기",
     "fontFamily": "글꼴",
-    "addWatermark": "\"Made with Setsquare\" 추가",
     "handDrawn": "손글씨",
     "normal": "일반",
     "code": "코드",
@@ -105,7 +104,6 @@
     "untitled": "제목 없음",
     "name": "이름",
     "yourName": "이름 입력",
-    "madeWithSetsquare": "Setsquare에서 생성됨",
     "group": "그룹 생성",
     "ungroup": "그룹 해제",
     "collaborators": "공동 작업자",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "새로고침으로 해결되지 않을 경우, <button>캔버스 비우기</button>",
     "clearCanvasCaveat": " 작업 내용을 잃게 됩니다 ",
     "sceneContent": "화면 내용:"
-  },
-  "shareDialog": {
-    "or": "또는"
   },
   "roomDialog": {
     "desc_intro": "",

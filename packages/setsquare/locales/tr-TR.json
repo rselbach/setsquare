@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Köşeli ok",
     "fontSize": "Yazı tipi boyutu",
     "fontFamily": "Yazı tipi ailesi",
-    "addWatermark": "\"Setsquare ile yapıldı\" yazısını ekle",
     "handDrawn": "El-yazısı",
     "normal": "Normal",
     "code": "Kod",
@@ -105,7 +104,6 @@
     "untitled": "Adsız",
     "name": "Ad",
     "yourName": "Adınız",
-    "madeWithSetsquare": "Setsquare ile yapıldı",
     "group": "Seçimi grup yap",
     "ungroup": "Seçilen grubu dağıt",
     "collaborators": "Ortaklar",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Yenileme sonrası sorun sürüyorsa lütfen <button>tuvali temizlemeyi</button> deneyin.",
     "clearCanvasCaveat": " Bu, yaptığınız değişiklikleri sıfırlayacak ",
     "sceneContent": "Sahne içeriği:"
-  },
-  "shareDialog": {
-    "or": "Veya"
   },
   "roomDialog": {
     "desc_intro": "İnsanları çiziminiz üzerinde birlikte çalışmaya davet edin.",

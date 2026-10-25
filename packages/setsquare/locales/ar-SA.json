@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "سهم زاوي",
     "fontSize": "حجم الخط",
     "fontFamily": "نوع الخط",
-    "addWatermark": "إضافة \"مصنوعة بواسطة Setsquare\"",
     "handDrawn": "رسم باليد",
     "normal": "عادي",
     "code": "رمز",
@@ -105,7 +104,6 @@
     "untitled": "غير معنون",
     "name": "الاسم",
     "yourName": "اسمك",
-    "madeWithSetsquare": "مصنوعة بواسطة Setsquare",
     "group": "تحديد مجموعة",
     "ungroup": "إلغاء تحديد مجموعة",
     "collaborators": "المتعاونون",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "إذا لم تعمل إعادة التحميل، حاول مرة أخرى ",
     "clearCanvasCaveat": "هذا سيؤدي إلى فقدان العمل",
     "sceneContent": "محتوى المشهد:"
-  },
-  "shareDialog": {
-    "or": "أو"
   },
   "roomDialog": {
     "desc_intro": "ادعُ الأشخاص للتعاون في الرسم الخاص بك.",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "စာလုံးအရွယ်",
     "fontFamily": "စာလုံးပုံစံ",
-    "addWatermark": "\"Setsquare ဖြင့်ဖန်တီးသည်။\" စာသားထည့်",
     "handDrawn": "လက်ရေး",
     "normal": "ပုံမှန်",
     "code": "ကုဒ်",
@@ -105,7 +104,6 @@
     "untitled": "အမည်မရှိ",
     "name": "အမည်",
     "yourName": "သင့်အမည်",
-    "madeWithSetsquare": "Setsquare ဖြင့်ဖန်တီးသည်။",
     "group": "အုပ်စုဖွဲ့",
     "ungroup": "အုပ်စုဖျက်သိမ်း",
     "collaborators": "ပူးပေါင်းပါဝင်သူများ",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "အသစ်ပြန်လည်မရယူနိုင်ပါက ထပ်မံကြိုးစားကြည့်ရန်<button>ကားချပ်အား ရှင်းလင်းပါ။</button>",
     "clearCanvasCaveat": " ရေးဆွဲထားသည်များ ဆုံးရှုံးနိုင်သည် ",
     "sceneContent": "မြင်ကွင်းပါအချက်အလက်။ ။"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

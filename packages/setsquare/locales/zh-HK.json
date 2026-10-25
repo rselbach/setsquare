@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "字型大小",
     "fontFamily": "字體",
-    "addWatermark": "加入「使用 Setsquare 製圖」水印",
     "handDrawn": "手繪體",
     "normal": "電腦字體",
     "code": "等寬體",
@@ -105,7 +104,6 @@
     "untitled": "未命名的作品",
     "name": "",
     "yourName": "你的名稱",
-    "madeWithSetsquare": "使用 Setsquare 製圖",
     "group": "建立物件群組",
     "ungroup": "取消物件群組",
     "collaborators": "已連線的協作者",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "如果重新整理頁面都係睇唔到，你可以<button>清空畫布</button>",
     "clearCanvasCaveat": "（注意：呢個動作會直接丟棄你嘅作品，並且無法復原）",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

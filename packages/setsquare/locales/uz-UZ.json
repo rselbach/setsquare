@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "",
     "fontFamily": "",
-    "addWatermark": "",
     "handDrawn": "",
     "normal": "",
     "code": "",
@@ -105,7 +104,6 @@
     "untitled": "",
     "name": "",
     "yourName": "",
-    "madeWithSetsquare": "",
     "group": "",
     "ungroup": "",
     "collaborators": "",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

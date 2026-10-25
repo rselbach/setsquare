@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Γωνιακό βέλος",
     "fontSize": "Μέγεθος γραμματοσειράς",
     "fontFamily": "Γραμματοσειρά",
-    "addWatermark": "Προσθήκη \"Φτιαγμένο με Setsquare\"",
     "handDrawn": "Σχεδιασμένο στο χέρι",
     "normal": "Κανονική",
     "code": "Κώδικας",
@@ -105,7 +104,6 @@
     "untitled": "Χωρίς τίτλο",
     "name": "Όνομα",
     "yourName": "Το όνομά σου",
-    "madeWithSetsquare": "Φτιαγμένο με Setsquare",
     "group": "Δημιουργία ομάδας από επιλογή",
     "ungroup": "Κατάργηση ομάδας από επιλογή",
     "collaborators": "Συνεργάτες",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Εάν το παραπάνω δεν δουλέψει, προσπάθησε <button>καθαρίσετε τον κανβά.</button>",
     "clearCanvasCaveat": " Αυτό θα προκαλέσει απώλεια της δουλειάς σου ",
     "sceneContent": "Περιεχόμενο σκηνής:"
-  },
-  "shareDialog": {
-    "or": "Ή"
   },
   "roomDialog": {
     "desc_intro": "Προσκαλέστε άτομα για να συνεργαστείτε στο σχέδιό σας.",

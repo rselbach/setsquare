@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Şrift ölçüsü",
     "fontFamily": "Şrift qrupu",
-    "addWatermark": "\"Made with Setsquare\" əlavə et",
     "handDrawn": "Əllə çəkilmiş",
     "normal": "Normal",
     "code": "Kod",
@@ -105,7 +104,6 @@
     "untitled": "Başlıqsız",
     "name": "Ad",
     "yourName": "Adınız",
-    "madeWithSetsquare": "Setsquare ilə hazırlanmışdır",
     "group": "Qrup şəklində seçim",
     "ungroup": "Qrupsuz seçim",
     "collaborators": "Əməkdaşlar",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

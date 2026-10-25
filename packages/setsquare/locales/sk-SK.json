@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Zalomená šípka",
     "fontSize": "Veľkosť písma",
     "fontFamily": "Písmo",
-    "addWatermark": "Pridať \"Vytvorené s Setsquare\"",
     "handDrawn": "Ručne písané",
     "normal": "Normálne",
     "code": "Kód",
@@ -105,7 +104,6 @@
     "untitled": "Bez názvu",
     "name": "Meno",
     "yourName": "Vaše meno",
-    "madeWithSetsquare": "Vytvorené s Setsquare",
     "group": "Zoskupiť",
     "ungroup": "Zrušiť zoskupenie",
     "collaborators": "Spolupracovníci",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Ak obnovenie stránky nepomáha, vyskúšajte <button>vyčistiť plátno.</button>",
     "clearCanvasCaveat": " To bude mať za následok stratu práce ",
     "sceneContent": "Obsah scény:"
-  },
-  "shareDialog": {
-    "or": "Alebo"
   },
   "roomDialog": {
     "desc_intro": "Pozvite ľudí a spolupracujte s nimi na vašich kresbách.",

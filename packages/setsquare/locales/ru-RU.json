@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Прямоугольная стрелка",
     "fontSize": "Размер шрифта",
     "fontFamily": "Семейство шрифтов",
-    "addWatermark": "Добавить «Создано в Setsquare»",
     "handDrawn": "От руки",
     "normal": "Обычный",
     "code": "Код",
@@ -105,7 +104,6 @@
     "untitled": "Безымянный",
     "name": "Имя",
     "yourName": "Ваше имя",
-    "madeWithSetsquare": "Сделано в Setsquare",
     "group": "Сгруппировать выделение",
     "ungroup": "Разделить выделение",
     "collaborators": "Участники",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Если перезагрузка страницы не помогла, попробуйте <button>очистить холст</button>.",
     "clearCanvasCaveat": " Текущая работа будет утеряна ",
     "sceneContent": "Содержание сцены:"
-  },
-  "shareDialog": {
-    "or": "Или"
   },
   "roomDialog": {
     "desc_intro": "Пригласить людей для участия в рисовании.",

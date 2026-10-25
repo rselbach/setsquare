@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "پیکان گوشه‌دار",
     "fontSize": "اندازه قلم",
     "fontFamily": "نوع قلم",
-    "addWatermark": "\"ساخته شده با Setsquare\" را اضافه کن",
     "handDrawn": "دست‌نویس",
     "normal": "عادی",
     "code": "کد",
@@ -105,7 +104,6 @@
     "untitled": "بدون عنوان",
     "name": "نام",
     "yourName": "نام شما",
-    "madeWithSetsquare": "ساخته شده با Setsquare",
     "group": "گروهبندی انتخابها",
     "ungroup": "حذف گروهبندی انتخابها",
     "collaborators": "همکاران",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "اگر بازنشانی صفحه مشکل را حل نکرد <button>پاک کردن بوم</button> را امتحان کنید.",
     "clearCanvasCaveat": " این باعث میشود کارهای شما ذخیره نشود ",
     "sceneContent": "محتوای صحنه:"
-  },
-  "shareDialog": {
-    "or": "یا"
   },
   "roomDialog": {
     "desc_intro": "از دیگران برای همکاری در کار خود دعوت کنید.",

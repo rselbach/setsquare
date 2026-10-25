@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Ukondo gezia",
     "fontSize": "Letra-tamaina",
     "fontFamily": "Letra-tipoa",
-    "addWatermark": "Gehitu \"Setsquare bidez egina\"",
     "handDrawn": "Eskuz marraztua",
     "normal": "Normala",
     "code": "Kodea",
@@ -105,7 +104,6 @@
     "untitled": "Izengabea",
     "name": "Izena",
     "yourName": "Zure izena",
-    "madeWithSetsquare": "Setsquare bidez egina",
     "group": "Hautapena taldea bihurtu",
     "ungroup": "Desegin hautapenaren taldea",
     "collaborators": "Kolaboratzaileak",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Birkargatzea ez bada burutzen, saiatu <button>oihala garbitzen.</button>",
     "clearCanvasCaveat": " Honen ondorioz lana galduko da ",
     "sceneContent": "Eszenaren edukia:"
-  },
-  "shareDialog": {
-    "or": "Edo"
   },
   "roomDialog": {
     "desc_intro": "Gonbidatu jendea zure marrazkira.",

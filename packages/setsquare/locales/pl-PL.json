@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Łamana strzałka",
     "fontSize": "Rozmiar tekstu",
     "fontFamily": "Krój pisma",
-    "addWatermark": "Dodaj \"Zrobione w Setsquare\"",
     "handDrawn": "Odręczny",
     "normal": "Normalny",
     "code": "Kod",
@@ -105,7 +104,6 @@
     "untitled": "Bez tytułu",
     "name": "Nazwa",
     "yourName": "Twoje imię",
-    "madeWithSetsquare": "Zrobione w Setsquare",
     "group": "Zgrupuj wybrane",
     "ungroup": "Rozgrupuj wybrane",
     "collaborators": "Współtwórcy",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Jeśli odświeżenie strony nie zadziałało, spróbuj <button>usunąć wszystko z dokumentu.</button>",
     "clearCanvasCaveat": " Pamiętaj tylko, że spowoduje to utratę całej twojej pracy ",
     "sceneContent": "Zawartość dokumentu:"
-  },
-  "shareDialog": {
-    "or": "Lub"
   },
   "roomDialog": {
     "desc_intro": "Zaproś ludzi do wspólnego rysunku.",

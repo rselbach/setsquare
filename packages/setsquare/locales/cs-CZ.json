@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Velikost písma",
     "fontFamily": "Písmo",
-    "addWatermark": "Přidat \"Vyrobeno s Setsquare\"",
     "handDrawn": "Od ruky",
     "normal": "Normální",
     "code": "Kód",
@@ -105,7 +104,6 @@
     "untitled": "Bez názvu",
     "name": "Název",
     "yourName": "Vaše jméno",
-    "madeWithSetsquare": "Vytvořeno v Setsquare",
     "group": "Sloučit výběr do skupiny",
     "ungroup": "Zrušit sloučení skupiny",
     "collaborators": "Spolupracovníci",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Pokud opětovné načtení nefunguje, zkuste <button>vymazat plátno</button>.",
     "clearCanvasCaveat": " To povede ke ztrátě dat ",
     "sceneContent": "Obsah scény:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

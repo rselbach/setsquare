@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Kirjasinkoko",
     "fontFamily": "Kirjasintyyppi",
-    "addWatermark": "Lisää \"Tehty Setsquareilla\"",
     "handDrawn": "Käsinpiirretty",
     "normal": "Tavallinen",
     "code": "Koodi",
@@ -105,7 +104,6 @@
     "untitled": "Nimetön",
     "name": "Nimi",
     "yourName": "Nimesi",
-    "madeWithSetsquare": "Tehty Setsquareilla",
     "group": "Ryhmitä valinta",
     "ungroup": "Pura valittu ryhmä",
     "collaborators": "Yhteistyökumppanit",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Mikäli sivun lataaminen uudelleen ei auta, yritä <button>tyhjentää piirtoalue.</button>",
     "clearCanvasCaveat": " Tämä johtaa työn menetykseen ",
     "sceneContent": "Piirroksen tiedot:"
-  },
-  "shareDialog": {
-    "or": "Tai"
   },
   "roomDialog": {
     "desc_intro": "",

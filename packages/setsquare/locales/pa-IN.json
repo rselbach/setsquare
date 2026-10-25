@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "ਫੌਂਟ ਅਕਾਰ",
     "fontFamily": "ਫੌਂਟ ਪਰਿਵਾਰ",
-    "addWatermark": "\"Setsquare ਨਾਲ ਬਣਾਇਆ\" ਜੋੜੋ",
     "handDrawn": "ਹੱਥਲਿਖਤ",
     "normal": "ਆਮ",
     "code": "ਕੋਡ",
@@ -105,7 +104,6 @@
     "untitled": "ਬੇ-ਸਿਰਨਾਵਾਂ",
     "name": "ਨਾਂ",
     "yourName": "ਤੁਹਾਡਾ ਨਾਂ",
-    "madeWithSetsquare": "Setsquare ਨਾਲ ਬਣਾਇਆ",
     "group": "ਚੋਣ ਦਾ ਗਰੁੱਪ ਬਣਾਓ",
     "ungroup": "ਚੋਣ ਦਾ ਗਰੁੱਪ ਤੋੜੋ",
     "collaborators": "ਸਹਿਯੋਗੀ",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "ਜੇ ਮੁੜ-ਲੋਡ ਕਰਨਾ ਕੰਮ ਨਾ ਕਰੇ, ਤਾਂ ਇਹ ਕਰਕੇ ਦੇਖੋ <button>ਕੈਨਵਸ ਸਾਫ ਕਰੋ।</button>",
     "clearCanvasCaveat": " ਇਹ ਸਾਰਾ ਕੰਮ ਗਵਾ ਦੇਵੇਗਾ ",
     "sceneContent": "ਦ੍ਰਿਸ਼ ਦੀ ਸਮੱਗਰੀ:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

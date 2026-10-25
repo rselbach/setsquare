@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "ลูกศรหักมุม",
     "fontSize": "ขนาดตัวอักษร",
     "fontFamily": "แบบตัวอักษร",
-    "addWatermark": "เพิ่มลายน้ำ \"สร้างด้วย Setsquare\"",
     "handDrawn": "ลายมือ",
     "normal": "ปกติ",
     "code": "โค้ด",
@@ -105,7 +104,6 @@
     "untitled": "ไม่มีชื่อ",
     "name": "ชื่อ",
     "yourName": "ชื่อของคุณ",
-    "madeWithSetsquare": "เพิ่มลายน้ำ \"สร้างด้วย Setsquare\"",
     "group": "จัดกลุ่ม",
     "ungroup": "ยกเลิกการจัดกลุ่ม",
     "collaborators": "ผู้ทำงานร่วมกัน",
@@ -395,9 +393,6 @@
     "clearCanvasMessage": "ถ้าโหลดไม่ได้ ให้ลอง <button>เคลียร์ผืนผ้าใบ</button>",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

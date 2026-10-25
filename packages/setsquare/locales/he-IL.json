@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "חץ זוויתי",
     "fontSize": "גודל גופן",
     "fontFamily": "גופן",
-    "addWatermark": "הוספת „נוצר באמצעות Setsquare”",
     "handDrawn": "שרבוט",
     "normal": "רגיל",
     "code": "קוד",
@@ -105,7 +104,6 @@
     "untitled": "ללא כותרת",
     "name": "שם",
     "yourName": "שמך",
-    "madeWithSetsquare": "נוצר באמצעות Setsquare",
     "group": "קיבוץ הבחירה",
     "ungroup": "פירוק קבוצה",
     "collaborators": "שותפים",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "אם טעינה מחדש לא עובדת, נסה ",
     "clearCanvasCaveat": " זה יגרום לאובדן העבודה ",
     "sceneContent": "תוכן הקנבאס:"
-  },
-  "shareDialog": {
-    "or": "או"
   },
   "roomDialog": {
     "desc_intro": "הזמנת משתתפים לעבודה משותפת.",

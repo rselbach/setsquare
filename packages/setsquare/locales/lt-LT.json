@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Šrifto dydis",
     "fontFamily": "Šriftas",
-    "addWatermark": "Sukurta su Setsquare",
     "handDrawn": "Ranka rašytas",
     "normal": "Normalus",
     "code": "Kodas",
@@ -105,7 +104,6 @@
     "untitled": "",
     "name": "",
     "yourName": "Jūsų vardas",
-    "madeWithSetsquare": "Sukurta su Setsquare",
     "group": "Grupuoti pasirinkimą",
     "ungroup": "Išgrupuoti pasirinkimą",
     "collaborators": "Bendradarbiautojai",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

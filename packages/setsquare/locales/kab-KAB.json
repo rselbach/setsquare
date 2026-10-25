@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Tiddi n tsefsit",
     "fontFamily": "Tawacult n tsefsiyin",
-    "addWatermark": "Seddu \"Yettwaxdem s Setsquare\"",
     "handDrawn": "Asuneɣ s ufus",
     "normal": "Amagnu",
     "code": "Tangalt",
@@ -105,7 +104,6 @@
     "untitled": "War azwel",
     "name": "Isem",
     "yourName": "Isem-ik (im)",
-    "madeWithSetsquare": "Yettwaxdem s Setsquare",
     "group": "Segrew tafrayt",
     "ungroup": "Kkess asegrew i tefrayt",
     "collaborators": "Imɛiwnen",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Ma yella tulsa n usali ur tefri ara ugur, eɛreḍ <button>asfaḍ n teɣzut n usuneɣ.</button>",
     "clearCanvasCaveat": " Ayagi ad d-iglu s usṛuḥu n umahil ",
     "sceneContent": "Agbur n usayes:"
-  },
-  "shareDialog": {
-    "or": "Neɣ"
   },
   "roomDialog": {
     "desc_intro": "",

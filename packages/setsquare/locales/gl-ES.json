@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Tamaño da fonte",
     "fontFamily": "Tipo de fonte",
-    "addWatermark": "Engadir \"Feito con Setsquare\"",
     "handDrawn": "Debuxado a man",
     "normal": "Normal",
     "code": "Código",
@@ -105,7 +104,6 @@
     "untitled": "Sen título",
     "name": "Nome",
     "yourName": "O teu nome",
-    "madeWithSetsquare": "Feito con Setsquare",
     "group": "Agrupar selección",
     "ungroup": "Desagrupar selección",
     "collaborators": "Colaboradores",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Se recargar non funcionou, probe <button>limpando o lenzo.</button>",
     "clearCanvasCaveat": " Isto resultará nunha perda do seu traballo ",
     "sceneContent": "Contido da escena:"
-  },
-  "shareDialog": {
-    "or": "Ou"
   },
   "roomDialog": {
     "desc_intro": "Invita xente a colaborar no teu diagrama.",

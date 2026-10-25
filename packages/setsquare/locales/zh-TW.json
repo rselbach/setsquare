@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "直角箭頭",
     "fontSize": "字型大小",
     "fontFamily": "字型系列",
-    "addWatermark": "加上「以 Setsquare 製作」浮水印",
     "handDrawn": "手寫",
     "normal": "一般",
     "code": "代碼",
@@ -105,7 +104,6 @@
     "untitled": "無標題",
     "name": "名稱",
     "yourName": "你的名稱",
-    "madeWithSetsquare": "以 Setsquare 製作",
     "group": "建立群組",
     "ungroup": "取消群組",
     "collaborators": "協作者",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "若重新載入仍無法解決問題，嘗試<button>清除 canvas。</button>",
     "clearCanvasCaveat": "此動作將造成目前的作品被移除。",
     "sceneContent": "作品內容："
-  },
-  "shareDialog": {
-    "or": "或"
   },
   "roomDialog": {
     "desc_intro": "邀請其他人一起協作",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Albuepil",
     "fontSize": "Skriftstørrelse",
     "fontFamily": "Skrifttypefamilie",
-    "addWatermark": "Tilføj \"Lavet med Setsquare\"",
     "handDrawn": "Hånd-tegnet",
     "normal": "Normal",
     "code": "Kode",
@@ -105,7 +104,6 @@
     "untitled": "Unavngivet",
     "name": "Navn",
     "yourName": "Dit navn",
-    "madeWithSetsquare": "Fremstillet med Setsquare",
     "group": "Gruppér valgte",
     "ungroup": "Afgruppér valgte",
     "collaborators": "Samarbejdspartnere",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": "Scene indhold:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

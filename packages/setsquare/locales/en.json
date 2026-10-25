@@ -1,6 +1,5 @@
 {
   "labels": {
-    "upgrade": "Upgrade",
     "paste": "Paste",
     "pasteAsPlaintext": "Paste as plaintext",
     "pasteCharts": "Paste charts",
@@ -75,7 +74,6 @@
     "arrowEnds_cardinal": "Middle of the closest sides",
     "fontSize": "Font size",
     "fontFamily": "Font family",
-    "addWatermark": "Add \"Made with Setsquare\"",
     "handDrawn": "Hand-drawn",
     "normal": "Normal",
     "code": "Code",
@@ -110,7 +108,6 @@
     "untitled": "Untitled",
     "name": "Name",
     "yourName": "Your name",
-    "madeWithSetsquare": "Made with Setsquare",
     "group": "Group selection",
     "ungroup": "Ungroup selection",
     "collaborators": "Collaborators",
@@ -416,9 +413,6 @@
     "clearCanvasMessage": "If reloading doesn't work, try <button>clearing the canvas</button>.",
     "clearCanvasCaveat": " This will result in loss of work ",
     "sceneContent": "Scene content:"
-  },
-  "shareDialog": {
-    "or": "Or"
   },
   "roomDialog": {
     "desc_intro": "Invite people to collaborate on your drawing.",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Talha polissa",
     "fontFamily": "Familha de polissa",
-    "addWatermark": "Apondre « Fabricat amb Setsquare »",
     "handDrawn": "A la man levada",
     "normal": "Normala",
     "code": "Còdi",
@@ -105,7 +104,6 @@
     "untitled": "Sens títol",
     "name": "Nom",
     "yourName": "Vòstre nom",
-    "madeWithSetsquare": "Fabricat amb Setsquare",
     "group": "Gropar la seleccion",
     "ungroup": "Desunir la seleccion",
     "collaborators": "Collaborators",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Se recargar fonciona pas, ensajatz <button>d’escafar los canabasses.</button>",
     "clearCanvasCaveat": " Menarà a una pèrda del trabalh ",
     "sceneContent": "Contengut de la scèna :"
-  },
-  "shareDialog": {
-    "or": "O"
   },
   "roomDialog": {
     "desc_intro": "",

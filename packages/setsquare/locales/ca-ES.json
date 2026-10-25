@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Fletxa de colzes",
     "fontSize": "Mida de lletra",
     "fontFamily": "Tipus de lletra",
-    "addWatermark": "Afegeix-hi «Fet amb Setsquare»",
     "handDrawn": "Dibuixat a mà",
     "normal": "Normal",
     "code": "Codi",
@@ -105,7 +104,6 @@
     "untitled": "Sense títol",
     "name": "Nom",
     "yourName": "El vostre nom",
-    "madeWithSetsquare": "Fet amb Setsquare",
     "group": "Agrupa la selecció",
     "ungroup": "Desagrupa la selecció",
     "collaborators": "Col·laboradors",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Si la recàrrega no funciona, proveu <button>esborrar el llenç.</button>",
     "clearCanvasCaveat": " Això resultarà en la pèrdua de feina ",
     "sceneContent": "Contingut de l'escena:"
-  },
-  "shareDialog": {
-    "or": "O"
   },
   "roomDialog": {
     "desc_intro": "Convideu gent a col·laborar en el vostre disseny.",

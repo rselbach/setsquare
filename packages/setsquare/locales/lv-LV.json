@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Teksta lielums",
     "fontFamily": "Fontu saime",
-    "addWatermark": "Pievienot \"Radīts ar Setsquare\"",
     "handDrawn": "Rokraksts",
     "normal": "Parasts",
     "code": "Kods",
@@ -105,7 +104,6 @@
     "untitled": "Bez nosaukuma",
     "name": "Vārds",
     "yourName": "Jūsu vārds",
-    "madeWithSetsquare": "Radīts ar Setsquare",
     "group": "Grupēt atlasīto",
     "ungroup": "Atgrupēt atlasīto",
     "collaborators": "Dalībnieki",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Ja pārlādēšana nestrādā, mēģiniet <button>notīrot tāfeli.</button>",
     "clearCanvasCaveat": " Tas novedīs pie darba zaudēšanas ",
     "sceneContent": "Ainas saturs:"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

@@ -90,7 +90,6 @@ export const DEFAULT_CATEGORIES = {
   tools: "Tools",
   editor: "Editor",
   elements: "Elements",
-  links: "Links",
   library: "Library",
 };
 
@@ -106,8 +105,6 @@ const getCategoryOrder = (category: string) => {
       return 4;
     case DEFAULT_CATEGORIES.elements:
       return 5;
-    case DEFAULT_CATEGORIES.links:
-      return 6;
     default:
       return 10;
   }

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Betűméret",
     "fontFamily": "Betűkészlet család",
-    "addWatermark": "Add hozzá, hogy \"Setsquare-val készült\"",
     "handDrawn": "Kézzel rajzolt",
     "normal": "Normál",
     "code": "Kód",
@@ -105,7 +104,6 @@
     "untitled": "Névtelen",
     "name": "Név",
     "yourName": "Neved",
-    "madeWithSetsquare": "Setsquare-val készült",
     "group": "Csoportosítás",
     "ungroup": "Csoportbontás",
     "collaborators": "Közreműködők",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Ha az újratöltés nem működik, próbáld <button>letörölni a vászont.</button>",
     "clearCanvasCaveat": " Ezzel az eddigi munka elveszik ",
     "sceneContent": "Jelenet tartalma:"
-  },
-  "shareDialog": {
-    "or": "Vagy"
   },
   "roomDialog": {
     "desc_intro": "",

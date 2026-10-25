@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Shrift ólshemi",
     "fontFamily": "",
-    "addWatermark": "",
     "handDrawn": "",
     "normal": "",
     "code": "Kod",
@@ -105,7 +104,6 @@
     "untitled": "Atamasız",
     "name": "Ataması",
     "yourName": "Atıńız",
-    "madeWithSetsquare": "Setsquare járdeminde islengen",
     "group": "",
     "ungroup": "",
     "collaborators": "Qatnasıwshılar",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "",
     "clearCanvasCaveat": "",
     "sceneContent": ""
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Flèche coudée",
     "fontSize": "Taille de la police",
     "fontFamily": "Police",
-    "addWatermark": "Ajouter \"Réalisé avec Setsquare\"",
     "handDrawn": "À main levée",
     "normal": "Normale",
     "code": "Code",
@@ -105,7 +104,6 @@
     "untitled": "Sans-titre",
     "name": "Nom",
     "yourName": "Votre nom",
-    "madeWithSetsquare": "Fait avec Setsquare",
     "group": "Grouper la sélection",
     "ungroup": "Dégrouper la sélection",
     "collaborators": "Collaborateurs",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Si le rechargement ne résout pas l'erreur, essayez <button>effacement du canevas.</button>",
     "clearCanvasCaveat": " Cela entraînera une perte du travail ",
     "sceneContent": "Contenu de la scène :"
-  },
-  "shareDialog": {
-    "or": "Ou"
   },
   "roomDialog": {
     "desc_intro": "Invitez des personnes à collaborer sur votre dessin.",

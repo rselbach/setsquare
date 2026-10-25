@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "අකුරු ප්‍රමාණය",
     "fontFamily": "අකුරු පවුල",
-    "addWatermark": "ජලසලකුණ එක් කරන්න",
     "handDrawn": "අතින් ඇඳි",
     "normal": "සාමාන්‍ය",
     "code": "කේත",
@@ -105,7 +104,6 @@
     "untitled": "නිර්නාමික",
     "name": "නම",
     "yourName": "ඔබගේ නම",
-    "madeWithSetsquare": "Setsquare සමඟ සාදන ලද",
     "group": "කණ්ඩායම",
     "ungroup": "කණ්ඩායම් ඉවත් කරන්න",
     "collaborators": "සහයෝගිකයන්",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "කැන්වසය පිරිසිදු කිරීමේ පණිවිඩය",
     "clearCanvasCaveat": "කැන්වසය පිරිසිදු කිරීමේ සීමාව",
     "sceneContent": "දර්ශන අන්තර්ගතය"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "කාමර සංවාද හැඳින්වීම",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Săgeată arcuită",
     "fontSize": "Dimensiune font",
     "fontFamily": "Familia de fonturi",
-    "addWatermark": "Adaugă „Realizat cu Setsquare”",
     "handDrawn": "Scris de mână",
     "normal": "Normal",
     "code": "Cod",
@@ -105,7 +104,6 @@
     "untitled": "Nedenumit",
     "name": "Nume",
     "yourName": "Numele tău",
-    "madeWithSetsquare": "Realizat cu Setsquare",
     "group": "Grupare selecție",
     "ungroup": "Degrupare selecție",
     "collaborators": "Colaboratori",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Dacă reîncărcarea nu funcționează, încearcă <button>să ștergi pânza</button>.",
     "clearCanvasCaveat": " Acest lucru va duce la pierderea progresului ",
     "sceneContent": "Conținutul scenei:"
-  },
-  "shareDialog": {
-    "or": "Sau"
   },
   "roomDialog": {
     "desc_intro": "Invită persoane să colaboreze la desenul tău.",

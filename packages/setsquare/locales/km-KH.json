@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "ទំហំពុម្ពអក្សរ",
     "fontFamily": "ក្រុម​ពុម្ពអក្សរ",
-    "addWatermark": "បន្ថែមវ៉ាត់ធើម៉ាក \"Made with Setsquare\"",
     "handDrawn": "គូរដោយដៃ",
     "normal": "ធម្មតា",
     "code": "កូដ",
@@ -105,7 +104,6 @@
     "untitled": "គ្មានឈ្មោះ",
     "name": "ឈ្មោះ",
     "yourName": "ឈ្មោះ​របស់​អ្នក",
-    "madeWithSetsquare": "បង្កើតជាមួយ Setsquare",
     "group": "ការជ្រើសរើសជាក្រុម",
     "ungroup": "បំបែកក្រុមការជ្រើសរើសជាក្រុម",
     "collaborators": "អ្នកសហការ",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "ប្រសិនបើការផ្ទុកឡើងវិញមិនអាចដោះស្រាយកំហុសបានទេ សូមសាកល្បង <button>សម្អាតបាវ។</button>",
     "clearCanvasCaveat": " នេះនឹងបណ្តាលឱ្យបាត់បង់ការងារ ",
     "sceneContent": "មាតិកាបាវ៖"
-  },
-  "shareDialog": {
-    "or": ""
   },
   "roomDialog": {
     "desc_intro": "",

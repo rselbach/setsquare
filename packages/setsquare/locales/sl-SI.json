@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Puščica tipa komolca",
     "fontSize": "Velikost pisave",
     "fontFamily": "Družina pisave",
-    "addWatermark": "Dodaj \"Izdelano z Setsquare\"",
     "handDrawn": "Ročno narisano",
     "normal": "Običajno",
     "code": "Koda",
@@ -105,7 +104,6 @@
     "untitled": "Neimenovana",
     "name": "Ime",
     "yourName": "Vaše ime",
-    "madeWithSetsquare": "Izdelano z Setsquare",
     "group": "Združi izbor",
     "ungroup": "Razdruži izbor",
     "collaborators": "Sodelavci",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Če ponovno nalaganje ne deluje, poskusite <button>počistiti platno.</button>",
     "clearCanvasCaveat": " To bo povzročilo izgubo dela ",
     "sceneContent": "Vsebina scene:"
-  },
-  "shareDialog": {
-    "or": "Ali"
   },
   "roomDialog": {
     "desc_intro": "Povabite ljudi k sodelovanju pri vaši risbi.",

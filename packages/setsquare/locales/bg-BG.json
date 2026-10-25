@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "",
     "fontSize": "Размер на шрифта",
     "fontFamily": "Семейство шрифтове",
-    "addWatermark": "Добави \"Направено с Setsquare\"",
     "handDrawn": "Нарисувано на ръка",
     "normal": "Нормален",
     "code": "Код",
@@ -105,7 +104,6 @@
     "untitled": "Неозаглавено",
     "name": "Име",
     "yourName": "Вашето име",
-    "madeWithSetsquare": "Направено с Setsquare",
     "group": "Групирай селекцията",
     "ungroup": "Спри групирането на селекцията",
     "collaborators": "Сътрудници",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Ако презареждането не работи, опитайте <button>изчистване на платното.</button>",
     "clearCanvasCaveat": " Това ще доведе до загуба на работа ",
     "sceneContent": "Съдържание на сцената:"
-  },
-  "shareDialog": {
-    "or": "Или"
   },
   "roomDialog": {
     "desc_intro": "Поканете хора да работят съвместно на рисунката.",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "拐角箭头",
     "fontSize": "字体大小",
     "fontFamily": "字体",
-    "addWatermark": "添加 “使用 Setsquare 创建” 水印",
     "handDrawn": "手写",
     "normal": "普通",
     "code": "代码",
@@ -105,7 +104,6 @@
     "untitled": "无标题",
     "name": "名字",
     "yourName": "您的姓名",
-    "madeWithSetsquare": "使用 Setsquare 创建",
     "group": "编组",
     "ungroup": "解除编组",
     "collaborators": "协作者",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "如果重新加载页面无效，请尝试<button>清除画布</button>。",
     "clearCanvasCaveat": "这会造成当前工作丢失",
     "sceneContent": "画布内容:"
-  },
-  "shareDialog": {
-    "or": "或"
   },
   "roomDialog": {
     "desc_intro": "邀请他人协作绘图。",

@@ -70,7 +70,6 @@
     "arrowtype_elbowed": "Freccia a gomito",
     "fontSize": "Dimensione carattere",
     "fontFamily": "Carattere",
-    "addWatermark": "Aggiungi \"Creato con Setsquare\"",
     "handDrawn": "A mano libera",
     "normal": "Normale",
     "code": "Codice",
@@ -105,7 +104,6 @@
     "untitled": "Senza titolo",
     "name": "Nome",
     "yourName": "Il vostro nome",
-    "madeWithSetsquare": "Creato con Setsquare",
     "group": "Crea gruppo da selezione",
     "ungroup": "Dividi gruppo da selezione",
     "collaborators": "Collaboratori",
@@ -396,9 +394,6 @@
     "clearCanvasMessage": "Se ricaricare non funziona, prova <button>pulire la tela.</button>",
     "clearCanvasCaveat": " Questo risulterà nella perdita del lavoro ",
     "sceneContent": "Contenuto della scena:"
-  },
-  "shareDialog": {
-    "or": "O"
   },
   "roomDialog": {
     "desc_intro": "Invita altri a collaborare al tuo disegno.",
