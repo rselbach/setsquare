@@ -6684,13 +6684,23 @@ class App extends React.Component<AppProps, AppState> {
 
     const topLayerFrame = framesUnderCursor.at(-1)!;
 
+    // a hollow shape's empty inside doesn't cover the frame under it
     const hitElement = this.getElementsAtPosition(
       sceneCoords.x,
       sceneCoords.y,
       {
         includeLockedElements: true,
       },
-    ).findLast((element) => !opts?.excludeElementIds?.[element.id]);
+    ).findLast(
+      (element) =>
+        !opts?.excludeElementIds?.[element.id] &&
+        !isHollowInteriorHit(
+          pointFrom<GlobalPoint>(sceneCoords.x, sceneCoords.y),
+          element,
+          elementsMap,
+          this.getElementHitThreshold(element),
+        ),
+    );
 
     if (hitElement) {
       if (
@@ -9520,7 +9530,17 @@ class App extends React.Component<AppProps, AppState> {
           this.store.scheduleCapture();
         }
 
-        if (hitLockedElement?.locked) {
+        // like for unlocked shapes, the empty inside of a hollow one is the
+        // weakest hit and doesn't offer to unlock it
+        if (
+          hitLockedElement?.locked &&
+          !isHollowInteriorHit(
+            pointFrom<GlobalPoint>(sceneCoords.x, sceneCoords.y),
+            hitLockedElement,
+            this.scene.getNonDeletedElementsMap(),
+            this.getElementHitThreshold(hitLockedElement),
+          )
+        ) {
           this.setState({
             activeLockedId:
               hitLockedElement.groupIds.length > 0
@@ -10110,13 +10130,25 @@ class App extends React.Component<AppProps, AppState> {
             },
             this.state,
           );
+          const point = pointFrom<GlobalPoint>(scenePointer.x, scenePointer.y);
           const hitElements = this.getElementsAtPosition(
             scenePointer.x,
             scenePointer.y,
           );
-          hitElements.forEach((hitElement) =>
-            this.elementsPendingErasure.add(hitElement.id),
-          );
+          // like sweeping, clicking needs the outline of a hollow shape
+          hitElements
+            .filter(
+              (hitElement) =>
+                !isHollowInteriorHit(
+                  point,
+                  hitElement,
+                  elementsMap,
+                  this.getElementHitThreshold(hitElement),
+                ),
+            )
+            .forEach((hitElement) =>
+              this.elementsPendingErasure.add(hitElement.id),
+            );
         }
         this.eraseElements();
         return;
