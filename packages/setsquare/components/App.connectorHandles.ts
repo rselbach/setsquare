@@ -145,6 +145,8 @@ export class AppConnectorHandles {
   updateHover = (
     scenePointer: { x: number; y: number },
     isOverScrollBar: boolean,
+    /** the element under the pointer, locked or not */
+    hitElement: NonDeleted<SetsquareElement> | null,
   ): boolean => {
     if (this.state.type === "pressed") {
       return true;
@@ -160,10 +162,6 @@ export class AppConnectorHandles {
       this.state.type === "shown"
         ? elementsMap.get(this.state.render.elementId)
         : null;
-    const hitElement = this.app.getElementAtPosition(
-      scenePointer.x,
-      scenePointer.y,
-    );
     // a hollow shape's empty inside is the weakest hit, as when selecting
     const isHollowHit =
       !!hitElement &&

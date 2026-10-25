@@ -1,4 +1,5 @@
 import React from "react";
+import { vi } from "vitest";
 
 import { KEYS, reseed } from "@setsquare/common";
 
@@ -88,6 +89,40 @@ describe("connector handles", () => {
 
     expect(h.elements).toHaveLength(2);
     expect(API.getSelectedElements().map(({ id }) => id)).toEqual(["neighbor"]);
+  });
+
+  it("lets a locked shape under a handle take the click", () => {
+    const neighbor = API.createElement({
+      type: "rectangle",
+      id: "neighbor",
+      x: 110,
+      y: 0,
+      width: 60,
+      height: 60,
+      backgroundColor: "#a5d8ff",
+      fillStyle: "solid",
+      locked: true,
+    });
+    API.setElements([source(), neighbor]);
+
+    hoverRightHandle();
+    expect(h.app.connectorHandles.render?.active).toBe(null);
+    mouse.clickAt(...RIGHT_HANDLE);
+
+    expect(h.elements).toHaveLength(2);
+    expect(h.state.activeLockedId).toBe("neighbor");
+  });
+
+  it("hit-tests the scene once per hover", () => {
+    API.setElements([source()]);
+    mouse.moveTo(50, 30);
+    const getElementsAtPosition = vi.spyOn(h.app, "getElementsAtPosition");
+
+    mouse.moveTo(...RIGHT_HANDLE);
+    mouse.moveTo(60, 30);
+
+    expect(getElementsAtPosition).toHaveBeenCalledTimes(2);
+    getElementsAtPosition.mockRestore();
   });
 
   it("keeps a handle over a hollow shape's empty inside", () => {

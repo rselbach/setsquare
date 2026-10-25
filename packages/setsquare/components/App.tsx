@@ -7190,7 +7190,23 @@ class App extends React.Component<AppProps, AppState> {
       return;
     }
 
-    if (this.connectorHandles.updateHover(scenePointer, isOverScrollBar)) {
+    // locked elements take clicks too (to offer unlocking), so they count
+    const hitElementMightBeLocked = this.getElementAtPosition(
+      scenePointerX,
+      scenePointerY,
+      {
+        preferSelected: true,
+        includeLockedElements: true,
+      },
+    );
+
+    if (
+      this.connectorHandles.updateHover(
+        scenePointer,
+        isOverScrollBar,
+        hitElementMightBeLocked,
+      )
+    ) {
       this.cursor.set(CURSOR_TYPE.POINTER);
       return;
     }
@@ -7225,15 +7241,6 @@ class App extends React.Component<AppProps, AppState> {
     if (isEraserActive(this.state)) {
       return;
     }
-
-    const hitElementMightBeLocked = this.getElementAtPosition(
-      scenePointerX,
-      scenePointerY,
-      {
-        preferSelected: true,
-        includeLockedElements: true,
-      },
-    );
 
     let hitElement: NonDeleted<SetsquareElement> | null = null;
     if (hitElementMightBeLocked && hitElementMightBeLocked.locked) {
