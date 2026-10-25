@@ -9,8 +9,10 @@ import {
   getConnectorHandleAt,
   getConnectorHandles,
   getNewNodePosition,
+  isArrowElement,
   isBindableElement,
   isFlowchartNodeElement,
+  isHollowInteriorHit,
   isNearConnectorHandles,
   type LinkDirection,
 } from "@setsquare/element";
@@ -43,6 +45,12 @@ const isConnectable = (
   !element.isDeleted &&
   !element.locked &&
   isFlowchartNodeElement(element);
+
+/** whether the element is an arrow bound to the shape */
+const isConnectorOf = (element: SetsquareElement, shape: SetsquareElement) =>
+  isArrowElement(element) &&
+  (element.startBinding?.elementId === shape.id ||
+    element.endBinding?.elementId === shape.id);
 
 /**
  * The connector handles around a hovered shape, as in draw.io: clicking one
@@ -152,27 +160,50 @@ export class AppConnectorHandles {
       scenePointer.x,
       scenePointer.y,
     );
-
-    // another shape under the pointer takes precedence over a handle, so
-    // handles never steal clicks from shapes they overlap
-    if (isConnectable(shown) && (!hitElement || hitElement.id === shown.id)) {
-      const handle = getConnectorHandleAt(
-        getConnectorHandles(shown, elementsMap, this.app.state.zoom),
+    // a hollow shape's empty inside is the weakest hit, as when selecting
+    const isHollowHit =
+      !!hitElement &&
+      isHollowInteriorHit(
         point,
-        this.app.state.zoom,
+        hitElement,
+        elementsMap,
+        this.app.getElementHitThreshold(hitElement),
       );
+
+    if (isConnectable(shown)) {
+      // another shape under the pointer takes precedence over a handle, so
+      // handles never steal clicks from shapes they overlap; the shape's own
+      // connectors leave through its handles, so they don't count
+      const hitTakesPrecedence =
+        !!hitElement &&
+        hitElement.id !== shown.id &&
+        !isHollowHit &&
+        !isConnectorOf(hitElement, shown);
+      const handle =
+        !hitTakesPrecedence &&
+        getConnectorHandleAt(
+          getConnectorHandles(shown, elementsMap, this.app.state.zoom),
+          point,
+          this.app.state.zoom,
+        );
       if (handle) {
         this.show(shown, handle.direction);
         return true;
       }
     }
 
-    if (isConnectable(hitElement)) {
-      this.show(hitElement, null);
-    } else if (
+    const isNearShown =
       isConnectable(shown) &&
-      isNearConnectorHandles(shown, elementsMap, point, this.app.state.zoom)
-    ) {
+      isNearConnectorHandles(shown, elementsMap, point, this.app.state.zoom);
+    // off the shape on the way to its handles, the empty inside of a box
+    // around or beside it doesn't take the handles away
+    const keepsShown =
+      isNearShown &&
+      isHollowHit &&
+      !this.app.hitElement(scenePointer.x, scenePointer.y, shown);
+    if (isConnectable(hitElement) && !keepsShown) {
+      this.show(hitElement, null);
+    } else if (isNearShown) {
       this.show(shown, null);
     } else {
       this.hide();

@@ -72,6 +72,8 @@ describe("connector handles", () => {
       y: 0,
       width: 60,
       height: 60,
+      backgroundColor: "#a5d8ff",
+      fillStyle: "solid",
     });
     API.setElements([source(), neighbor]);
 
@@ -81,6 +83,69 @@ describe("connector handles", () => {
 
     expect(h.elements).toHaveLength(2);
     expect(API.getSelectedElements().map(({ id }) => id)).toEqual(["neighbor"]);
+  });
+
+  it("keeps a handle over a hollow shape's empty inside", () => {
+    const neighbor = API.createElement({
+      type: "rectangle",
+      id: "neighbor",
+      x: 110,
+      y: 0,
+      width: 60,
+      height: 60,
+    });
+    API.setElements([source(), neighbor]);
+
+    hoverRightHandle();
+    expect(h.app.connectorHandles.render?.active).toBe("right");
+
+    // and the hollow shape's handles show once the pointer is in it
+    mouse.moveTo(160, 30);
+    expect(h.app.connectorHandles.render?.elementId).toBe("neighbor");
+  });
+
+  it("keeps the handles of a shape inside a hollow box", () => {
+    const box = API.createElement({
+      type: "rectangle",
+      id: "box",
+      x: -100,
+      y: -100,
+      width: 400,
+      height: 300,
+    });
+    API.setElements([box, source()]);
+
+    mouse.moveTo(50, 30);
+    mouse.moveTo(110, 30);
+    expect(h.app.connectorHandles.render?.elementId).toBe("source");
+    mouse.moveTo(...RIGHT_HANDLE);
+    expect(h.app.connectorHandles.render).toEqual(
+      expect.objectContaining({ elementId: "source", active: "right" }),
+    );
+    mouse.clickAt(...RIGHT_HANDLE);
+
+    expect(shapes()).toHaveLength(3);
+    expect(arrows()[0].startBinding?.elementId).toBe("source");
+
+    // the box's own handles show away from the shape, and the shape's again
+    // on it
+    mouse.moveTo(250, 150);
+    expect(h.app.connectorHandles.render?.elementId).toBe("box");
+    mouse.moveTo(50, 30);
+    expect(h.app.connectorHandles.render?.elementId).toBe("source");
+  });
+
+  it("keeps a handle usable over the shape's own connector", () => {
+    API.setElements([source()]);
+
+    hoverRightHandle();
+    mouse.clickAt(...RIGHT_HANDLE);
+    hoverRightHandle();
+    expect(h.app.connectorHandles.render?.active).toBe("right");
+    mouse.clickAt(...RIGHT_HANDLE);
+
+    expect(shapes()).toHaveLength(3);
+    expect(arrows()).toHaveLength(2);
   });
 
   it("shows no handles with another tool", () => {
