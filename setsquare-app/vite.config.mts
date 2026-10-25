@@ -275,23 +275,6 @@ export default defineConfig(({ command, mode }) => {
               },
             },
           ],
-          share_target: {
-            action: "/web-share-target",
-            method: "POST",
-            enctype: "multipart/form-data",
-            params: {
-              files: [
-                {
-                  name: "file",
-                  accept: [
-                    "application/vnd.setsquare+json",
-                    "application/json",
-                    ".setsquare",
-                  ],
-                },
-              ],
-            },
-          },
         },
       }),
       createHtmlPlugin({
