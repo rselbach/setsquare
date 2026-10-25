@@ -164,7 +164,9 @@ export default defineConfig(({ command, mode }) => {
         // the desktop app ships its own updates and has no use for a service
         // worker
         disable: isTauri,
-        registerType: "autoUpdate",
+        // a new service worker waits until every tab is closed, so open
+        // tabs aren't reloaded and keep loading their own version's assets
+        registerType: "prompt",
         devOptions: {
           /* set this flag to true to enable in Development mode */
           enabled: envVars.VITE_APP_ENABLE_PWA === "true",
