@@ -8,9 +8,12 @@ export const AppWelcomeScreen: React.FC = React.memo(() => {
 
   return (
     <WelcomeScreen>
-      <WelcomeScreen.Hints.MenuHint>
-        {t("welcomeScreen.app.menuHint")}
-      </WelcomeScreen.Hints.MenuHint>
+      {/* the desktop app keeps these in the menu bar instead of a main menu */}
+      {!isTauri() && (
+        <WelcomeScreen.Hints.MenuHint>
+          {t("welcomeScreen.app.menuHint")}
+        </WelcomeScreen.Hints.MenuHint>
+      )}
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
         <WelcomeScreen.Center.Logo>
