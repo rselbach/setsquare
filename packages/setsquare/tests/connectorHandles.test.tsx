@@ -8,7 +8,12 @@ import { Setsquare } from "../index";
 
 import { API } from "./helpers/api";
 import { Keyboard, Pointer, UI } from "./helpers/ui";
-import { render, unmountComponent } from "./test-utils";
+import {
+  fireEvent,
+  GlobalTestState,
+  render,
+  unmountComponent,
+} from "./test-utils";
 
 unmountComponent();
 
@@ -261,6 +266,25 @@ describe("connector handles", () => {
     Keyboard.keyPress(KEYS.ESCAPE);
     expect(h.app.connectorHandles.render).toBe(null);
     mouse.upAt(300, 300);
+
+    expect(h.elements).toHaveLength(1);
+  });
+
+  it("adds nothing when the browser takes a dragged handle's pointer over", () => {
+    API.setElements([source()]);
+
+    hoverRightHandle();
+    mouse.downAt(...RIGHT_HANDLE);
+    mouse.moveTo(300, 300);
+    // no pointerup follows a pointercancel
+    fireEvent.pointerCancel(GlobalTestState.interactiveCanvas, {
+      pointerId: 1,
+    });
+    expect(h.app.connectorHandles.render).toBe(null);
+
+    mouse.moveTo(400, 400);
+    expect(h.app.connectorHandles.render).toBe(null);
+    mouse.clickAt(400, 400);
 
     expect(h.elements).toHaveLength(1);
   });

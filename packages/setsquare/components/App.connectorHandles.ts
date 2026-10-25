@@ -28,6 +28,7 @@ import type {
 
 import type React from "react";
 import type { ConnectorHandlesRenderConfig } from "../scene/types";
+import type { UnsubscribeCallback } from "../types";
 import type App from "./App";
 
 type ConnectorHandlesState =
@@ -61,6 +62,7 @@ const isConnectorOf = (element: SetsquareElement, shape: SetsquareElement) =>
  */
 export class AppConnectorHandles {
   private state: ConnectorHandlesState = { type: "hidden" };
+  private unsubscribeMissingPointerUp: UnsubscribeCallback | null = null;
 
   constructor(private app: App) {}
 
@@ -249,10 +251,21 @@ export class AppConnectorHandles {
     );
     this.app.ownerWindow.addEventListener(EVENT.POINTER_UP, this.onPointerUp);
     this.app.ownerWindow.addEventListener(EVENT.KEYDOWN, this.onKeyDown);
+    // a press whose pointerup never comes (pointercancel, the window losing
+    // focus) adds nothing
+    this.unsubscribeMissingPointerUp =
+      this.app.missingPointerEventCleanupEmitter.once(this.cancelPress);
     return true;
   };
 
+  private cancelPress = () => {
+    this.endPress();
+    this.setState({ type: "hidden" });
+  };
+
   private endPress() {
+    this.unsubscribeMissingPointerUp?.();
+    this.unsubscribeMissingPointerUp = null;
     this.app.ownerWindow.removeEventListener(
       EVENT.POINTER_MOVE,
       this.onPointerMove,
@@ -384,8 +397,7 @@ export class AppConnectorHandles {
   private onKeyDown = (event: KeyboardEvent) => {
     if (event.key === KEYS.ESCAPE && this.state.type === "pressed") {
       event.preventDefault();
-      this.endPress();
-      this.setState({ type: "hidden" });
+      this.cancelPress();
     }
   };
 }
