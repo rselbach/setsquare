@@ -354,10 +354,15 @@ const SetsquareWrapper = () => {
       if (!document.hidden) {
         // don't sync if local state is newer or identical to browser state
         if (isBrowserStorageStateNewer(STORAGE_KEYS.VERSION_DATA_STATE)) {
-          const localDataState = importFromLocalStorage();
+          const { elements, appState } = importFromLocalStorage();
           setLangCode(getPreferredLanguage());
           setsquareAPI.updateScene({
-            ...localDataState,
+            elements,
+            // the file handle isn't stored, so keep this tab's
+            appState: appState && {
+              ...appState,
+              fileHandle: setsquareAPI.getAppState().fileHandle,
+            },
             captureUpdate: CaptureUpdateAction.NEVER,
           });
           LibraryIndexedDBAdapter.load().then((data) => {
