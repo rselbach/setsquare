@@ -212,6 +212,31 @@ describe("connector handles", () => {
     expect(arrows()[0].endBinding?.elementId).toBe(copy.id);
   });
 
+  it("adds a copy where a handle is dropped inside a hollow box around the shape", () => {
+    const box = API.createElement({
+      type: "rectangle",
+      id: "box",
+      x: -100,
+      y: -100,
+      width: 600,
+      height: 400,
+    });
+    API.setElements([box, source()]);
+
+    hoverRightHandle();
+    mouse.downAt(...RIGHT_HANDLE);
+    mouse.moveTo(250, 100);
+    mouse.moveTo(300, 150);
+    expect(h.app.connectorHandles.render?.preview?.type).toBe("node");
+    mouse.upAt(300, 150);
+
+    const [, , copy] = shapes();
+    expect(copy.x).toBe(250);
+    expect(copy.y).toBe(120);
+    expect(arrows()[0].startBinding?.elementId).toBe("source");
+    expect(arrows()[0].endBinding?.elementId).toBe(copy.id);
+  });
+
   it("adds nothing when a handle is dropped back on its shape", () => {
     API.setElements([source()]);
 

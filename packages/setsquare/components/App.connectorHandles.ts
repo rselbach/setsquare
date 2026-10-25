@@ -5,9 +5,11 @@ import {
   viewportCoordsToSceneCoords,
 } from "@setsquare/common";
 import {
+  boundsContainBounds,
   getConnectorElements,
   getConnectorHandleAt,
   getConnectorHandles,
+  getElementBounds,
   getNewNodePosition,
   isArrowElement,
   isBindableElement,
@@ -281,10 +283,40 @@ export class AppConnectorHandles {
     if (hitElement?.id === source.id) {
       return null;
     }
-    if (hitElement && isBindableElement(hitElement) && !hitElement.locked) {
+    if (
+      hitElement &&
+      isBindableElement(hitElement) &&
+      !hitElement.locked &&
+      !this.isRoomAround(source, hitElement, point)
+    ) {
       return { type: "target", elementId: hitElement.id };
     }
     return { type: "node", center: point };
+  }
+
+  /**
+   * Whether the point is in the empty inside of a hollow shape around the
+   * source, which holds the source as a container would: a drop there adds
+   * a copy inside it rather than connecting to it.
+   */
+  private isRoomAround(
+    source: NonDeleted<SetsquareFlowchartNodeElement>,
+    element: SetsquareElement,
+    point: GlobalPoint,
+  ) {
+    const elementsMap = this.app.scene.getNonDeletedElementsMap();
+    return (
+      isHollowInteriorHit(
+        point,
+        element,
+        elementsMap,
+        this.app.getElementHitThreshold(element),
+      ) &&
+      boundsContainBounds(
+        getElementBounds(element, elementsMap),
+        getElementBounds(source, elementsMap),
+      )
+    );
   }
 
   private onPointerMove = (event: PointerEvent) => {
