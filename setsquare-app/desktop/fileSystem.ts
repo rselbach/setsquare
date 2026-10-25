@@ -3,9 +3,9 @@
 // browser-fs-access checks for this API once when it loads, so this module
 // must be imported before the editor.
 
-import { isTauri } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { readFile, writeFile } from "@tauri-apps/plugin-fs";
+import { readFile } from "@tauri-apps/plugin-fs";
 
 import { MIME_TYPES } from "@setsquare/common";
 
@@ -58,8 +58,13 @@ const toDialogFilters = (types: FilePickerAcceptType[] = []): DialogFilter[] =>
 const isWriteParams = (chunk: FileSystemWriteChunkType): chunk is WriteParams =>
   typeof chunk === "object" && !(chunk instanceof Blob) && "type" in chunk;
 
-// buffers everything written and replaces the file's contents on close, like
-// the browser's own implementation
+// header values must be ASCII, so the path travels as a file URL
+const fileURL = (path: string) =>
+  `file://${path.split("/").map(encodeURIComponent).join("/")}`;
+
+// buffers everything written and replaces the file on close, like the
+// browser's own implementation. The app writes a new file and moves it into
+// place, so a failed save leaves the old file intact.
 class DesktopWritableFileStream
   extends WritableStream<FileSystemWriteChunkType>
   implements FileSystemWritableFileStream
@@ -75,7 +80,9 @@ class DesktopWritableFileStream
       },
       async close() {
         const bytes = new Uint8Array(await new Blob(parts).arrayBuffer());
-        await writeFile(path, bytes);
+        await invoke("save_file", bytes, {
+          headers: { url: fileURL(path) },
+        });
       },
     });
   }

@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod opened_files;
+mod saved_files;
 mod updater;
 
 fn main() {
@@ -11,7 +12,10 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(opened_files::OpenedFiles::default())
-        .invoke_handler(tauri::generate_handler![opened_files::take_opened_files])
+        .invoke_handler(tauri::generate_handler![
+            opened_files::take_opened_files,
+            saved_files::save_file
+        ])
         .setup(|app| {
             // development builds aren't installed anywhere an update could
             // replace

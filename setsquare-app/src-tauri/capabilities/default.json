@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Default permissions for the main Setsquare window.",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open", "dialog:allow-save", "fs:allow-read-file", "fs:allow-write-file", "opener:allow-open-url", "opener:allow-default-urls"]
+  "permissions": ["core:default", "dialog:allow-open", "dialog:allow-save", "fs:allow-read-file", "opener:allow-open-url", "opener:allow-default-urls"]
 }
