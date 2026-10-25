@@ -29,7 +29,6 @@ import {
 import { getNonDeletedElements } from "@setsquare/element";
 
 import type { LibraryPersistedData } from "@setsquare/setsquare/data/library";
-import type { ImportedDataState } from "@setsquare/setsquare/data/types";
 import type { SetsquareElement, FileId } from "@setsquare/element/types";
 import type {
   AppState,
@@ -241,26 +240,5 @@ export class LibraryIndexedDBAdapter {
       data,
       LibraryIndexedDBAdapter.store,
     );
-  }
-}
-
-/** LS Adapter used only for migrating LS library data
- * to indexedDB */
-export class LibraryLocalStorageMigrationAdapter {
-  static load() {
-    const LSData = localStorage.getItem(
-      STORAGE_KEYS.__LEGACY_LOCAL_STORAGE_LIBRARY,
-    );
-    if (LSData != null) {
-      const libraryItems: ImportedDataState["libraryItems"] =
-        JSON.parse(LSData);
-      if (libraryItems) {
-        return { libraryItems };
-      }
-    }
-    return null;
-  }
-  static clear() {
-    localStorage.removeItem(STORAGE_KEYS.__LEGACY_LOCAL_STORAGE_LIBRARY);
   }
 }

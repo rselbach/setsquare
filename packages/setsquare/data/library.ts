@@ -8,7 +8,6 @@ import {
   cloneJSON,
   preventUnload,
   promiseTry,
-  resolvablePromise,
   Queue,
   Emitter,
 } from "@setsquare/common";
@@ -75,17 +74,6 @@ export interface LibraryPersistenceAdapter {
   }): MaybePromise<{ libraryItems: LibraryItems_anyVersion } | null>;
   /** Should persist to the database as is (do no change the data structure). */
   save(libraryData: LibraryPersistedData): MaybePromise<void>;
-}
-
-export interface LibraryMigrationAdapter {
-  /**
-   * loads data from legacy data source. Returns `null` if no data is
-   * to be migrated.
-   */
-  load(): MaybePromise<{ libraryItems: LibraryItems_anyVersion } | null>;
-
-  /** clears entire storage afterwards */
-  clear(): MaybePromise<void>;
 }
 
 export const libraryItemsAtom = atom<{
@@ -619,14 +607,6 @@ export const useHandleLibrary = (
       }
     | {
         adapter: LibraryPersistenceAdapter;
-        /**
-         * Adapter that takes care of loading data from legacy data store.
-         * Supply this if you want to migrate data on initial load from legacy
-         * data store.
-         *
-         * Can be a different LibraryPersistenceAdapter.
-         */
-        migrationAdapter?: LibraryMigrationAdapter;
       }
   ),
 ) => {
@@ -683,74 +663,15 @@ export const useHandleLibrary = (
 
     if ("adapter" in optsRef.current && optsRef.current.adapter) {
       const adapter = optsRef.current.adapter;
-      const migrationAdapter = optsRef.current.migrationAdapter;
 
-      const initDataPromise = resolvablePromise<LibraryItems | null>();
-
-      // migrate from old data source if needed
-      // (note, if `migrate` function is defined, we always migrate even
-      //  if the data has already been migrated. In that case it'll be a no-op,
-      //  though with several unnecessary steps — we will still load latest
-      //  DB data during the `persistLibraryChange()` step)
-      // -----------------------------------------------------------------------
-      if (migrationAdapter) {
-        initDataPromise.resolve(
-          promiseTry(migrationAdapter.load)
-            .then(async (libraryData) => {
-              let restoredData: LibraryItems | null = null;
-              try {
-                // if no library data to migrate, assume no migration needed
-                // and skip persisting to new data store, as well as well
-                // clearing the old store via `migrationAdapter.clear()`
-                if (!libraryData) {
-                  return AdapterTransaction.getLibraryItems(adapter, "load");
-                }
-
-                restoredData = restoreLibraryItems(
-                  libraryData.libraryItems || [],
-                  "published",
-                );
-
-                // we don't queue this operation because it's running inside
-                // a promise that's running inside Library update queue itself
-                const nextItems = await persistLibraryUpdate(
-                  adapter,
-                  createLibraryUpdate([], restoredData),
-                );
-                try {
-                  await migrationAdapter.clear();
-                } catch (error: any) {
-                  console.error(
-                    `couldn't delete legacy library data: ${error.message}`,
-                  );
-                }
-                // migration suceeded, load migrated data
-                return nextItems;
-              } catch (error: any) {
-                console.error(
-                  `couldn't migrate legacy library data: ${error.message}`,
-                );
-                // migration failed, load data from previous store, if any
-                return restoredData;
-              }
-            })
-            // errors caught during `migrationAdapter.load()`
-            .catch((error: any) => {
-              console.error(`error during library migration: ${error.message}`);
-              // as a default, load latest library from current data source
-              return AdapterTransaction.getLibraryItems(adapter, "load");
-            }),
-        );
-      } else {
-        initDataPromise.resolve(
-          promiseTry(AdapterTransaction.getLibraryItems, adapter, "load"),
-        );
-      }
-
-      // load initial (or migrated) library
+      // load initial library
       setsquareAPI
         .updateLibrary({
-          libraryItems: initDataPromise.then((libraryItems) => {
+          libraryItems: promiseTry(
+            AdapterTransaction.getLibraryItems,
+            adapter,
+            "load",
+          ).then((libraryItems) => {
             const _libraryItems = libraryItems || [];
             lastSavedLibraryItemsHash = getLibraryItemsHash(_libraryItems);
             return _libraryItems;

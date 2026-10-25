@@ -70,7 +70,6 @@ import { importFromLocalStorage } from "./data/localStorage";
 
 import {
   LibraryIndexedDBAdapter,
-  LibraryLocalStorageMigrationAdapter,
   LocalData,
   imageSaveFailedAtom,
   localStorageQuotaExceededAtom,
@@ -235,8 +234,6 @@ const SetsquareWrapper = () => {
   useHandleLibrary({
     setsquareAPI,
     adapter: LibraryIndexedDBAdapter,
-    // TODO maybe remove this in several months (shipped: 24-03-11)
-    migrationAdapter: LibraryLocalStorageMigrationAdapter,
   });
 
   const [, forceRefresh] = useState(false);

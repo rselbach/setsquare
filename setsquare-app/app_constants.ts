@@ -11,7 +11,4 @@ export const STORAGE_KEYS = {
   VERSION_FILES: "version-files",
 
   IDB_LIBRARY: "setsquare-library",
-
-  // do not use apart from migrations
-  __LEGACY_LOCAL_STORAGE_LIBRARY: "setsquare-library",
 } as const;
