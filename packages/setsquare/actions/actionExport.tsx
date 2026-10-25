@@ -252,6 +252,29 @@ function prepareDataForJSONExport(
 // Save actions
 // ---------------------------------------------------------------------------
 
+// a cancelled save needs no message, but any other failure leaves the
+// drawing unsaved, which the user must know about
+const saveFailed = (error: any) => {
+  if (error?.name === "AbortError") {
+    console.warn(error);
+    return {
+      captureUpdate: CaptureUpdateAction.NEVER,
+      appState: { toast: null },
+    };
+  }
+  console.error(error);
+  return {
+    captureUpdate: CaptureUpdateAction.NEVER,
+    appState: {
+      toast: null,
+      // native calls reject with a plain message rather than an Error
+      errorMessage: t("errors.saveFileError", {
+        error: error?.message ?? String(error),
+      }),
+    },
+  };
+};
+
 export const actionSaveToActiveFile = register({
   name: "saveToActiveFile",
   label: "buttons.save",
@@ -307,18 +330,7 @@ export const actionSaveToActiveFile = register({
       };
     } catch (error: any) {
       abortController.abort();
-
-      if (error?.name !== "AbortError") {
-        console.error(error);
-      } else {
-        console.warn(error);
-      }
-      return {
-        captureUpdate: CaptureUpdateAction.NEVER,
-        appState: {
-          toast: null,
-        },
-      };
+      return saveFailed(error);
     } finally {
       onExportInProgress = false;
     }
@@ -359,17 +371,7 @@ export const actionSaveFileToDisk = register({
       };
     } catch (error: any) {
       abortController.abort();
-      if (error?.name !== "AbortError") {
-        console.error(error);
-      } else {
-        console.warn(error);
-      }
-      return {
-        captureUpdate: CaptureUpdateAction.NEVER,
-        appState: {
-          toast: null,
-        },
-      };
+      return saveFailed(error);
     } finally {
       onExportInProgress = false;
     }
