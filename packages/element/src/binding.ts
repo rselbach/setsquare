@@ -2042,9 +2042,10 @@ export const updateBoundPoint = (
     elementsMap,
   );
 
-  // 0. Short-circuit for inside binding as it doesn't require any
-  // calculations and is not affected by other bindings
-  if (binding.mode === "inside") {
+  // 0. Short-circuit for inside binding and cardinal arrows, whose focus
+  // point is where the end goes (a cardinal end's is a side middle, a
+  // binding gap out), unaffected by the other end
+  if (binding.mode === "inside" || arrow.cardinal) {
     return LinearElementEditor.createPointAt(
       arrow,
       elementsMap,

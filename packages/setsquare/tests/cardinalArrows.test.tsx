@@ -1,7 +1,11 @@
 import React from "react";
 
-import { reseed } from "@setsquare/common";
-import { LinearElementEditor } from "@setsquare/element";
+import { KEYS, reseed } from "@setsquare/common";
+import {
+  getGlobalFixedPointForBindableElement,
+  isBindableElement,
+  LinearElementEditor,
+} from "@setsquare/element";
 
 import type { Radians } from "@setsquare/math";
 import type {
@@ -43,6 +47,37 @@ const arrow = () =>
   )!;
 
 const sides = () => [sideOf(arrow().startBinding), sideOf(arrow().endBinding)];
+
+/** the arrow's bound ends, and where their bindings put them */
+const endsAndBindingPoints = () => {
+  const elementsMap = h.app.scene.getNonDeletedElementsMap();
+  return ([0, -1] as const).flatMap((index) => {
+    const binding = index === 0 ? arrow().startBinding : arrow().endBinding;
+    const element = binding && elementsMap.get(binding.elementId);
+    if (!binding || !element || !isBindableElement(element)) {
+      return [];
+    }
+    return {
+      end: LinearElementEditor.getPointAtIndexGlobalCoordinates(
+        arrow(),
+        index,
+        elementsMap,
+      ),
+      binding: getGlobalFixedPointForBindableElement(
+        binding.fixedPoint,
+        element,
+        elementsMap,
+      ),
+    };
+  });
+};
+
+const expectEndsOnBindings = () => {
+  for (const { end, binding } of endsAndBindingPoints()) {
+    expect(end[0]).toBeCloseTo(binding[0], 0);
+    expect(end[1]).toBeCloseTo(binding[1], 0);
+  }
+};
 
 /** two 100x60 boxes, "top" at the origin and "bottom" 200px below it */
 const setupBoxes = () => {
@@ -192,6 +227,74 @@ describe.each(["elbow", "sharp", "round"] as const)(
 
       mouse.upAt(50, 230);
       expect(sides()).toEqual(["down", "up"]);
+    });
+
+    it("puts the ends on the side middles they're bound to", () => {
+      API.setElements([
+        API.createElement({
+          type: "rectangle",
+          id: "wide",
+          x: 0,
+          y: 100,
+          width: 400,
+          height: 40,
+        }),
+        API.createElement({
+          type: "rectangle",
+          id: "small",
+          x: 360,
+          y: 0,
+          width: 60,
+          height: 60,
+        }),
+      ]);
+      drawArrow([200, 120], [390, 30]);
+
+      expect(arrow().startBinding?.elementId).toBe("wide");
+      expect(arrow().endBinding?.elementId).toBe("small");
+      expect(sides()).toEqual(["right", "down"]);
+      expectEndsOnBindings();
+
+      // and again once a bound element moves
+      drag([390, 30], [400, 20]);
+      expect(sides()).toEqual(["right", "down"]);
+      expectEndsOnBindings();
+    });
+
+    // elbow arrows route their own points
+    if (arrowType !== "elbow") {
+      it("puts the ends of a multi-point arrow on its side middles", () => {
+        setupBoxes();
+        // bent out to the left of the top box, then across to its right
+        UI.clickTool("arrow");
+        mouse.clickAt(50, 30);
+        mouse.moveTo(-150, 30);
+        mouse.clickAt(-150, 30);
+        mouse.moveTo(400, -100);
+        mouse.clickAt(400, -100);
+        Keyboard.keyPress(KEYS.ENTER);
+        expect(arrow().points).toHaveLength(3);
+
+        // the start takes the side facing the free end
+        drag([90, 50], [95, 50]);
+        expect(sides()).toEqual(["right", null]);
+        expectEndsOnBindings();
+      });
+    }
+
+    it("loops an arrow drawn inside one element between two sides", () => {
+      setupBoxes();
+      drawArrow([30, 30], [70, 35]);
+
+      expect(arrow().startBinding?.elementId).toBe("top");
+      expect(arrow().endBinding?.elementId).toBe("top");
+      const [start, end] = sides();
+      expect(start).not.toBe(end);
+      const [{ end: startPoint }, { end: endPoint }] = endsAndBindingPoints();
+      expectEndsOnBindings();
+      expect(
+        Math.hypot(startPoint[0] - endPoint[0], startPoint[1] - endPoint[1]),
+      ).toBeGreaterThan(30);
     });
 
     it("restores the sides on undo", () => {
