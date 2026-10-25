@@ -329,6 +329,7 @@ const SetsquareWrapper = () => {
           setsquareAPI.updateScene({ appState: { isLoading: false } });
           return;
         }
+        setsquareAPI.addFiles(Object.values(scene.files));
         setsquareAPI.updateScene({
           elements: restoreElements(scene.elements, null, {
             repairBindings: true,

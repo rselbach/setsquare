@@ -4,12 +4,17 @@ import { t } from "@setsquare/setsquare/i18n";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { serializeAsJSON } from "@setsquare/setsquare/data/json";
 
+import type { FileId } from "@setsquare/element/types";
+import type { BinaryFiles, DataURL } from "@setsquare/setsquare/types";
+
 import SetsquareApp from "../App";
 import { STORAGE_KEYS } from "../app_constants";
 
 const { h } = window;
 
 const SCENE_URL = "https://greendale.edu/study-group.setsquare";
+const PIXEL =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
 const changeHash = (hash: string) => {
   window.history.replaceState({}, "", `/${hash}`);
@@ -82,6 +87,29 @@ describe("#url= links", () => {
     );
     expect(h.state.isLoading).toBe(false);
     expect(window.location.hash).toBe("");
+  });
+
+  it("adds the images of a scene opened from a #url= hash", async () => {
+    const fileId = "pierce" as FileId;
+    const image = API.createElement({ type: "image", fileId, id: "pierce" });
+    const files: BinaryFiles = {
+      [fileId]: {
+        id: fileId,
+        dataURL: PIXEL as DataURL,
+        mimeType: "image/png",
+        created: Date.now(),
+      },
+    };
+    const json = serializeAsJSON([image], {}, files, "local");
+    vi.spyOn(window, "fetch").mockResolvedValue({
+      blob: async () => new Blob([json], { type: "application/json" }),
+    } as Response);
+    await render(<SetsquareApp />);
+
+    changeHash(`#url=${SCENE_URL}`);
+
+    await waitFor(() => expect(h.app.files[fileId]?.dataURL).toBe(PIXEL));
+    expect(h.elements.map((element) => element.id)).toEqual(["pierce"]);
   });
 
   it("keeps the open scene when a #url= hash fails to load", async () => {
