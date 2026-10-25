@@ -8182,6 +8182,7 @@ class App extends React.Component<AppProps, AppState> {
         allHitElements: [],
         wasAddedToSelection: false,
         cycleTarget: null,
+        cmdClickTarget: null,
         hasBeenDuplicated: false,
         advancedListMarkers: [],
         editedTextId: this.duplicate.handedOverTextId,

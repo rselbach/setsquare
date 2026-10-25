@@ -286,6 +286,35 @@ describe("clicking inside hollow shapes", () => {
     mouse.clickAt(100, 90);
     assertSelectedElements([inner.id]);
   });
+
+  it("deep-selects a grouped hollow shape on Cmd+click inside it", () => {
+    const left = { ...hollowRectangle(0, 0, 100, 100), groupIds: ["g"] };
+    const right = { ...hollowRectangle(200, 0, 100, 100), groupIds: ["g"] };
+    API.setElements([left, right]);
+
+    mouse.clickAt(50, 50);
+    assertSelectedElements([left.id, right.id]);
+
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      mouse.clickAt(250, 50);
+    });
+    assertSelectedElements([right.id]);
+  });
+
+  it("box-selects on Cmd+drag inside a hollow shape", () => {
+    const box = hollowRectangle(0, 0, 300, 200);
+    const inner = hollowRectangle(50, 50, 40, 40);
+    API.setElements([box, inner]);
+
+    Keyboard.withModifierKeys({ ctrl: true }, () => {
+      mouse.downAt(20, 20);
+      mouse.moveTo(60, 60);
+      mouse.moveTo(120, 120);
+      mouse.upAt(120, 120);
+    });
+    assertSelectedElements([inner.id]);
+    expect(h.elements[0].x).toBe(0);
+  });
 });
 
 describe("alt-click cycling", () => {

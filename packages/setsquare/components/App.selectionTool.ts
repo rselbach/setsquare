@@ -228,26 +228,25 @@ export class AppSelectionTool {
         }
 
         const elementsMap = this.app.scene.getNonDeletedElementsMap();
-        const allHitElements = this.app
-          .getElementsAtPosition(
-            pointerDownState.origin.x,
-            pointerDownState.origin.y,
-            {
-              includeLockedElements: true,
-            },
-          )
-          // with Cmd held, pressing in a hollow shape's empty inside starts a
-          // selection box within the shape instead of grabbing it
-          .filter(
-            (element) =>
-              !event[KEYS.CTRL_OR_CMD] ||
-              !isHollowInteriorHit(
-                pointFrom(pointerDownState.origin.x, pointerDownState.origin.y),
-                element,
-                elementsMap,
-                this.app.getElementHitThreshold(element),
-              ),
-          );
+        const hitElementsWithHollowInsides = this.app.getElementsAtPosition(
+          pointerDownState.origin.x,
+          pointerDownState.origin.y,
+          {
+            includeLockedElements: true,
+          },
+        );
+        // with Cmd held, pressing in a hollow shape's empty inside starts a
+        // selection box within the shape instead of grabbing it
+        const allHitElements = hitElementsWithHollowInsides.filter(
+          (element) =>
+            !event[KEYS.CTRL_OR_CMD] ||
+            !isHollowInteriorHit(
+              pointFrom(pointerDownState.origin.x, pointerDownState.origin.y),
+              element,
+              elementsMap,
+              this.app.getElementHitThreshold(element),
+            ),
+        );
         const unlockedHitElements = allHitElements.filter((e) => !e.locked);
 
         // Cannot set preferSelected in getElementAtPosition as we do in pointer move; consider:
@@ -260,6 +259,18 @@ export class AppSelectionTool {
             allHitElements,
           },
         );
+
+        // ...while a Cmd+click there deep-selects the shape, on pointer up
+        if (event[KEYS.CTRL_OR_CMD] && !hitElementMightBeLocked) {
+          const hollowElement = this.app.getElementAtPosition(
+            pointerDownState.origin.x,
+            pointerDownState.origin.y,
+            { allHitElements: hitElementsWithHollowInsides },
+          );
+          pointerDownState.hit.cmdClickTarget = hollowElement?.locked
+            ? null
+            : hollowElement;
+        }
 
         if (
           !hitElementMightBeLocked ||
@@ -1378,6 +1389,22 @@ export class AppSelectionTool {
       this.app.selection.select(cycleTarget);
     }
 
+    // Cmd+click in a hollow shape's empty inside: deep-select the shape,
+    // unless the press became a box selection
+    const cmdClickTarget =
+      pointerDownState.hit.cmdClickTarget &&
+      pointDistance(
+        pointFrom(pointerDownState.origin.x, pointerDownState.origin.y),
+        pointFrom(pointerDownState.lastCoords.x, pointerDownState.lastCoords.y),
+      ) *
+        this.app.state.zoom.value <
+        DRAGGING_THRESHOLD
+        ? pointerDownState.hit.cmdClickTarget
+        : null;
+    if (cmdClickTarget) {
+      this.app.selection.select(cmdClickTarget, { deep: true });
+    }
+
     if (
       !cycleTarget &&
       hitElement &&
@@ -1466,6 +1493,7 @@ export class AppSelectionTool {
 
     if (
       !cycleTarget &&
+      !cmdClickTarget &&
       // do not clear selection if lasso is active
       this.app.state.activeTool.type !== "lasso" &&
       // not elbow midpoint dragged

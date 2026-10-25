@@ -1297,6 +1297,10 @@ export type PointerDownState = Readonly<{
     // one, cycling through the elements under the pointer (determined on the
     // initial pointer down event)
     cycleTarget: NonDeleted<SetsquareElement> | null;
+    // The hollow shape a Cmd+press landed in the empty inside of, which a
+    // Cmd+click deep-selects on pointer up (determined on the initial pointer
+    // down event; the press itself box-selects within the shape)
+    cmdClickTarget: NonDeleted<SetsquareElement> | null;
     // Whether selected element(s) were duplicated, might change during the
     // pointer interaction
     hasBeenDuplicated: boolean;
