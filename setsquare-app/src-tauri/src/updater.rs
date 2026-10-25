@@ -3,11 +3,14 @@
 
 use std::error::Error;
 
-use tauri::{AppHandle, Manager, Wry};
+use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_dialog::{
     DialogExt, MessageDialogBuilder, MessageDialogButtons, MessageDialogKind,
 };
 use tauri_plugin_updater::UpdaterExt;
+
+/// Event that asks the editor to save the drawing and then restart the app.
+const RESTART_REQUESTED_EVENT: &str = "restart-requested";
 
 /// Looks for a newer release without holding up the app.
 pub fn check_in_background(app: &AppHandle) {
@@ -24,7 +27,7 @@ async fn check(app: &AppHandle) -> Result<(), Box<dyn Error + Send + Sync>> {
         return Ok(());
     };
 
-    let prompt = message(
+    let install = ask(message(
         app,
         format!(
             "Setsquare {} is available. You have {}.",
@@ -33,10 +36,10 @@ async fn check(app: &AppHandle) -> Result<(), Box<dyn Error + Send + Sync>> {
     )
     .title("Update Available")
     .buttons(MessageDialogButtons::OkCancelCustom(
-        "Install and Restart".into(),
+        "Install".into(),
         "Later".into(),
-    ));
-    let install = tauri::async_runtime::spawn_blocking(move || prompt.blocking_show()).await?;
+    )))
+    .await?;
     if !install {
         return Ok(());
     }
@@ -51,7 +54,31 @@ async fn check(app: &AppHandle) -> Result<(), Box<dyn Error + Send + Sync>> {
         .show(|_| {});
         return Err(error.into());
     }
-    app.restart();
+
+    // the user may have been drawing while the update downloaded, so the app
+    // only restarts when they say so, and once the editor has saved
+    let restart = ask(message(
+        app,
+        format!(
+            "Setsquare {} is installed and starts the next time you open it. Restart now?",
+            update.version
+        ),
+    )
+    .title("Update Installed")
+    .buttons(MessageDialogButtons::OkCancelCustom(
+        "Restart".into(),
+        "Later".into(),
+    )))
+    .await?;
+    if restart {
+        app.emit(RESTART_REQUESTED_EVENT, ())?;
+    }
+    Ok(())
+}
+
+/// Shows a question and waits for the answer without blocking the app.
+async fn ask(prompt: MessageDialogBuilder<Wry>) -> tauri::Result<bool> {
+    tauri::async_runtime::spawn_blocking(move || prompt.blocking_show()).await
 }
 
 /// A message shown as a sheet on the main window. Without a window, macOS
