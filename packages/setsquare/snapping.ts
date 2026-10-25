@@ -159,6 +159,11 @@ export class SnapCache {
 export const isGridModeEnabled = (app: AppClassProperties): boolean =>
   app.props.gridModeEnabled ?? app.state.gridModeEnabled;
 
+// the grid takes over from object snapping while it's on, so object snaps
+// don't pull shapes off the grid
+const isObjectsSnapModeEnabled = (app: AppClassProperties): boolean =>
+  app.state.objectsSnapModeEnabled && !isGridModeEnabled(app);
+
 export const isSnappingEnabled = ({
   event,
   app,
@@ -168,6 +173,8 @@ export const isSnappingEnabled = ({
   event: KeyboardModifiersObject;
   selectedElements: readonly NonDeletedSetsquareElement[];
 }) => {
+  const objectsSnapModeEnabled = isObjectsSnapModeEnabled(app);
+
   if (event) {
     // Allow snapping for lasso tool when dragging selected elements
     // but not during lasso selection phase
@@ -177,8 +184,8 @@ export const isSnappingEnabled = ({
 
     return (
       (app.state.activeTool.type !== "lasso" || isLassoDragging) &&
-      ((app.state.objectsSnapModeEnabled && !event[KEYS.CTRL_OR_CMD]) ||
-        (!app.state.objectsSnapModeEnabled &&
+      ((objectsSnapModeEnabled && !event[KEYS.CTRL_OR_CMD]) ||
+        (!objectsSnapModeEnabled &&
           event[KEYS.CTRL_OR_CMD] &&
           !isGridModeEnabled(app)))
     );
@@ -188,7 +195,7 @@ export const isSnappingEnabled = ({
   if (selectedElements.length === 1 && selectedElements[0].type === "arrow") {
     return false;
   }
-  return app.state.objectsSnapModeEnabled;
+  return objectsSnapModeEnabled;
 };
 
 export const areRoughlyEqual = (a: number, b: number, precision = 0.01) => {

@@ -480,7 +480,7 @@ const PreferencesToggleSnapModeItem = () => {
   const appState = useUIAppState();
   return (
     <DropdownMenuItemCheckbox
-      checked={appState.objectsSnapModeEnabled}
+      checked={actionToggleObjectsSnapMode.checked!(appState)}
       shortcut={getShortcutFromShortcutName("objectsSnapMode")}
       onSelect={(event) => {
         actionManager.executeAction(actionToggleObjectsSnapMode);

@@ -20,12 +20,15 @@ export const actionToggleObjectsSnapMode = register({
       appState: {
         ...appState,
         objectsSnapModeEnabled: !this.checked!(appState),
+        // the grid would keep object snapping off
         gridModeEnabled: false,
       },
       captureUpdate: CaptureUpdateAction.EVENTUALLY,
     };
   },
-  checked: (appState) => appState.objectsSnapModeEnabled,
+  // the grid takes over from object snapping while it's on
+  checked: (appState) =>
+    appState.objectsSnapModeEnabled && !appState.gridModeEnabled,
   predicate: (elements, appState, appProps) => {
     return typeof appProps.objectsSnapModeEnabled === "undefined";
   },

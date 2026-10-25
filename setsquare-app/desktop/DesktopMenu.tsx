@@ -440,7 +440,7 @@ export const DesktopMenu = ({
       toggle(
         "snap",
         t("buttons.objectsSnapMode"),
-        appState.objectsSnapModeEnabled,
+        actionToggleObjectsSnapMode.checked!(appState),
         actionToggleObjectsSnapMode,
       ),
       toggle(
