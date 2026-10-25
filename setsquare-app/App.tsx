@@ -183,7 +183,9 @@ const initializeScene = async (): Promise<SetsquareInitialDataState> => {
       }
     } catch (error: any) {
       return {
+        ...scene,
         appState: {
+          ...scene.appState,
           errorMessage: t("alerts.invalidSceneUrl"),
         },
       };
