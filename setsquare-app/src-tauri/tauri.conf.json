@@ -21,7 +21,19 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self' 'wasm-unsafe-eval'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: blob:",
+        "font-src": "'self' data:",
+        "connect-src": "'self' ipc: http://ipc.localhost",
+        "worker-src": "'self'",
+        "frame-src": "https://youtube.com https://www.youtube.com https://youtu.be https://www.youtu.be https://vimeo.com https://www.vimeo.com https://player.vimeo.com https://drive.google.com https://figma.com https://www.figma.com https://*.simplepdf.eu https://stackblitz.com https://www.stackblitz.com https://val.town https://www.val.town https://giphy.com https://www.giphy.com https://forms.microsoft.com",
+        "object-src": "'none'",
+        "base-uri": "'none'"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"]
     }
   },
   "bundle": {
