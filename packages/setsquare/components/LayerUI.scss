@@ -114,6 +114,19 @@
     }
   }
 
+  // in zen mode only the zoom level is left of the title block, so the rest
+  // of its strip passes clicks through to the canvas and to the exit zen mode
+  // button under it
+  &.setsquare--zen-mode .layer-ui__wrapper__footer-right {
+    & > * {
+      pointer-events: none;
+    }
+
+    .reset-zoom-button {
+      pointer-events: var(--ui-pointerEvents);
+    }
+  }
+
   // on tablet, the pen mode button sits below the compact actions
   .App-inspector > .ToolIcon__penMode .ToolIcon__icon {
     width: var(--lg-button-size);
