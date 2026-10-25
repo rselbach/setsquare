@@ -90,6 +90,7 @@ const SetsquareBase = (props: SetsquareProps) => {
     activeTool,
     zenModeEnabled,
     gridModeEnabled,
+    objectsSnapModeEnabled,
     theme,
     name,
     renderCustomStats,
@@ -231,6 +232,7 @@ const SetsquareBase = (props: SetsquareProps) => {
           activeTool={activeTool}
           zenModeEnabled={zenModeEnabled}
           gridModeEnabled={gridModeEnabled}
+          objectsSnapModeEnabled={objectsSnapModeEnabled}
           theme={theme}
           name={name}
           renderCustomStats={renderCustomStats}

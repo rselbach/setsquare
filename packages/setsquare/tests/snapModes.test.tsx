@@ -6,7 +6,7 @@ import { actionToggleObjectsSnapMode } from "../actions/actionToggleObjectsSnapM
 import { isSnappingEnabled } from "../snapping";
 
 import { API } from "./helpers/api";
-import { render } from "./test-utils";
+import { GlobalTestState, render } from "./test-utils";
 
 const { h } = window;
 
@@ -54,5 +54,21 @@ describe("grid and object snapping", () => {
     API.executeAction(actionToggleObjectsSnapMode);
     expect(h.state.objectsSnapModeEnabled).toBe(false);
     expect(snapsToObjects()).toBe(false);
+  });
+});
+
+describe("objectsSnapModeEnabled prop", () => {
+  it("keeps object snapping as the host sets it", async () => {
+    await render(<Setsquare objectsSnapModeEnabled={false} />);
+    expect(h.state.objectsSnapModeEnabled).toBe(false);
+    expect(snapsToObjects()).toBe(false);
+
+    API.executeAction(actionToggleObjectsSnapMode);
+    expect(h.state.objectsSnapModeEnabled).toBe(false);
+
+    GlobalTestState.renderResult.rerender(
+      <Setsquare objectsSnapModeEnabled={true} />,
+    );
+    expect(h.state.objectsSnapModeEnabled).toBe(true);
   });
 });

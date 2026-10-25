@@ -3148,6 +3148,11 @@ class App extends React.Component<AppProps, AppState> {
         zenModeEnabled = this.props.zenModeEnabled;
       }
 
+      const objectsSnapModeEnabled =
+        this.props.objectsSnapModeEnabled ??
+        actionResult?.appState?.objectsSnapModeEnabled ??
+        this.state.objectsSnapModeEnabled;
+
       editingTextElement = actionResult.appState?.editingTextElement || null;
 
       // make sure editingTextElement points to latest element reference
@@ -3177,6 +3182,7 @@ class App extends React.Component<AppProps, AppState> {
           editingTextElement,
           viewModeEnabled,
           zenModeEnabled,
+          objectsSnapModeEnabled,
           theme,
           name,
           errorMessage,
@@ -4376,6 +4382,15 @@ class App extends React.Component<AppProps, AppState> {
 
     if (prevProps.zenModeEnabled !== this.props.zenModeEnabled) {
       this.setState({ zenModeEnabled: !!this.props.zenModeEnabled });
+    }
+
+    if (
+      prevProps.objectsSnapModeEnabled !== this.props.objectsSnapModeEnabled &&
+      typeof this.props.objectsSnapModeEnabled !== "undefined"
+    ) {
+      this.setState({
+        objectsSnapModeEnabled: this.props.objectsSnapModeEnabled,
+      });
     }
 
     if (prevProps.theme !== this.props.theme && this.props.theme) {
