@@ -4,7 +4,8 @@
 # To release, set the version in setsquare-app/src-tauri/Cargo.toml, commit
 # it, and push a matching tag such as v0.1.0. A tag with a suffix, such as
 # v0.2.0-beta.1, publishes a pre-release, which the updater skips. Running
-# the workflow by hand builds and notarizes without publishing.
+# the workflow by hand builds and notarizes without publishing. Types and
+# tests must pass before the app is built.
 #
 # Repository secrets:
 #   APPLE_CERTIFICATE                   Developer ID Application certificate,
@@ -35,8 +36,26 @@ defaults:
     shell: bash
 
 jobs:
+  verify:
+    name: Check types and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Check types
+        run: yarn test:typecheck
+      - name: Run tests
+        run: yarn test:app --watch=false
+
   build:
     name: Build macOS app
+    needs: verify
     runs-on: macos-15
     timeout-minutes: 60
     outputs:
