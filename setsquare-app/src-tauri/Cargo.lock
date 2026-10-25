@@ -3367,6 +3367,7 @@ dependencies = [
 name = "setsquare"
 version = "0.3.0"
 dependencies = [
+ "objc2",
  "serde_json",
  "tauri",
  "tauri-build",

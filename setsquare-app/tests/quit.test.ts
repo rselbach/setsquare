@@ -11,6 +11,7 @@ import { quit } from "../desktop/quit";
 const { handlers } = vi.hoisted(() => ({
   handlers: {} as {
     closeRequested?: (event: { preventDefault: () => void }) => unknown;
+    quitRequested?: () => unknown;
     restartRequested?: () => unknown;
   },
 }));
@@ -22,6 +23,9 @@ vi.mock("@tauri-apps/api/core", () => ({
 
 vi.mock("@tauri-apps/api/event", () => ({
   listen: async (event: string, handler: () => unknown) => {
+    if (event === "quit-requested") {
+      handlers.quitRequested = handler;
+    }
     if (event === "restart-requested") {
       handlers.restartRequested = handler;
     }
@@ -95,6 +99,10 @@ describe("quitting the desktop app", () => {
       "quit",
     );
     expect(preventDefault).toHaveBeenCalled();
+  });
+
+  it("saves the drawing locally before the system quits the app", async () => {
+    await expectToRunAfterSaving(handlers.quitRequested!, "quit");
   });
 
   it("saves the drawing locally before restarting into an update", async () => {

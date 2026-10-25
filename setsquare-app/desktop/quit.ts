@@ -28,6 +28,11 @@ if (isTauri()) {
       return quit();
     })
     .catch((error) => console.error("Couldn't watch for closing", error));
+  // quits from the system, such as the Dock's Quit or logging out, wait for
+  // the app to save
+  listen("quit-requested", quit).catch((error) =>
+    console.error("Couldn't watch for quits", error),
+  );
   // the updater asks once the user agrees to restart into an update
   listen("restart-requested", afterSaving("restart")).catch((error) =>
     console.error("Couldn't watch for restarts", error),

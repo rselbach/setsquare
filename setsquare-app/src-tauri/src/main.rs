@@ -2,14 +2,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod opened_files;
+mod quit;
 mod saved_files;
 mod updater;
-
-/// Quits the app. The editor calls this once it has saved the drawing.
-#[tauri::command]
-fn quit(app: tauri::AppHandle) {
-    app.exit(0);
-}
 
 /// Restarts the app into an installed update. The editor calls this once it
 /// has saved the drawing.
@@ -28,10 +23,11 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             opened_files::take_opened_files,
             saved_files::save_file,
-            quit,
+            quit::quit,
             restart
         ])
         .setup(|app| {
+            quit::watch(app.handle());
             // development builds aren't installed anywhere an update could
             // replace
             if !cfg!(debug_assertions) {
