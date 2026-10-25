@@ -1,4 +1,8 @@
-import { tryParseSpreadsheet } from "../charts";
+import { DEFAULT_ELEMENT_PROPS, DEFAULT_FONT_FAMILY } from "@setsquare/common";
+
+import { renderSpreadsheet, tryParseSpreadsheet } from "../charts";
+
+import type { Spreadsheet } from "../charts";
 
 describe("tryParseSpreadsheet", () => {
   it("works for numbers with comma in them", () => {
@@ -160,5 +164,35 @@ B\t20`,
         series: [{ title: "Value", values: [10, 20] }],
       },
     });
+  });
+});
+
+describe("renderSpreadsheet", () => {
+  const greendale: Spreadsheet = {
+    title: "Greendale enrollment",
+    labels: ["Spanish", "Anthropology", "Biology"],
+    series: [{ title: "Students", values: [12, 30, 21] }],
+  };
+
+  it.each(["bar", "line", "radar"] as const)(
+    "draws %s charts with precise strokes and fills",
+    (chartType) => {
+      for (const element of renderSpreadsheet(chartType, greendale, 0, 0)!) {
+        expect(element.roughness).toBe(DEFAULT_ELEMENT_PROPS.roughness);
+        expect(element.fillStyle).toBe(DEFAULT_ELEMENT_PROPS.fillStyle);
+      }
+    },
+  );
+
+  it("labels radar axes in the default font", () => {
+    const labels = renderSpreadsheet("radar", greendale, 0, 0)!.filter(
+      (element) =>
+        element.type === "text" && greendale.labels!.includes(element.text),
+    );
+
+    expect(labels).toHaveLength(greendale.labels!.length);
+    for (const label of labels) {
+      expect(label).toHaveProperty("fontFamily", DEFAULT_FONT_FAMILY);
+    }
   });
 });

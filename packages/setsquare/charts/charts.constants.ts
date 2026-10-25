@@ -1,5 +1,6 @@
 import {
   COLOR_PALETTE,
+  DEFAULT_ELEMENT_PROPS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_FONT_SIZE,
   VERTICAL_ALIGN,
@@ -40,11 +41,11 @@ export const RADAR_LEGEND_TEXT_GAP = BAR_GAP;
 // Put all common chart element properties here so properties dialog
 // shows stable values when selecting chart groups.
 export const commonProps = {
-  fillStyle: "hachure",
+  fillStyle: DEFAULT_ELEMENT_PROPS.fillStyle,
   fontFamily: DEFAULT_FONT_FAMILY,
   fontSize: DEFAULT_FONT_SIZE,
   opacity: 100,
-  roughness: 1,
+  roughness: DEFAULT_ELEMENT_PROPS.roughness,
   strokeColor: COLOR_PALETTE.black,
   roundness: null,
   strokeStyle: "solid",

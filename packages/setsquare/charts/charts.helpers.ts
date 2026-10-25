@@ -283,7 +283,7 @@ export const createRadarAxisLabels = (
   axisLabelTopY: number;
   axisLabelBottomY: number;
 } => {
-  const fontFamily = FONT_FAMILY.Virgil;
+  const fontFamily = commonProps.fontFamily;
   const fontSize = FONT_SIZES.sm;
   const lineHeight = getLineHeight(fontFamily);
   const fontString = getFontString({ fontFamily, fontSize });
