@@ -48,6 +48,7 @@ import { updateBrowserStateVersion } from "./tabSync";
 const filesStore = createStore("files-db", "files-store");
 
 export const localStorageQuotaExceededAtom = atom(false);
+export const imageSaveFailedAtom = atom(false);
 
 class LocalFileManager extends FileManager {
   clearObsoleteFiles = async (opts: { currentFileIds: FileId[] }) => {
@@ -121,10 +122,11 @@ export class LocalData {
     ) => {
       saveDataStateToLocalStorage(elements, appState);
 
-      await this.fileStorage.saveFiles({
+      const { erroredFiles } = await this.fileStorage.saveFiles({
         elements,
         files,
       });
+      appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
       onFilesSaved();
     },
     SAVE_TO_LOCAL_STORAGE_TIMEOUT,

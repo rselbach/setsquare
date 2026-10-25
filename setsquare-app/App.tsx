@@ -72,6 +72,7 @@ import {
   LibraryIndexedDBAdapter,
   LibraryLocalStorageMigrationAdapter,
   LocalData,
+  imageSaveFailedAtom,
   localStorageQuotaExceededAtom,
 } from "./data/LocalData";
 import { isBrowserStorageStateNewer } from "./data/tabSync";
@@ -527,6 +528,7 @@ const SetsquareWrapper = () => {
   };
 
   const localStorageQuotaExceeded = useAtomValue(localStorageQuotaExceededAtom);
+  const imageSaveFailed = useAtomValue(imageSaveFailedAtom);
 
   // ---------------------------------------------------------------------------
   // onExport — intercepts file save to wait for pending image loads
@@ -649,9 +651,11 @@ const SetsquareWrapper = () => {
           <OverwriteConfirmDialog.Actions.SaveToDisk />
         </OverwriteConfirmDialog>
         <AppFooter onChange={() => setsquareAPI?.refresh()} />
-        {localStorageQuotaExceeded && (
+        {(localStorageQuotaExceeded || imageSaveFailed) && (
           <div className="alert alert--danger">
-            {t("alerts.localStorageQuotaExceeded")}
+            {localStorageQuotaExceeded
+              ? t("alerts.localStorageQuotaExceeded")
+              : t("alerts.imageSaveFailed")}
           </div>
         )}
 

@@ -97,6 +97,7 @@ export class FileManager {
 
       for (const [fileId, fileData] of savedFiles) {
         this.savedFiles.set(fileId, this.getFileVersion(fileData));
+        this.erroredFiles_save.delete(fileId);
       }
 
       for (const [fileId, fileData] of erroredFiles) {
@@ -157,9 +158,10 @@ export class FileManager {
     }
   };
 
-  /** a file element prevents unload only if it's being saved regardless of
-   *  its `status`. This ensures that elements who for any reason haven't
-   *  beed set to `saved` status don't prevent unload in future sessions.
+  /** a file element prevents unload only if it's being saved or failed to
+   *  save in this session, regardless of its `status`. This ensures that
+   *  elements who for any reason haven't beed set to `saved` status don't
+   *  prevent unload in future sessions.
    *  Technically we should prevent unload when the origin client haven't
    *  yet saved the `status` update to storage, but that should be taken care
    *  of during regular beforeUnload unsaved files check.
@@ -169,7 +171,8 @@ export class FileManager {
       return (
         isInitializedImageElement(element) &&
         !element.isDeleted &&
-        this.savingFiles.has(element.fileId)
+        (this.savingFiles.has(element.fileId) ||
+          this.erroredFiles_save.has(element.fileId))
       );
     });
   };
