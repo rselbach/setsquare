@@ -349,7 +349,7 @@ describe("connector handles", () => {
     expect(h.elements).toHaveLength(1);
   });
 
-  it("ignores other pointers while a handle is pressed", () => {
+  it("ignores another pointer's pointerup while a handle is pressed", () => {
     API.setElements([source()]);
 
     hoverRightHandle();
@@ -359,6 +359,24 @@ describe("connector handles", () => {
 
     mouse.upAt(...RIGHT_HANDLE);
     expect(shapes()).toHaveLength(2);
+  });
+
+  it("cancels a handle press when a second finger touches the canvas", () => {
+    API.setElements([source()]);
+    const first = new Pointer("touch", 1);
+    const second = new Pointer("touch", 2);
+
+    first.moveTo(50, 30);
+    first.moveTo(...RIGHT_HANDLE);
+    first.downAt(...RIGHT_HANDLE);
+    expect(h.app.connectorHandles.render?.active).toBe("right");
+
+    second.downAt(500, 500);
+    expect(h.app.connectorHandles.render).toBe(null);
+    second.upAt(500, 500);
+    first.upAt(...RIGHT_HANDLE);
+
+    expect(h.elements).toHaveLength(1);
   });
 
   it("marks the pointer up after a handle click", () => {
