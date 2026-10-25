@@ -249,9 +249,7 @@ const LayerUI = ({
     return (
       <Section
         heading="selectedShapeActions"
-        className={clsx("selected-shape-actions zen-mode-transition", {
-          "transition-left": appState.zenModeEnabled,
-        })}
+        className="selected-shape-actions"
       >
         {isCompactStylesPanel ? (
           <Island
@@ -288,7 +286,9 @@ const LayerUI = ({
   };
 
   const shouldRenderSelectedShapeActions =
-    defaultUIEnabled && showSelectedShapeActions(appState, elements);
+    defaultUIEnabled &&
+    !appState.zenModeEnabled &&
+    showSelectedShapeActions(appState, elements);
 
   const shouldShowStats =
     defaultUIEnabled &&

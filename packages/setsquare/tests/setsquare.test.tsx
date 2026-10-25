@@ -6,6 +6,9 @@ import { KEYS, THEME } from "@setsquare/common";
 import { t } from "../i18n";
 import { Setsquare, Footer, MainMenu } from "../index";
 import { actionExportWithDarkMode } from "../actions/actionExport";
+import { actionToggleZenMode } from "../actions/actionToggleZenMode";
+
+import { API } from "./helpers/api";
 
 import {
   act,
@@ -526,6 +529,22 @@ describe("<Setsquare/>", () => {
       });
       expect(nameInput.value).toBe("");
       expect(h.state.name).toBe(null);
+    });
+  });
+
+  // keep below the snapshot tests: rendering the inspector advances radix ids
+  describe("Zen mode", () => {
+    it("should close the inspector in zen mode", async () => {
+      const { container } = await render(<Setsquare />);
+      const rectangle = API.createElement({ type: "rectangle" });
+      API.setElements([rectangle]);
+      API.setSelectedElements([rectangle]);
+      expect(container.querySelector(".App-inspector")).not.toBe(null);
+
+      API.executeAction(actionToggleZenMode);
+
+      expect(h.state.zenModeEnabled).toBe(true);
+      expect(container.querySelector(".App-inspector")).toBe(null);
     });
   });
 });
