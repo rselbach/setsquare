@@ -515,6 +515,13 @@ describe("<Setsquare/>", () => {
       expect(document.activeElement).not.toBe(nameInput);
     });
 
+    it("should show the host's name in the title block", async () => {
+      const { container } = await render(<Setsquare name="Greendale" />);
+      expect(
+        container.querySelector<HTMLInputElement>(".TitleBlock__name")!.value,
+      ).toBe("Greendale");
+    });
+
     it("should discard a title block edit on Escape", async () => {
       const { container } = await render(<Setsquare />);
       const nameInput =

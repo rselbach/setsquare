@@ -3131,7 +3131,11 @@ class App extends React.Component<AppProps, AppState> {
       let zenModeEnabled = actionResult?.appState?.zenModeEnabled || false;
       const theme =
         actionResult?.appState?.theme || this.props.theme || THEME.LIGHT;
-      const name = actionResult?.appState?.name ?? this.state.name;
+      // `null` unnames the drawing; only a missing name keeps the current one
+      const name =
+        actionResult?.appState?.name === undefined
+          ? this.state.name
+          : actionResult.appState.name;
       const errorMessage =
         actionResult?.appState?.errorMessage ?? this.state.errorMessage;
       if (typeof this.props.viewModeEnabled !== "undefined") {
@@ -3602,6 +3606,8 @@ class App extends React.Component<AppProps, AppState> {
     restoredAppState = {
       ...restoredAppState,
       theme: this.props.theme || restoredAppState.theme,
+      // keep the host's `name` if the scene has none
+      name: restoredAppState.name ?? this.state.name,
       // we're falling back to current (pre-init) state when deciding
       // whether to open the library, to handle a case where we
       // update the state outside of initialData (e.g. when a library update

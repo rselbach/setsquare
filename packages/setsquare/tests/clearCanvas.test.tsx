@@ -20,4 +20,15 @@ describe("clear canvas", () => {
 
     expect(h.state.objectsSnapModeEnabled).toBe(false);
   });
+
+  it("leaves the new drawing unnamed", () => {
+    API.setAppState({ name: "Greendale campus map" });
+
+    API.executeAction(actionClearCanvas);
+
+    expect(h.state.name).toBe(null);
+    expect(
+      document.querySelector<HTMLInputElement>(".TitleBlock__name")!.value,
+    ).toBe("");
+  });
 });
