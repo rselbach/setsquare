@@ -246,6 +246,11 @@ export const DesktopMenu = ({
       enabled: actionManager.isActionEnabled(action),
     });
 
+  // like any macOS document, an untitled drawing asks where to save it
+  const save = appState.fileHandle
+    ? actionSaveToActiveFile
+    : actionSaveFileToDisk;
+
   const entries: Entry[] = [
     submenu("app", "Setsquare", [
       predefined({ About: null }),
@@ -320,9 +325,9 @@ export const DesktopMenu = ({
         enabled: actionManager.isActionEnabled(actionLoadScene),
       }),
       separator,
-      command("save", t("buttons.save"), () => run(actionSaveToActiveFile), {
+      command("save", t("buttons.save"), () => run(save), {
         accelerator: "CmdOrCtrl+S",
-        enabled: actionManager.isActionEnabled(actionSaveToActiveFile),
+        enabled: actionManager.isActionEnabled(save),
       }),
       command(
         "save-as",
