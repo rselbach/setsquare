@@ -31,12 +31,9 @@ import { activeConfirmDialogAtom } from "../ActiveConfirmDialog";
 import {
   useSetsquareSetAppState,
   useSetsquareActionManager,
-  useSetsquareElements,
   useAppProps,
   useApp,
 } from "../App";
-import { openConfirmModal } from "../OverwriteConfirm/OverwriteConfirmState";
-import Trans from "../Trans";
 import DropdownMenuItem from "../dropdownMenu/DropdownMenuItem";
 import DropdownMenuItemCheckbox from "../dropdownMenu/DropdownMenuItemCheckbox";
 import DropdownMenuItemContentRadio from "../dropdownMenu/DropdownMenuItemContentRadio";
@@ -64,36 +61,15 @@ import type { InputDevice } from "../../types";
 export const LoadScene = () => {
   const { t } = useI18n();
   const actionManager = useSetsquareActionManager();
-  const elements = useSetsquareElements();
 
   if (!actionManager.isActionEnabled(actionLoadScene)) {
     return null;
   }
 
-  const handleSelect = async () => {
-    if (
-      !elements.length ||
-      (await openConfirmModal({
-        title: t("overwriteConfirm.modal.loadFromFile.title"),
-        actionLabel: t("overwriteConfirm.modal.loadFromFile.button"),
-        color: "warning",
-        description: (
-          <Trans
-            i18nKey="overwriteConfirm.modal.loadFromFile.description"
-            bold={(text) => <strong>{text}</strong>}
-            br={() => <br />}
-          />
-        ),
-      }))
-    ) {
-      actionManager.executeAction(actionLoadScene);
-    }
-  };
-
   return (
     <DropdownMenuItem
       icon={LoadIcon}
-      onSelect={handleSelect}
+      onSelect={() => actionManager.executeAction(actionLoadScene)}
       data-testid="load-button"
       shortcut={getShortcutFromShortcutName("loadScene")}
       aria-label={t("buttons.load")}

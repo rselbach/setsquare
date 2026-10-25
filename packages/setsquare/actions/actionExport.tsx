@@ -7,10 +7,12 @@ import type { SetsquareElement, Theme } from "@setsquare/element/types";
 import { useEditorInterface } from "../components/App";
 import { CheckboxItem } from "../components/CheckboxItem";
 import { DarkModeToggle } from "../components/DarkModeToggle";
+import { openConfirmModal } from "../components/OverwriteConfirm/OverwriteConfirmState";
 import { ProjectName } from "../components/ProjectName";
 import { Toast } from "../components/Toast";
 import { IconButton } from "../components/IconButton";
 import { Tooltip } from "../components/Tooltip";
+import Trans from "../components/Trans";
 import { ExportIcon, questionCircle, saveAs } from "../components/icons";
 import { loadFromJSON, saveAsJSON } from "../data";
 import { isImageFileHandle } from "../data/blob";
@@ -390,6 +392,22 @@ export const actionSaveFileToDisk = register({
   ),
 });
 
+/** Asks before loading a file replaces a drawing that isn't empty. */
+export const confirmLoadFromFile = async (app: AppClassProperties) =>
+  !app.scene.getNonDeletedElements().length ||
+  openConfirmModal({
+    title: t("overwriteConfirm.modal.loadFromFile.title"),
+    actionLabel: t("overwriteConfirm.modal.loadFromFile.button"),
+    color: "warning",
+    description: (
+      <Trans
+        i18nKey="overwriteConfirm.modal.loadFromFile.description"
+        bold={(text) => <strong>{text}</strong>}
+        br={() => <br />}
+      />
+    ),
+  });
+
 export const actionLoadScene = register({
   name: "loadScene",
   label: "buttons.load",
@@ -400,6 +418,9 @@ export const actionLoadScene = register({
     );
   },
   perform: async (elements, appState, _, app) => {
+    if (!(await confirmLoadFromFile(app))) {
+      return false;
+    }
     try {
       const {
         elements: loadedElements,
