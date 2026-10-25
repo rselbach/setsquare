@@ -7198,6 +7198,7 @@ class App extends React.Component<AppProps, AppState> {
         scenePointer,
         isOverScrollBar,
         hitElementMightBeLocked,
+        event.pointerType,
       )
     ) {
       this.cursor.set(CURSOR_TYPE.POINTER);

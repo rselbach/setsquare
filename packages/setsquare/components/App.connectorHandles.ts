@@ -24,6 +24,7 @@ import type {
   SetsquareElement,
   SetsquareFlowchartNodeElement,
   NonDeleted,
+  PointerType,
 } from "@setsquare/element/types";
 
 import type React from "react";
@@ -37,6 +38,7 @@ type ConnectorHandlesState =
   | {
       type: "pressed";
       render: ConnectorHandlesRenderConfig & { active: LinkDirection };
+      pointerId: number;
       origin: { clientX: number; clientY: number };
       dragging: boolean;
     };
@@ -147,11 +149,20 @@ export class AppConnectorHandles {
     isOverScrollBar: boolean,
     /** the element under the pointer, locked or not */
     hitElement: NonDeleted<SetsquareElement> | null,
+    pointerType: PointerType,
   ): boolean => {
     if (this.state.type === "pressed") {
       return true;
     }
-    if (isOverScrollBar || !this.canShow()) {
+    // the selection's own handles come first, even where a connector handle
+    // sits on them
+    const isOverTransformHandle = !!this.app.selectionTool.getTransformHandleAt(
+      this.app.scene.getSelectedElements(this.app.state),
+      scenePointer.x,
+      scenePointer.y,
+      pointerType,
+    );
+    if (isOverScrollBar || isOverTransformHandle || !this.canShow()) {
       this.hide();
       return false;
     }
@@ -240,6 +251,7 @@ export class AppConnectorHandles {
     this.state = {
       type: "pressed",
       render: { ...this.state.render, active: this.state.render.active },
+      pointerId: event.pointerId,
       origin: { clientX: event.clientX, clientY: event.clientY },
       dragging: false,
     };
@@ -261,7 +273,15 @@ export class AppConnectorHandles {
     this.setState({ type: "hidden" });
   };
 
-  private endPress() {
+  /**
+   * Ends the press. The canvas marked the pointer down before this class
+   * took the press over, so it is marked up again here.
+   */
+  private endPress(event?: { clientX: number; clientY: number }) {
+    this.app.setState({ cursorButton: "up" });
+    if (event) {
+      this.app.savePointer(event.clientX, event.clientY, "up");
+    }
     this.unsubscribeMissingPointerUp?.();
     this.unsubscribeMissingPointerUp = null;
     this.app.ownerWindow.removeEventListener(
@@ -332,7 +352,11 @@ export class AppConnectorHandles {
 
   private onPointerMove = (event: PointerEvent) => {
     const source = this.getSource();
-    if (this.state.type !== "pressed" || !source) {
+    if (
+      this.state.type !== "pressed" ||
+      event.pointerId !== this.state.pointerId ||
+      !source
+    ) {
       return;
     }
     const { origin } = this.state;
@@ -357,12 +381,15 @@ export class AppConnectorHandles {
     });
   };
 
-  private onPointerUp = () => {
+  private onPointerUp = (event: PointerEvent) => {
     const source = this.getSource();
     const pressed = this.state;
-    this.endPress();
+    if (pressed.type !== "pressed" || event.pointerId !== pressed.pointerId) {
+      return;
+    }
+    this.endPress(event);
     this.setState({ type: "hidden" });
-    if (pressed.type !== "pressed" || !source) {
+    if (!source) {
       return;
     }
 

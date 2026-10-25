@@ -1,7 +1,8 @@
 import React from "react";
 import { vi } from "vitest";
 
-import { KEYS, reseed } from "@setsquare/common";
+import { arrayToMap, KEYS, reseed } from "@setsquare/common";
+import { getTransformHandles } from "@setsquare/element";
 
 import type { SetsquareArrowElement } from "@setsquare/element/types";
 
@@ -346,5 +347,53 @@ describe("connector handles", () => {
     mouse.clickAt(400, 400);
 
     expect(h.elements).toHaveLength(1);
+  });
+
+  it("ignores other pointers while a handle is pressed", () => {
+    API.setElements([source()]);
+
+    hoverRightHandle();
+    mouse.downAt(...RIGHT_HANDLE);
+    new Pointer("touch", 2).upAt(500, 500);
+    expect(h.elements).toHaveLength(1);
+
+    mouse.upAt(...RIGHT_HANDLE);
+    expect(shapes()).toHaveLength(2);
+  });
+
+  it("marks the pointer up after a handle click", () => {
+    API.setElements([source()]);
+
+    hoverRightHandle();
+    mouse.downAt(...RIGHT_HANDLE);
+    expect(h.state.cursorButton).toBe("down");
+    mouse.upAt(...RIGHT_HANDLE);
+
+    expect(h.state.cursorButton).toBe("up");
+  });
+
+  it("leaves the rotation handle of a selected shape alone", () => {
+    const rectangle = API.createElement({
+      type: "rectangle",
+      id: "rotated",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      angle: Math.PI / 4,
+    });
+    API.setElements([rectangle]);
+    API.setSelectedElements([rectangle]);
+    const [x, y, width, height] = getTransformHandles(
+      h.elements[0],
+      h.state.zoom,
+      arrayToMap(h.elements),
+      "mouse",
+    ).rotation!;
+
+    mouse.moveTo(50, 50);
+    mouse.moveTo(x + width / 2, y + height / 2);
+
+    expect(h.app.connectorHandles.render?.active ?? null).toBe(null);
   });
 });
