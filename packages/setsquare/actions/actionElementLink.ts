@@ -17,7 +17,6 @@ export const actionCopyElementLink = register({
   name: "copyElementLink",
   label: "labels.copyElementLink",
   icon: copyIcon,
-  trackEvent: { category: "element" },
   perform: async (elements, appState, _, app) => {
     const selectedElements = getSelectedElements(elements, appState);
 
@@ -109,5 +108,4 @@ export const actionLinkToElement = register({
       canCreateLinkFromElements(selectedElements)
     );
   },
-  trackEvent: false,
 });

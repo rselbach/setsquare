@@ -1,4 +1,3 @@
-import { trackEvent } from "../../analytics";
 import { useTunnels } from "../../context/tunnels";
 import { useI18n } from "../../i18n";
 import { useSetsquareSetAppState } from "../App";
@@ -22,7 +21,6 @@ export const TTDDialogTrigger = ({
     <TTDDialogTriggerTunnel.In>
       <DropdownMenu.Item
         onSelect={() => {
-          trackEvent("ai", "dialog open", "ttd");
           setAppState({ openDialog: { name: "ttd", tab: "text-to-diagram" } });
         }}
         icon={icon ?? brainIcon}

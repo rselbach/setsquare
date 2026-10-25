@@ -11,10 +11,6 @@ export const actionToggleZenMode = register({
   label: "buttons.zenMode",
   icon: coffeeIcon,
   viewMode: true,
-  trackEvent: {
-    category: "canvas",
-    predicate: (appState) => !appState.zenModeEnabled,
-  },
   perform(elements, appState) {
     return {
       appState: {

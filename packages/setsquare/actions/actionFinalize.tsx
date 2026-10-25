@@ -53,7 +53,6 @@ type FormData = {
 export const actionFinalize = register<FormData>({
   name: "finalize",
   label: "",
-  trackEvent: false,
   perform: (elements, appState, data, app) => {
     let shouldCommit = true;
     let newElements = elements;

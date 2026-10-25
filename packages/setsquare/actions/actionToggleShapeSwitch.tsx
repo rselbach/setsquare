@@ -15,10 +15,6 @@ export const actionToggleShapeSwitch = register({
   label: "labels.shapeSwitch",
   icon: () => null,
   viewMode: true,
-  trackEvent: {
-    category: "shape_switch",
-    action: "toggle",
-  },
   keywords: ["change", "switch", "swap"],
   perform(elements, appState, _, app) {
     editorJotaiStore.set(convertElementTypePopupAtom, {

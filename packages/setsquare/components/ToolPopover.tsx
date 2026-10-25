@@ -5,8 +5,6 @@ import { capitalizeString } from "@setsquare/common";
 
 import { Popover } from "radix-ui";
 
-import { trackEvent } from "../analytics";
-
 import { IconButton } from "./IconButton";
 import { isToolButtonDisabled } from "./Tools";
 
@@ -101,7 +99,6 @@ export const ToolPopover = ({
             data-testid={`toolbar-${type}`}
             onSelect={() => {
               if (app.state.activeTool.type !== type) {
-                trackEvent("toolbar", type, "ui");
                 app.setActiveTool({ type: type as any });
                 onToolChange?.(type);
               }

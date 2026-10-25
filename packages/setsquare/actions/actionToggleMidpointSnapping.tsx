@@ -6,10 +6,6 @@ export const actionToggleMidpointSnapping = register({
   name: "midpointSnapping",
   label: "labels.midpointSnapping",
   viewMode: false,
-  trackEvent: {
-    category: "canvas",
-    predicate: (appState) => !appState.isMidpointSnappingEnabled,
-  },
   perform(elements, appState) {
     return {
       appState: {

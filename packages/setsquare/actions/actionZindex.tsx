@@ -25,7 +25,6 @@ export const actionSendBackward = register({
   label: "labels.sendBackward",
   keywords: ["move down", "zindex", "layer"],
   icon: SendBackwardIcon,
-  trackEvent: { category: "element" },
   perform: (elements, appState, value, app) => {
     return {
       elements: moveOneLeft(elements, appState, app.scene),
@@ -55,7 +54,6 @@ export const actionBringForward = register({
   label: "labels.bringForward",
   keywords: ["move up", "zindex", "layer"],
   icon: BringForwardIcon,
-  trackEvent: { category: "element" },
   perform: (elements, appState, value, app) => {
     return {
       elements: moveOneRight(elements, appState, app.scene),
@@ -85,7 +83,6 @@ export const actionSendToBack = register({
   label: "labels.sendToBack",
   keywords: ["move down", "zindex", "layer"],
   icon: SendToBackIcon,
-  trackEvent: { category: "element" },
   perform: (elements, appState) => {
     return {
       elements: moveAllLeft(elements, appState),
@@ -122,7 +119,6 @@ export const actionBringToFront = register({
   label: "labels.bringToFront",
   keywords: ["move up", "zindex", "layer"],
   icon: BringToFrontIcon,
-  trackEvent: { category: "element" },
 
   perform: (elements, appState) => {
     return {

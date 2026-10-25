@@ -11,10 +11,6 @@ export const actionToggleViewMode = register({
   label: "labels.viewMode",
   icon: eyeIcon,
   viewMode: true,
-  trackEvent: {
-    category: "canvas",
-    predicate: (appState) => !appState.viewModeEnabled,
-  },
   perform(elements, appState) {
     return {
       appState: {

@@ -81,7 +81,6 @@ import type {
 
 import type { Scene } from "@setsquare/element";
 
-import { trackEvent } from "../analytics";
 import { atom } from "../editor-jotai";
 
 import "./ConvertElementTypePopup.scss";
@@ -348,9 +347,6 @@ const Panel = ({
               // selecting the already-selected type is a no-op
               if (isSelected) {
                 return;
-              }
-              if (app.state.activeTool.type !== type) {
-                trackEvent("convertElementType", type, "ui");
               }
               convertElementTypes(app, {
                 conversionType,

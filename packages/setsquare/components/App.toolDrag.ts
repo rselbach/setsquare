@@ -14,8 +14,6 @@ import type {
   NonDeleted,
 } from "@setsquare/element/types";
 
-import { trackEvent } from "../analytics";
-
 import type App from "./App";
 import type { ToolType } from "../types";
 
@@ -101,14 +99,12 @@ export class AppToolDrag {
   public preview: DraggedElement | null = null;
 
   private armed: {
-    type: ToolType;
     pointerId: number;
     clientX: number;
     clientY: number;
   } | null = null;
 
   private tool: DraggableTool | null = null;
-  private type: ToolType | null = null;
 
   static isDraggable = (type: ToolType) => type in DRAGGABLE_TOOLS;
 
@@ -125,13 +121,11 @@ export class AppToolDrag {
     }
     this.cancel();
     this.armed = {
-      type,
       pointerId: event.pointerId,
       clientX: event.clientX,
       clientY: event.clientY,
     };
     this.tool = tool;
-    this.type = type;
     this.addListeners();
     return true;
   };
@@ -148,7 +142,6 @@ export class AppToolDrag {
       if (moved < DRAGGING_THRESHOLD) {
         return;
       }
-      trackEvent("toolbar", this.armed.type, "drag");
     }
     const preview = this.tool!.createElement(
       this.app,
@@ -168,7 +161,7 @@ export class AppToolDrag {
     if (!this.armed || event.pointerId !== this.armed.pointerId) {
       return;
     }
-    const { preview, tool, type } = this;
+    const { preview, tool } = this;
     // the button's own click handles a press that never became a drag
     if (!preview) {
       this.cancel();
@@ -191,7 +184,6 @@ export class AppToolDrag {
       { type: app.state.preferredSelectionTool.type },
       { keepSelection: true },
     );
-    trackEvent("toolbar", type!, "drop");
     tool!.onDrop?.(app, preview);
   };
 
@@ -207,7 +199,6 @@ export class AppToolDrag {
     const wasDragging = this.preview !== null;
     this.armed = null;
     this.tool = null;
-    this.type = null;
     this.preview = null;
     this.removeListeners();
     if (wasDragging) {

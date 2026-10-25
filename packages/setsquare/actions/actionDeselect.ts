@@ -65,7 +65,6 @@ const getParentEditingGroupId = (
 export const actionDeselect = register({
   name: "deselect",
   label: "",
-  trackEvent: false,
   perform: (_elements, appState, _, app) => {
     const activeTool = getNextActiveTool(appState, app);
     app.cursor.applyForTool(activeTool);

@@ -5,7 +5,6 @@ import { KEYS, capitalizeString } from "@setsquare/common";
 
 import type { PointerType } from "@setsquare/element/types";
 
-import { trackEvent } from "../analytics";
 import { t } from "../i18n";
 import { getShortcutKey } from "../shortcut";
 
@@ -312,7 +311,6 @@ const createToolButton = (
           }
 
           if (app.state.activeTool.type !== type) {
-            trackEvent("toolbar", type, "ui");
             app.setActiveTool({ type });
           }
         }}
@@ -352,7 +350,6 @@ export const SelectionToolButton = createToolButton("selection", {
     }
 
     if (app.state.activeTool.type !== "selection") {
-      trackEvent("toolbar", "selection", "ui");
       app.setActiveTool({ type: "selection" });
     }
   },

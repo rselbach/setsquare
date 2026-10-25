@@ -34,7 +34,6 @@ export const actionDuplicateSelection = register({
   name: "duplicateSelection",
   label: "labels.duplicateSelection",
   icon: DuplicateIcon,
-  trackEvent: { category: "element" },
   perform: (elements, appState, formData, app) => {
     if (appState.selectedElementsAreBeingDragged) {
       return false;

@@ -6,10 +6,6 @@ export const actionToggleArrowBinding = register({
   name: "arrowBinding",
   label: "labels.arrowBinding",
   viewMode: false,
-  trackEvent: {
-    category: "canvas",
-    predicate: (appState) => appState.bindingPreference === "disabled",
-  },
   perform(elements, appState) {
     const newPreference =
       appState.bindingPreference === "enabled" ? "disabled" : "enabled";

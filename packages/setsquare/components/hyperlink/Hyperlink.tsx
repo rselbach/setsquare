@@ -36,7 +36,6 @@ import type {
   NonDeletedSetsquareElement,
 } from "@setsquare/element/types";
 
-import { trackEvent } from "../../analytics";
 import { getTooltipDiv, updateTooltipPosition } from "../../components/Tooltip";
 
 import { t } from "../../i18n";
@@ -99,10 +98,6 @@ export const Hyperlink = ({
     }
 
     const link = normalizeLink(inputRef.current.value) || null;
-
-    if (!element.link && link) {
-      trackEvent("hyperlink", "create");
-    }
 
     if (isEmbeddableElement(element)) {
       if (appState.activeEmbeddable?.element === element) {
@@ -224,13 +219,11 @@ export const Hyperlink = ({
   }, [appState, element, isEditing, setAppState, elementsMap]);
 
   const handleRemove = useCallback(() => {
-    trackEvent("hyperlink", "delete");
     scene.mutateElement(element, { link: null });
     setAppState({ showHyperlinkPopup: false });
   }, [setAppState, element, scene]);
 
   const onEdit = () => {
-    trackEvent("hyperlink", "edit", "popup-ui");
     setAppState({ showHyperlinkPopup: "editor" });
   };
   const { x, y } = getCoordsForPopover(element, appState, elementsMap);
@@ -433,7 +426,6 @@ const renderTooltip = (
     },
     "top",
   );
-  trackEvent("hyperlink", "tooltip", "link-icon");
 
   IS_HYPERLINK_TOOLTIP_VISIBLE = true;
 };

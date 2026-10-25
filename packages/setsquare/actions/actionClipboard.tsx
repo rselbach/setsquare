@@ -24,7 +24,6 @@ export const actionCopy = register<ClipboardEvent | null>({
   name: "copy",
   label: "labels.copy",
   icon: DuplicateIcon,
-  trackEvent: { category: "element" },
   perform: async (elements, appState, event, app) => {
     const elementsToCopy = app.scene.getSelectedElements({
       selectedElementIds: appState.selectedElementIds,
@@ -55,7 +54,6 @@ export const actionCopy = register<ClipboardEvent | null>({
 export const actionPaste = register({
   name: "paste",
   label: "labels.paste",
-  trackEvent: { category: "element" },
   perform: async (elements, appState, data, app) => {
     let types;
     try {
@@ -113,7 +111,6 @@ export const actionCut = register<ClipboardEvent | null>({
   name: "cut",
   label: "labels.cut",
   icon: cutIcon,
-  trackEvent: { category: "element" },
   perform: (elements, appState, event, app) => {
     actionCopy.perform(elements, appState, event, app);
     // the cut frame's children are on the clipboard with it, so go with it
@@ -131,7 +128,6 @@ export const actionCopyAsSvg = register({
   name: "copyAsSvg",
   label: "labels.copyAsSvg",
   icon: svgIcon,
-  trackEvent: { category: "element" },
   perform: async (elements, appState, _data, app) => {
     if (!app.canvas) {
       return {
@@ -199,7 +195,6 @@ export const actionCopyAsPng = register({
   name: "copyAsPng",
   label: "labels.copyAsPng",
   icon: pngIcon,
-  trackEvent: { category: "element" },
   perform: async (elements, appState, _data, app) => {
     if (!app.canvas) {
       return {
@@ -260,7 +255,6 @@ export const actionCopyAsPng = register({
 export const copyText = register({
   name: "copyText",
   label: "labels.copyText",
-  trackEvent: { category: "element" },
   perform: (elements, appState, _, app) => {
     const selectedElements = app.scene.getSelectedElements({
       selectedElementIds: appState.selectedElementIds,

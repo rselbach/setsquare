@@ -37,9 +37,6 @@ export const actionToggleLinearEditor = register({
       : "labels.lineEditor.edit";
   },
   keywords: ["line"],
-  trackEvent: {
-    category: "element",
-  },
   predicate: (elements, appState, _, app) => {
     const selectedElements = app.scene.getSelectedElements(appState);
     if (
@@ -120,9 +117,6 @@ export const actionTogglePolygon = register({
     return allPolygons
       ? "labels.polygon.breakPolygon"
       : "labels.polygon.convertToPolygon";
-  },
-  trackEvent: {
-    category: "element",
   },
   predicate: (elements, appState, _, app) => {
     const selectedElements = app.scene.getSelectedElements({

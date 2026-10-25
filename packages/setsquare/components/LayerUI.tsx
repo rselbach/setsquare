@@ -19,7 +19,6 @@ import { ShapeCache } from "@setsquare/element";
 import type { NonDeletedSetsquareElement } from "@setsquare/element/types";
 
 import { actionToggleStats } from "../actions";
-import { trackEvent } from "../analytics";
 import { TunnelsContext, useInitializeTunnels } from "../context/tunnels";
 import { UIAppStateContext } from "../context/ui-appState";
 import { useAtom, useAtomValue } from "../editor-jotai";
@@ -452,20 +451,7 @@ const LayerUI = ({
       return null;
     }
 
-    return (
-      <DefaultSidebar
-        __fallback
-        onDock={(docked) => {
-          trackEvent(
-            "sidebar",
-            `toggleDock (${docked ? "dock" : "undock"})`,
-            `(${
-              editorInterface.formFactor === "phone" ? "mobile" : "desktop"
-            })`,
-          );
-        }}
-      />
-    );
+    return <DefaultSidebar __fallback />;
   };
 
   const isSidebarDocked = useAtomValue(isSidebarDockedAtom);
@@ -492,19 +478,6 @@ const LayerUI = ({
             __fallback
             icon={sidebarRightIcon}
             title={capitalizeString(t("toolBar.library"))}
-            onToggle={(open) => {
-              if (open) {
-                trackEvent(
-                  "sidebar",
-                  `${DEFAULT_SIDEBAR.name} (open)`,
-                  `button (${
-                    editorInterface.formFactor === "phone"
-                      ? "mobile"
-                      : "desktop"
-                  })`,
-                );
-              }
-            }}
             tab={DEFAULT_SIDEBAR.defaultTab}
           >
             {capitalizeString(t("toolBar.library"))}

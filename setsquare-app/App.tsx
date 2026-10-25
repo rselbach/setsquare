@@ -6,7 +6,6 @@ import {
   SetsquareAPIProvider,
   useSetsquareAPI,
 } from "@setsquare/setsquare";
-import { trackEvent } from "@setsquare/setsquare/analytics";
 import {
   CommandPalette,
   DEFAULT_CATEGORIES,
@@ -17,10 +16,7 @@ import Trans from "@setsquare/setsquare/components/Trans";
 import {
   APP_NAME,
   EVENT,
-  VERSION_TIMEOUT,
   debounce,
-  getVersion,
-  getFrame,
   isTestEnv,
   preventUnload,
   resolvablePromise,
@@ -222,14 +218,6 @@ const SetsquareWrapper = () => {
   }
 
   const debugCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    trackEvent("load", "frame", getFrame());
-    // Delayed so that the app has a time to load the latest SW
-    setTimeout(() => {
-      trackEvent("load", "version", getVersion());
-    }, VERSION_TIMEOUT);
-  }, []);
 
   useHandleLibrary({
     setsquareAPI,

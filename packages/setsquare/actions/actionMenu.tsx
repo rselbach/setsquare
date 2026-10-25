@@ -11,7 +11,6 @@ export const actionShortcuts = register({
   label: "welcomeScreen.defaults.helpHint",
   icon: HelpIconThin,
   viewMode: true,
-  trackEvent: { category: "menu", action: "toggleHelpDialog" },
   perform: (_elements, appState, _, { focusContainer }) => {
     if (appState.openDialog?.name === "help") {
       focusContainer();

@@ -4,9 +4,6 @@ interface Window {
   SETSQUARE_THROTTLE_RENDER: boolean | undefined;
   DEBUG_FRACTIONAL_INDICES: boolean | undefined;
   SETSQUARE_EXPORT_SOURCE: string;
-  gtag: Function;
-  sa_event: Function;
-  fathom: { trackEvent: Function };
 }
 
 interface CanvasRenderingContext2D {

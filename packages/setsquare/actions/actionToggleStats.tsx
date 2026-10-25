@@ -11,7 +11,6 @@ export const actionToggleStats = register({
   label: "stats.fullTitle",
   icon: abacusIcon,
   viewMode: true,
-  trackEvent: { category: "menu" },
   keywords: ["edit", "attributes", "customize"],
   perform(elements, appState) {
     return {

@@ -11,10 +11,6 @@ export const actionToggleShowHints = register({
   keywords: ["hint", "hints", "tip", "tips"],
   // hints live in the toolbar, which view mode hides entirely
   viewMode: false,
-  trackEvent: {
-    category: "canvas",
-    predicate: (appState) => !appState.showHints,
-  },
   perform(elements, appState) {
     return {
       appState: {

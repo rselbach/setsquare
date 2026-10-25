@@ -4,7 +4,6 @@ import { newTextElement } from "@setsquare/element";
 
 import type { ChartType } from "@setsquare/element/types";
 
-import { trackEvent } from "../analytics";
 import { isSpreadsheetValidForChartType, renderSpreadsheet } from "../charts";
 import { t } from "../i18n";
 import { exportToSvg } from "../scene/export";
@@ -197,7 +196,6 @@ export const PasteChartDialog = ({
 
   const handleChartClick = (chartType: ChartType, elements: ChartElements) => {
     onInsertElements(elements);
-    trackEvent("paste", "chart", chartType);
     onClose();
     focusContainer();
   };
@@ -209,7 +207,6 @@ export const PasteChartDialog = ({
       y: 0,
     });
     onInsertElements([textElement]);
-    trackEvent("paste", "chart", "plaintext");
     onClose();
     focusContainer();
   };

@@ -22,7 +22,6 @@ export const actionGoToCollaborator = register<Collaborator>({
   name: "goToCollaborator",
   label: "Go to a collaborator",
   viewMode: true,
-  trackEvent: { category: "collab" },
   perform: (_elements, appState, collaborator, app) => {
     invariant(
       collaborator,
