@@ -129,10 +129,6 @@ export default defineConfig(({ command, mode }) => {
               return `locales/${id.substring(index + 8)}`;
             }
 
-            if (id.includes("packages/mermaid-to-setsquare/")) {
-              return "mermaid-to-setsquare";
-            }
-
             if (id.includes("@codemirror/") || id.includes("@lezer/")) {
               return "codemirror.chunk";
             }

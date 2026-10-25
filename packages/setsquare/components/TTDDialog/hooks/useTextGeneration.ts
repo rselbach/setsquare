@@ -1,5 +1,4 @@
 import { useRef } from "react";
-import { parseMermaidToSetsquare } from "@setsquare/mermaid-to-setsquare";
 import { isFiniteNumber } from "@setsquare/math";
 
 import { useAtom } from "../../../editor-jotai";
@@ -191,6 +190,9 @@ export const useTextGeneration = ({
       }
 
       try {
+        const { parseMermaidToSetsquare } = await import(
+          "@setsquare/mermaid-to-setsquare"
+        );
         await parseMermaidToSetsquare(generatedResponse ?? "");
         trackEvent("ai", "mermaid parse success", "ttd");
       } catch (error: any) {
