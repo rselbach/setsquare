@@ -110,7 +110,8 @@ export default defineConfig(({ command, mode }) => {
           assetFileNames(chunkInfo) {
             if (chunkInfo?.name?.endsWith(".woff2")) {
               const family = chunkInfo.name.split("-")[0];
-              return `fonts/${family}/[name][extname]`;
+              // hashed, as fonts are cached for long (HTTP, service worker)
+              return `fonts/${family}/[name]-[hash][extname]`;
             }
 
             return "assets/[name]-[hash][extname]";
