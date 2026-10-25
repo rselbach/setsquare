@@ -278,6 +278,7 @@ import {
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
 import { actionCopyElementLink } from "../actions/actionElementLink";
+import { confirmLoadFromFile } from "../actions/actionExport";
 import { actionUnlockAllElements } from "../actions/actionElementLock";
 import {
   actionRemoveAllElementsFromFrame,
@@ -3705,6 +3706,7 @@ class App extends React.Component<AppProps, AppState> {
           this.loadFileToCanvas(
             new File([blob], blob.name || "", { type: blob.type }),
             fileHandle,
+            { confirmReplace: true },
           );
         },
       );
@@ -10870,7 +10872,7 @@ class App extends React.Component<AppProps, AppState> {
       const { file, fileHandle } = fileItems[0];
       if (file) {
         // Attempt to parse an setsquare/setsquarelib file
-        if (await this.loadFileToCanvas(file, fileHandle, insertPosition)) {
+        if (await this.loadFileToCanvas(file, fileHandle, { insertPosition })) {
           this.showSceneReplacedToast();
         }
       }
@@ -10903,7 +10905,14 @@ class App extends React.Component<AppProps, AppState> {
   loadFileToCanvas = async (
     file: File,
     fileHandle: FileSystemFileHandle | null,
-    insertPosition?: { clientX: number; clientY: number },
+    {
+      insertPosition,
+      confirmReplace = false,
+    }: {
+      insertPosition?: { clientX: number; clientY: number };
+      /** ask before a drawing replaces a scene that isn't empty */
+      confirmReplace?: boolean;
+    } = {},
   ) => {
     file = await normalizeFile(file);
     try {
@@ -10950,6 +10959,9 @@ class App extends React.Component<AppProps, AppState> {
             retainSeed: true,
             preserveFrameChildrenOrder: true,
           });
+          return;
+        }
+        if (confirmReplace && !(await confirmLoadFromFile(this))) {
           return;
         }
         // restore the fractional indices by mutating elements
