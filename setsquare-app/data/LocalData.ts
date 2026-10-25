@@ -112,8 +112,11 @@ const isQuotaExceededError = (error: any) => {
 };
 
 export class LocalData {
+  // settles once every save started so far has finished
+  private static saved: Promise<unknown> = Promise.resolve();
+
   private static _save = debounce(
-    async (
+    (
       elements: readonly SetsquareElement[],
       appState: AppState,
       files: BinaryFiles,
@@ -121,12 +124,17 @@ export class LocalData {
     ) => {
       saveDataStateToLocalStorage(elements, appState);
 
-      const { erroredFiles } = await this.fileStorage.saveFiles({
-        elements,
-        files,
-      });
-      appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
-      onFilesSaved();
+      const saving = this.fileStorage
+        .saveFiles({
+          elements,
+          files,
+        })
+        .then(({ erroredFiles }) => {
+          appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
+          onFilesSaved();
+        });
+      this.saved = Promise.allSettled([this.saved, saving]);
+      return saving;
     },
     SAVE_TO_LOCAL_STORAGE_TIMEOUT,
   );
@@ -144,8 +152,10 @@ export class LocalData {
     }
   };
 
+  /** Saves pending changes now, resolving once every save is stored */
   static flushSave = () => {
     this._save.flush();
+    return this.saved;
   };
 
   static isSavePaused = () => {

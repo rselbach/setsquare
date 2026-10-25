@@ -57,6 +57,8 @@ import type { Theme } from "@setsquare/element/types";
 
 import { useAppLangCode } from "../app-language/language-state";
 
+import { quit } from "./quit";
+
 import type { PredefinedMenuItemOptions } from "@tauri-apps/api/menu";
 
 type Command = {
@@ -317,7 +319,9 @@ export const DesktopMenu = ({
       predefined("HideOthers"),
       predefined("ShowAll"),
       separator,
-      predefined("Quit"),
+      command("quit", t("desktopMenu.quit"), quit, {
+        accelerator: "CmdOrCtrl+Q",
+      }),
     ]),
     submenu("file", t("desktopMenu.file"), [
       command("open", `${t("buttons.load")}…`, () => run(actionLoadScene), {

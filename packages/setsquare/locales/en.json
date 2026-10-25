@@ -695,6 +695,7 @@
     }
   },
   "desktopMenu": {
+    "quit": "Quit Setsquare",
     "file": "File",
     "edit": "Edit",
     "view": "View",

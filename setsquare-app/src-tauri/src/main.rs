@@ -5,6 +5,12 @@ mod opened_files;
 mod saved_files;
 mod updater;
 
+/// Quits the app. The editor calls this once it has saved the drawing.
+#[tauri::command]
+fn quit(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
 fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -14,7 +20,8 @@ fn main() {
         .manage(opened_files::OpenedFiles::default())
         .invoke_handler(tauri::generate_handler![
             opened_files::take_opened_files,
-            saved_files::save_file
+            saved_files::save_file,
+            quit
         ])
         .setup(|app| {
             // development builds aren't installed anywhere an update could
