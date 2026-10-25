@@ -104,26 +104,15 @@ export default function LibraryMenuItems({
     });
   }, [libraryItems, searchInputValue]);
 
-  const unpublishedItems = useMemo(
-    () => libraryItems.filter((item) => item.status !== "published"),
-    [libraryItems],
-  );
-
-  const publishedItems = useMemo(
-    () => libraryItems.filter((item) => item.status === "published"),
-    [libraryItems],
-  );
-
   const onItemSelectToggle = useCallback(
     (id: LibraryItem["id"], event: React.MouseEvent) => {
       const shouldSelect = !selectedItems.includes(id);
-      const orderedItems = [...unpublishedItems, ...publishedItems];
       if (shouldSelect) {
         if (event.shiftKey && lastSelectedItem) {
-          const rangeStart = orderedItems.findIndex(
+          const rangeStart = libraryItems.findIndex(
             (item) => item.id === lastSelectedItem,
           );
-          const rangeEnd = orderedItems.findIndex((item) => item.id === id);
+          const rangeEnd = libraryItems.findIndex((item) => item.id === id);
 
           if (rangeStart === -1 || rangeEnd === -1) {
             onSelectItems([...selectedItems, id]);
@@ -134,7 +123,7 @@ export default function LibraryMenuItems({
           // Support both top-down and bottom-up selection by using min/max
           const minRange = Math.min(rangeStart, rangeEnd);
           const maxRange = Math.max(rangeStart, rangeEnd);
-          const nextSelectedIds = orderedItems.reduce(
+          const nextSelectedIds = libraryItems.reduce(
             (acc: LibraryItem["id"][], item, idx) => {
               if (
                 (idx >= minRange && idx <= maxRange) ||
@@ -156,13 +145,7 @@ export default function LibraryMenuItems({
         onSelectItems(selectedItems.filter((_id) => _id !== id));
       }
     },
-    [
-      lastSelectedItem,
-      onSelectItems,
-      publishedItems,
-      selectedItems,
-      unpublishedItems,
-    ],
+    [lastSelectedItem, libraryItems, onSelectItems, selectedItems],
   );
 
   useEffect(() => {
@@ -259,13 +242,11 @@ export default function LibraryMenuItems({
           {t("labels.personalLib")}
         </div>
       )}
-      {!pendingElements.length && !unpublishedItems.length ? (
+      {IS_LIBRARY_EMPTY ? (
         <div className="library-menu-items__no-items">
-          {!publishedItems.length && (
-            <div className="library-menu-items__no-items__label">
-              {t("library.noItems")}
-            </div>
-          )}
+          <div className="library-menu-items__no-items__label">
+            {t("library.noItems")}
+          </div>
           <div className="library-menu-items__no-items__hint">
             {t("library.hint_emptyPrivateLibrary")}
           </div>
@@ -285,29 +266,7 @@ export default function LibraryMenuItems({
           )}
           <LibraryMenuSection
             itemsRenderedPerBatch={itemsRenderedPerBatch}
-            items={unpublishedItems}
-            onItemSelectToggle={onItemSelectToggle}
-            onItemDrag={onItemDrag}
-            onClick={onItemClick}
-            isItemSelected={isItemSelected}
-            svgCache={svgCache}
-          />
-        </LibraryMenuSectionGrid>
-      )}
-
-      {publishedItems.length > 0 && (
-        <div
-          className="library-menu-items-container__header"
-          style={{ marginTop: "0.75rem" }}
-        >
-          {t("labels.setsquareLib")}
-        </div>
-      )}
-      {publishedItems.length > 0 && (
-        <LibraryMenuSectionGrid>
-          <LibraryMenuSection
-            itemsRenderedPerBatch={itemsRenderedPerBatch}
-            items={publishedItems}
+            items={libraryItems}
             onItemSelectToggle={onItemSelectToggle}
             onItemDrag={onItemDrag}
             onClick={onItemClick}
@@ -372,11 +331,9 @@ export default function LibraryMenuItems({
     <div
       className="library-menu-items-container"
       style={
-        pendingElements.length ||
-        unpublishedItems.length ||
-        publishedItems.length
-          ? { justifyContent: "flex-start" }
-          : { borderBottom: 0 }
+        IS_LIBRARY_EMPTY
+          ? { borderBottom: 0 }
+          : { justifyContent: "flex-start" }
       }
     >
       <div className="library-menu-items-header">
@@ -412,7 +369,7 @@ export default function LibraryMenuItems({
         align="start"
         gap={1}
         style={{
-          flex: publishedItems.length > 0 ? 1 : "0 1 auto",
+          flex: "0 1 auto",
           margin: IS_LIBRARY_EMPTY ? "auto" : 0,
         }}
         ref={libraryContainerRef}

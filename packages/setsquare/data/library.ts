@@ -477,7 +477,7 @@ class AdapterTransaction {
       new Promise<LibraryItems>(async (resolve, reject) => {
         try {
           const data = await adapter.load({ source });
-          resolve(restoreLibraryItems(data?.libraryItems || [], "published"));
+          resolve(restoreLibraryItems(data?.libraryItems || [], "unpublished"));
         } catch (error: any) {
           reject(error);
         }
