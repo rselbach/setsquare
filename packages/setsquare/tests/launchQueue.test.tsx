@@ -19,22 +19,25 @@ const sceneWith = (id: string) => [
 const elementIds = () =>
   h.elements.filter((element) => !element.isDeleted).map(({ id }) => id);
 
-// like the browser, launches files as soon as a consumer is set
-const launch = (id: string) => {
-  const file = new File(
+const drawing = (id: string) =>
+  new File(
     [serializeAsJSON(sceneWith(id), {}, {}, "local")],
     `${id}.setsquare`,
     { type: MIME_TYPES.setsquare },
   );
-  const fileHandle = {
-    kind: "file",
-    name: file.name,
-    getFile: async () => file,
-  };
+
+const handleFor = (file: File) => ({
+  kind: "file",
+  name: file.name,
+  getFile: async () => file,
+});
+
+// like the browser, launches files as soon as a consumer is set
+const launch = (...fileHandles: unknown[]) => {
   Object.assign(window, {
     launchQueue: {
       setConsumer: (consumer: (params: { files: unknown[] }) => void) =>
-        consumer({ files: [fileHandle] }),
+        consumer({ files: fileHandles }),
     },
     LaunchParams: class {},
   });
@@ -50,13 +53,14 @@ const renderWithAutosave = async (id: string) => {
 };
 
 describe("launch queue", () => {
-  afterEach(() => {
+  afterEach(async () => {
     delete (window as any).launchQueue;
     delete (window as any).LaunchParams;
+    await h.app.library.resetLibrary();
   });
 
   it("loads a launched file into an empty drawing without asking", async () => {
-    launch("greendale");
+    launch(handleFor(drawing("greendale")));
 
     await render(<Setsquare />);
 
@@ -65,7 +69,7 @@ describe("launch queue", () => {
   });
 
   it("loads a launched file over the initial scene once confirmed", async () => {
-    launch("greendale");
+    launch(handleFor(drawing("greendale")));
 
     await renderWithAutosave("city-college");
 
@@ -76,7 +80,7 @@ describe("launch queue", () => {
   });
 
   it("keeps the drawing if replacing it is declined", async () => {
-    launch("greendale");
+    launch(handleFor(drawing("greendale")));
 
     await renderWithAutosave("city-college");
 
@@ -85,5 +89,35 @@ describe("launch queue", () => {
     });
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(elementIds()).toEqual(["city-college"]);
+  });
+
+  it("loads a drawing and a library launched together", async () => {
+    launch(
+      handleFor(drawing("greendale")),
+      handleFor(await API.loadFile("./fixtures/fixture_library.setsquarelib")),
+    );
+
+    await render(<Setsquare />);
+
+    await waitFor(async () => {
+      expect(elementIds()).toEqual(["greendale"]);
+      expect(await h.app.library.getLatestLibrary()).toHaveLength(1);
+    });
+  });
+
+  it("reports a file it can't read and still loads the others", async () => {
+    launch(
+      {
+        kind: "file",
+        name: "abed.setsquare",
+        getFile: () => Promise.reject(new Error("permission denied")),
+      },
+      handleFor(drawing("greendale")),
+    );
+
+    await render(<Setsquare />);
+
+    await waitFor(() => expect(elementIds()).toEqual(["greendale"]));
+    expect(h.state.errorMessage).toBe('Couldn\'t open "abed.setsquare".');
   });
 });

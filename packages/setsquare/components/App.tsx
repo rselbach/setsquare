@@ -3697,17 +3697,28 @@ class App extends React.Component<AppProps, AppState> {
       "LaunchParams" in this.ownerWindow
     ) {
       (this.ownerWindow as any).launchQueue.setConsumer(
-        async (launchParams: { files: any[] }) => {
-          if (!launchParams.files.length) {
-            return;
+        async (launchParams: { files: FileSystemFileHandle[] }) => {
+          // one at a time, so each drawing that would replace another asks
+          // first, and libraries merge as they arrive
+          for (const fileHandle of launchParams.files) {
+            let blob: Blob;
+            try {
+              blob = await fileHandle.getFile();
+            } catch (error: any) {
+              console.error(error);
+              this.setState({
+                errorMessage: t("errors.openFileError", {
+                  name: fileHandle.name,
+                }),
+              });
+              continue;
+            }
+            await this.loadFileToCanvas(
+              new File([blob], blob.name || "", { type: blob.type }),
+              fileHandle,
+              { confirmReplace: true },
+            );
           }
-          const fileHandle = launchParams.files[0];
-          const blob: Blob = await fileHandle.getFile();
-          this.loadFileToCanvas(
-            new File([blob], blob.name || "", { type: blob.type }),
-            fileHandle,
-            { confirmReplace: true },
-          );
         },
       );
     }
