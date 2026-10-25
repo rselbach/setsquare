@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "空のキャンバスはエクスポートできません。",
     "couldNotCopyToClipboard": "クリップボードにコピーできませんでした。",
     "decryptFailed": "データを復号できませんでした。",
-    "uploadedSecurly": "データのアップロードはエンドツーエンド暗号化によって保護されています。Setsquareサーバーと第三者はデータの内容を見ることができません。",
     "loadSceneOverridePrompt": "外部の描画データを読み込むと、既存のコンテンツが置き換わります。続行しますか？",
     "collabStopOverridePrompt": "セッションを停止すると、ローカルに保存されている図が上書きされます。 本当によろしいですか？\n\n(ローカルの図を保持したい場合は、セッションを停止せずにブラウザーのタブを閉じてください。)",
     "errorAddingToLibrary": "アイテムをライブラリに追加できませんでした",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "他の人を描画の共同編集に招待しましょう。",
-    "desc_privacy": "心配しないでください、セッションはエンドツーエンドで暗号化されており、完全にプライベートです。私たちのサーバーでさえも、あなたが描いたものを見ることができません。",
     "button_startSession": "セッションを開始する",
     "button_stopSession": "セッションを終了する",
     "desc_inProgressIntro": "共同編集セッションが有効になっています。",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "クリップボードにコピー"
     }
-  },
-  "encrypted": {
-    "tooltip": "描画内容はエンドツーエンド暗号化が施されており、Setsquareサーバーが内容を見ることはできません。",
-    "link": "Setsquareのエンドツーエンド暗号化に関するブログ記事"
   },
   "stats": {
     "angle": "角度",

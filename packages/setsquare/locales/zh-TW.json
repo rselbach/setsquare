@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "無法輸出空白的 canvas。",
     "couldNotCopyToClipboard": "無法複製到剪貼簿",
     "decryptFailed": "無法解密資料。",
-    "uploadedSecurly": "上傳已通過 end-to-end 加密，Setsquare 伺服器和第三方無法皆讀取其內容。",
     "loadSceneOverridePrompt": "讀取外部圖樣將取代目前的內容。是否要繼續？",
     "collabStopOverridePrompt": "停止連線將覆蓋您先前於本機儲存的繪圖進度，是否確認？\n\n（如要保留原有的本機繪圖進度，直接關閉瀏覽器分頁即可。）",
     "errorAddingToLibrary": "無法於此資料庫加入項目",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "邀請其他人一起協作",
-    "desc_privacy": "不用擔心，此連線為端到端加密且完全私有，即使是我們的伺服器也無法看見您的繪圖。",
     "button_startSession": "開始連線",
     "button_stopSession": "停止連線",
     "desc_inProgressIntro": "即時協作連線正在進行中。",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "複製至剪貼簿"
     }
-  },
-  "encrypted": {
-    "tooltip": "你的作品已使用 end-to-end 方式加密，Setsquare 的伺服器也無法取得其內容。",
-    "link": "Setsquare 端到端加密的相關部落格文章"
   },
   "stats": {
     "angle": "角度",

@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Izvoz prazne scene ni mogoč.",
     "couldNotCopyToClipboard": "Kopiranje v odložišče ni uspelo.",
     "decryptFailed": "Dešifriranje podatkov ni uspelo.",
-    "uploadedSecurly": "Nalaganje je bilo zaščiteno s šifriranjem od konca do konca, kar pomeni, da strežnik Setsquare in tretje osebe ne morejo brati vsebine.",
     "loadSceneOverridePrompt": "Nalaganje zunanje risbe bo nadomestilo vašo obstoječo vsebino. Ali želite nadaljevati?",
     "collabStopOverridePrompt": "Ustavitev seje bo prepisala vašo prejšnjo, lokalno shranjeno risbo. Ali ste prepričani?\n\n(Če želite obdržati lokalno risbo, preprosto zaprite zavihek brskalnika.)",
     "errorAddingToLibrary": "Elementa ni bilo mogoče dodati v knjižnico",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Povabite ljudi k sodelovanju pri vaši risbi.",
-    "desc_privacy": "Ne skrbite, seja je šifrirana od konca do konca in popolnoma zasebna. Niti naš strežnik ne vidi, kaj rišete.",
     "button_startSession": "Začni sejo",
     "button_stopSession": "Ustavi sejo",
     "desc_inProgressIntro": "Seja sodelovanja v živo je v teku.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Kopiraj v odložišče"
     }
-  },
-  "encrypted": {
-    "tooltip": "Vaše risbe so šifrirane od konca do konca, tako da jih strežniki Setsquare nikoli ne bodo videli.",
-    "link": "Blog objava o šifriranju od konca do konca v Setsquare"
   },
   "stats": {
     "angle": "Kot",

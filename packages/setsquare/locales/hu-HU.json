@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Üres vászont nem lehet exportálni.",
     "couldNotCopyToClipboard": "Nem lehet a vágólapra másolni.",
     "decryptFailed": "Nem sikerült visszafejteni a titkosított adatot.",
-    "uploadedSecurly": "A feltöltést végpontok közötti titkosítással biztosítottuk, ami azt jelenti, hogy egy harmadik fél nem tudja megnézni a tartalmát, beleértve az Setsquare szervereit is.",
     "loadSceneOverridePrompt": "A betöltött külső rajz felül fogja írnia meglévőt. Szeretnéd folytatni?",
     "collabStopOverridePrompt": "A munkamenet leállítása felül fogja írni az előzőleg helyben tárolt rajzot. Biztosan ezt akarod?\n(Ha meg akarod tartani a helyben tárolt rajzot, egyszerűen csak zárd be a böngésző fület)",
     "errorAddingToLibrary": "A tétel nem addható hozzá a könyvtárhoz",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "Munkamenet indítása",
     "button_stopSession": "Munkamenet leállítása",
     "desc_inProgressIntro": "Az élő együttműködési munkamenet folyamatban van.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Vágólapra másolás"
     }
-  },
-  "encrypted": {
-    "tooltip": "A rajzaidat végpontok közötti titkosítással tároljuk, tehát az Setsquare szervereiről se tud más belenézni.",
-    "link": "Blogbejegyzés a végpontok közötti titkosításról az Setsquare-ban"
   },
   "stats": {
     "angle": "Szög",

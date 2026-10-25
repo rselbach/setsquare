@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Kan ikkje eksportere eit tomt lerret.",
     "couldNotCopyToClipboard": "",
     "decryptFailed": "Kunne ikkje dekryptere data.",
-    "uploadedSecurly": "Opplastinga er kryptert og er ikkje mogleg å lese av Setsquare-serveren eller tredjepartar.",
     "loadSceneOverridePrompt": "Innlasting av ekstern teikning erstattar ditt eksisterande innhald. Ynskjer du å fortsette?",
     "collabStopOverridePrompt": "Viss du avsluttar økta overskriv du den førre, lokalt lagra teikninga di. Er du sikker?\n\n(Ønsker du å halde fram med denne? Då er det berre å lukke denne fana.)",
     "errorAddingToLibrary": "Kunne ikkje legge elementet i biblioteket",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "Start økt",
     "button_stopSession": "Stopp økt",
     "desc_inProgressIntro": "Sanntids-samarbeidsøkt er no i gang.",
@@ -480,10 +478,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": ""
     }
-  },
-  "encrypted": {
-    "tooltip": "Teikningane dine er ende-til-ende-krypterte slik at Setsquare sine serverar aldri får sjå dei.",
-    "link": "Blogginnlegg om ende-til-ende-kryptering i Setsquare"
   },
   "stats": {
     "angle": "Vinkel",

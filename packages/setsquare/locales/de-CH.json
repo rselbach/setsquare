@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Leere Zeichenfläche kann nicht exportiert werden.",
     "couldNotCopyToClipboard": "Kopieren in die Zwischenablage fehlgeschlagen.",
     "decryptFailed": "Daten konnten nicht entschlüsselt werden.",
-    "uploadedSecurly": "Der Upload wurde mit Ende-zu-Ende-Verschlüsselung gespeichert. Weder Setsquare noch Dritte können den Inhalt einsehen.",
     "loadSceneOverridePrompt": "Das Laden einer externen Zeichnung ersetzt den vorhandenen Inhalt. Möchtest du fortfahren?",
     "collabStopOverridePrompt": "Das Stoppen der Sitzung wird deine vorherige, lokal gespeicherte Zeichnung überschreiben. Bist du dir sicher?\n\n(Wenn du deine lokale Zeichnung behalten möchtest, schließe stattdessen den Browser-Tab.)",
     "errorAddingToLibrary": "Das Element konnte nicht zur Bibliothek hinzugefügt werden",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Lade Leute ein, an deiner Zeichnung mitzuarbeiten.",
-    "desc_privacy": "Keine Sorge, die Sitzung ist Ende-zu-Ende verschlüsselt und vollständig privat. Nicht einmal unser Server kann sehen, was du zeichnest.",
     "button_startSession": "Sitzung starten",
     "button_stopSession": "Sitzung beenden",
     "desc_inProgressIntro": "Die Live-Sitzung wird nun ausgeführt.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "In Zwischenablage kopieren"
     }
-  },
-  "encrypted": {
-    "tooltip": "Da deine Zeichnungen Ende-zu-Ende verschlüsselt werden, sehen auch unsere Setsquare-Server sie niemals.",
-    "link": "Blogbeitrag über Ende-zu-Ende-Verschlüsselung in Setsquare"
   },
   "stats": {
     "angle": "Winkel",

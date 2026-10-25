@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "No se puede exportar un lienzo vacío.",
     "couldNotCopyToClipboard": "No se pudo copiar al portapapeles.",
     "decryptFailed": "No se pudieron descifrar los datos.",
-    "uploadedSecurly": "La carga ha sido asegurada con cifrado de principio a fin, lo que significa que el servidor de Setsquare y terceros no pueden leer el contenido.",
     "loadSceneOverridePrompt": "Si carga este dibujo externo, reemplazará el que tiene. ¿Desea continuar?",
     "collabStopOverridePrompt": "Detener la sesión sobrescribirá su dibujo anterior almacenado localmente. ¿Está seguro?\n\n(Si desea mantener su dibujo local, simplemente cierre la pestaña del navegador.)",
     "errorAddingToLibrary": "No se pudo agregar el elemento a la biblioteca",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Invita a gente a colaborar en tu dibujo.",
-    "desc_privacy": "No te preocupes, la sesión está encriptada de extremo a extremo y es totalmente privada. Ni siquiera nuestro servidor puede ver lo que dibujas.",
     "button_startSession": "Iniciar sesión",
     "button_stopSession": "Detener sesión",
     "desc_inProgressIntro": "La sesión de colaboración en vivo está ahora en progreso.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copiar al portapapeles"
     }
-  },
-  "encrypted": {
-    "tooltip": "Tus dibujos están cifrados de punto a punto, por lo que los servidores de Setsquare nunca los verán.",
-    "link": "Entrada en el blog sobre cifrado de extremo a extremo"
   },
   "stats": {
     "angle": "Ángulo",

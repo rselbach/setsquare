@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Impossible d’exportar los canabasses voids.",
     "couldNotCopyToClipboard": "Còpia impossibla al quichapapièrs.",
     "decryptFailed": "Deschiframent impossible de las donadas.",
-    "uploadedSecurly": "Lo telecargament es estat securizat amb un chiframent del cap a la fin, significa que los servidors d’Setsquare o que quina tèrça part que siá pòdon pas legir lo contengut.",
     "loadSceneOverridePrompt": "Cargar un dessenh extèrn remplaçarà vòstre contengut existent. Volètz contunhar ?",
     "collabStopOverridePrompt": "Arrestar la session remplaçarà vòstre precedent dessenh gardat localament. O volètz vertadièrament ?\n\n(Se volètz gardar vòstre dessenh local, tampatz simplament l’onglet del navegador a la plaça)",
     "errorAddingToLibrary": "Apondon impossible de l’element a la bibliotèca",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "Començar la session",
     "button_stopSession": "Arrestar la session",
     "desc_inProgressIntro": "La session de collaboracion es ara en cors.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copiar al quichapapièrs"
     }
-  },
-  "encrypted": {
-    "tooltip": "Vòstres dessenhs son chifrats del cap a la fin en consequéncia los servidors d’Setsquare los veiràn pas jamai.",
-    "link": "Article de blòg sul chiframent del cap a la fin dins Setsquare"
   },
   "stats": {
     "angle": "Angle",

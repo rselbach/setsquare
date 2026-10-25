@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Ezin izan da oihal hutsa esportatu.",
     "couldNotCopyToClipboard": "Ezin izan da arbelean kopiatu.",
     "decryptFailed": "Ezin izan da deszifratu.",
-    "uploadedSecurly": "Kargatzea muturretik muturrerako zifratze bidez ziurtatu da, hau da, Setsquare zerbitzariak eta hirugarrenek ezin dutela edukia irakurri.",
     "loadSceneOverridePrompt": "Kanpoko marrazkia kargatzeak lehendik duzun edukia ordezkatuko du. Jarraitu nahi duzu?",
     "collabStopOverridePrompt": "Saioa gelditzeak lokalean gordetako zure aurreko marrazkia gainidatziko du. Ziur zaude?\n\n(Zure marrazki lokala mantendu nahi baduzu, itxi arakatzailearen fitxa.)",
     "errorAddingToLibrary": "Ezin izan da elementua liburutegian gehitu",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Gonbidatu jendea zure marrazkira.",
-    "desc_privacy": "Lasai, sesioa encriptatua dago eta erabat pribatua da. Gure zerbitzarian ere ezin da ikusi zure marrazkia.",
     "button_startSession": "Hasi saioa",
     "button_stopSession": "Itxi saioa",
     "desc_inProgressIntro": "Zuzeneko lankidetza saioa abian da.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Kopiatu arbelean"
     }
-  },
-  "encrypted": {
-    "tooltip": "Zure marrazkiak muturretik muturrera enkriptatu dira, beraz Setsquare-ren zerbitzariek ezingo dituzte ikusi.",
-    "link": "Setsquare-ren muturretik muturrerako enkriptatzearen gaineko mezua blogean"
   },
   "stats": {
     "angle": "Angelua",

@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "No es pot exportar un llenç buit.",
     "couldNotCopyToClipboard": "No s'ha pogut copiar al porta-retalls.",
     "decryptFailed": "No s'ha pogut desencriptar.",
-    "uploadedSecurly": "La càrrega s'ha assegurat amb xifratge punta a punta, cosa que significa que el servidor Setsquare i tercers no poden llegir el contingut.",
     "loadSceneOverridePrompt": "Si carregas aquest dibuix extern, substituirá el que tens. Vols continuar?",
     "collabStopOverridePrompt": "Aturar la sessió provocarà la sobreescriptura del dibuix previ, que hi ha desat en l'emmagatzematge local. N'esteu segur?\n\n(Si voleu conservar el dibuix local, tanqueu la pentanya del navegador en comptes d'aturar la sessió).",
     "errorAddingToLibrary": "No s'ha pogut afegir l'element a la biblioteca",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Convideu gent a col·laborar en el vostre disseny.",
-    "desc_privacy": "No us amoïneu, la sessió està encriptada d'extrem a extrem i és totalment privada. Ni tan sols el nostre servidor pot veure què dibuixeu.",
     "button_startSession": "Inicia la sessió",
     "button_stopSession": "Atura la sessió",
     "desc_inProgressIntro": "La sessió de col·laboració en directe està en marxa.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copieu al porta-retalls"
     }
-  },
-  "encrypted": {
-    "tooltip": "Els vostres dibuixos estan xifrats de punta a punta de manera que els servidors d’Setsquare no els veuran mai.",
-    "link": "Article del blog sobre encriptació d'extrem a extrem a Setsquare"
   },
   "stats": {
     "angle": "Angle",

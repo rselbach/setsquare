@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Najpierw musisz coś narysować, aby zapisać dokument.",
     "couldNotCopyToClipboard": "Nie udało się skopiować do schowka.",
     "decryptFailed": "Nie udało się odszyfrować danych.",
-    "uploadedSecurly": "By zapewnić Ci prywatność, udostępnianie projektu jest zabezpieczone szyfrowaniem end-to-end, co oznacza, że poza tobą i osobą z którą podzielisz się linkiem, nikt nie ma dostępu do tego co udostępniasz.",
     "loadSceneOverridePrompt": "Wczytanie zewnętrznego rysunku zastąpi istniejącą zawartość. Czy chcesz kontynuować?",
     "collabStopOverridePrompt": "Zatrzymanie sesji nadpisze poprzedni, zapisany lokalnie rysunek. Czy jesteś pewien?\n\n(Jeśli chcesz zachować swój lokalny rysunek, po prostu zamknij zakładkę przeglądarki.)",
     "errorAddingToLibrary": "Nie udało się dodać elementu do biblioteki",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Zaproś ludzi do wspólnego rysunku.",
-    "desc_privacy": "Nie martw się, sesja jest szyfrowana end-to-end i w pełni prywatna. Nawet nasz serwer nie widzi co rysujesz.",
     "button_startSession": "Rozpocznij sesję",
     "button_stopSession": "Zakończ sesję",
     "desc_inProgressIntro": "Sesja współpracy na żywo właśnie się rozpoczęła.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Skopiuj do schowka"
     }
-  },
-  "encrypted": {
-    "tooltip": "Twoje rysunki są zabezpieczone szyfrowaniem end-to-end, tak więc nawet w Setsquare nie jesteśmy w stanie zobaczyć tego co tworzysz.",
-    "link": "Wpis na blogu dotyczący szyfrowania end-to-end w Setsquare"
   },
   "stats": {
     "angle": "Kąt",

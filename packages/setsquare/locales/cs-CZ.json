@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Nelze exportovat prázdné plátno.",
     "couldNotCopyToClipboard": "Nelze zkopírovat do schránky.",
     "decryptFailed": "Nelze dešifrovat data.",
-    "uploadedSecurly": "Nahrávání je zabezpečeno koncovým šifrováním, což znamená, že server Setsquare ani třetí strany nemohou obsah přečíst.",
     "loadSceneOverridePrompt": "Načítání externího výkresu nahradí váš existující obsah. Přejete si pokračovat?",
     "collabStopOverridePrompt": "Zastavení relace přepíše vaše předchozí, lokálně uložené kresby. Jste si jisti?\n\n(Pokud chcete zachovat místní kresbu, jednoduše zavřete kartu prohlížeče)",
     "errorAddingToLibrary": "Položku nelze přidat do knihovny",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "Zahájit relaci",
     "button_stopSession": "Ukončit relaci",
     "desc_inProgressIntro": "Živá spolupráce právě probíhá.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Kopírovat do schránky"
     }
-  },
-  "encrypted": {
-    "tooltip": "Vaše kresby jsou end-to-end šifrované, takže servery Setsquare je nikdy neuvidí.",
-    "link": "Blog příspěvek na end-to-end šifrování v Setsquare"
   },
   "stats": {
     "angle": "Úhel",

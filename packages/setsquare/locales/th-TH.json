@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "ไม่สามารถนำออกจากผืนผ้าใบที่ว่างเปล่าได้",
     "couldNotCopyToClipboard": "ไม่สามารถคัดลอกไปยังคลิปบอร์ดได้",
     "decryptFailed": "ไม่สามารถถอดรหัสข้อมูลได้",
-    "uploadedSecurly": "การอัพโหลดได้ถูกเข้ารหัสแบบ end-to-end หมายความว่าเซิร์ฟเวอร์ของ Setsquare และบุคคลอื่นไม่สามารถอ่านข้อมูลได้",
     "loadSceneOverridePrompt": "",
     "collabStopOverridePrompt": "",
     "errorAddingToLibrary": "ไม่สามารถเพิ่มรายการเข้าไปในคลังได้",
@@ -396,7 +395,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "เริ่มเซสชัน",
     "button_stopSession": "หยุดเซสชัน",
     "desc_inProgressIntro": "",
@@ -479,10 +477,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "คัดลอกไปยังคลิปบอร์ด"
     }
-  },
-  "encrypted": {
-    "tooltip": "",
-    "link": ""
   },
   "stats": {
     "angle": "องศา",

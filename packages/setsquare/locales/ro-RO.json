@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Nu se poate exporta pânza goală.",
     "couldNotCopyToClipboard": "Nu s-a putut copia în memoria temporară.",
     "decryptFailed": "Datele nu au putut fi decriptate.",
-    "uploadedSecurly": "Încărcarea a fost securizată prin criptare integrală, însemnând că serverul Setsquare și terții nu pot citi conținutul.",
     "loadSceneOverridePrompt": "Încărcarea desenului extern va înlocui conținutul existent. Dorești să continui?",
     "collabStopOverridePrompt": "Oprirea sesiunii va suprascrie desenul anterior stocat local. Confirmi alegerea?\n\n(Dacă vrei să păstrezi desenul local, pur și simplu închide fila navigatorului în schimb.)",
     "errorAddingToLibrary": "Elementul nu a putut fi adăugat în bibliotecă",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Invită persoane să colaboreze la desenul tău.",
-    "desc_privacy": "Nu-ți face griji, sesiunea este criptată integral și complet privată. Nici măcar serverul nostru nu poate vedea ce desenezi.",
     "button_startSession": "Pornire sesiune",
     "button_stopSession": "Oprire sesiune",
     "desc_inProgressIntro": "Sesiunea de colaborare în direct este în curs de desfășurare.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copiere în memoria temporară"
     }
-  },
-  "encrypted": {
-    "tooltip": "Desenele tale sunt criptate integral, astfel că serverele Setsquare nu le vor vedea niciodată.",
-    "link": "Articol de blog pe criptarea integrală din Setsquare"
   },
   "stats": {
     "angle": "Unghi",

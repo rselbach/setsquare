@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Kan geen leeg canvas exporteren.",
     "couldNotCopyToClipboard": "Kon niet naar klembord kopiëren.",
     "decryptFailed": "Kan gegevens niet decoderen.",
-    "uploadedSecurly": "De upload is beveiligd met end-to-end encryptie, wat betekent dat de Setsquare server en derden de inhoud niet kunnen lezen.",
     "loadSceneOverridePrompt": "Het inladen van een externe tekening zal je bestaande inhoud vervangen. Wil je verdergaan?",
     "collabStopOverridePrompt": "Wanneer de sessie wordt gestopt, overschrijft u de eerdere, lokaal opgeslagen tekening. Weet je het zeker?\n\n(Als je de lokale tekening wilt behouden, sluit je in plaats daarvan het browsertabblad)",
     "errorAddingToLibrary": "Kan item niet toevoegen aan de bibliotheek",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Nodig mensen uit om samen te werken aan je tekening.",
-    "desc_privacy": "Geen zorgen, de sessie is end-to-end versleuteld en volledig privé. Niet eens onze server kan zien wat je tekent.",
     "button_startSession": "Start sessie",
     "button_stopSession": "Stop sessie",
     "desc_inProgressIntro": "De live-samenwerkingssessie is nu gestart.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Kopieer naar klembord"
     }
-  },
-  "encrypted": {
-    "tooltip": "Je tekeningen zijn beveiligd met end-to-end encryptie, dus Setsquare's servers zullen nooit zien wat je tekent.",
-    "link": "Blog post over end-to-end versleuteling in Setsquare"
   },
   "stats": {
     "angle": "Hoek",

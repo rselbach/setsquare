@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Kan inte exportera tom canvas.",
     "couldNotCopyToClipboard": "Kunde inte kopiera till urklipp.",
     "decryptFailed": "Kunde inte avkryptera data.",
-    "uploadedSecurly": "Uppladdning har säkrats med kryptering från ände till ände. vilket innebär att Setsquare server och tredje part inte kan läsa innehållet.",
     "loadSceneOverridePrompt": "Laddning av extern skiss kommer att ersätta ditt befintliga innehåll. Vill du fortsätta?",
     "collabStopOverridePrompt": "Att stoppa sessionen kommer att skriva över din föregående, lokalt lagrade skiss. Är du säker?\n\n(Om du vill behålla din lokala skiss, stäng bara webbläsarfliken istället.)",
     "errorAddingToLibrary": "Kunde inte lägga till objekt i biblioteket",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Bjud in personer att samarbeta på din ritning.",
-    "desc_privacy": "Oroa dig inte, sessionen är krypterad och helt privat. Inte ens vår server kan se vad du ritar.",
     "button_startSession": "Starta sessionen",
     "button_stopSession": "Stoppa session",
     "desc_inProgressIntro": "Nu pågår en live-samarbetssession.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Kopiera till urklipp"
     }
-  },
-  "encrypted": {
-    "tooltip": "Dina skisser är krypterade från ände till ände så Setsquares servrar kommer aldrig att se dem.",
-    "link": "Blogginlägg om kryptering från ände till ände i Setsquare"
   },
   "stats": {
     "angle": "Vinkel",

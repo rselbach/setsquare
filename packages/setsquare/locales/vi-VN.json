@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Không thể xuất canvas trống.",
     "couldNotCopyToClipboard": "Không thể sao chép vào bộ nhớ tạm.",
     "decryptFailed": "Không thể giải mã dữ liệu.",
-    "uploadedSecurly": "Việc tải lên đã được bảo mật với mã hóa đầu cuối, có nghĩa là máy chủ Setsquare và bên thứ ba không thể đọc nội dung.",
     "loadSceneOverridePrompt": "Mở bản vẽ bên ngoài sẽ thay thế nội dung hiện tại của bạn. Bạn có muốn tiếp tục không?",
     "collabStopOverridePrompt": "Dừng phiên sẽ ghi đè lên bản vẽ được lưu trữ cục bộ trước đó của bạn. Bạn có chắc không?\n\n(Nếu bạn muốn giữ bản vẽ cục bộ của mình, chỉ cần đóng tab trình duyệt.)",
     "errorAddingToLibrary": "Không thể thêm món vào thư viện",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Mời mọi người cùng cộng tác trong bản vẽ của bạn.",
-    "desc_privacy": "Đừng lo, phiên hoạt động đã được mã hóa đầu cuối, và hoàn toàn riêng tư. Ngay cả máy chủ của chúng tôi cũng không thể thấy những gì bạn vẽ.",
     "button_startSession": "Bắt đầu phiên",
     "button_stopSession": "Kết thúc phiên",
     "desc_inProgressIntro": "Phiên làm việc trực tiếp hiện đang diễn ra.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Sao chép vào bộ nhớ tạm"
     }
-  },
-  "encrypted": {
-    "tooltip": "Bản vẽ của bạn được bảo mật bằng mã hóa đầu cuối, vì vậy máy chủ Setsquare sẽ không thể xem chúng.",
-    "link": "Bài blog về mã hóa đầu cuối trong Setsquare"
   },
   "stats": {
     "angle": "Góc",

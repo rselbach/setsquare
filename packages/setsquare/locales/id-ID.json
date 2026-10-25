@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Tidak bisa mengekspor kanvas kosong",
     "couldNotCopyToClipboard": "Tidak bisa menyalin ke papan klip.",
     "decryptFailed": "Tidak dapat mengdekripsi data.",
-    "uploadedSecurly": "Pengunggahan ini telah diamankan menggunakan enkripsi end-to-end, artinya server Setsquare dan pihak ketiga tidak data membaca nya",
     "loadSceneOverridePrompt": "Memuat gambar external akan mengganti konten Anda yang ada. Apakah Anda ingin melanjutkan?",
     "collabStopOverridePrompt": "Menghentikan sesi akan menimpa gambar Anda yang tersimpan secara lokal. Anda yakin?\n\n(Jika Anda ingin menyimpan gambar lokal Anda, gantinya cukup tutup tab browser.)",
     "errorAddingToLibrary": "Tidak dapat menambahkan item ke pustaka",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Ajak orang-orang ikut menggambar denganmu.",
-    "desc_privacy": "Tenang, sesi ini terenkripsi ujung-ke-ujung, sepenuhnya privat. Bahkan gambarmu tidak terlihat server kami.",
     "button_startSession": "Mulai sesi",
     "button_stopSession": "Hentikan sesi",
     "desc_inProgressIntro": "Sesi kolaborasi sedang berlangsung sekarang.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Salin ke papan klip"
     }
-  },
-  "encrypted": {
-    "tooltip": "Gambar anda terenkripsi end-to-end sehingga server Setsquare tidak akan pernah dapat melihatnya.",
-    "link": "Pos blog tentang enkripsi ujung ke ujung di Setsquare"
   },
   "stats": {
     "angle": "Sudut",

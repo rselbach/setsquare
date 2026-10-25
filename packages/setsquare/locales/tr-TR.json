@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Boş tuval dışarıya aktarılamaz.",
     "couldNotCopyToClipboard": "Panoya kopyalanamıyor.",
     "decryptFailed": "Şifrelenmiş veri çözümlenemedi.",
-    "uploadedSecurly": "Yükleme uçtan uca şifreleme ile korunmaktadır. Setsquare sunucusu ve üçüncül şahıslar içeriği okuyamayacaktır.",
     "loadSceneOverridePrompt": "Harici çizimler yüklemek mevcut olan içeriği değiştirecektir. Devam etmek istiyor musunuz?",
     "collabStopOverridePrompt": "Oturumu sonlandırmak daha önceki, yerel olarak kaydedilmiş çizimin üzerine kaydedilmesine sebep olacak. Emin misiniz?\n\n(Yerel çiziminizi kaybetmemek için tarayıcı sekmesini kapatabilirsiniz.)",
     "errorAddingToLibrary": "Öğe kütüphaneye eklenemedi",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "İnsanları çiziminiz üzerinde birlikte çalışmaya davet edin.",
-    "desc_privacy": "Endişelenmeyin, oturum uçtan uca şifrelenmiştir ve tamamen gizlidir. Ne çizdiğinizi sunucumuz bile göremez.",
     "button_startSession": "Oturumu başlat",
     "button_stopSession": "Oturumu sonlandır",
     "desc_inProgressIntro": "Ortak çalışma ortamı oluşturuldu.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Panoya kopyala"
     }
-  },
-  "encrypted": {
-    "tooltip": "Çizimleriniz uçtan-uca şifrelenmiştir, Setsquare'ın sunucuları bile onları göremez.",
-    "link": "Setsquare'da uçtan uca şifreleme hakkında blog yazısı"
   },
   "stats": {
     "angle": "Açı",

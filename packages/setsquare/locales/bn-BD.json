@@ -395,7 +395,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "সেশন শুরু করুন",
     "button_stopSession": "সেশন বন্ধ করুন",
     "desc_inProgressIntro": "লাইভ-সহযোগীতার সেশন এখন চলছে।",
@@ -477,10 +476,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": ""
     }
-  },
-  "encrypted": {
-    "tooltip": "",
-    "link": ""
   },
   "stats": {
     "angle": "কোণ",

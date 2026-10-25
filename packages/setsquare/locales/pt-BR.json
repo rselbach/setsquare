@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Não é possível exportar uma tela vazia.",
     "couldNotCopyToClipboard": "Não foi possível copiar para a área de transferência.",
     "decryptFailed": "Não foi possível descriptografar os dados.",
-    "uploadedSecurly": "O upload foi protegido com criptografia de ponta a ponta, o que significa que o servidor do Setsquare e terceiros não podem ler o conteúdo.",
     "loadSceneOverridePrompt": "Carregar um desenho externo substituirá o seu conteúdo existente. Deseja continuar?",
     "collabStopOverridePrompt": "Ao interromper a sessão, você substituirá seu desenho anterior, armazenado localmente. Você tem certeza?\n\n(Se você deseja manter seu desenho local, simplesmente feche a aba do navegador.)",
     "errorAddingToLibrary": "Não foi possível adicionar o item à biblioteca",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Convide pessoas para colaborar em seu desenho.",
-    "desc_privacy": "Não se preocupe, a sessão é criptografada de ponta a ponta e totalmente privada. Nem mesmo nosso servidor pode ver o que você desenha.",
     "button_startSession": "Iniciar sessão",
     "button_stopSession": "Parar sessão",
     "desc_inProgressIntro": "A sessão de colaboração ao vivo está agora em andamento.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copiar para a área de transferência"
     }
-  },
-  "encrypted": {
-    "tooltip": "Seus desenhos são criptografados de ponta a ponta, então os servidores do Setsquare nunca os verão.",
-    "link": "Publicação de blog com criptografia de ponta a ponta no Setsquare"
   },
   "stats": {
     "angle": "Ângulo",

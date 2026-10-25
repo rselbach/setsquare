@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "D awezɣi asifeḍ n teɣzut n usuneɣ tilemt.",
     "couldNotCopyToClipboard": "Ulamek anɣal ɣer tecfawit.",
     "decryptFailed": "D awezɣi tukksa n uwgelhen i yisefka.",
-    "uploadedSecurly": "Asili yettwasɣelles s uwgelhen ixef s ixef, ayagi yebɣa ad d-yini belli aqeddac n Setsquare akked medden ur zmiren ara ad ɣren agbur.",
     "loadSceneOverridePrompt": "Asali n wunuɣ uffiɣ ad isemselsi agbur-inek (m) yellan. Tebɣiḍ ad tkemmeleḍ?",
     "collabStopOverridePrompt": "Aḥbas n tɣimit ad yesefsex unuɣ-inek (m) yettwaḥerzen yakan s wudem adigan. Tetḥeqqeḍ?\n(Ma tebɣiḍ ad teǧǧeḍ unuɣ-inek (m) adigan, mdel iccer n yiminig, deg umḍiq.)",
     "errorAddingToLibrary": "Ulamek ara yettwarnu uferdis ɣer temkarḍit",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "Bdu tiɣimit",
     "button_stopSession": "Ḥbes tiɣimit",
     "desc_inProgressIntro": "Tiɣimit n umɛawen s srid tetteddu akka tura.",
@@ -480,10 +478,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": ""
     }
-  },
-  "encrypted": {
-    "tooltip": "Unuɣen-inek (m) ttuwgelhnen seg yixef s ixef dɣa iqeddacen n Setsquare werǧin ad ten-walin. ",
-    "link": "Amagrad ɣef uwgelhen ixef s ixef di Setsquare"
   },
   "stats": {
     "angle": "Tiɣmeṛt",

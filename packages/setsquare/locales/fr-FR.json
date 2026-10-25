@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Impossible d'exporter un canevas vide.",
     "couldNotCopyToClipboard": "Impossible de copier dans le presse-papiers.",
     "decryptFailed": "Les données n'ont pas pu être déchiffrées.",
-    "uploadedSecurly": "Le téléchargement a été sécurisé avec un chiffrement de bout en bout, ce qui signifie que ni Setsquare ni personne d'autre ne peut en lire le contenu.",
     "loadSceneOverridePrompt": "Le chargement d'un dessin externe remplacera votre contenu actuel. Souhaitez-vous continuer ?",
     "collabStopOverridePrompt": "Arrêter la session écrasera votre précédent dessin stocké localement. Êtes-vous sûr·e ?\n\n(Si vous voulez garder votre dessin local, fermez simplement l'onglet du navigateur à la place.)",
     "errorAddingToLibrary": "Impossible d'ajouter l'élément à la bibliothèque",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Invitez des personnes à collaborer sur votre dessin.",
-    "desc_privacy": "Ne vous inquiétez pas, la session est chiffrée de bout en bout et entièrement privée. Même notre serveur ne peut pas voir ce que vous dessinez.",
     "button_startSession": "Démarrer la session",
     "button_stopSession": "Arrêter la session",
     "desc_inProgressIntro": "La session de collaboration en direct est maintenant en cours.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copier dans le presse-papier"
     }
-  },
-  "encrypted": {
-    "tooltip": "Vos dessins sont chiffrés de bout en bout, les serveurs d'Setsquare ne les verront jamais.",
-    "link": "Article de blog sur le chiffrement de bout en bout dans Setsquare"
   },
   "stats": {
     "angle": "Angle",

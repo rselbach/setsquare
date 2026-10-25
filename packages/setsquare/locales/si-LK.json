@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "හිස් කැන්වසයක් නිර්යාත කළ නොහැක",
     "couldNotCopyToClipboard": "ක්ලිප්බෝඩ් එකට පිටපත් කළ නොහැක",
     "decryptFailed": "විකේතනය අසාර්ථකයි",
-    "uploadedSecurly": "ආරක්ෂිතව උඩුගත කරන ලදි",
     "loadSceneOverridePrompt": "දර්ශනය පූරණය කිරීම ආවරණය ගැන ඇඟවීම",
     "collabStopOverridePrompt": "සහයෝගිතාව නැවැත්වීම ආවරණය ගැන ඇඟවීම",
     "errorAddingToLibrary": "පුස්තකාලයට එක් කිරීමේ දෝෂය",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "කාමර සංවාද හැඳින්වීම",
-    "desc_privacy": "පෞද්ගලිකත්ව විස්තර",
     "button_startSession": "සැසිය ආරම්භ කරන්න",
     "button_stopSession": "සැසිය නවත්වන්න",
     "desc_inProgressIntro": "පවත්නා සැසි හැඳින්වීම",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG ලෙස නිර්යාත කරන්න",
       "copyPngToClipboard": "PNG ලෙස ක්ලිප්බෝඩ් එකට පිටපත් කරන්න"
     }
-  },
-  "encrypted": {
-    "tooltip": "ගුප්තකේතන ඉඟිය",
-    "link": "ගුප්තකේතන සබැඳිය"
   },
   "stats": {
     "angle": "කෝණය",

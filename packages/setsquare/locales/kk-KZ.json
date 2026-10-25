@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "",
     "couldNotCopyToClipboard": "",
     "decryptFailed": "",
-    "uploadedSecurly": "",
     "loadSceneOverridePrompt": "",
     "collabStopOverridePrompt": "",
     "errorAddingToLibrary": "",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "",
     "button_stopSession": "",
     "desc_inProgressIntro": "",
@@ -480,10 +478,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": ""
     }
-  },
-  "encrypted": {
-    "tooltip": "Сіздің сызбаларыңыз өтпелі шифрлеу арқылы шифрланған, сондықтан Setsquare серверлері оларды ешқашан көрмейді.",
-    "link": "Setsquare қолданатын өтпелі шифрлеу туралы блог жазбасы"
   },
   "stats": {
     "angle": "Бұрыш",

@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Non è possibile esportare una tela vuota.",
     "couldNotCopyToClipboard": "Impossibile copiare negli appunti.",
     "decryptFailed": "Impossibile decriptare i dati.",
-    "uploadedSecurly": "L'upload è stato protetto con la crittografia end-to-end, il che significa che il server Setsquare e terze parti non possono leggere il contenuto.",
     "loadSceneOverridePrompt": "Se carichi questo disegno esterno, sostituirà quello che hai. Vuoi continuare?",
     "collabStopOverridePrompt": "Interrompere la sessione sovrascriverà il precedente disegno memorizzato localmente. Sei sicuro?\n\n(Se vuoi mantenere il tuo disegno locale, chiudi semplicemente la scheda del browser.)",
     "errorAddingToLibrary": "Impossibile aggiungere l'elemento alla libreria",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "Invita altri a collaborare al tuo disegno.",
-    "desc_privacy": "Non preoccuparti, la sessione utilizza la crittografia end-to-end ed è completamente privata. Nemmeno il nostro server è in grado di vedere ciò che disegni.",
     "button_startSession": "Avvia sessione",
     "button_stopSession": "Termina sessione",
     "desc_inProgressIntro": "La sessione di collaborazione è attualmente in corso.",
@@ -480,10 +478,6 @@
       "exportToSvg": "SVG",
       "copyPngToClipboard": "Copia negli appunti"
     }
-  },
-  "encrypted": {
-    "tooltip": "I tuoi disegni sono crittografati end-to-end in modo che i server di Setsquare non li possano mai vedere.",
-    "link": "Articolo del blog sulla crittografia end-to-end di Setsquare"
   },
   "stats": {
     "angle": "Angolo",

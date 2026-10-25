@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "",
     "couldNotCopyToClipboard": "Almasıw buferine kóshirip alıw ámelge aspadı.",
     "decryptFailed": "",
-    "uploadedSecurly": "",
     "loadSceneOverridePrompt": "",
     "collabStopOverridePrompt": "",
     "errorAddingToLibrary": "",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "",
     "button_stopSession": "",
     "desc_inProgressIntro": "",
@@ -480,10 +478,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": "Almasıw buferine kóshirip alıw"
     }
-  },
-  "encrypted": {
-    "tooltip": "",
-    "link": ""
   },
   "stats": {
     "angle": "",

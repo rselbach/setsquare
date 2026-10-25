@@ -261,7 +261,6 @@
     "cannotExportEmptyCanvas": "Boş lövhəni ixrac etmək mümkün deyil.",
     "couldNotCopyToClipboard": "Kopyalana bilmədi.",
     "decryptFailed": "Məlumatın şifrəsini açmaq mümkün olmadı.",
-    "uploadedSecurly": "Yükləmə end-to-end şifrələmə texnologiyası ilə qorunub, yəni Setsquare serveri və üçüncü tərəflər məzmunu oxuya bilməz.",
     "loadSceneOverridePrompt": "Xarici rəsmin yüklənməsi mövcud məzmununuzu əvəz edəcək. Davam etmək istəyirsiniz?",
     "collabStopOverridePrompt": "Sessiyanın dayandırılması əvvəlki, yerli olaraq saxlanılan çertyojunuzun üzərinə yazılacaq. Əminsiniz?",
     "errorAddingToLibrary": "Kitabxanaya əlavə etmək mümkün olmadı",
@@ -397,7 +396,6 @@
   },
   "roomDialog": {
     "desc_intro": "",
-    "desc_privacy": "",
     "button_startSession": "",
     "button_stopSession": "",
     "desc_inProgressIntro": "",
@@ -480,10 +478,6 @@
       "exportToSvg": "",
       "copyPngToClipboard": ""
     }
-  },
-  "encrypted": {
-    "tooltip": "",
-    "link": ""
   },
   "stats": {
     "angle": "",
