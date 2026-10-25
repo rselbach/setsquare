@@ -150,8 +150,23 @@ const shareableLinkConfirmDialog = {
   color: "danger",
 } as const;
 
+const getSceneUrl = () => window.location.hash.match(/^#url=(.*)$/)?.[1];
+
+// fetches the scene a `#url=` link points to. Resolves to null when the user
+// keeps the current scene.
+const loadSceneFromUrl = async (url: string, hasElements: boolean) => {
+  window.history.replaceState({}, APP_NAME, window.location.origin);
+
+  const request = await fetch(window.decodeURIComponent(url));
+  const data = await loadFromBlob(await request.blob(), null, null);
+  if (!hasElements || (await openConfirmModal(shareableLinkConfirmDialog))) {
+    return data;
+  }
+  return null;
+};
+
 const initializeScene = async (): Promise<SetsquareInitialDataState> => {
-  const externalUrlMatch = window.location.hash.match(/^#url=(.*)$/);
+  const url = getSceneUrl();
 
   const localDataState = importFromLocalStorage();
 
@@ -168,17 +183,10 @@ const initializeScene = async (): Promise<SetsquareInitialDataState> => {
     appState: restoreAppState(localDataState?.appState, null),
   };
 
-  if (externalUrlMatch) {
-    window.history.replaceState({}, APP_NAME, window.location.origin);
-
-    const url = externalUrlMatch[1];
+  if (url) {
     try {
-      const request = await fetch(window.decodeURIComponent(url));
-      const data = await loadFromBlob(await request.blob(), null, null);
-      if (
-        !scene.elements.length ||
-        (await openConfirmModal(shareableLinkConfirmDialog))
-      ) {
+      const data = await loadSceneFromUrl(url, scene.elements.length > 0);
+      if (data) {
         return data;
       }
     } catch (error: any) {
@@ -302,11 +310,25 @@ const SetsquareWrapper = () => {
       initialStatePromiseRef.current.promise.resolve(scene);
     });
 
+    // only `#url=` links load a scene; any other hash, such as a link to an
+    // anchor, leaves the open scene alone
     const onHashChange = async (event: HashChangeEvent) => {
       event.preventDefault();
+      const url = getSceneUrl();
+      if (!url) {
+        return;
+      }
       setsquareAPI.updateScene({ appState: { isLoading: true } });
 
-      initializeScene().then((scene) => {
+      try {
+        const scene = await loadSceneFromUrl(
+          url,
+          setsquareAPI.getSceneElements().length > 0,
+        );
+        if (!scene) {
+          setsquareAPI.updateScene({ appState: { isLoading: false } });
+          return;
+        }
         setsquareAPI.updateScene({
           elements: restoreElements(scene.elements, null, {
             repairBindings: true,
@@ -314,7 +336,14 @@ const SetsquareWrapper = () => {
           appState: restoreAppState(scene.appState, null),
           captureUpdate: CaptureUpdateAction.IMMEDIATELY,
         });
-      });
+      } catch (error: any) {
+        setsquareAPI.updateScene({
+          appState: {
+            isLoading: false,
+            errorMessage: t("alerts.invalidSceneUrl"),
+          },
+        });
+      }
     };
 
     const syncData = debounce(() => {
