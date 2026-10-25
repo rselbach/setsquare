@@ -306,6 +306,7 @@ const LayerUI = ({
           className={clsx("App-menu App-menu_top", {
             "App-menu_top--zen": appState.zenModeEnabled,
           })}
+          data-viewport-ui="top"
         >
           <div className="App-menu_top__left">
             {renderCanvasActions()}

@@ -250,7 +250,6 @@ export const Toolbar = ({
         "zen-mode": appState.zenModeEnabled,
         "App-toolbar--compact": isCompactStylesPanel,
       })}
-      data-viewport-ui="top"
     >
       <HintViewer
         appState={appState}

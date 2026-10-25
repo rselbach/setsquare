@@ -61,6 +61,15 @@ describe("view mode", () => {
     });
   });
 
+  it("keeps fitted content clear of the top bar", () => {
+    API.setAppState({ viewModeEnabled: true });
+    const topBar = queryContainer(".App-menu_top") as HTMLElement;
+    topBar.getBoundingClientRect = () =>
+      ({ top: 10, bottom: 58, left: 20, right: 220 } as DOMRect);
+
+    expect(h.app.viewport.getOffsets({ padding: 0 }).top).toBe(48);
+  });
+
   it("dispatches pointer events to custom tools in view mode", () => {
     const onPointerDown = vi.fn();
     const onPointerUp = vi.fn();
