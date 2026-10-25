@@ -410,6 +410,23 @@ export const confirmLoadFromFile = async (app: AppClassProperties) =>
     ),
   });
 
+/**
+ * Records loading a file over the drawing. Opening a file, which gives the
+ * drawing a file handle, starts the history afresh: undo can't bring back the
+ * previous handle, so Save would write the previous drawing into the opened
+ * file.
+ */
+export const captureFileLoad = (
+  app: AppClassProperties,
+  fileHandle: AppState["fileHandle"],
+) => {
+  if (!fileHandle) {
+    return CaptureUpdateAction.IMMEDIATELY;
+  }
+  app.api.history.clear();
+  return CaptureUpdateAction.NEVER;
+};
+
 export const actionLoadScene = register({
   name: "loadScene",
   label: "buttons.load",
@@ -433,7 +450,7 @@ export const actionLoadScene = register({
         elements: loadedElements,
         appState: loadedAppState,
         files,
-        captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        captureUpdate: captureFileLoad(app, loadedAppState.fileHandle),
       };
     } catch (error: any) {
       if (error?.name === "AbortError") {

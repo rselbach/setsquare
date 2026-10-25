@@ -278,7 +278,7 @@ import {
 import { actionWrapTextInContainer } from "../actions/actionBoundText";
 import { actionPaste } from "../actions/actionClipboard";
 import { actionCopyElementLink } from "../actions/actionElementLink";
-import { confirmLoadFromFile } from "../actions/actionExport";
+import { captureFileLoad, confirmLoadFromFile } from "../actions/actionExport";
 import { actionUnlockAllElements } from "../actions/actionElementLock";
 import {
   actionRemoveAllElementsFromFrame,
@@ -10812,6 +10812,10 @@ class App extends React.Component<AppProps, AppState> {
             });
             return;
           }
+          const captureUpdate = captureFileLoad(
+            this,
+            scene.appState.fileHandle,
+          );
           this.syncActionResult({
             ...scene,
             appState: {
@@ -10819,9 +10823,11 @@ class App extends React.Component<AppProps, AppState> {
               isLoading: false,
             },
             replaceFiles: true,
-            captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            captureUpdate,
           });
-          this.showSceneReplacedToast();
+          if (captureUpdate === CaptureUpdateAction.IMMEDIATELY) {
+            this.showSceneReplacedToast();
+          }
           return;
         }
       }
@@ -10912,7 +10918,7 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
-  /** @returns true if the file replaced the scene */
+  /** @returns true if the file replaced the scene undoably */
   loadFileToCanvas = async (
     file: File,
     fileHandle: FileSystemFileHandle | null,
@@ -10986,6 +10992,10 @@ class App extends React.Component<AppProps, AppState> {
           appState: undefined,
         });
 
+        const captureUpdate = captureFileLoad(
+          this,
+          ret.data.appState.fileHandle,
+        );
         this.setState({ isLoading: true });
         this.syncActionResult({
           ...ret.data,
@@ -10994,9 +11004,9 @@ class App extends React.Component<AppProps, AppState> {
             isLoading: false,
           },
           replaceFiles: true,
-          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+          captureUpdate,
         });
-        return true;
+        return captureUpdate === CaptureUpdateAction.IMMEDIATELY;
       } else if (ret.type === MIME_TYPES.setsquarelib) {
         await this.library
           .updateLibrary({
