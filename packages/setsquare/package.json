@@ -112,7 +112,8 @@
     "radix-ui": "1.4.3",
     "roughjs": "4.6.4",
     "sass": "1.51.0",
-    "tunnel-rat": "0.1.2"
+    "tunnel-rat": "0.1.2",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@testing-library/dom": "10.4.0",

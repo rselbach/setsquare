@@ -694,6 +694,16 @@
       "isSpeaking": "User is speaking"
     }
   },
+  "agentAccess": {
+    "title": "Agent access",
+    "description": "Connect an MCP client to edit the drawing, inspect its layout, and open or save .setsquare files on this computer.",
+    "enable": "Enable agent access",
+    "disable": "Disable agent access",
+    "url": "Server URL",
+    "token": "Bearer token",
+    "copy": "Copy connection settings",
+    "session": "Access stays enabled until you disable it or quit Setsquare. Connection settings for this session are also saved in:"
+  },
   "desktopMenu": {
     "quit": "Quit Setsquare",
     "file": "File",

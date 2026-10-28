@@ -1,6 +1,7 @@
 // Prevents an extra console window on Windows in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod mcp;
 mod opened_files;
 mod quit;
 mod saved_files;
@@ -20,7 +21,16 @@ fn main() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(opened_files::OpenedFiles::default())
+        .manage(mcp::McpState::default())
         .invoke_handler(tauri::generate_handler![
+            mcp::mcp_register,
+            mcp::mcp_unregister,
+            mcp::mcp_reply,
+            mcp::mcp_status,
+            mcp::mcp_start,
+            mcp::mcp_stop,
+            mcp::files::mcp_read_document,
+            mcp::files::mcp_write_document,
             opened_files::take_opened_files,
             saved_files::save_file,
             quit::quit,
@@ -40,6 +50,9 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("failed to build Setsquare");
     app.run(|_app, _event| {
+        if let tauri::RunEvent::Exit = _event {
+            mcp::shutdown(_app);
+        }
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Opened { urls } = _event {
             opened_files::open(_app, urls);

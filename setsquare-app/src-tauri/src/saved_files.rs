@@ -30,7 +30,7 @@ pub fn save_file(app: AppHandle, request: Request<'_>) -> Result<(), String> {
 
 /// Writes the contents to a temporary file next to the file, then moves it
 /// into the file's place, so a failed write leaves the file as it was.
-fn replace(path: &Path, contents: &[u8]) -> io::Result<()> {
+pub(crate) fn replace(path: &Path, contents: &[u8]) -> io::Result<()> {
     // saving through a symlink replaces the file it points to
     let path = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
     let name = path

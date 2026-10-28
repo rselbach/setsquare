@@ -98,12 +98,14 @@ const saveDataStateToLocalStorage = (
     if (localStorageQuotaExceeded) {
       appJotaiStore.set(localStorageQuotaExceededAtom, false);
     }
+    return true;
   } catch (error: any) {
     // Unable to access window.localStorage
     console.error(error);
     if (isQuotaExceededError(error) && !localStorageQuotaExceeded) {
       appJotaiStore.set(localStorageQuotaExceededAtom, true);
     }
+    return false;
   }
 };
 
@@ -156,6 +158,28 @@ export class LocalData {
   static flushSave = () => {
     this._save.flush();
     return this.saved;
+  };
+
+  /** Persists agent edits even while the desktop window is hidden. */
+  static saveImmediately = async (
+    elements: readonly SetsquareElement[],
+    appState: AppState,
+    files: BinaryFiles,
+  ) => {
+    if (!saveDataStateToLocalStorage(elements, appState)) {
+      throw new Error(
+        "The drawing changed, but local storage could not save it",
+      );
+    }
+    const saving = this.fileStorage.saveFiles({ elements, files });
+    this.saved = Promise.allSettled([this.saved, saving]);
+    const { erroredFiles } = await saving;
+    appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
+    if (erroredFiles.size) {
+      throw new Error(
+        "The drawing changed, but some images could not be saved",
+      );
+    }
   };
 
   static isSavePaused = () => {

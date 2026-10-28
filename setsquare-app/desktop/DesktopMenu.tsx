@@ -14,7 +14,7 @@ import {
   PredefinedMenuItem,
   Submenu,
 } from "@tauri-apps/api/menu";
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 
 import {
   DEFAULT_CANVAS_BACKGROUND_PICKS,
@@ -58,6 +58,7 @@ import type { Theme } from "@setsquare/element/types";
 import { useAppLangCode } from "../app-language/language-state";
 
 import { quit } from "./quit";
+import { AgentAccess } from "./AgentAccess";
 
 import type { PredefinedMenuItemOptions } from "@tauri-apps/api/menu";
 
@@ -216,6 +217,7 @@ export const DesktopMenu = ({
   const appState = useUIAppState();
   const setAppState = useSetsquareSetAppState();
   const setActiveConfirmDialog = useSetAtom(activeConfirmDialogAtom);
+  const [agentAccessOpen, setAgentAccessOpen] = useState(false);
 
   // like the action's shortcut, which view mode blocks unless the action
   // allows it
@@ -257,6 +259,9 @@ export const DesktopMenu = ({
     submenu("app", "Setsquare", [
       predefined({ About: null }),
       separator,
+      command("agent-access", `${t("agentAccess.title")}…`, () =>
+        setAgentAccessOpen(true),
+      ),
       submenu("preferences", t("labels.preferences"), [
         submenu("box-selection", t("labels.boxSelectionMode"), [
           check(
@@ -585,5 +590,10 @@ export const DesktopMenu = ({
     }
   });
 
-  return null;
+  return (
+    <AgentAccess
+      open={agentAccessOpen}
+      onClose={() => setAgentAccessOpen(false)}
+    />
+  );
 };
