@@ -7,8 +7,10 @@ export const STORAGE_KEYS = {
   LOCAL_STORAGE_APP_STATE: "setsquare-state",
   LOCAL_STORAGE_THEME: "setsquare-theme",
   LOCAL_STORAGE_DEBUG: "setsquare-debug",
+  LOCAL_STORAGE_PREFS: "setsquare-prefs",
   VERSION_DATA_STATE: "version-dataState",
   VERSION_FILES: "version-files",
 
   IDB_LIBRARY: "setsquare-library",
+  IDB_WORKSPACE: "setsquare-workspace",
 } as const;
