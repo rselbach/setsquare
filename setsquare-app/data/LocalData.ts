@@ -16,58 +16,24 @@ import {
   DEFAULT_SIDEBAR,
   debounce,
 } from "@setsquare/common";
-import {
-  createStore,
-  entries,
-  del,
-  getMany,
-  set,
-  setMany,
-  get,
-} from "idb-keyval";
+import { createStore, set, get } from "idb-keyval";
 
 import { getNonDeletedElements } from "@setsquare/element";
 
 import type { LibraryPersistedData } from "@setsquare/setsquare/data/library";
-import type { SetsquareElement, FileId } from "@setsquare/element/types";
-import type {
-  AppState,
-  BinaryFileData,
-  BinaryFiles,
-} from "@setsquare/setsquare/types";
+import type { SetsquareElement } from "@setsquare/element/types";
+import type { AppState, BinaryFiles } from "@setsquare/setsquare/types";
 import type { MaybePromise } from "@setsquare/common/utility-types";
 
 import { appJotaiStore, atom } from "../app-jotai";
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT, STORAGE_KEYS } from "../app_constants";
 
-import { FileManager } from "./FileManager";
 import { FileStatusStore } from "./fileStatusStore";
+import { LocalFileManager, getLocalFiles, saveLocalFiles } from "./localFiles";
 import { updateBrowserStateVersion } from "./tabSync";
-
-const filesStore = createStore("files-db", "files-store");
 
 export const localStorageQuotaExceededAtom = atom(false);
 export const imageSaveFailedAtom = atom(false);
-
-class LocalFileManager extends FileManager {
-  clearObsoleteFiles = async (opts: { currentFileIds: FileId[] }) => {
-    await entries(filesStore).then((entries) => {
-      for (const [id, imageData] of entries as [FileId, BinaryFileData][]) {
-        // if image is unused (not on canvas) & is older than 1 day, delete it
-        // from storage. We check `lastRetrieved` we care about the last time
-        // the image was used (loaded on canvas), not when it was initially
-        // created.
-        if (
-          (!imageData.lastRetrieved ||
-            Date.now() - imageData.lastRetrieved > 24 * 3600 * 1000) &&
-          !opts.currentFileIds.includes(id as FileId)
-        ) {
-          del(id, filesStore);
-        }
-      }
-    });
-  };
-}
 
 const saveDataStateToLocalStorage = (
   elements: readonly SetsquareElement[],
@@ -190,61 +156,13 @@ export class LocalData {
 
   static fileStorage = new LocalFileManager({
     onFileStatusChange: FileStatusStore.updateStatuses.bind(FileStatusStore),
-    getFiles(ids) {
-      return getMany(ids, filesStore).then(
-        async (filesData: (BinaryFileData | undefined)[]) => {
-          const loadedFiles: BinaryFileData[] = [];
-          const erroredFiles = new Map<FileId, true>();
-
-          const filesToSave: [FileId, BinaryFileData][] = [];
-
-          filesData.forEach((data, index) => {
-            const id = ids[index];
-            if (data) {
-              const _data: BinaryFileData = {
-                ...data,
-                lastRetrieved: Date.now(),
-              };
-              filesToSave.push([id, _data]);
-              loadedFiles.push(_data);
-            } else {
-              erroredFiles.set(id, true);
-            }
-          });
-
-          try {
-            // save loaded files back to storage with updated `lastRetrieved`
-            setMany(filesToSave, filesStore);
-          } catch (error) {
-            console.warn(error);
-          }
-
-          return { loadedFiles, erroredFiles };
-        },
-      );
-    },
-    async saveFiles({ addedFiles }) {
-      const savedFiles = new Map<FileId, BinaryFileData>();
-      const erroredFiles = new Map<FileId, BinaryFileData>();
-
+    getFiles: getLocalFiles,
+    saveFiles(data) {
       // before we use `storage` event synchronization, let's update the flag
       // optimistically. Hopefully nothing fails, and an IDB read executed
       // before an IDB write finishes will read the latest value.
       updateBrowserStateVersion(STORAGE_KEYS.VERSION_FILES);
-
-      await Promise.all(
-        [...addedFiles].map(async ([id, fileData]) => {
-          try {
-            await set(id, fileData, filesStore);
-            savedFiles.set(id, fileData);
-          } catch (error: any) {
-            console.error(error);
-            erroredFiles.set(id, fileData);
-          }
-        }),
-      );
-
-      return { savedFiles, erroredFiles };
+      return saveLocalFiles(data);
     },
   });
 }
