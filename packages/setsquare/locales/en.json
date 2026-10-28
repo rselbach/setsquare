@@ -414,6 +414,7 @@
     "headingMain": "Encountered an error. Try <button>reloading the page</button>.",
     "clearCanvasMessage": "If reloading doesn't work, try <button>clearing the canvas</button>.",
     "clearCanvasCaveat": " This will result in loss of work ",
+    "backToDrawingsMessage": "If reloading doesn't work, go <button>back to your drawings</button>.",
     "sceneContent": "Scene content:"
   },
   "roomDialog": {

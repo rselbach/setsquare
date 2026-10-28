@@ -1,4 +1,9 @@
+import { isTauri } from "@tauri-apps/api/core";
 import Trans from "@setsquare/setsquare/components/Trans";
+import {
+  EditorJotaiProvider,
+  editorJotaiStore,
+} from "@setsquare/setsquare/editor-jotai";
 import { t } from "@setsquare/setsquare/i18n";
 import React from "react";
 
@@ -17,7 +22,15 @@ export class TopErrorBoundary extends React.Component<
   };
 
   render() {
-    return this.state.hasError ? this.errorSplash() : this.props.children;
+    return this.state.hasError ? (
+      // the editor's store, which Trans reads the language from, may never
+      // have been provided, or have gone with the editor
+      <EditorJotaiProvider store={editorJotaiStore}>
+        {this.errorSplash()}
+      </EditorJotaiProvider>
+    ) : (
+      this.props.children
+    );
   }
 
   componentDidCatch() {
@@ -56,33 +69,47 @@ export class TopErrorBoundary extends React.Component<
             />
           </div>
           <div className="ErrorSplash-paragraph align-center">
-            <Trans
-              i18nKey="errorSplash.clearCanvasMessage"
-              button={(el) => (
-                <button
-                  onClick={() => {
-                    try {
-                      localStorage.clear();
-                      window.location.reload();
-                    } catch (error: any) {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  {el}
-                </button>
-              )}
-            />
-            <br />
-            <div className="smaller">
-              <span role="img" aria-label="warning">
-                ⚠️
-              </span>
-              {t("errorSplash.clearCanvasCaveat")}
-              <span role="img" aria-hidden="true">
-                ⚠️
-              </span>
-            </div>
+            {isTauri() ? (
+              <>
+                <Trans
+                  i18nKey="errorSplash.clearCanvasMessage"
+                  button={(el) => (
+                    <button
+                      onClick={() => {
+                        try {
+                          localStorage.clear();
+                          window.location.reload();
+                        } catch (error: any) {
+                          console.error(error);
+                        }
+                      }}
+                    >
+                      {el}
+                    </button>
+                  )}
+                />
+                <br />
+                <div className="smaller">
+                  <span role="img" aria-label="warning">
+                    ⚠️
+                  </span>
+                  {t("errorSplash.clearCanvasCaveat")}
+                  <span role="img" aria-hidden="true">
+                    ⚠️
+                  </span>
+                </div>
+              </>
+            ) : (
+              // a fresh page load, so nothing of the broken state is left
+              <Trans
+                i18nKey="errorSplash.backToDrawingsMessage"
+                button={(el) => (
+                  <button onClick={() => window.location.assign("/")}>
+                    {el}
+                  </button>
+                )}
+              />
+            )}
           </div>
           <div>
             <div className="ErrorSplash-paragraph">

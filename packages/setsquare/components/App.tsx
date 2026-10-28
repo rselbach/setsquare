@@ -789,6 +789,7 @@ class App extends React.Component<AppProps, AppState> {
       getViewportOffsets: this.viewport.getOffsets,
       setElementRenderOverrides: this.setElementRenderOverrides,
       getSceneElements: this.getSceneElements,
+      submitTextEditor: () => this.text.textWysiwygSubmitHandler?.(),
       getAppState: () => this.state,
       getFiles: () => this.files,
       getName: this.getName,

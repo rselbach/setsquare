@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   LOCAL_STORAGE_THEME: "setsquare-theme",
   LOCAL_STORAGE_DEBUG: "setsquare-debug",
   LOCAL_STORAGE_PREFS: "setsquare-prefs",
+  LOCAL_STORAGE_UNSAVED: "setsquare-unsaved",
   VERSION_DATA_STATE: "version-dataState",
   VERSION_FILES: "version-files",
 

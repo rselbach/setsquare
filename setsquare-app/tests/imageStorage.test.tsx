@@ -27,9 +27,21 @@ vi.mock("idb-keyval", async (importOriginal) => {
   };
 });
 
+// the native menu bar needs the desktop app itself; DesktopMenu.test covers it
+vi.mock("../desktop/DesktopMenu", () => ({ DesktopMenu: () => null }));
+
 const { h } = window;
 
+// the single scene's image storage, which LocalData holds
 describe("image storage", () => {
+  beforeEach(() => {
+    Object.assign(window, { isTauri: true });
+  });
+
+  afterEach(() => {
+    delete (window as any).isTauri;
+  });
+
   it("tells the user when images can't be saved", async () => {
     await render(<SetsquareApp />);
     const fileId = "jeff" as FileId;

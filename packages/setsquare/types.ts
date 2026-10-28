@@ -1407,6 +1407,12 @@ export interface SetsquareImperativeAPI {
     "select" | "add" | "remove" | "clear"
   >;
   getSceneElements: InstanceType<typeof App>["getSceneElements"];
+  /**
+   * Ends text editing, keeping the text typed so far, as clicking outside it
+   * would. Does nothing while no text is being edited. The text is in the
+   * scene once this returns, and `onChange()` has seen it.
+   */
+  submitTextEditor: () => void;
   getAppState: () => InstanceType<typeof App>["state"];
   getFiles: () => InstanceType<typeof App>["files"];
   getName: InstanceType<typeof App>["getName"];

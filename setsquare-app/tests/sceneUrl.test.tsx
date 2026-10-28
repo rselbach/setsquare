@@ -10,6 +10,9 @@ import type { BinaryFiles, DataURL } from "@setsquare/setsquare/types";
 import SetsquareApp from "../App";
 import { STORAGE_KEYS } from "../app_constants";
 
+// the native menu bar needs the desktop app itself; DesktopMenu.test covers it
+vi.mock("../desktop/DesktopMenu", () => ({ DesktopMenu: () => null }));
+
 const { h } = window;
 
 const SCENE_URL = "https://greendale.edu/study-group.setsquare";
@@ -23,8 +26,14 @@ const changeHash = (hash: string) => {
   });
 };
 
+// the single scene's links; the web app opens them as new drawings
 describe("#url= links", () => {
+  beforeEach(() => {
+    Object.assign(window, { isTauri: true });
+  });
+
   afterEach(() => {
+    delete (window as any).isTauri;
     vi.restoreAllMocks();
     window.history.replaceState({}, "", "/");
     localStorage.clear();

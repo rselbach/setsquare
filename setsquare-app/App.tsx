@@ -1,9 +1,11 @@
+import { isTauri } from "@tauri-apps/api/core";
 import { SetsquareAPIProvider } from "@setsquare/setsquare";
 import polyfill from "@setsquare/setsquare/polyfill";
 
 import { Provider, appJotaiStore } from "./app-jotai";
 import { TopErrorBoundary } from "./components/TopErrorBoundary";
 import { SingleSceneRoot } from "./desktop/SingleSceneRoot";
+import { WebRoot } from "./web/WebRoot";
 
 import "./index.scss";
 
@@ -41,8 +43,11 @@ const SetsquareApp = () => {
     >
       <h1>I'm not a pretzel!</h1>
     </div>
-  ) : (
+  ) : isTauri() ? (
+    // the desktop app keeps one scene, saved to a file or locally
     <SingleSceneRoot />
+  ) : (
+    <WebRoot />
   );
 
   return (

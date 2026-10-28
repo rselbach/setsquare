@@ -19,9 +19,21 @@ vi.mock("@setsquare/common", async (importOriginal) => {
   };
 });
 
+// the native menu bar needs the desktop app itself; DesktopMenu.test covers it
+vi.mock("../desktop/DesktopMenu", () => ({ DesktopMenu: () => null }));
+
 const { h } = window;
 
+// the single scene's tab sync; the web app syncs each drawing's revision
 describe("tab sync", () => {
+  beforeEach(() => {
+    Object.assign(window, { isTauri: true });
+  });
+
+  afterEach(() => {
+    delete (window as any).isTauri;
+  });
+
   it("keeps the tab's file handle when another tab saved the scene", async () => {
     await render(<SetsquareApp />);
     const fileHandle = { name: "Greendale.setsquare" } as any;

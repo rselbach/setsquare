@@ -32,10 +32,9 @@ export interface ScenePersistence {
   changedElsewhere(): Promise<{
     scene: {
       elements: readonly SetsquareElement[];
-      // the editor keeps its own size and offsets
-      appState: Omit<
-        AppState,
-        "offsetTop" | "offsetLeft" | "width" | "height"
+      // the editor keeps its own size and offsets, and whatever is left out
+      appState: Partial<
+        Omit<AppState, "offsetTop" | "offsetLeft" | "width" | "height">
       > | null;
     } | null;
     /** whether other tabs saved images this tab may not have loaded */

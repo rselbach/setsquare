@@ -211,12 +211,15 @@ export const EditorShell = ({
         if (changed.scene) {
           const { elements, appState } = changed.scene;
           setLangCode(getPreferredLanguage());
+          const current = setsquareAPI.getAppState();
           setsquareAPI.updateScene({
             elements,
-            // the file handle isn't stored, so keep this tab's
+            // the file handle isn't stored, so keep this tab's, and whatever
+            // else wasn't saved elsewhere
             appState: appState && {
+              ...current,
               ...appState,
-              fileHandle: setsquareAPI.getAppState().fileHandle,
+              fileHandle: current.fileHandle,
             },
             captureUpdate: CaptureUpdateAction.NEVER,
           });
