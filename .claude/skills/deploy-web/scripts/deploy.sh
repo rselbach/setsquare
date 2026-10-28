@@ -84,14 +84,28 @@ deploy_on_vm() {
 }
 
 check_public_site() {
-  local body
+  local page body status
+  local missing_asset="${PUBLIC_URL}assets/deploy-check.js"
 
-  if ! body="$(curl -fsS "${PUBLIC_URL}")"; then
-    err "${PUBLIC_URL} did not answer"
+  for page in "" "d/deploy-check"; do
+    if ! body="$(curl -fsS "${PUBLIC_URL}${page}")"; then
+      err "${PUBLIC_URL}${page} did not answer"
+      return 1
+    fi
+    if [[ "${body}" != *"<title>Setsquare</title>"* ]]; then
+      err "${PUBLIC_URL}${page} did not serve the Setsquare page"
+      return 1
+    fi
+  done
+
+  # a missing asset must not fall back to the page
+  if ! status="$(curl -sS -o /dev/null -w '%{http_code}' "${missing_asset}")"
+  then
+    err "${missing_asset} did not answer"
     return 1
   fi
-  if [[ "${body}" != *"<title>Setsquare</title>"* ]]; then
-    err "${PUBLIC_URL} did not serve the Setsquare page"
+  if [[ "${status}" != 404 ]]; then
+    err "${missing_asset} returned ${status} instead of 404"
     return 1
   fi
 }

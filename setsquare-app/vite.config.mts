@@ -170,6 +170,9 @@ export default defineConfig(({ command, mode }) => {
         },
 
         workbox: {
+          // page loads under /api/, such as a sign-in callback, must reach
+          // the server instead of the cached app
+          navigateFallbackDenylist: [/^\/api\//],
           // don't precache fonts, locales and separate chunks
           globIgnores: [
             "fonts.css",

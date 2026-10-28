@@ -5,7 +5,7 @@ description: Deploy, redeploy, or roll back the Setsquare web app in production 
 
 # Deploy the web app
 
-Production runs on the exe.dev VM `setsquare`. The VM runs the image built from the repository's `Dockerfile` (nginx serving the static build) as the container `setsquare`, mapped to port 8000. The exe.dev HTTPS proxy publishes that port publicly. `setsquare.rselbach.com` is a DNS-only Cloudflare CNAME to `setsquare.exe.xyz`.
+Production runs on the exe.dev VM `setsquare`. The VM runs the image built from the repository's `Dockerfile` (nginx serving the static build with `setsquare-app/nginx.conf`) as the container `setsquare`, mapped to port 8000. The exe.dev HTTPS proxy publishes that port publicly. `setsquare.rselbach.com` is a DNS-only Cloudflare CNAME to `setsquare.exe.xyz`.
 
 ## Redeploy
 
@@ -28,7 +28,7 @@ Production runs on the exe.dev VM `setsquare`. The VM runs the image built from 
    2. Builds the image `setsquare:<short-sha>` on the VM.
    3. Replaces the container. If the new container does not answer on port 8000 within 15 seconds, the script restores the previous image and fails.
    4. Prunes unused images and build cache, so each build starts clean.
-   5. Checks that `https://setsquare.rselbach.com/` serves the Setsquare page.
+   5. Checks that `https://setsquare.rselbach.com/` and a drawing URL serve the Setsquare page, and that a missing asset returns 404.
 
    A deploy takes about 2 minutes and prints the full Docker build log. Run it in the background and read the last lines of its output. Success ends with `Deployed <sha> to https://setsquare.rselbach.com/`.
 
