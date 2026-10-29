@@ -322,9 +322,15 @@ it("uses the OAuth library to verify state and exchange the PKCE verifier with G
           : new URL(input.url);
       called.push({ url: url.href, body: String(options?.body ?? "") });
       if (url.href === "https://github.com/login/oauth/access_token") {
-        expect(
-          new URLSearchParams(String(options?.body)).get("code_verifier"),
-        ).toBe(verifier);
+        const body = new URLSearchParams(String(options?.body));
+        expect(body.get("code_verifier")).toBe(verifier);
+        // GitHub refuses a code with 200 and an error body
+        if (body.get("code") === "expired") {
+          return Response.json({
+            error: "bad_verification_code",
+            error_description: "The code passed is incorrect or expired.",
+          });
+        }
         return Response.json({
           access_token: "external-test-token",
           token_type: "bearer",
@@ -340,9 +346,16 @@ it("uses the OAuth library to verify state and exchange the PKCE verifier with G
       });
     },
   );
-  const callback = new URL(
-    `${config.origin}/api/auth/github/callback?code=greendale&state=troy-state`,
-  );
+  // GitHub names its issuer in the callback (RFC 9207)
+  const callbackWith = (code: string, issuer: string) =>
+    new URL(
+      `${config.origin}/api/auth/github/callback?${new URLSearchParams({
+        code,
+        state: "troy-state",
+        iss: issuer,
+      })}`,
+    );
+  const callback = callbackWith("greendale", "https://github.com/login/oauth");
   expect(
     await github.authenticate(callback, "troy-state", verifier),
   ).toMatchObject({ githubId: "101", login: "troy-barnes" });
@@ -350,7 +363,21 @@ it("uses the OAuth library to verify state and exchange the PKCE verifier with G
   await expect(
     github.authenticate(callback, "abed-state", verifier),
   ).rejects.toThrow();
+  await expect(
+    github.authenticate(
+      callbackWith("greendale", "https://city-college.example"),
+      "troy-state",
+      verifier,
+    ),
+  ).rejects.toThrow('unexpected "iss"');
   expect(called).toHaveLength(2);
+  await expect(
+    github.authenticate(
+      callbackWith("expired", "https://github.com/login/oauth"),
+      "troy-state",
+      verifier,
+    ),
+  ).rejects.toMatchObject({ error: "bad_verification_code" });
 });
 
 it("requires HTTPS and OAuth configuration for production", async () => {

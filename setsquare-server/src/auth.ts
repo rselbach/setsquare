@@ -57,10 +57,25 @@ export interface OAuthProvider {
   ): Promise<GitHubProfile>;
 }
 
+/** GitHub's token endpoint refused the authorization code. */
+class GitHubTokenError extends Error {
+  constructor(readonly error: string, readonly error_description?: string) {
+    super(`GitHub refused the authorization code: ${error}`);
+    this.name = "GitHubTokenError";
+  }
+}
+
+const tokenErrorSchema = z.object({
+  error: z.string(),
+  error_description: z.string().optional(),
+});
+
 /** Uses GitHub's authorization code flow with an OAuth protocol client. */
 export class GitHubOAuth implements OAuthProvider {
+  // as GitHub publishes at
+  // https://github.com/.well-known/oauth-authorization-server/login/oauth
   private readonly server: oauth.AuthorizationServer = {
-    issuer: "https://github.com",
+    issuer: "https://github.com/login/oauth",
     authorization_endpoint: "https://github.com/login/oauth/authorize",
     token_endpoint: "https://github.com/login/oauth/access_token",
   };
@@ -108,6 +123,20 @@ export class GitHubOAuth implements OAuthProvider {
       verifier,
       { signal: AbortSignal.timeout(15_000) },
     );
+    // GitHub answers a refused code with 200 and an error body, which
+    // oauth4webapi reports only as a missing access_token
+    const refused = tokenErrorSchema.safeParse(
+      await response
+        .clone()
+        .json()
+        .catch(() => null),
+    );
+    if (refused.success) {
+      throw new GitHubTokenError(
+        refused.data.error,
+        refused.data.error_description,
+      );
+    }
     const tokens = await oauth.processAuthorizationCodeResponse(
       this.server,
       this.client,
@@ -141,6 +170,24 @@ export type AuthenticatedSession = {
   tokenHash: string;
   csrfToken: string;
   user: AccountUser;
+};
+
+// What an OAuth step reported. Its cause is left out because it can carry the
+// authorization code.
+const oauthFailure = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return { message: String(error) };
+  }
+  // oauth4webapi's errors carry these as their own fields
+  const details: Record<string, unknown> = { ...error };
+  return {
+    name: error.name,
+    message: error.message,
+    code: details.code,
+    oauthError: details.error,
+    description: details.error_description,
+    status: details.status,
+  };
 };
 
 const hash = (value: string) =>
@@ -400,7 +447,11 @@ export class Authentication {
           state,
           attempt.verifier,
         );
-      } catch {
+      } catch (error) {
+        request.log.warn(
+          { failure: oauthFailure(error) },
+          "GitHub sign-in failed",
+        );
         throw new ApiError(
           400,
           "oauth_failed",
