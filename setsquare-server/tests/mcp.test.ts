@@ -448,6 +448,7 @@ it("escapes consent and requires browser CSRF before approving access", async ()
   });
   const consent = await app.inject(`/oauth/authorize?${query}`);
   expect(consent.statusCode).toBe(200);
+  expect(consent.headers["referrer-policy"]).toBe("same-origin");
   expect(consent.body).toContain("&lt;script&gt;");
   expect(consent.body).not.toContain("<script>");
   expect(consent.headers["content-security-policy"]).toContain(
@@ -461,16 +462,19 @@ it("escapes consent and requires browser CSRF before approving access", async ()
     decision: "allow",
     csrf_token: "csrf",
   }).toString();
-  const denied = await app.inject({
-    method: "POST",
-    url: "/oauth/authorize",
-    headers: {
-      "content-type": "application/x-www-form-urlencoded",
-      origin: "https://attacker.example",
-    },
-    payload,
-  });
-  expect(denied.statusCode).toBe(403);
+  for (const origin of [undefined, "null", "https://attacker.example"]) {
+    const denied = await app.inject({
+      method: "POST",
+      url: "/oauth/authorize",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        "sec-fetch-site": "same-origin",
+        ...(origin ? { origin } : {}),
+      },
+      payload,
+    });
+    expect(denied.statusCode).toBe(403);
+  }
   expect(approve).not.toHaveBeenCalled();
   const allowed = await app.inject({
     method: "POST",
@@ -478,11 +482,55 @@ it("escapes consent and requires browser CSRF before approving access", async ()
     headers: {
       "content-type": "application/x-www-form-urlencoded",
       origin: config.origin,
+      "sec-fetch-site": "same-origin",
     },
     payload,
   });
   expect(allowed.statusCode).toBe(303);
+  expect(allowed.headers["referrer-policy"]).toBe("no-referrer");
   expect(approve).toHaveBeenCalledWith(signedIn, "b".repeat(43), true);
+});
+
+it("allows same-origin native forms to revoke connected clients", async () => {
+  const signedIn = {
+    tokenHash: "session",
+    csrfToken: "csrf",
+    user: {
+      id: userId,
+      login: "troy",
+      name: "Troy",
+      avatarUrl: "https://example.test/avatar",
+    },
+  };
+  const grantId = randomUUID();
+  vi.spyOn(SessionDatabase.prototype, "find").mockResolvedValue(signedIn);
+  vi.spyOn(McpOAuthStore.prototype, "connections").mockResolvedValue([
+    { id: grantId, name: "Drawing assistant", scopes: [READ_SCOPE] },
+  ]);
+  const disconnect = vi
+    .spyOn(McpOAuthStore.prototype, "disconnect")
+    .mockResolvedValue(undefined);
+  const connections = await app.inject("/oauth/connections");
+  expect(connections.statusCode).toBe(200);
+  expect(connections.headers["referrer-policy"]).toBe("same-origin");
+  expect(connections.body).toContain(`name="grant_id" value="${grantId}"`);
+  const revoked = await app.inject({
+    method: "POST",
+    url: "/oauth/connections",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      origin: config.origin,
+      "sec-fetch-site": "same-origin",
+    },
+    payload: new URLSearchParams({
+      grant_id: grantId,
+      csrf_token: signedIn.csrfToken,
+    }).toString(),
+  });
+  expect(revoked.statusCode).toBe(303);
+  expect(revoked.headers.location).toBe("/oauth/connections");
+  expect(revoked.headers["referrer-policy"]).toBe("no-referrer");
+  expect(disconnect).toHaveBeenCalledWith(userId, grantId);
 });
 
 it("rejects repeated OAuth form parameters", async () => {

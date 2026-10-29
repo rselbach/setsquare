@@ -42,6 +42,8 @@ const html = (
 ) =>
   reply
     .type("text/html")
+    // Native form POSTs use Origin: null under no-referrer, failing CSRF checks.
+    .header("Referrer-Policy", "same-origin")
     .header(
       "Content-Security-Policy",
       `default-src 'none'; style-src 'unsafe-inline'; form-action 'self'${
