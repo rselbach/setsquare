@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   LOCAL_STORAGE_DEBUG: "setsquare-debug",
   LOCAL_STORAGE_PREFS: "setsquare-prefs",
   LOCAL_STORAGE_UNSAVED: "setsquare-unsaved",
+  LOCAL_STORAGE_WORKSPACE_SORT: "setsquare-workspace-sort",
   VERSION_DATA_STATE: "version-dataState",
   VERSION_FILES: "version-files",
 

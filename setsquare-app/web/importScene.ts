@@ -1,9 +1,8 @@
 import { EVENT } from "@setsquare/common";
 import { getNonDeletedElements } from "@setsquare/element";
-import { useSetsquareAPI } from "@setsquare/setsquare";
 import { loadFromBlob } from "@setsquare/setsquare/data/blob";
 import { t } from "@setsquare/setsquare/i18n";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import type { FileId } from "@setsquare/element/types";
 import type { RestoredDataState } from "@setsquare/setsquare/data/restore";
@@ -17,6 +16,8 @@ import { navigate } from "./router";
 
 import type { ParentId } from "../workspace/types";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
+
+import type { EditorTask } from "./editorTasks";
 
 /**
  * Creates a drawing from a restored scene, such as an opened file, with the
@@ -81,45 +82,29 @@ export const openSceneUrl = async (store: WorkspaceStore) => {
   }
 };
 
+/** Tells the user a `#url=` link's scene couldn't be opened. */
+export const sceneUrlFailed = (): EditorTask => ({
+  kind: "error",
+  message: () => t("alerts.invalidSceneUrl"),
+});
+
 /**
- * Opens the scenes of `#url=` links followed while the app is open, and
- * tells the user in the editor when one, or the page's first, couldn't be.
+ * Opens the scenes of `#url=` links followed while the app is open, queueing
+ * an error for one that couldn't be.
  */
 export const useSceneUrlLinks = (
   store: WorkspaceStore,
-  { failedOnOpen }: { failedOnOpen: boolean },
+  queueTask: (task: EditorTask) => void,
 ) => {
-  const setsquareAPI = useSetsquareAPI();
-  const [failed, setFailed] = useState(failedOnOpen);
-
   useEffect(() => {
     const onHashChange = () => {
       openSceneUrl(store).then((opened) => {
         if (!opened) {
-          setFailed(true);
+          queueTask(sceneUrlFailed());
         }
       });
     };
     window.addEventListener(EVENT.HASHCHANGE, onHashChange);
     return () => window.removeEventListener(EVENT.HASHCHANGE, onHashChange);
-  }, [store]);
-
-  useEffect(() => {
-    if (!setsquareAPI || !failed) {
-      return;
-    }
-    let active = true;
-    // once the editor has loaded its scene, which would clear the message
-    setsquareAPI.onEvent("editor:initialize").then((api) => {
-      if (active) {
-        api.updateScene({
-          appState: { errorMessage: t("alerts.invalidSceneUrl") },
-        });
-        setFailed(false);
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, [setsquareAPI, failed]);
+  }, [store, queueTask]);
 };

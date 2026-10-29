@@ -1,0 +1,1004 @@
+// The workspace page is the drafting table the editor's sheets lie on: the
+// nav and header are vellum chrome, ruled like the editor's title block,
+// and each drawing is a sheet of paper with its own title strip.
+.setsquare.setsquare-workspace {
+  --workspace-nav-width: 15rem;
+  --workspace-gutter: 1.5rem;
+  --workspace-control-height: 2.25rem;
+
+  background-color: var(--vellum);
+
+  .workspace {
+    display: grid;
+    flex: 1;
+    grid-template-columns: var(--workspace-nav-width) minmax(0, 1fr);
+    min-width: 0;
+    height: 100%;
+  }
+
+  // captions name a field, like the small print in a title block's cells
+  .workspace-caption {
+    color: var(--lead);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-highlight-color);
+    outline-offset: -2px;
+  }
+
+  // the editor's buttons, squared to the ruled chrome
+  .ExcButton {
+    min-height: var(--workspace-control-height);
+    padding: 0 0.875rem;
+    border-radius: 0;
+    font-size: 0.875rem;
+
+    .ExcButton__icon {
+      width: 1.125rem;
+      height: 1.125rem;
+    }
+  }
+
+  // nav
+
+  .workspace-nav {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    border-inline-end: 1px solid var(--rule-strong);
+    background-color: var(--island-bg-color);
+  }
+
+  .workspace-nav__brand {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    height: 4.5rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--graphite);
+    font-family: var(--ui-font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+
+    svg {
+      width: 1.375rem;
+      height: 1.375rem;
+    }
+  }
+
+  .workspace-nav__places {
+    margin: 0;
+    padding: 0.75rem 0;
+    list-style: none;
+  }
+
+  .workspace-nav__place {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: 2.25rem;
+    padding: 0 1rem;
+    border-inline-start: 2px solid transparent;
+    font-size: 0.9375rem;
+
+    svg {
+      flex: none;
+      width: 1.125rem;
+      height: 1.125rem;
+      color: var(--lead);
+    }
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    &[aria-current="page"] {
+      border-inline-start-color: var(--ink);
+      background-color: var(--button-hover-bg);
+      font-weight: 700;
+
+      svg {
+        color: var(--ink);
+      }
+    }
+  }
+
+  // nesting is drawn with guide lines, like a tree on a schematic
+  .folder-tree,
+  .folder-tree__group {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .folder-tree {
+    padding-inline-start: 1.375rem;
+  }
+
+  .folder-tree__group {
+    margin-inline-start: 0.625rem;
+    padding-inline-start: 0.5rem;
+    border-inline-start: 1px solid var(--rule);
+  }
+
+  .folder-tree__row {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding-inline-end: 0.5rem;
+  }
+
+  .folder-tree__toggle {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--lead);
+
+    svg {
+      width: 0.875rem;
+      height: 0.875rem;
+      transition: transform 0.15s ease-out;
+    }
+
+    &:hover {
+      color: var(--text-primary-color);
+    }
+  }
+
+  &[dir="rtl"] .folder-tree__toggle svg {
+    transform: scaleX(-1);
+  }
+
+  .folder-tree__item[aria-expanded="true"]
+    > .folder-tree__row
+    .folder-tree__toggle
+    svg {
+    transform: rotate(90deg);
+  }
+
+  .folder-tree__link {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    height: 1.875rem;
+    padding: 0 0.375rem;
+    font-size: 0.875rem;
+
+    svg {
+      flex: none;
+      width: 1rem;
+      height: 1rem;
+      color: var(--lead);
+    }
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    &[aria-current="page"] {
+      box-shadow: inset 2px 0 0 var(--ink);
+      background-color: var(--button-hover-bg);
+      font-weight: 700;
+
+      svg {
+        color: var(--ink);
+      }
+    }
+  }
+
+  &[dir="rtl"] .folder-tree__link[aria-current="page"] {
+    box-shadow: inset -2px 0 0 var(--ink);
+  }
+
+  .folder-tree__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace-nav__foot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid var(--rule-strong);
+  }
+
+  .workspace-nav__storage {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    color: var(--lead);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+
+    .workspace-caption {
+      color: var(--text-primary-color);
+    }
+  }
+
+  .workspace-nav__prefs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+
+    .RadioGroup {
+      border-radius: 0;
+    }
+
+    .RadioGroup__choice,
+    .RadioGroup__choice input {
+      border-radius: 0;
+    }
+
+    .dropdown-select {
+      flex: 1;
+      min-width: 6rem;
+      height: 2rem;
+      border-radius: 0;
+    }
+  }
+
+  // header
+
+  .workspace__main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .workspace-header {
+    flex: none;
+    padding: 0 var(--workspace-gutter);
+    border-bottom: 1px solid var(--graphite);
+    background-color: var(--island-bg-color);
+  }
+
+  .workspace-header__bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4.5rem;
+  }
+
+  .workspace-header__drawer {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.125rem;
+    height: var(--workspace-control-height);
+    padding: 0 0.25rem 0 0.375rem;
+    border: none;
+    background: none;
+    color: var(--text-primary-color);
+
+    svg:first-child {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    svg:last-child {
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--lead);
+    }
+
+    &:hover,
+    &[aria-expanded="true"] {
+      background-color: var(--button-hover-bg);
+    }
+  }
+
+  .workspace-header__heading {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .workspace-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin: 0 0 0.125rem;
+    padding: 0;
+    list-style: none;
+    color: var(--lead);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      min-width: 0;
+    }
+
+    a:hover {
+      color: var(--text-primary-color);
+      text-decoration: underline;
+    }
+
+    svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+  }
+
+  &[dir="rtl"] .workspace-breadcrumbs svg {
+    transform: scaleX(-1);
+  }
+
+  .workspace-header__title {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--ui-font-display);
+    font-size: 1.625rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace-search {
+    position: relative;
+    flex: 0 1 20rem;
+    min-width: 10rem;
+
+    .ExcTextField__input {
+      height: var(--workspace-control-height);
+      border-color: var(--rule-strong);
+      border-radius: 0;
+      background-color: var(--field);
+      padding-inline: 2.25rem 2rem;
+    }
+
+    .ExcTextField svg {
+      inset-inline-start: 0.625rem;
+      left: auto;
+      width: 1.125rem;
+      height: 1.125rem;
+      color: var(--lead);
+    }
+
+    input {
+      font-size: 0.9375rem;
+
+      &::placeholder {
+        color: var(--lead);
+      }
+
+      // the field clears with Escape, so the browser's own button would be
+      // a second way
+      &::-webkit-search-cancel-button {
+        display: none;
+      }
+    }
+  }
+
+  .workspace-search__key {
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 0.5rem;
+    padding: 0 0.3125rem;
+    transform: translateY(-50%);
+    border: 1px solid var(--rule-strong);
+    color: var(--lead);
+    font-family: var(--ui-font-numeric);
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    pointer-events: none;
+  }
+
+  .workspace-search:focus-within .workspace-search__key {
+    display: none;
+  }
+
+  .workspace-header__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+
+  .workspace-header__create {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .workspace-sort.dropdown-menu-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: auto;
+    height: var(--workspace-control-height);
+    padding: 0 0.5rem 0 0.75rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
+    background-color: var(--field);
+    color: var(--text-primary-color);
+    font-size: 0.875rem;
+
+    svg {
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--lead);
+    }
+
+    &:hover,
+    &[data-state="open"] {
+      background-color: var(--button-hover-bg);
+    }
+  }
+
+  .workspace-menu.dropdown-menu {
+    z-index: 10;
+    width: auto;
+
+    .dropdown-menu-container {
+      min-width: 10rem;
+    }
+  }
+
+  // the grid
+
+  .workspace__content {
+    flex: 1;
+    min-height: 0;
+    padding: var(--workspace-gutter);
+    overflow-y: auto;
+    // the table's own faint grid, as on a cutting mat
+    background-color: var(--vellum-2);
+    background-image: linear-gradient(
+        color-mix(in srgb, var(--rule) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--rule) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 1.5rem 1.5rem;
+    background-attachment: local;
+  }
+
+  .workspace-section + .workspace-section {
+    margin-top: 2rem;
+  }
+
+  .workspace-section__caption {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1rem;
+    color: var(--lead);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    &::after {
+      content: "";
+      flex: 1;
+      border-top: 1px solid var(--rule-strong);
+    }
+  }
+
+  .workspace-folders,
+  .workspace-drawings {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .workspace-folders {
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 1.25rem 1rem;
+  }
+
+  .workspace-drawings {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 1.5rem 1.25rem;
+  }
+
+  // cards
+
+  .workspace-card {
+    position: relative;
+    min-width: 0;
+    transition: box-shadow 0.15s ease-out;
+
+    &:hover {
+      box-shadow: 0.25rem 0.25rem 0 var(--rule-strong);
+    }
+  }
+
+  .workspace-card__strip {
+    display: flex;
+    align-items: stretch;
+    min-height: 2.75rem;
+    border: 1px solid var(--graphite);
+    background-color: var(--island-bg-color);
+  }
+
+  .workspace-card__label {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.125rem;
+    min-width: 0;
+    padding: 0.375rem 0.625rem;
+  }
+
+  // the link covers the whole card, so the card is what's clicked
+  .workspace-card__link {
+    min-width: 0;
+    outline: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+
+    &:focus-visible::after {
+      box-shadow: 0 0 0 2px var(--focus-highlight-color);
+    }
+  }
+
+  .workspace-card__name,
+  .workspace-card__location {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace-card__name {
+    font-family: var(--ui-font-display);
+    font-size: 0.875rem;
+    font-weight: 700;
+
+    &--untitled {
+      color: var(--lead);
+      font-weight: 400;
+    }
+  }
+
+  .workspace-card__location {
+    color: var(--lead);
+    font-size: 0.75rem;
+  }
+
+  // beats the editor's generic text input styles
+  input.workspace-card__name-field {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 100%;
+    height: 1.75rem;
+    padding: 0 0.375rem;
+    border: none;
+    border-radius: 0;
+    background-color: var(--input-bg-color);
+    box-shadow: inset 0 0 0 2px var(--focus-highlight-color);
+    color: var(--text-primary-color);
+    font-family: var(--ui-font-display);
+    font-size: 0.875rem;
+    font-weight: 700;
+
+    &::placeholder {
+      color: var(--lead);
+      font-weight: 400;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .workspace-card__time {
+    display: flex;
+    flex: none;
+    align-items: center;
+    padding: 0 0.625rem;
+    border-inline-start: 1px solid var(--rule-strong);
+    color: var(--lead);
+    font-family: var(--ui-font-numeric);
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .workspace-card__more.dropdown-menu-button {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: auto;
+    padding: 0;
+    border: none;
+    border-inline-start: 1px solid var(--rule-strong);
+    border-radius: 0;
+    background-color: transparent;
+    color: var(--lead);
+
+    svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    &:hover,
+    &[data-state="open"] {
+      background-color: var(--button-hover-bg);
+      color: var(--text-primary-color);
+    }
+  }
+
+  // a sheet of paper, framed as drawings are, with the thumbnail inside
+  .drawing-card__sheet {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--rule-strong);
+    border-bottom: none;
+    background-color: var(--field);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0.3125rem;
+      border: 1px solid var(--rule);
+      pointer-events: none;
+    }
+
+    img {
+      position: absolute;
+      inset: 0.75rem;
+      width: calc(100% - 1.5rem);
+      height: calc(100% - 1.5rem);
+      object-fit: contain;
+      // thumbnails are drawn light, like the editor's canvas before its
+      // filter, and fill the frame as one sheet of paper
+      background-color: #fff;
+      filter: var(--theme-filter);
+    }
+  }
+
+  .drawing-card:hover .drawing-card__sheet {
+    border-color: var(--graphite);
+  }
+
+  .drawing-card__blank {
+    width: 2.5rem;
+    height: 2.5rem;
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+  }
+
+  // a drawer label, its tab above it
+  .folder-card {
+    margin-top: 0.4375rem;
+
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: 100%;
+      inset-inline-start: 0;
+      width: 38%;
+      max-width: 5rem;
+      height: 0.4375rem;
+      box-sizing: border-box;
+      border: 1px solid var(--graphite);
+      border-bottom: none;
+      background-color: var(--island-bg-color);
+    }
+
+    .workspace-card__strip {
+      min-height: 3.25rem;
+    }
+  }
+
+  .folder-card__icon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    padding: 0 0.625rem;
+    border-inline-end: 1px solid var(--rule-strong);
+    color: var(--lead);
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  // empty states
+
+  .workspace-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 26rem;
+    margin: 4rem auto;
+    color: var(--lead);
+    text-align: center;
+
+    p {
+      margin: 0;
+      font-size: 0.9375rem;
+      line-height: 1.4;
+    }
+  }
+
+  .workspace-empty__sheet {
+    width: 6rem;
+    margin-bottom: 0.5rem;
+    fill: var(--field);
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+
+    circle,
+    path {
+      fill: none;
+    }
+  }
+
+  .workspace-empty__title {
+    margin: 0;
+    color: var(--text-primary-color);
+    font-family: var(--ui-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  .workspace-empty__warning {
+    max-width: 20rem;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  // the toast
+
+  .workspace-toast {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    z-index: var(--zIndex-toast);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: min(28rem, calc(100vw - 2rem));
+    padding-inline: 1rem 0.25rem;
+    transform: translateX(-50%);
+    border: 1px solid var(--graphite);
+    background-color: var(--island-bg-color);
+    box-shadow: var(--shadow-island);
+    font-size: 0.875rem;
+
+    &--error {
+      border-inline-start: 4px solid var(--redline);
+    }
+  }
+
+  .workspace-toast__message {
+    flex: 1;
+    margin: 0.625rem 0;
+    line-height: 1.35;
+  }
+
+  .workspace-toast__close.ToolIcon_type_button {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  // below 900 px, the nav is a drawer
+
+  .workspace__scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    background-color: var(--overlay-bg-color);
+  }
+
+  @media (min-width: 900px) {
+    .workspace-header__drawer,
+    .workspace__scrim {
+      display: none;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .workspace {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .workspace-nav {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: 20;
+      width: min(18rem, 85vw);
+      box-shadow: var(--shadow-island-stronger);
+      transform: translateX(-100%);
+      visibility: hidden;
+      transition: transform 0.2s ease-out, visibility 0.2s;
+    }
+
+    &[dir="rtl"] .workspace-nav {
+      transform: translateX(100%);
+    }
+
+    .workspace-nav.workspace-nav--open {
+      transform: none;
+      visibility: visible;
+    }
+  }
+
+  // phones
+
+  &.setsquare--mobile {
+    --workspace-gutter: 0.75rem;
+
+    .workspace-header {
+      padding: 0 0.5rem;
+    }
+
+    .workspace-header__bar {
+      gap: 0.25rem;
+      min-height: 3.25rem;
+    }
+
+    .workspace-header__title {
+      flex: 1;
+      min-width: 0;
+      padding-inline-start: 0.25rem;
+      font-size: 1.125rem;
+    }
+
+    .workspace-header__icon {
+      display: flex;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--text-primary-color);
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      .ToolIcon__icon {
+        width: 100%;
+        height: 100%;
+        background: none;
+      }
+
+      &:hover,
+      &[data-state="open"] {
+        background-color: var(--button-hover-bg);
+      }
+    }
+
+    // a chevron that points back, whichever way the text runs
+    .workspace-header__back svg {
+      transform: scaleX(-1);
+    }
+
+    &[dir="rtl"] .workspace-header__back svg {
+      transform: none;
+    }
+
+    .workspace-header__search-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding-bottom: 0.5rem;
+
+      .workspace-search {
+        flex: 1;
+      }
+
+      .ExcTextField__input {
+        padding-inline-end: 0.75rem;
+      }
+    }
+
+    .workspace-header__toolbar {
+      justify-content: flex-end;
+      padding: 0.375rem 0;
+    }
+
+    .workspace-sort.dropdown-menu-button {
+      height: 2rem;
+      border: none;
+      background: none;
+    }
+
+    .workspace-folders,
+    .workspace-drawings {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 0.75rem;
+    }
+
+    .workspace-card__label {
+      padding: 0.25rem 0.5rem;
+    }
+
+    // the tab says it's a folder, and the name needs the room
+    .folder-card__icon {
+      display: none;
+    }
+
+    .workspace-card__time {
+      padding: 0 0.375rem;
+      font-size: 0.8125rem;
+    }
+
+    .workspace-card__more.dropdown-menu-button {
+      width: 1.75rem;
+    }
+
+    .drawing-card__sheet img {
+      inset: 0.5rem;
+      width: calc(100% - 1rem);
+      height: calc(100% - 1rem);
+    }
+
+    .workspace-empty {
+      margin: 2.5rem auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .workspace-nav,
+    .workspace-card,
+    .folder-tree__toggle svg {
+      transition: none;
+    }
+  }
+}

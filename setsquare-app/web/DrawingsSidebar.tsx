@@ -9,13 +9,14 @@ import {
 } from "@setsquare/setsquare/components/icons";
 import { useUIAppState } from "@setsquare/setsquare/context/ui-appState";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { formatRelativeTime } from "../workspace/formatRelativeTime";
 import { childrenOf, parentOf, sortItems, uniqueName } from "../workspace/tree";
 
 import { drawingsIcon } from "./icons";
 import { RouteLink } from "./RouteLink";
+import { useNow } from "./useNow";
 import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
 
 import "./DrawingsSidebar.scss";
@@ -24,8 +25,6 @@ import type { DrawingId, DrawingMeta } from "../workspace/types";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 const DRAWINGS_TAB = "drawings";
-// relative times move on even when nothing is saved
-const CLOCK_TICK_MS = 60 * 1000;
 
 type DrawingsSidebarProps = {
   store: WorkspaceStore;
@@ -34,15 +33,6 @@ type DrawingsSidebarProps = {
   onNewDrawing: () => void;
   /** saves what the editor has of the open drawing, resolving once stored */
   saveDrawing: () => Promise<unknown>;
-};
-
-const useNow = () => {
-  const [now, setNow] = useState(Date.now);
-  useEffect(() => {
-    const tick = window.setInterval(() => setNow(Date.now()), CLOCK_TICK_MS);
-    return () => window.clearInterval(tick);
-  }, []);
-  return now;
 };
 
 // renames in place like the footer's name field: Enter or leaving saves,

@@ -1,12 +1,16 @@
 import { EVENT, KEYS, MIME_TYPES } from "@setsquare/common";
 import {
+  loadLibraryFromBlob,
   loadSceneOrLibraryFromBlob,
   normalizeFile,
 } from "@setsquare/setsquare/data/blob";
 import { fileOpen } from "@setsquare/setsquare/data/filesystem";
+import { mergeLibraryItems } from "@setsquare/setsquare/data/library";
 import { ImageSceneDataError } from "@setsquare/setsquare/errors";
 import { t } from "@setsquare/setsquare/i18n";
 import { useCallback, useEffect } from "react";
+
+import { LibraryIndexedDBAdapter } from "../data/LocalData";
 
 import { importSceneAsDrawing } from "./importScene";
 import { navigate } from "./router";
@@ -23,24 +27,12 @@ type LaunchConsumer = (params: {
 // the browser's queue of files the app is launched with, where it has one
 type LaunchQueue = { setConsumer(consumer: LaunchConsumer): void };
 
-const showError =
-  (message: string): EditorTask =>
-  (api) =>
-    api.updateScene({ appState: { errorMessage: message } });
+const errorTask = (message: () => string): EditorTask => ({
+  kind: "error",
+  message,
+});
 
-const mergeLibrary =
-  (file: Blob): EditorTask =>
-  (api) => {
-    api
-      .updateLibrary({ libraryItems: file, merge: true, openLibraryMenu: true })
-      .catch((error) => {
-        console.error(error);
-        showError(t("errors.importLibraryError"))(api);
-      });
-  };
-
-// a scene becomes a new drawing in folderId; anything else leaves work for
-// the editor
+// a scene becomes a new drawing in folderId; anything else leaves a task
 const openFile = async (
   store: WorkspaceStore,
   item: File | FileSystemFileHandle,
@@ -53,14 +45,16 @@ const openFile = async (
     );
   } catch (error) {
     console.error(error);
-    return { task: showError(t("errors.openFileError", { name: item.name })) };
+    return {
+      task: errorTask(() => t("errors.openFileError", { name: item.name })),
+    };
   }
   let opened: Awaited<ReturnType<typeof loadSceneOrLibraryFromBlob>>;
   try {
     opened = await loadSceneOrLibraryFromBlob(file, null, null);
   } catch (error) {
     return {
-      task: showError(
+      task: errorTask(() =>
         error instanceof ImageSceneDataError
           ? t("alerts.cannotRestoreFromImage")
           : t("alerts.couldNotLoadInvalidFile"),
@@ -68,7 +62,7 @@ const openFile = async (
     };
   }
   if (opened.type === MIME_TYPES.setsquarelib) {
-    return { task: mergeLibrary(file) };
+    return { task: { kind: "library", file } };
   }
   try {
     const drawing = await importSceneAsDrawing(store, opened.data, {
@@ -79,21 +73,37 @@ const openFile = async (
     return { drawing };
   } catch (error) {
     console.error(error);
-    return { task: showError(t("errors.openFileError", { name: file.name })) };
+    return {
+      task: errorTask(() => t("errors.openFileError", { name: file.name })),
+    };
   }
+};
+
+/**
+ * Merges a library file into the element library this browser keeps, as the
+ * editor would, for when no editor is open to do it.
+ */
+export const addToStoredLibrary = async (file: Blob) => {
+  const [stored, items] = await Promise.all([
+    LibraryIndexedDBAdapter.load(),
+    loadLibraryFromBlob(file),
+  ]);
+  await LibraryIndexedDBAdapter.save({
+    libraryItems: mergeLibraryItems(stored?.libraryItems ?? [], items),
+  });
 };
 
 /**
  * Opens files as the workspace's own, never replacing a drawing: each scene
  * becomes a new drawing in folderId, the last of which opens, and each
- * library merges into the element library. What's left for the editor,
- * errors included, waits for the drawing that opens.
+ * library merges into the element library. Errors and libraries are queued
+ * for the drawing that opens, or for whatever the app shows if none does.
  */
 const openFiles = async (
   store: WorkspaceStore,
   items: readonly (File | FileSystemFileHandle)[],
   folderId: ParentId,
-  runInEditor: (task: EditorTask) => void,
+  queueTask: (task: EditorTask) => void,
 ) => {
   let last: DrawingMeta | null = null;
   const tasks: EditorTask[] = [];
@@ -109,7 +119,7 @@ const openFiles = async (
   if (last) {
     await navigate({ kind: "drawing", id: last.id });
   }
-  tasks.forEach(runInEditor);
+  tasks.forEach(queueTask);
 };
 
 /**
@@ -119,7 +129,7 @@ const openFiles = async (
 export const useOpenFile = (
   store: WorkspaceStore,
   folderId: () => ParentId,
-  runInEditor: (task: EditorTask) => void,
+  queueTask: (task: EditorTask) => void,
 ) => {
   const openFile = useCallback(async () => {
     let file: File;
@@ -129,12 +139,12 @@ export const useOpenFile = (
       // cancelling the picker is no error
       if (error?.name !== "AbortError") {
         console.error(error);
-        runInEditor(showError(error.message));
+        queueTask(errorTask(() => error.message));
       }
       return;
     }
-    await openFiles(store, [file], folderId(), runInEditor);
-  }, [store, folderId, runInEditor]);
+    await openFiles(store, [file], folderId(), queueTask);
+  }, [store, folderId, queueTask]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -163,7 +173,7 @@ export const useOpenFile = (
  */
 export const useLaunchedFiles = (
   store: WorkspaceStore,
-  runInEditor: (task: EditorTask) => void,
+  queueTask: (task: EditorTask) => void,
 ) => {
   useEffect(() => {
     const { launchQueue } = window as { launchQueue?: LaunchQueue };
@@ -171,8 +181,8 @@ export const useLaunchedFiles = (
       return;
     }
     launchQueue.setConsumer(({ files }) => {
-      openFiles(store, files, null, runInEditor);
+      openFiles(store, files, null, queueTask);
     });
     return () => launchQueue.setConsumer(() => {});
-  }, [store, runInEditor]);
+  }, [store, queueTask]);
 };

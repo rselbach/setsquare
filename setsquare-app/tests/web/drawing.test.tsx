@@ -8,7 +8,7 @@ import {
   getTextEditor,
   updateTextEditor,
 } from "@setsquare/setsquare/tests/queries/dom";
-import { act, waitFor } from "@setsquare/setsquare/tests/test-utils";
+import { act, screen, waitFor } from "@setsquare/setsquare/tests/test-utils";
 import { get } from "idb-keyval";
 
 import type { FileId } from "@setsquare/element/types";
@@ -26,13 +26,13 @@ import {
 
 import {
   cleanUpWebApp,
-  elementIds,
   navigateTo,
   renderWebAppAt,
   savedContent,
   setUpTestWorkspace,
   waitForAutosave,
   waitForDrawing,
+  waitForPage,
 } from "./helpers";
 
 import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
@@ -224,7 +224,7 @@ describe("a drawing's page", () => {
     expect((await store.getDrawingMeta(plan.id))?.name).toBe(null);
   });
 
-  it("stops saving a drawing deleted elsewhere and opens another", async () => {
+  it("stops saving a drawing deleted elsewhere and goes to the drawings", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
     await store.deleteForever({ kind: "drawing", id: plan.id });
@@ -234,8 +234,9 @@ describe("a drawing's page", () => {
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     });
 
-    await waitForDrawing(seating.id, ["abed"]);
+    await waitForPage("/", "Drawings");
     expect(await store.getDrawingMeta(plan.id)).toBe(null);
-    expect(elementIds()).toEqual(["abed"]);
+    expect(screen.getByRole("link", { name: "Seating" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Floor plan" })).toBe(null);
   });
 });

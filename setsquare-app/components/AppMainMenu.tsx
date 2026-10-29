@@ -9,21 +9,24 @@ import { isDevEnv } from "@setsquare/common";
 import type { Theme } from "@setsquare/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
-import { newDrawingIcon } from "../web/icons";
+import { drawingsIcon, newDrawingIcon } from "../web/icons";
 
 import { saveDebugState } from "./DebugCanvas";
 
-import type { WorkspaceActions } from "../web/workspaceActions";
+import type { DrawingActions } from "../web/workspaceActions";
 
 /** The web app's main menu; the desktop app has its menu bar instead. */
 export const AppMainMenu: React.FC<{
   theme: Theme | "system";
   refresh: () => void;
-  actions: WorkspaceActions;
+  actions: DrawingActions;
 }> = React.memo((props) => {
   const { t } = useI18n();
   return (
     <MainMenu>
+      <MainMenu.Item icon={drawingsIcon} onSelect={props.actions.allDrawings}>
+        {t("workspace.allDrawings")}
+      </MainMenu.Item>
       <MainMenu.Item icon={newDrawingIcon} onSelect={props.actions.newDrawing}>
         {t("workspace.newDrawing")}
       </MainMenu.Item>

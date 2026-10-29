@@ -114,6 +114,25 @@ describe("thumbnails on the web", () => {
     expect(await thumbnailOf(store, blank.id)).toBe(undefined);
   });
 
+  it("go when the drawing is emptied", async () => {
+    await store.saveThumbnail(plan.id, { src: PIXEL, revision: 1 });
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+
+    API.updateScene({
+      elements: h.elements.map((element) => ({ ...element, isDeleted: true })),
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    await waitForAutosave();
+    await navigateTo({ kind: "drawing", id: seating.id });
+    await waitForDrawing(seating.id, ["abed"]);
+
+    await waitFor(async () =>
+      expect(await thumbnailOf(store, plan.id)).toBe(undefined),
+    );
+    expect((await store.getDrawingMeta(plan.id))?.revision).toBe(2);
+  });
+
   it("skip a drawing whose thumbnail is current", async () => {
     const exportToCanvas = vi.spyOn(setsquare, "exportToCanvas");
     await store.saveThumbnail(plan.id, { src: PIXEL, revision: 1 });

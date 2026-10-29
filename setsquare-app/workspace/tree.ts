@@ -76,6 +76,20 @@ export const isTrashed = (snap: WorkspaceSnapshot, ref: ItemRef) => {
   return item !== undefined && inTrash(snap, item);
 };
 
+/**
+ * The folder, unless it's gone or in the Trash, where what's put in it
+ * wouldn't show; the root then.
+ */
+export const visibleFolder = (
+  snap: WorkspaceSnapshot,
+  folderId: ParentId,
+): ParentId =>
+  folderId !== null &&
+  snap.folders.has(folderId) &&
+  !isTrashed(snap, { kind: "folder", id: folderId })
+    ? folderId
+    : null;
+
 /** What the Trash lists: trashed items that aren't inside a trashed folder. */
 export const trashRoots = (snap: WorkspaceSnapshot): WorkspaceItems => {
   const isRoot = (item: WorkspaceItem) =>

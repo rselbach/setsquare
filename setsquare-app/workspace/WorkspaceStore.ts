@@ -79,6 +79,8 @@ export interface WorkspaceStore {
   saveDrawingView(id: DrawingId, view: DrawingView): Promise<ChangeResult>;
 
   saveThumbnail(id: DrawingId, thumbnail: Thumbnail): Promise<ChangeResult>;
+  /** deletes the drawing's thumbnail, such as when nothing's left to show */
+  deleteThumbnail(id: DrawingId): Promise<void>;
   /** the thumbnails there are for the drawings, by drawing */
   getThumbnails(ids: readonly DrawingId[]): Promise<Map<DrawingId, Thumbnail>>;
 

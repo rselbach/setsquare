@@ -474,7 +474,7 @@ const editorInterfaceContextInitialValue: EditorInterface = {
   canFitSidebar: false,
   isLandscape: true,
 };
-const EditorInterfaceContext = React.createContext<EditorInterface>(
+export const EditorInterfaceContext = React.createContext<EditorInterface>(
   editorInterfaceContextInitialValue,
 );
 EditorInterfaceContext.displayName = "EditorInterfaceContext";
@@ -505,7 +505,7 @@ const SetsquareAppStateContext = React.createContext<AppState>({
 });
 SetsquareAppStateContext.displayName = "SetsquareAppStateContext";
 
-const SetsquareSetAppStateContext = React.createContext<
+export const SetsquareSetAppStateContext = React.createContext<
   React.Component<any, AppState>["setState"]
 >(() => {
   console.warn("Uninitialized SetsquareSetAppStateContext context!");

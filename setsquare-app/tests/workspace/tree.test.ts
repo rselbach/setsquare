@@ -11,6 +11,7 @@ import {
   subtree,
   trashRoots,
   uniqueName,
+  visibleFolder,
 } from "../../workspace/tree";
 
 import type {
@@ -153,6 +154,15 @@ describe("the trash", () => {
     expect(isTrashed(snap, folderRef("blue-team"))).toBe(true);
     expect(isTrashed(snap, drawingRef("floor-plan"))).toBe(false);
     expect(isTrashed(snap, drawingRef("gone"))).toBe(false);
+  });
+
+  it("keeps nothing new in a folder that's in it or gone", () => {
+    const snap = greendale();
+
+    expect(visibleFolder(snap, "study-group" as FolderId)).toBe("study-group");
+    expect(visibleFolder(snap, "blue-team" as FolderId)).toBe(null);
+    expect(visibleFolder(snap, "gone" as FolderId)).toBe(null);
+    expect(visibleFolder(snap, null)).toBe(null);
   });
 
   it("lists only items that aren't inside a trashed folder", () => {

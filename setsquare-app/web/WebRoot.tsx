@@ -1,39 +1,50 @@
 import { LoadingMessage } from "@setsquare/setsquare/components/LoadingMessage";
+import { t } from "@setsquare/setsquare/i18n";
 import { useEffect, useRef, useState } from "react";
-
-import type { Theme } from "@setsquare/element/types";
 
 import { AppMainMenu } from "../components/AppMainMenu";
 import { AppWelcomeScreen } from "../components/AppWelcomeScreen";
 import { useHandleAppTheme } from "../useHandleAppTheme";
-import { recentDrawings } from "../workspace/tree";
+import { WorkspacePage } from "../workspace/ui/WorkspacePage";
 
 import { DrawingRoute } from "./DrawingRoute";
 import { EditorTasks, useEditorTasks } from "./editorTasks";
 import { useLaunchedFiles } from "./importFiles";
-import { openSceneUrl, useSceneUrlLinks } from "./importScene";
-import { initRouter, navigate, useRoute } from "./router";
-import { useWorkspaceActions } from "./workspaceActions";
+import { openSceneUrl, sceneUrlFailed, useSceneUrlLinks } from "./importScene";
+import { initRouter, navigate, parseRoute, useRoute } from "./router";
+import { useDrawingActions } from "./workspaceActions";
 import { openWorkspaceStore } from "./workspaceStore";
 
 import type { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
+import type { DrawingId } from "../workspace/types";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
+
+import type { EditorTask, QueuedTasks } from "./editorTasks";
 
 const PURGE_INTERVAL_MS = 6 * 60 * 60 * 1000;
 // for browsers without requestIdleCallback
 const IDLE_FALLBACK_MS = 2000;
 const LOADING_DELAY_MS = 250;
 
-type Booted = { store: LocalWorkspaceStore; openedSceneUrl: boolean };
+const ROOT = { kind: "drawings", folderId: null } as const;
+
+/** The workspace, and what the app has to show once it can. */
+type Booted = { store: LocalWorkspaceStore; tasks: EditorTask[] };
 
 // brings the workspace up to date before anything shows it
 const boot = async (): Promise<Booted> => {
   const store = await openWorkspaceStore();
-  await store.migrateLegacyScene();
+  const migrated = await store.migrateLegacyScene();
   await store.purgeExpiredTrash().catch((error) => console.error(error));
   // before the page shows another drawing, which would be open for nothing
-  const openedSceneUrl = await openSceneUrl(store);
-  return { store, openedSceneUrl };
+  const tasks = (await openSceneUrl(store)) ? [] : [sceneUrlFailed()];
+  // the first visit after the upgrade opens the drawing there was, once
+  const route = parseRoute(window.location.href);
+  if (migrated && route.kind === "drawings" && route.folderId === null) {
+    await navigate({ kind: "drawing", id: migrated }, { replace: true });
+    tasks.push({ kind: "hint", message: () => t("workspace.allDrawingsHint") });
+  }
+  return { store, tasks };
 };
 
 const whenIdle = (callback: () => void) => {
@@ -45,60 +56,52 @@ const whenIdle = (callback: () => void) => {
   return () => window.clearTimeout(handle);
 };
 
-// the workspace has no pages of its own yet, so each opens the drawing used
-// last, or a new one when there's none
-const OpenRecentDrawing = ({
+// the editor on a drawing, with the web app's menu, which create next to it
+const DrawingView = ({
   store,
-  theme,
-}: {
-  store: WorkspaceStore;
-  theme: Theme;
-}) => {
-  const [error, setError] = useState<unknown>(null);
-  // a ref outlives StrictMode's second effect run, so it creates one drawing
-  const opening = useRef(false);
-
-  useEffect(() => {
-    if (opening.current) {
-      return;
-    }
-    opening.current = true;
-    const [recent] = recentDrawings(store.getSnapshot(), 1);
-    (recent
-      ? Promise.resolve(recent)
-      : store.createDrawing({ folderId: null, name: null })
-    ).then(
-      (drawing) =>
-        navigate({ kind: "drawing", id: drawing.id }, { replace: true }),
-      setError,
-    );
-  }, [store]);
-
-  if (error) {
-    throw error;
-  }
-  return <LoadingMessage theme={theme} delay={LOADING_DELAY_MS} />;
-};
-
-const Workspace = ({
-  booted: { store, openedSceneUrl },
+  id,
   editorTheme,
   appTheme,
   setAppTheme,
+  tasks,
+}: {
+  store: WorkspaceStore;
+  id: DrawingId;
+  tasks: QueuedTasks;
+} & ReturnType<typeof useHandleAppTheme>) => {
+  const [, forceRefresh] = useState(false);
+  const actions = useDrawingActions(store, id, tasks.queueTask);
+
+  return (
+    <DrawingRoute
+      store={store}
+      id={id}
+      theme={editorTheme}
+      onThemeChange={setAppTheme}
+      actions={actions}
+    >
+      <AppMainMenu
+        theme={appTheme}
+        refresh={() => forceRefresh((prev) => !prev)}
+        actions={actions}
+      />
+      <AppWelcomeScreen actions={actions} />
+      <EditorTasks tasks={tasks.tasks} onRun={tasks.onRun} />
+    </DrawingRoute>
+  );
+};
+
+const Workspace = ({
+  booted: { store, tasks: bootTasks },
+  ...theme
 }: {
   booted: Booted;
 } & ReturnType<typeof useHandleAppTheme>) => {
   const route = useRoute();
-  const [, forceRefresh] = useState(false);
-  const { tasks, runInEditor, onRun } = useEditorTasks();
-  const actions = useWorkspaceActions(
-    store,
-    route.kind === "drawing" ? route.id : null,
-    runInEditor,
-  );
+  const tasks = useEditorTasks(bootTasks);
 
-  useSceneUrlLinks(store, { failedOnOpen: !openedSceneUrl });
-  useLaunchedFiles(store, runInEditor);
+  useSceneUrlLinks(store, tasks.queueTask);
+  useLaunchedFiles(store, tasks.queueTask);
 
   useEffect(() => {
     const purge = window.setInterval(() => {
@@ -113,25 +116,27 @@ const Workspace = ({
     };
   }, [store]);
 
-  if (route.kind !== "drawing") {
-    return <OpenRecentDrawing store={store} theme={editorTheme} />;
+  // there's no Trash page yet, nor any at other addresses
+  useEffect(() => {
+    if (route.kind === "trash" || route.kind === "notFound") {
+      navigate(ROOT, { replace: true });
+    }
+  }, [route]);
+
+  if (route.kind === "drawing") {
+    return <DrawingView store={store} id={route.id} tasks={tasks} {...theme} />;
   }
   return (
-    <DrawingRoute
+    <WorkspacePage
       store={store}
-      id={route.id}
-      theme={editorTheme}
-      onThemeChange={setAppTheme}
-      actions={actions}
-    >
-      <AppMainMenu
-        theme={appTheme}
-        refresh={() => forceRefresh((prev) => !prev)}
-        actions={actions}
-      />
-      <AppWelcomeScreen actions={actions} />
-      <EditorTasks tasks={tasks} onRun={onRun} />
-    </DrawingRoute>
+      route={
+        route.kind === "drawings" || route.kind === "recent" ? route : ROOT
+      }
+      theme={theme.editorTheme}
+      appTheme={theme.appTheme}
+      onThemeChange={theme.setAppTheme}
+      tasks={tasks}
+    />
   );
 };
 

@@ -1,0 +1,108 @@
+import { KEYS } from "@setsquare/common";
+import { useEffect, useRef, useState } from "react";
+
+import type { KeyboardEvent } from "react";
+
+const RENAME_KEY = "F2";
+
+/**
+ * What a card that renames in place needs: F2 starts renaming, and the
+ * card's link takes the focus back when Enter or Escape ends it, as it
+ * had it before.
+ */
+export const useCardRename = ({
+  renaming,
+  onStart,
+  onStop,
+}: {
+  renaming: boolean;
+  onStart: () => void;
+  onStop: () => void;
+}) => {
+  const cardRef = useRef<HTMLLIElement>(null);
+  const refocus = useRef(false);
+
+  useEffect(() => {
+    if (!renaming && refocus.current) {
+      refocus.current = false;
+      cardRef.current?.querySelector("a")?.focus();
+    }
+  }, [renaming]);
+
+  return {
+    cardRef,
+    onKeyDown: (event: KeyboardEvent) => {
+      if (event.key === RENAME_KEY && !renaming) {
+        event.preventDefault();
+        onStart();
+      }
+    },
+    onClose: (byKey: boolean) => {
+      refocus.current = byKey;
+      onStop();
+    },
+  };
+};
+
+/**
+ * Renames an item in place, like the footer's name field: Enter or leaving
+ * saves, and Escape reverts. An item that can be `untitled` becomes so when
+ * its name is emptied; any other keeps its name instead.
+ */
+export const InlineName = ({
+  name,
+  label,
+  untitled,
+  className,
+  onSave,
+  onClose,
+}: {
+  name: string | null;
+  label: string;
+  /** what an emptied name shows as, for items that can have none */
+  untitled?: string;
+  className?: string;
+  onSave: (name: string | null) => void;
+  /** called once renaming is over; byKey when Enter or Escape ended it */
+  onClose: (byKey: boolean) => void;
+}) => {
+  const [value, setValue] = useState(name ?? "");
+  const reverted = useRef(false);
+  const byKey = useRef(false);
+
+  return (
+    <input
+      type="text"
+      className={className}
+      value={value}
+      placeholder={untitled}
+      aria-label={label}
+      spellCheck={false}
+      autoFocus
+      onFocus={(event) => event.currentTarget.select()}
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={() => {
+        const next = value.trim() || (untitled === undefined ? name : null);
+        if (!reverted.current && next !== name) {
+          onSave(next);
+        }
+        onClose(byKey.current);
+      }}
+      onKeyDown={(event) => {
+        if (event.nativeEvent.isComposing) {
+          return;
+        }
+        if (event.key === KEYS.ENTER) {
+          byKey.current = true;
+          event.currentTarget.blur();
+        } else if (event.key === KEYS.ESCAPE) {
+          // Escape would clear the search or close the drawer too
+          event.stopPropagation();
+          byKey.current = true;
+          reverted.current = true;
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+};

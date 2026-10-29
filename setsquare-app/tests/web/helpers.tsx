@@ -6,6 +6,7 @@ import {
   unmountComponent,
   waitFor,
 } from "@setsquare/setsquare/tests/test-utils";
+import { render as renderPlain, screen } from "@testing-library/react";
 
 import SetsquareApp from "../../App";
 import { navigate } from "../../web/router";
@@ -67,6 +68,24 @@ export const renderWebAppAt = (
   window.history.replaceState(null, "", path);
   return render(<SetsquareApp />, options);
 };
+
+/**
+ * Renders the web app as a page opened at path, resolving once it shows the
+ * workspace page, which has no canvas to wait for.
+ */
+export const renderPageAt = async (path: string) => {
+  window.history.replaceState(null, "", path);
+  const result = renderPlain(<SetsquareApp />);
+  await screen.findByRole("main");
+  return result;
+};
+
+/** Waits for the workspace page at path, with the title it shows. */
+export const waitForPage = (path: string, title: string) =>
+  waitFor(() => {
+    expect(window.location.pathname).toBe(path);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(title);
+  });
 
 /** The ids of the elements in the editor, deleted ones aside. */
 export const elementIds = () =>

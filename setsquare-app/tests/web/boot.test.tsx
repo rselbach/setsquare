@@ -1,5 +1,7 @@
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
+import { t } from "@setsquare/setsquare/i18n";
+import { act, unmountComponent } from "@setsquare/setsquare/tests/test-utils";
 import { render as renderPlain, screen, waitFor } from "@testing-library/react";
 import { set } from "idb-keyval";
 
@@ -15,10 +17,12 @@ import { contentWith } from "../workspace/helpers";
 import {
   cleanUpWebApp,
   elementIds,
+  renderPageAt,
   renderWebAppAt,
   setUpTestWorkspace,
   waitForAutosave,
   waitForDrawing,
+  waitForPage,
 } from "./helpers";
 
 // the native menu bar needs the desktop app itself; DesktopMenu.test covers it
@@ -38,68 +42,63 @@ beforeEach(() => {
 afterEach(() => cleanUpWebApp(workspace));
 
 describe("web app boot", () => {
-  it("creates a drawing at the root when there is none", async () => {
-    await renderWebAppAt("/");
-
-    const store = await workspace.open();
-    const drawings = [...store.getSnapshot().drawings.values()];
-    expect(drawings).toMatchObject([{ folderId: null, name: null }]);
-    await waitForDrawing(drawings[0].id, []);
-    expect(document.title).toBe("Setsquare");
-  });
-
-  it("opens the drawing used last", async () => {
+  it("shows the drawings at the root, opening none", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({
       folderId: null,
       name: "Floor plan",
       content: contentWith("Floor plan", "troy"),
     });
-    workspace.clock.now += 1000;
-    const seating = await store.createDrawing({
-      folderId: null,
-      name: "Seating",
-      content: contentWith("Seating", "abed"),
-    });
-    workspace.clock.now += 1000;
-    await store.openDrawing(plan.id);
 
-    await renderWebAppAt("/");
+    await renderPageAt("/");
 
-    await waitForDrawing(plan.id, ["troy"]);
-    expect(store.getSnapshot().drawings.has(seating.id)).toBe(true);
-    expect(store.getSnapshot().drawings.size).toBe(2);
-    expect(document.title).toBe("Floor plan · Setsquare");
+    await waitForPage("/", "Drawings");
+    expect(screen.getByRole("link", { name: "Floor plan" })).toHaveAttribute(
+      "href",
+      `/d/${plan.id}`,
+    );
+    expect(store.getSnapshot().drawings.get(plan.id)?.openedAt).toBe(null);
+    expect(store.getSnapshot().drawings.size).toBe(1);
+    expect(document.title).toBe("Setsquare");
   });
 
-  // until the workspace has pages of its own
-  it.each(["/recent", "/trash", "/f/greendale", "/paintball"])(
-    "opens the drawing used last from %s",
+  it("creates nothing in an empty workspace", async () => {
+    await renderPageAt("/");
+
+    expect(
+      await screen.findByRole("heading", { name: "No drawings yet" }),
+    ).toBeInTheDocument();
+    const store = await workspace.open();
+    expect(store.getSnapshot().drawings.size).toBe(0);
+  });
+
+  // until there's a Trash page, and for folders and pages that aren't there
+  it.each(["/trash", "/f/greendale", "/paintball"])(
+    "goes to the drawings from %s in place",
     async (path) => {
-      const store = await workspace.open();
-      const plan = await store.createDrawing({
-        folderId: null,
-        name: "Floor plan",
-        content: contentWith("Floor plan", "troy"),
-      });
+      const length = window.history.length;
 
-      await renderWebAppAt(path);
+      await renderPageAt(path);
 
-      await waitForDrawing(plan.id, ["troy"]);
+      await waitForPage("/", "Drawings");
+      expect(window.history.length).toBe(length);
     },
   );
 
   it("goes to the drawings when the drawing is gone", async () => {
     const store = await workspace.open();
-    const plan = await store.createDrawing({
+    await store.createDrawing({
       folderId: null,
       name: "Floor plan",
       content: contentWith("Floor plan", "troy"),
     });
 
-    await renderWebAppAt("/d/chang");
+    await renderPageAt("/d/chang");
 
-    await waitForDrawing(plan.id, ["troy"]);
+    await waitForPage("/", "Drawings");
+    expect(
+      screen.getByRole("link", { name: "Floor plan" }),
+    ).toBeInTheDocument();
   });
 
   it("opens the scene the web app kept before, with its image", async () => {
@@ -133,6 +132,44 @@ describe("web app boot", () => {
     expect(localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS)).toContain(
       "pierce",
     );
+  });
+
+  it("opens the upgraded scene once, pointing at All drawings", async () => {
+    const rect = API.createElement({ type: "rectangle", id: "troy" });
+
+    await renderWebAppAt("/", {
+      localStorageData: { elements: [rect], appState: { name: "Study group" } },
+    });
+
+    const store = await workspace.open();
+    const [migrated] = store.getSnapshot().drawings.values();
+    await waitForDrawing(migrated.id, ["troy"]);
+    await waitFor(() =>
+      expect(h.state.toast?.message).toBe(t("workspace.allDrawingsHint")),
+    );
+
+    unmountComponent();
+    await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+    await renderPageAt("/");
+
+    await waitForPage("/", "Drawings");
+    expect(
+      screen.getByRole("link", { name: "Study group" }),
+    ).toBeInTheDocument();
+    expect(store.getSnapshot().drawings.size).toBe(1);
+  });
+
+  it("leaves a first visit elsewhere where it is after the upgrade", async () => {
+    const rect = API.createElement({ type: "rectangle", id: "troy" });
+    localStorage.setItem(
+      STORAGE_KEYS.LOCAL_STORAGE_ELEMENTS,
+      JSON.stringify([rect]),
+    );
+
+    await renderPageAt("/recent");
+
+    await waitForPage("/recent", "Recent");
+    expect(screen.getByRole("link", { name: "Untitled" })).toBeInTheDocument();
   });
 
   it("shows the error splash when the workspace can't open", async () => {

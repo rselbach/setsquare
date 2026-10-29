@@ -136,6 +136,26 @@ describe("LocalWorkspaceStore", () => {
     expect((await store.loadDrawingContent(plan.id))?.appState.name).toBeNull();
   });
 
+  it("deletes a thumbnail and tells subscribers", async () => {
+    const store = await workspace.open();
+    const plan = await store.createDrawing({ folderId: null, name: "Plan" });
+    const seating = await store.createDrawing({ folderId: null, name: null });
+    await store.saveThumbnail(plan.id, thumbnailOf(1));
+    await store.saveThumbnail(seating.id, thumbnailOf(1));
+    const listener = vi.fn();
+    store.subscribe(listener);
+
+    await store.deleteThumbnail(plan.id);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(await store.getThumbnails([plan.id, seating.id])).toEqual(
+      new Map([[seating.id, thumbnailOf(1)]]),
+    );
+    // one that's gone already is no error
+    await store.deleteThumbnail(plan.id);
+    expect(store.getSnapshot().drawings.size).toBe(2);
+  });
+
   it("saves nothing for a drawing that's gone", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({ folderId: null, name: null });

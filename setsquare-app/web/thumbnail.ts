@@ -49,7 +49,8 @@ export const renderThumbnail = async ({
  * Keeps one drawing's thumbnail current while the editor has it open. It
  * renders from what `scene` gives, since by the time the editor leaves the
  * drawing its API is gone, and only when the drawing has content the stored
- * thumbnail doesn't show yet. Failures are logged, never thrown.
+ * thumbnail doesn't show yet. A drawing left empty loses its thumbnail.
+ * Failures are logged, never thrown.
  */
 export const createThumbnailer = ({
   store,
@@ -67,7 +68,7 @@ export const createThumbnailer = ({
 
   const update = async (revision: number) => {
     const current = scene();
-    if (!current?.elements.some((element) => !element.isDeleted)) {
+    if (!current) {
       return;
     }
     try {
@@ -76,6 +77,13 @@ export const createThumbnailer = ({
         return;
       }
       const stored = (await store.getThumbnails([id])).get(id);
+      if (!current.elements.some((element) => !element.isDeleted)) {
+        // a picture of what was drawn before would show it still there
+        if (stored) {
+          await store.deleteThumbnail(id);
+        }
+        return;
+      }
       if (stored?.revision === revision) {
         return;
       }

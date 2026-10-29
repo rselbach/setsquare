@@ -15,7 +15,7 @@ import { EditorShell } from "../editor/EditorShell";
 
 import { createDrawingPersistence } from "./drawingPersistence";
 import { DrawingsSidebar } from "./DrawingsSidebar";
-import { newDrawingIcon } from "./icons";
+import { drawingsIcon, newDrawingIcon } from "./icons";
 import { navigate, parseRoute, setLeaveGuard } from "./router";
 import { replayUnsaved, writeUnsaved } from "./unsavedJournal";
 import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
@@ -25,7 +25,7 @@ import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 import type { DrawingPersistence } from "./drawingPersistence";
 import type { Route } from "./router";
-import type { WorkspaceActions } from "./workspaceActions";
+import type { DrawingActions } from "./workspaceActions";
 
 const DRAWINGS: Route = { kind: "drawings", folderId: null };
 
@@ -56,7 +56,7 @@ export const DrawingRoute = ({
   id: DrawingId;
   theme: Theme;
   onThemeChange: (theme: Theme | "system") => void;
-  actions: WorkspaceActions;
+  actions: DrawingActions;
   /** the main menu, the welcome screen and anything else the editor shows */
   children: SetsquareProps["children"];
 }) => {
@@ -174,6 +174,12 @@ export const DrawingRoute = ({
     return <LoadingMessage theme={theme} delay={250} />;
   }
   const commandPaletteItems: CommandPaletteItem[] = [
+    {
+      label: t("workspace.allDrawings"),
+      category: DEFAULT_CATEGORIES.app,
+      icon: drawingsIcon,
+      perform: actions.allDrawings,
+    },
     {
       label: t("workspace.newDrawing"),
       category: DEFAULT_CATEGORIES.app,

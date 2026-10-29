@@ -432,6 +432,12 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     });
   }
 
+  async deleteThumbnail(id: DrawingId) {
+    await this.write(["thumbnails"], (tx) =>
+      request(tx.objectStore("thumbnails").delete(id)),
+    );
+  }
+
   async getThumbnails(ids: readonly DrawingId[]) {
     const thumbnails = await this.read(["thumbnails"], (tx) =>
       Promise.all(ids.map((id) => get(tx, "thumbnails", id))),
