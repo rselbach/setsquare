@@ -25,7 +25,14 @@ export default defineConfig(({ command, mode }) => {
       strictPort: isTauri,
       // open the browser
       open: !isTauri,
-      proxy: apiUrl ? { "/api": { target: apiUrl } } : undefined,
+      proxy: apiUrl
+        ? Object.fromEntries(
+            ["/api", "/mcp", "/oauth", "/.well-known"].map((prefix) => [
+              prefix,
+              { target: apiUrl },
+            ]),
+          )
+        : undefined,
     },
     // We need to specify the envDir since now there are no
     //more located in parallel with the vite.config.ts file but in parent dir
@@ -175,9 +182,9 @@ export default defineConfig(({ command, mode }) => {
         },
 
         workbox: {
-          // page loads under /api/, such as a sign-in callback, must reach
-          // the server instead of the cached app
-          navigateFallbackDenylist: [/^\/api\//],
+          // Account callbacks, OAuth consent, and MCP discovery must reach
+          // the server instead of the cached app.
+          navigateFallbackDenylist: [/^\/(api|mcp|oauth|\.well-known)(\/|$)/],
           // don't precache fonts, locales and separate chunks
           globIgnores: [
             "fonts.css",

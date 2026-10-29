@@ -13,6 +13,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3002),
   HOST: z.string().default("127.0.0.1"),
   SETSQUARE_STATIC_DIR: z.string().optional(),
+  MCP_ALLOWED_ORIGINS: z.string().optional(),
 });
 
 /** The server's validated deployment settings. */
@@ -24,6 +25,7 @@ export type ServerConfig = {
   port: number;
   staticDir: string;
   github: { clientId: string; clientSecret: string } | null;
+  mcpAllowedOrigins?: string[];
 };
 
 /** Parses environment configuration before starting the server. */
@@ -32,6 +34,7 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
     ...env,
     GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID || undefined,
     GITHUB_CLIENT_SECRET: env.GITHUB_CLIENT_SECRET || undefined,
+    MCP_ALLOWED_ORIGINS: env.MCP_ALLOWED_ORIGINS || undefined,
   });
   const origin = new URL(parsed.APP_ORIGIN);
   if (!["http:", "https:"].includes(origin.protocol)) {
@@ -70,5 +73,19 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
       parsed.SETSQUARE_STATIC_DIR ?? "../setsquare-app/build",
     ),
     github: clientId && clientSecret ? { clientId, clientSecret } : null,
+    mcpAllowedOrigins: parsed.MCP_ALLOWED_ORIGINS?.split(",")
+      .map((value) => z.url().parse(value.trim()))
+      .map((value) => {
+        const allowed = new URL(value);
+        if (
+          allowed.origin !== value ||
+          !["http:", "https:"].includes(allowed.protocol)
+        ) {
+          throw new Error(
+            "MCP_ALLOWED_ORIGINS must contain exact HTTP(S) origins",
+          );
+        }
+        return allowed.origin;
+      }),
   };
 };

@@ -203,29 +203,29 @@ const element = z
     }),
   ])
   .transform((value) => value as NonDeletedSetsquareElement);
+/** The native drawing shape, also published in MCP tool schemas. */
+export const drawingContentInputSchema = z.strictObject({
+  elements: z
+    .array(element)
+    .max(50_000)
+    .refine(
+      (elements) =>
+        new Set(elements.map((item) => item.id)).size === elements.length,
+      "Element ids must be unique",
+    ),
+  appState: z.strictObject({
+    name: drawingName,
+    viewBackgroundColor: z.string().max(128),
+    gridSize: z.number().finite().positive(),
+    gridStep: z.number().finite().positive(),
+    gridModeEnabled: z.boolean(),
+    lockedMultiSelections: z.record(z.string(), z.literal(true)),
+  }),
+});
 const content = z
   .unknown()
   .refine(jsonDocument, "Content must be bounded JSON")
-  .pipe(
-    z.strictObject({
-      elements: z
-        .array(element)
-        .max(50_000)
-        .refine(
-          (elements) =>
-            new Set(elements.map((item) => item.id)).size === elements.length,
-          "Element ids must be unique",
-        ),
-      appState: z.strictObject({
-        name: drawingName,
-        viewBackgroundColor: z.string().max(128),
-        gridSize: z.number().finite().positive(),
-        gridStep: z.number().finite().positive(),
-        gridModeEnabled: z.boolean(),
-        lockedMultiSelections: z.record(z.string(), z.literal(true)),
-      }),
-    }),
-  )
+  .pipe(drawingContentInputSchema)
   .transform((value): DrawingContent => value);
 const item = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("folder"), id: folderId }),

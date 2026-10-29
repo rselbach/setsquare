@@ -238,6 +238,9 @@ export const AccountMenu = ({ toast }: { toast: Toast }) => {
           </span>
         </DropdownMenu.ItemCustom>
         <DropdownMenu.Separator />
+        <DropdownMenu.ItemLink href="/oauth/connections">
+          {t("workspace.accountConnectedClients")}
+        </DropdownMenu.ItemLink>
         {browserImport && pending > 0 && (
           <DropdownMenu.Item
             onSelect={() => {

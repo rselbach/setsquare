@@ -9,6 +9,7 @@ import { Authentication, GitHubOAuth } from "./auth";
 
 import { ApiError } from "./errors";
 import { FileDatabase } from "./files";
+import { registerMcp } from "./mcp";
 import {
   commandSchema,
   drawingIdSchema,
@@ -112,6 +113,15 @@ export const buildServer = async ({
     }
   });
   auth.register(app);
+  const mcpOAuth = await registerMcp(
+    app,
+    config,
+    pool,
+    auth,
+    workspace,
+    files,
+    now,
+  );
 
   app.get("/api/health", async (_request, reply) => {
     try {
@@ -184,7 +194,11 @@ export const buildServer = async ({
   }
   app.setNotFoundHandler((request, reply) => {
     const pathname = new URL(request.url, config.origin).pathname;
-    if (pathname === "/api" || pathname.startsWith("/api/")) {
+    if (
+      ["/api", "/oauth", "/mcp", "/.well-known"].some(
+        (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+      )
+    ) {
       return reply.status(404).send({
         error: "not_found",
         message: "The API endpoint does not exist",
@@ -215,6 +229,7 @@ export const buildServer = async ({
       collecting = true;
       try {
         await workspace.collect();
+        await mcpOAuth.collect();
       } catch (error) {
         app.log.error(
           { errorName: error instanceof Error ? error.name : "UnknownError" },

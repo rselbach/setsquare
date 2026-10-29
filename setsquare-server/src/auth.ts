@@ -376,7 +376,7 @@ export class Authentication {
         );
       }
       const query = z
-        .object({ returnTo: z.string().max(2048).optional() })
+        .object({ returnTo: z.string().max(8192).optional() })
         .parse(request.query);
       const destination = new URL(query.returnTo ?? "/", this.config.origin);
       // A redirect to a path starting with "//" would leave this origin.

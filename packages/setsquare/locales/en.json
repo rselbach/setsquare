@@ -761,6 +761,7 @@
     "accountGitHubLogin": "{{login}} on GitHub",
     "accountPrivate": "Your private workspace is available in any browser.",
     "accountSignOut": "Sign out",
+    "accountConnectedClients": "Connected clients",
     "accountSignOutFailed": "Could not sign out. Try again when the connection returns.",
     "accountImport": "Import browser drawings",
     "accountImportOne": "Import 1 browser drawing",

@@ -27,8 +27,12 @@ afterAll(async () => {
 it("applies migrations safely when servers start concurrently", async () => {
   await Promise.all([migrate(db.pool), migrate(db.pool), migrate(db.pool)]);
   expect(
-    (await db.pool.query("SELECT version FROM schema_migrations")).rows,
-  ).toEqual([{ version: 1 }]);
+    (
+      await db.pool.query(
+        "SELECT version FROM schema_migrations ORDER BY version",
+      )
+    ).rows,
+  ).toEqual([{ version: 1 }, { version: 2 }]);
 });
 
 it("serves static navigation while keeping API and missing asset requests out of the SPA", async () => {

@@ -36,22 +36,29 @@ export const transaction = async <T>(
 
 /** Applies each migration once, including when several servers start together. */
 export const migrate = async (pool: Pool) => {
-  const sql = await readFile(
-    new URL("../migrations/001-initial.sql", import.meta.url),
-    "utf8",
-  );
+  const migrations = ["001-initial.sql", "002-mcp-oauth.sql"];
   await transaction(pool, async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(731894127493::bigint)");
     await client.query(
       "CREATE TABLE IF NOT EXISTS schema_migrations (version integer PRIMARY KEY)",
     );
-    const result = await client.query(
-      "SELECT version FROM schema_migrations WHERE version = 1",
-    );
-    if (result.rowCount) {
-      return;
+    for (const filename of migrations) {
+      const version = Number(filename.split("-")[0]);
+      const result = await client.query(
+        "SELECT version FROM schema_migrations WHERE version = $1",
+        [version],
+      );
+      if (result.rowCount) {
+        continue;
+      }
+      const sql = await readFile(
+        new URL(`../migrations/${filename}`, import.meta.url),
+        "utf8",
+      );
+      await client.query(sql);
+      await client.query("INSERT INTO schema_migrations(version) VALUES($1)", [
+        version,
+      ]);
     }
-    await client.query(sql);
-    await client.query("INSERT INTO schema_migrations(version) VALUES(1)");
   });
 };
