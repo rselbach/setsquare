@@ -42,7 +42,7 @@ class BrowserImport {
 
   run = async () => {
     if (this.state.kind === "checking" || this.state.kind === "importing") {
-      return;
+      return this.state;
     }
     const { pending } = this.state;
     this.set({ kind: "importing", pending });
@@ -58,6 +58,7 @@ class BrowserImport {
       console.error(error);
       this.set({ kind: "failed", pending });
     }
+    return this.state;
   };
 
   private set(state: BrowserImportState) {
@@ -93,7 +94,7 @@ const noState = () => null;
  * The import of this browser's drawings into the signed-in account, and
  * the action that starts it. Null for a workspace kept in the browser.
  */
-export const useBrowserImport = (store: WorkspaceStore) => {
+export const useBrowserImport = (store: WorkspaceStore | null) => {
   const browserImport =
     store instanceof RemoteWorkspaceStore ? importFor(store) : null;
   const state = useSyncExternalStore(

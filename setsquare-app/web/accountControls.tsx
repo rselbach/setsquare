@@ -1,3 +1,4 @@
+import DropdownMenu from "@setsquare/setsquare/components/dropdownMenu/DropdownMenu";
 import { t } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
 import { useState } from "react";
@@ -10,53 +11,55 @@ import { navigate, useRoute } from "./router";
 import "./accountControls.scss";
 
 import type { AccountUser } from "../workspace/api";
-import type { WorkspaceStore } from "../workspace/WorkspaceStore";
+import type { PageMessage } from "../workspace/ui/WorkspaceToast";
 
 import type { BrowserImportState } from "./browserImport";
+
+/** Where the account menu reports what it did. */
+type Toast = { show: (message: PageMessage) => void };
 
 const signInPath = (ownerWindow: Window) =>
   `/api/auth/github?returnTo=${encodeURIComponent(
     `${ownerWindow.location.pathname}${ownerWindow.location.search}`,
   )}`;
 
-const SignInLink = ({
-  ownerWindow,
-  label = t("workspace.accountSignIn"),
-}: {
-  ownerWindow: Window;
-  label?: string;
-}) => (
-  <a className="account-button" href={signInPath(ownerWindow)}>
-    {githubIcon}
-    {label}
-  </a>
-);
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => Array.from(word)[0].toUpperCase())
+    .join("");
 
-const Identity = ({ user }: { user: AccountUser }) => (
-  <div className="workspace-account__identity">
+// GitHub gives every account an avatar; initials stand in while it can't load
+const Avatar = ({ user }: { user: AccountUser }) => {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span className="account-avatar account-avatar--initials" aria-hidden>
+        {initials(user.name || user.login)}
+      </span>
+    );
+  }
+  return (
     <img
-      className="workspace-account__avatar"
+      className="account-avatar"
       src={user.avatarUrl}
       alt=""
-      width={32}
-      height={32}
+      onError={() => setFailed(true)}
     />
-    <div className="workspace-account__names">
-      <span className="workspace-account__name">{user.name || user.login}</span>
-      <span>{t("workspace.accountGitHubLogin", { login: user.login })}</span>
-    </div>
-  </div>
-);
+  );
+};
 
-// what the import has done, and the browser drawings it can still copy
-const importMessage = (state: BrowserImportState) => {
+const importMessage = (state: BrowserImportState): PageMessage | null => {
   switch (state.kind) {
     case "checking":
+    case "ready":
       return null;
     case "importing":
-      return t("workspace.accountImporting");
+      return { text: t("workspace.accountImporting"), error: false };
     case "failed":
-      return t("workspace.accountImportFailed");
+      return { text: t("workspace.accountImportFailed"), error: true };
     case "imported": {
       const { imported, skipped } = state.result;
       const messages = [];
@@ -76,142 +79,113 @@ const importMessage = (state: BrowserImportState) => {
           }),
         );
       }
-      return messages.join(" ") || null;
+      return messages.length
+        ? { text: messages.join(" "), error: skipped.length > 0 }
+        : null;
     }
-    case "ready":
-      if (!state.pending) {
-        return null;
-      }
-      return state.pending === 1
-        ? t("workspace.accountImportPendingOne")
-        : t("workspace.accountImportPending", { count: state.pending });
   }
 };
 
-const ImportSection = ({ store }: { store: WorkspaceStore }) => {
-  const browserImport = useBrowserImport(store);
-  if (!browserImport) {
-    return null;
+/** Copies the browser's drawings into the account and says how it went. */
+export const importBrowserDrawings = async (
+  run: () => Promise<BrowserImportState>,
+  toast: Toast,
+) => {
+  const message = importMessage(await run());
+  if (message) {
+    toast.show(message);
   }
-  const { state, run } = browserImport;
-  const message = importMessage(state);
-  const canImport =
-    state.kind !== "checking" &&
-    state.kind !== "importing" &&
-    state.pending > 0;
-  if (!message && !canImport) {
-    return null;
-  }
-  return (
-    <div className="workspace-account__import">
-      {message && (
-        <p
-          className={clsx("workspace-account__message", {
-            "workspace-account__message--error": state.kind === "failed",
-          })}
-          role={state.kind === "failed" ? "alert" : "status"}
-        >
-          {message}
-        </p>
-      )}
-      {canImport && (
-        <button type="button" className="account-button" onClick={run}>
-          {state.kind === "ready"
-            ? t("workspace.accountImport")
-            : t("workspace.accountImportAgain")}
-        </button>
-      )}
-    </div>
-  );
 };
 
-/** Account identity and actions shown in the workspace navigation. */
-export const AccountControls = () => {
+/** Where the workspace keeps its drawings, at the foot of the navigation. */
+export const StorageNote = () => {
   const account = useWorkspaceAccount();
-  const [signOut, setSignOut] = useState<"idle" | "signingOut" | "failed">(
-    "idle",
-  );
-  if (!account || account.state.kind === "local") {
+  if (account?.store.recoveryKey) {
     return (
       <p className="workspace-nav__storage">
         <span className="workspace-caption">
-          {t("workspace.storedInBrowser")}
+          {t("workspace.accountSavedToAccount")}
         </span>
-        {t("welcomeScreen.app.center_heading_line2")}
+        {t("workspace.accountPrivate")}
       </p>
     );
   }
+  return (
+    <p className="workspace-nav__storage">
+      <span className="workspace-caption">
+        {t("workspace.storedInBrowser")}
+      </span>
+      {account?.state.kind === "signedOut"
+        ? t("workspace.accountSignInHint")
+        : t("welcomeScreen.app.center_heading_line2")}
+    </p>
+  );
+};
 
-  const { state, ownerWindow, store, expire } = account;
+/**
+ * The account at the top right of every page: a way to sign in, or who is
+ * signed in, with the browser drawings to import and signing out.
+ */
+export const AccountMenu = ({ toast }: { toast: Toast }) => {
+  const account = useWorkspaceAccount();
+  const browserImport = useBrowserImport(account?.store ?? null);
+  const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  if (!account) {
+    return null;
+  }
+
+  const { state, ownerWindow, expire } = account;
+  const reload = () => ownerWindow.location.reload();
   switch (state.kind) {
+    case "local":
+      return null;
     case "signedOut":
-      return (
-        <div className="workspace-account">
-          <p className="workspace-nav__storage">
-            <span className="workspace-caption">
-              {t("workspace.storedInBrowser")}
-            </span>
-            {t("workspace.accountSignInHint")}
-          </p>
-          <SignInLink ownerWindow={ownerWindow} />
-        </div>
-      );
-    case "unreachable":
-      return (
-        <div className="workspace-account">
-          <p className="workspace-nav__storage">
-            <span className="workspace-caption">
-              {t("workspace.accountUnreachable")}
-            </span>
-            {t("workspace.accountUnreachableHint")}
-          </p>
-          <button
-            type="button"
-            className="account-button"
-            onClick={() => ownerWindow.location.reload()}
-          >
-            {t("workspace.accountTryAgain")}
-          </button>
-        </div>
-      );
     case "expired":
       return (
-        <div className="workspace-account">
-          <Identity user={state.user} />
-          <p className="workspace-nav__storage">
-            <span className="workspace-caption">
-              {t("workspace.accountSessionEnded")}
-            </span>
-            {t("workspace.accountExpired")}
-          </p>
-          <SignInLink
-            ownerWindow={ownerWindow}
-            label={t("workspace.accountSignInAgain")}
-          />
-        </div>
+        <a
+          className={clsx("account-menu__button", {
+            "account-menu__button--alert": state.kind === "expired",
+          })}
+          href={signInPath(ownerWindow)}
+          title={t("workspace.accountSignIn")}
+        >
+          {githubIcon}
+          {state.kind === "expired"
+            ? t("workspace.accountSignInAgain")
+            : t("workspace.accountSignInShort")}
+        </a>
       );
+    case "unreachable":
     case "changed":
       return (
-        <div className="workspace-account">
-          <p className="workspace-nav__storage">
-            {t("workspace.accountChanged")}
-          </p>
-          <button
-            type="button"
-            className="account-button"
-            onClick={() => ownerWindow.location.reload()}
-          >
-            {t("workspace.accountReload")}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="account-menu__button account-menu__button--alert"
+          title={
+            state.kind === "changed"
+              ? t("workspace.accountChanged")
+              : t("workspace.accountUnreachableNotice")
+          }
+          onClick={reload}
+        >
+          {state.kind === "changed"
+            ? t("workspace.accountReload")
+            : t("workspace.accountReconnect")}
+        </button>
       );
   }
 
-  const signOutOfAccount = async () => {
-    setSignOut("signingOut");
+  const { user } = state;
+  const name = user.name || user.login;
+  const pending =
+    browserImport && browserImport.state.kind === "ready"
+      ? browserImport.state.pending
+      : 0;
+  const signOut = async () => {
+    setSigningOut(true);
     try {
       if (!(await navigate({ kind: "drawings", folderId: null }))) {
-        setSignOut("idle");
         return;
       }
       const response = await ownerWindow.fetch("/api/auth/logout", {
@@ -219,7 +193,7 @@ export const AccountControls = () => {
         credentials: "same-origin",
         headers: {
           "X-CSRF-Token": state.csrfToken,
-          "X-Setsquare-Account": state.user.id,
+          "X-Setsquare-Account": user.id,
         },
       });
       if (response.status === 401) {
@@ -232,34 +206,60 @@ export const AccountControls = () => {
       ownerWindow.location.assign("/");
     } catch (error) {
       console.error(error);
-      setSignOut("failed");
+      toast.show({ text: t("workspace.accountSignOutFailed"), error: true });
+    } finally {
+      setSigningOut(false);
     }
   };
 
   return (
-    <div className="workspace-account">
-      <span className="workspace-caption">
-        {t("workspace.accountSavedToAccount")}
-      </span>
-      <Identity user={state.user} />
-      <ImportSection store={store} />
-      <button
-        type="button"
-        className="workspace-account__sign-out"
-        disabled={signOut === "signingOut"}
-        onClick={signOutOfAccount}
+    <DropdownMenu open={open}>
+      <DropdownMenu.Trigger
+        className="account-menu__trigger"
+        onToggle={() => setOpen(!open)}
+        title={name}
+        aria-label={t("workspace.accountMenu", { name })}
       >
-        {t("workspace.accountSignOut")}
-      </button>
-      {signOut === "failed" && (
-        <p
-          className="workspace-account__message workspace-account__message--error"
-          role="alert"
+        <Avatar user={user} />
+        {pending > 0 && <span className="account-menu__badge" />}
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        className="account-menu"
+        onClickOutside={() => setOpen(false)}
+        onSelect={() => setOpen(false)}
+      >
+        <DropdownMenu.ItemCustom className="account-menu__identity">
+          <Avatar user={user} />
+          <span className="account-menu__names">
+            <span className="account-menu__name">{name}</span>
+            <span>
+              {t("workspace.accountGitHubLogin", { login: user.login })}
+            </span>
+          </span>
+        </DropdownMenu.ItemCustom>
+        <DropdownMenu.Separator />
+        {browserImport && pending > 0 && (
+          <DropdownMenu.Item
+            onSelect={() => {
+              importBrowserDrawings(browserImport.run, toast);
+            }}
+          >
+            {pending === 1
+              ? t("workspace.accountImportOne")
+              : t("workspace.accountImportCount", { count: pending })}
+          </DropdownMenu.Item>
+        )}
+        <DropdownMenu.Item
+          onSelect={() => {
+            if (!signingOut) {
+              signOut();
+            }
+          }}
         >
-          {t("workspace.accountSignOutFailed")}
-        </p>
-      )}
-    </div>
+          {t("workspace.accountSignOut")}
+        </DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 };
 

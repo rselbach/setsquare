@@ -1,3 +1,5 @@
+@use "../../packages/setsquare/css/variables.module" as *;
+
 .setsquare-web-root {
   width: 100%;
   height: 100%;
@@ -38,29 +40,125 @@
     }
   }
 
-  .workspace-account {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    min-width: 0;
+  .account-avatar {
+    box-sizing: border-box;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--rule-strong);
+    background-color: var(--field);
+    object-fit: cover;
   }
 
-  .workspace-account__identity {
+  .account-avatar--initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary-color);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  // sized like the buttons it sits beside, the editor's Export and the
+  // workspace's search
+  .account-menu__button {
+    @include outlineButtonStyles;
+    @include filledButtonOnCanvas;
+
+    flex: none;
+    gap: 0.5rem;
+    width: auto;
+    height: 2rem;
+    padding: 0 0.75rem;
+    color: var(--text-primary-color);
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+
+    svg {
+      width: var(--lg-icon-size);
+      height: var(--lg-icon-size);
+    }
+
+    &--alert {
+      box-shadow: 0 0 0 1px var(--redline);
+      color: var(--redline);
+    }
+  }
+
+  .account-menu__trigger.dropdown-menu-button {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    cursor: pointer;
+
+    .account-avatar {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    &:hover .account-avatar {
+      border-color: var(--graphite);
+    }
+  }
+
+  // the far right of the editor's top bar, after Export and Library
+  // the menu's trigger sits in a wrapper that takes no box of its own
+  .layer-ui__wrapper__top-right
+    :is(.account-menu__button, .account-menu__trigger) {
+    order: 1;
+  }
+
+  // browser drawings the account doesn't have yet
+  .account-menu__badge {
+    position: absolute;
+    top: -0.1875rem;
+    right: -0.1875rem;
+    width: 0.625rem;
+    height: 0.625rem;
+    border: 2px solid var(--island-bg-color);
+    border-radius: 50%;
+    background-color: var(--ink);
+  }
+
+  .account-menu.dropdown-menu {
+    z-index: 10;
+    width: auto;
+
+    .dropdown-menu-container {
+      min-width: 14rem;
+    }
+  }
+
+  .account-menu__identity {
     display: flex;
     align-items: center;
     gap: 0.625rem;
-    min-width: 0;
+    padding: 0.5rem 0.625rem;
+    cursor: default;
+
+    &:hover {
+      background-color: transparent;
+    }
+
+    .account-avatar {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
   }
 
-  .workspace-account__avatar {
-    flex: none;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--rule-strong);
-    background-color: var(--field);
-  }
-
-  .workspace-account__names {
+  .account-menu__names {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -75,53 +173,23 @@
     }
   }
 
-  .workspace-account__name {
+  .account-menu__name {
     color: var(--text-primary-color);
     font-size: 0.875rem;
     font-weight: 700;
   }
 
-  // set off like a note in the margin, since it asks for something
-  .workspace-account__import {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    padding: 0.75rem;
-    border: 1px solid var(--rule-strong);
-    border-inline-start: 3px solid var(--ink);
-    background-color: var(--island-bg-color);
+  &.setsquare-workspace .account-menu__button {
+    height: var(--workspace-control-height);
   }
 
-  .workspace-account__message {
-    margin: 0;
-    color: var(--text-primary-color);
-    font-size: 0.8125rem;
-    line-height: 1.4;
+  &.setsquare-workspace .account-menu__trigger.dropdown-menu-button {
+    width: var(--workspace-control-height);
+    height: var(--workspace-control-height);
 
-    &--error {
-      color: var(--redline);
-    }
-  }
-
-  .workspace-account__sign-out {
-    align-self: flex-start;
-    padding: 0;
-    border: none;
-    background: none;
-    color: var(--lead);
-    font: inherit;
-    font-size: 0.8125rem;
-    text-decoration: underline;
-    text-underline-offset: 0.1875rem;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--text-primary-color);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: wait;
+    .account-avatar {
+      width: 100%;
+      height: 100%;
     }
   }
 

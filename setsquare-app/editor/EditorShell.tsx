@@ -115,6 +115,8 @@ type EditorShellProps = {
    * returning whether it did; the editor scrolls to links in its own scene
    */
   openLinkedScene?: (link: string) => boolean;
+  /** what the host shows at the top right, beside Export and Library */
+  renderTopRightUI?: SetsquareProps["renderTopRightUI"];
   /** the main menu, the welcome screen and anything else the editor shows */
   children: SetsquareProps["children"];
 };
@@ -127,6 +129,7 @@ export const EditorShell = ({
   loadScene = true,
   commandPaletteItems = [],
   openLinkedScene,
+  renderTopRightUI,
   children,
 }: EditorShellProps) => {
   const setsquareAPI = useSetsquareAPI();
@@ -468,6 +471,7 @@ export const EditorShell = ({
           mainMenu: !isTauri(),
         }}
         langCode={langCode}
+        renderTopRightUI={renderTopRightUI}
         renderCustomStats={renderCustomStats}
         detectScroll={false}
         handleKeyboardGlobally={true}

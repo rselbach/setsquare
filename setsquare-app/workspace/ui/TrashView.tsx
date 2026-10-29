@@ -19,6 +19,8 @@ import type {
   WorkspaceItem,
   WorkspaceSnapshot,
 } from "../types";
+import type { ReactNode } from "react";
+
 import type { WorkspaceStore } from "../WorkspaceStore";
 
 import type { DrawerControl } from "./WorkspaceHeader";
@@ -116,11 +118,14 @@ export const TrashView = ({
   snapshot,
   now,
   drawer,
+  account,
 }: {
   store: WorkspaceStore;
   snapshot: WorkspaceSnapshot;
   now: number;
   drawer: DrawerControl;
+  /** who is signed in, at the right end of the bar */
+  account: ReactNode;
 }) => {
   const { t } = useI18n();
   const [confirming, setConfirming] = useState<Confirming | null>(null);
@@ -162,6 +167,7 @@ export const TrashView = ({
           <div className="workspace-header__heading">
             <h1 className="workspace-header__title">{t("workspace.trash")}</h1>
           </div>
+          {account}
         </div>
         <div className="workspace-header__toolbar">
           <p className="trash-view__retention">

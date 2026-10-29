@@ -18,7 +18,11 @@ import type { Theme } from "@setsquare/element/types";
 import { useAppLangCode } from "../../app-language/language-state";
 import { STORAGE_KEYS } from "../../app_constants";
 import { useWorkspaceAccount } from "../../web/accountContext";
-import { AccountNotice } from "../../web/accountControls";
+import {
+  AccountMenu,
+  AccountNotice,
+  importBrowserDrawings,
+} from "../../web/accountControls";
 import { useBrowserImport } from "../../web/browserImport";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
@@ -364,7 +368,9 @@ const WorkspaceView = ({
                       type="button"
                       className="account-button"
                       disabled={browserImport.state.kind === "importing"}
-                      onClick={browserImport.run}
+                      onClick={() =>
+                        importBrowserDrawings(browserImport.run, toast)
+                      }
                     >
                       {browserImport.state.kind === "importing"
                         ? t("workspace.accountImporting")
@@ -381,6 +387,8 @@ const WorkspaceView = ({
         break;
     }
   }
+
+  const accountMenu = <AccountMenu toast={toast} />;
 
   const drawer = {
     id: navId,
@@ -428,6 +436,7 @@ const WorkspaceView = ({
               snapshot={snapshot}
               now={now}
               drawer={drawer}
+              account={accountMenu}
             />
           ) : (
             <>
@@ -453,6 +462,7 @@ const WorkspaceView = ({
                     : { order: sortOrder, onChange: setSortOrder }
                 }
                 actions={{ newDrawing, newFolder, openFile }}
+                account={accountMenu}
               />
               <div className="workspace__content">
                 {empty ?? (
@@ -478,7 +488,7 @@ const WorkspaceView = ({
           />
         )}
         <WorkspaceToast toast={toast} />
-        {isPhone && <AccountNotice />}
+        <AccountNotice />
       </div>
     </WorkspaceDragProvider>
   );

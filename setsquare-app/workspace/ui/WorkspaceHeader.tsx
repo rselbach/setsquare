@@ -20,7 +20,7 @@ import { RouteLink } from "../../web/RouteLink";
 
 import { useDropTarget } from "./useWorkspaceDrag";
 
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 
 import type { SortOrder } from "../tree";
 import type { ParentId } from "../types";
@@ -225,6 +225,7 @@ export const WorkspaceHeader = ({
   search,
   sort,
   actions,
+  account,
 }: {
   title: string;
   /** the folders above the one shown, from the root */
@@ -237,6 +238,8 @@ export const WorkspaceHeader = ({
   /** the sort, where the page lets it change */
   sort: { order: SortOrder; onChange: (order: SortOrder) => void } | null;
   actions: CreateActions;
+  /** who is signed in, at the right end of the bar */
+  account: ReactNode;
 }) => {
   const { t } = useI18n();
   const drawerButton = <DrawerButton drawer={drawer} />;
@@ -269,6 +272,7 @@ export const WorkspaceHeader = ({
             />
           )}
           <CreateMenu actions={actions} />
+          {account}
         </div>
         {searching && (
           <div className="workspace-header__search-row">
@@ -318,6 +322,7 @@ export const WorkspaceHeader = ({
           <h1 className="workspace-header__title">{title}</h1>
         </div>
         <SearchField search={search} />
+        {account}
       </div>
       <div className="workspace-header__toolbar">
         <div className="workspace-header__create">

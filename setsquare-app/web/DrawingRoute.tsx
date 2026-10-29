@@ -15,6 +15,7 @@ import { EditorShell } from "../editor/EditorShell";
 import { isTrashed } from "../workspace/tree";
 import { DrawingNotice } from "../workspace/ui/DrawingNotice";
 
+import { AccountMenu } from "./accountControls";
 import { createDrawingPersistence } from "./drawingPersistence";
 import { DrawingSaveStatus } from "./DrawingSaveStatus";
 import { DrawingsSidebar } from "./DrawingsSidebar";
@@ -356,6 +357,10 @@ export const DrawingRoute = ({
         loadScene={false}
         commandPaletteItems={commandPaletteItems}
         openLinkedScene={openLinkedScene}
+        // a phone's top bar has no room; its workspace header has the menu
+        renderTopRightUI={(isMobile) =>
+          isMobile ? null : <AccountMenu toast={toast} />
+        }
       >
         {children}
         {store.recoveryKey && (
