@@ -525,10 +525,18 @@ describe("RemoteWorkspaceStore", () => {
       };
       const account = session();
       const store = await open(fetch, account);
-      expect(await store.importLocalWorkspace(source)).toBe(1);
+      expect(await store.pendingImports(source)).toBe(1);
+      expect(await store.importLocalWorkspace(source)).toEqual({
+        imported: 1,
+        skipped: [],
+      });
       expect(events).toEqual(["importFolder", "image", "importDrawing"]);
       const reopened = await open(fetch, account);
-      expect(await reopened.importLocalWorkspace(source)).toBe(0);
+      expect(await reopened.pendingImports(source)).toBe(0);
+      expect(await reopened.importLocalWorkspace(source)).toEqual({
+        imported: 0,
+        skipped: [],
+      });
       expect(commands).toHaveLength(2);
       expect(source.getSnapshot().drawings.has(meta.id)).toBe(true);
     } finally {
@@ -536,24 +544,72 @@ describe("RemoteWorkspaceStore", () => {
     }
   });
 
-  it("refuses an import with missing images and leaves the browser drawing intact", async () => {
+  it("skips drawings it cannot import and imports the rest", async () => {
     const local = workspaceFixture();
     try {
       const source = await local.open();
-      const meta = await source.createDrawing({
+      const missing = await source.createDrawing({
         folderId: null,
         name: "Missing paintball photo",
         fileIds: ["missing" as FileId],
       });
-      const fetch = vi.fn<typeof globalThis.fetch>(async () =>
-        response({ folders: [], drawings: [] }),
+      const refused = await source.createDrawing({
+        folderId: null,
+        name: "Too much Chang",
+      });
+      const accepted = await source.createDrawing({
+        folderId: null,
+        name: "Study group",
+      });
+      const imported: string[] = [];
+      const fetch = vi.fn<typeof globalThis.fetch>(async (input, init) => {
+        if (String(input) === "/api/workspace") {
+          return response({ folders: [], drawings: [] });
+        }
+        const body: { command: WorkspaceCommand } = JSON.parse(
+          String(init?.body),
+        );
+        if (body.command.kind !== "importDrawing") {
+          throw new Error(`Unexpected ${body.command.kind}`);
+        }
+        const { meta } = body.command.drawing;
+        if (meta.id === refused.id) {
+          return response({ error: "invalid_request" }, 400);
+        }
+        imported.push(meta.name ?? "");
+        return response({
+          result: { kind: "drawing", drawing: meta },
+          snapshot: { folders: [], drawings: [meta] },
+        });
+      });
+      const store = await open(fetch);
+      const result = await store.importLocalWorkspace(source);
+      expect(result.imported).toBe(1);
+      expect(result.skipped.map(({ id }) => id).sort()).toEqual(
+        [missing.id, refused.id].sort(),
       );
+      expect(imported).toEqual([accepted.name]);
+      expect(await store.pendingImports(source)).toBe(2);
+      expect(source.getSnapshot().drawings.has(missing.id)).toBe(true);
+    } finally {
+      local.close();
+    }
+  });
+
+  it("stops an import when the server cannot be reached", async () => {
+    const local = workspaceFixture();
+    try {
+      const source = await local.open();
+      await source.createDrawing({ folderId: null, name: "Study group" });
+      const fetch = vi
+        .fn<typeof globalThis.fetch>()
+        .mockResolvedValueOnce(response({ folders: [], drawings: [] }))
+        .mockRejectedValue(new TypeError("Failed to fetch"));
       const store = await open(fetch);
       await expect(store.importLocalWorkspace(source)).rejects.toThrow(
-        "missing images",
+        "Failed to fetch",
       );
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(source.getSnapshot().drawings.has(meta.id)).toBe(true);
+      expect(await store.pendingImports(source)).toBe(1);
     } finally {
       local.close();
     }

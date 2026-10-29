@@ -85,11 +85,33 @@ describe("web accounts", () => {
 
     render(withAccount(signedIn, store, <AccountControls />));
 
-    expect(screen.getByText("Saved to troy-barnes")).toBeInTheDocument();
+    expect(screen.getByText("Saved to your account")).toBeInTheDocument();
+    expect(screen.getByText("Troy Barnes")).toBeInTheDocument();
+    expect(screen.getByText("troy-barnes on GitHub")).toBeInTheDocument();
     expect(screen.queryByText("Stored in this browser")).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Import browser drawings" }),
-    ).toBeInTheDocument();
+  });
+
+  it("offers a way back to the account while it can't be reached", async () => {
+    const store = await workspace.open();
+
+    render(
+      withAccount(
+        { kind: "unreachable" },
+        store,
+        <>
+          <AccountControls />
+          <AccountNotice />
+        </>,
+      ),
+    );
+
+    expect(screen.getByText("Can't reach your account")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Showing the drawings stored in this browser",
+    );
+    expect(screen.getAllByRole("button", { name: /Try again/i })).toHaveLength(
+      2,
+    );
   });
 
   it("pins sign out to the current account and flushes the page first", async () => {
@@ -167,22 +189,62 @@ describe("web accounts", () => {
     vi.spyOn(LocalWorkspaceStore, "open").mockResolvedValue(local);
     const imported = vi
       .spyOn(remote, "importLocalWorkspace")
-      .mockResolvedValue(1);
+      .mockResolvedValue({ imported: 1, skipped: [] });
     const deleted = vi.spyOn(local, "deleteForever");
-    const closed = vi.spyOn(local, "close");
+    const closed = vi.spyOn(local, "close").mockImplementation(() => {});
 
     render(withAccount(signedIn, remote, <AccountControls />));
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "1 drawing in this browser isn't in your account yet",
+    );
     expect(imported).not.toHaveBeenCalled();
     fireEvent.click(
       screen.getByRole("button", { name: "Import browser drawings" }),
     );
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Imported 1 drawing",
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Imported 1 drawing",
+      ),
     );
     expect(imported).toHaveBeenCalledWith(local);
     expect(deleted).not.toHaveBeenCalled();
-    expect(closed).toHaveBeenCalledTimes(1);
+    expect(closed).toHaveBeenCalledTimes(2);
+  });
+
+  it("names the browser drawings an import had to leave behind", async () => {
+    const remote = await RemoteWorkspaceStore.open({
+      session: signedIn,
+      ownerWindow: window,
+      onSessionExpired: vi.fn(),
+      fetch: vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(response({ folders: [], drawings: [] })),
+    });
+    remoteStores.push(remote);
+    const local = await workspace.open();
+    const paintball = await local.createDrawing({
+      folderId: null,
+      name: "Paintball",
+    });
+    vi.spyOn(LocalWorkspaceStore, "open").mockResolvedValue(local);
+    vi.spyOn(local, "close").mockImplementation(() => {});
+    vi.spyOn(remote, "importLocalWorkspace").mockResolvedValue({
+      imported: 0,
+      skipped: [paintball],
+    });
+
+    render(withAccount(signedIn, remote, <AccountControls />));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import browser drawings" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Couldn't import “Paintball”. They're still in this browser.",
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Try again" })).toBeVisible();
   });
 
   it("shows a recoverable boot failure and retries without clearing storage", async () => {
@@ -241,16 +303,39 @@ describe("account session discovery", () => {
     });
   });
 
-  it("never falls back to browser storage after discovering the account server", async () => {
+  it("reports a known account server that doesn't answer as unreachable", async () => {
     const fetch = vi
       .fn()
       .mockResolvedValueOnce(response(signedIn))
-      .mockResolvedValueOnce(response({}, 404));
+      .mockResolvedValueOnce(response({}, 503))
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"));
     vi.stubGlobal("fetch", fetch);
 
     expect(await workspaceStore.readAccountSession(window)).toEqual(signedIn);
-    await expect(workspaceStore.readAccountSession(window)).rejects.toThrow(
-      "Could not load the account session",
+    expect(await workspaceStore.readAccountSession(window)).toEqual({
+      kind: "unreachable",
+    });
+    expect(await workspaceStore.readAccountSession(window)).toEqual({
+      kind: "unreachable",
+    });
+  });
+
+  it("opens the browser's drawings while the account can't be reached", async () => {
+    localStorage.setItem("setsquare-account-server", "true");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new TypeError("Failed to fetch")),
     );
+    const local = await workspace.open();
+    vi.spyOn(LocalWorkspaceStore, "open").mockResolvedValue(local);
+    const onSession = vi.fn();
+
+    const store = await workspaceStore.openWorkspaceStore({
+      ownerWindow: window,
+      onSession,
+    });
+
+    expect(store).toBe(local);
+    expect(onSession).toHaveBeenCalledWith({ kind: "unreachable" });
   });
 });

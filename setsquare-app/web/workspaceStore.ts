@@ -8,25 +8,32 @@ import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 const ACCOUNT_SERVER_KEY = "setsquare-account-server";
 
+/** A session, or an account server this browser has used that didn't answer. */
+export type AccountSession = SessionInfo | { kind: "unreachable" };
+
 /** Reads the current session without changing an already open workspace. */
 export const readAccountSession = async (
   ownerWindow: Window,
-): Promise<SessionInfo> => {
-  const response = await ownerWindow.fetch("/api/session", {
-    credentials: "same-origin",
-    cache: "no-store",
-  });
+): Promise<AccountSession> => {
   const knownServer = ownerWindow.localStorage.getItem(ACCOUNT_SERVER_KEY);
-  if (
-    !knownServer &&
-    (response.status === 404 ||
-      (response.ok &&
-        response.headers.get("content-type")?.includes("text/html")))
-  ) {
-    return { kind: "local" };
+  // without a server it has used, the browser keeps drawings itself
+  const unavailable = knownServer
+    ? ({ kind: "unreachable" } as const)
+    : ({ kind: "local" } as const);
+  let response: Response;
+  try {
+    response = await ownerWindow.fetch("/api/session", {
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+  } catch {
+    return unavailable;
   }
-  if (!response.ok) {
-    throw new Error("Could not load the account session");
+  if (
+    !response.ok ||
+    response.headers.get("content-type")?.includes("text/html")
+  ) {
+    return unavailable;
   }
   const session = parseSession(await response.json());
   if (session.kind !== "local") {
@@ -38,7 +45,7 @@ export const readAccountSession = async (
 /** The browser host and session notifications used by web startup. */
 export type OpenWorkspaceOptions = LocalWorkspaceOptions & {
   ownerWindow?: Window;
-  onSession?: (session: SessionInfo) => void;
+  onSession?: (session: AccountSession) => void;
   onSessionExpired?: () => void;
 };
 
@@ -56,13 +63,22 @@ export const openWorkspaceStore = async ({
     return LocalWorkspaceStore.open(localOptions);
   }
   const session = await readAccountSession(ownerWindow);
-  onSession?.(session);
-  if (session.kind === "signedIn") {
-    return RemoteWorkspaceStore.open({
+  if (session.kind !== "signedIn") {
+    onSession?.(session);
+    return LocalWorkspaceStore.open(localOptions);
+  }
+  try {
+    const store = await RemoteWorkspaceStore.open({
       session,
       ownerWindow,
       onSessionExpired,
     });
+    onSession?.(session);
+    return store;
+  } catch (error) {
+    // the browser's own drawings stay usable while the account can't load
+    console.error(error);
+    onSession?.({ kind: "unreachable" });
+    return LocalWorkspaceStore.open(localOptions);
   }
-  return LocalWorkspaceStore.open(localOptions);
 };

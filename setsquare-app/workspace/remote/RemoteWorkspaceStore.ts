@@ -53,6 +53,9 @@ export type RemoteWorkspaceOptions = {
   fetch?: typeof fetch;
 };
 
+/** What an import of the browser's drawings copied, and what it left. */
+export type ImportResult = { imported: number; skipped: DrawingMeta[] };
+
 const NOT_FOUND = { ok: false, reason: "notFound" } as const;
 const OK = { ok: true } as const;
 
@@ -92,7 +95,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private snapshotShown = 0;
   private closed = false;
   private expired = false;
-  private importing: Promise<number> | null = null;
+  private importing: Promise<ImportResult> | null = null;
   private mutations: Promise<void> = Promise.resolve();
 
   private constructor(
@@ -414,7 +417,22 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     },
   };
 
-  importLocalWorkspace(local: LocalWorkspaceStore): Promise<number> {
+  /** Counts the browser drawings this account has not imported yet. */
+  async pendingImports(local: LocalWorkspaceStore) {
+    let count = 0;
+    for (const id of local.getSnapshot().drawings.keys()) {
+      if (!(await this.cache.imported(`drawing:${id}`))) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Copies the browser's folders and drawings into the account, skipping
+   * what an earlier import copied and drawings the account can't take.
+   */
+  importLocalWorkspace(local: LocalWorkspaceStore): Promise<ImportResult> {
     this.importing ??= this.importLocal(local).finally(() => {
       this.importing = null;
     });
@@ -456,46 +474,50 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
         );
       }
     }
-    let count = 0;
+    const result: ImportResult = { imported: 0, skipped: [] };
     for (const [id, meta] of snapshot.drawings) {
       const key = `drawing:${id}`;
       if (await this.cache.imported(key)) {
         continue;
       }
       const content = await local.loadDrawingContent(id);
-      if (!content) {
-        throw new Error(
-          `The browser drawing ${meta.name || id} has no saved content`,
-        );
-      }
       const { loadedFiles, erroredFiles } = await local.files.get([
         ...meta.fileIds,
       ]);
-      if (erroredFiles.size) {
-        throw new Error(
-          `The browser drawing ${
-            meta.name || id
-          } is missing images and could not be imported`,
-        );
+      if (!content || erroredFiles.size) {
+        result.skipped.push(meta);
+        continue;
       }
-      await this.cache.saveFiles(loadedFiles);
-      await this.upload(loadedFiles);
-      await this.importItem(key, {
-        kind: "importDrawing",
-        drawing: {
-          meta: {
-            ...meta,
-            folderId:
-              meta.folderId !== null && !snapshot.folders.has(meta.folderId)
-                ? null
-                : meta.folderId,
+      try {
+        await this.cache.saveFiles(loadedFiles);
+        await this.upload(loadedFiles);
+        await this.importItem(key, {
+          kind: "importDrawing",
+          drawing: {
+            meta: {
+              ...meta,
+              folderId:
+                meta.folderId !== null && !snapshot.folders.has(meta.folderId)
+                  ? null
+                  : meta.folderId,
+            },
+            content,
           },
-          content,
-        },
-      });
-      count++;
+        });
+      } catch (error) {
+        // the server refused this drawing, which another try won't change
+        if (
+          !(error instanceof ApiError) ||
+          (error.status !== 400 && error.status !== 413)
+        ) {
+          throw error;
+        }
+        result.skipped.push(meta);
+        continue;
+      }
+      result.imported++;
     }
-    return count;
+    return result;
   }
 
   private async importItem(key: string, command: WorkspaceCommand) {

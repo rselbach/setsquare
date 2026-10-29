@@ -112,6 +112,7 @@ const DrawingView = ({
       />
       <EditorTasks tasks={tasks.tasks} onRun={tasks.onRun} />
       <WorkspaceToast toast={toast} className="workspace-toast--editor" />
+      <AccountNotice />
     </DrawingRoute>
   );
 };
@@ -237,11 +238,16 @@ export const WebRoot = () => {
   }, [attempt, expire]);
 
   useEffect(() => {
-    if (!ownerWindow || !booted || initialSession.current.kind === "local") {
+    const { kind } = initialSession.current;
+    if (!ownerWindow || !booted || kind === "local" || kind === "unreachable") {
       return;
     }
     const refreshAccount = async () => {
       const session = await readAccountSession(ownerWindow);
+      // a server that doesn't answer says nothing about the session
+      if (session.kind === "unreachable") {
+        return;
+      }
       const initial = initialSession.current;
       if (initial.kind === "signedIn") {
         if (
@@ -272,11 +278,6 @@ export const WebRoot = () => {
     setError(null);
     setAttempt((current) => current + 1);
   };
-  const backToDrawings = () => {
-    navigate(ROOT, { replace: true }).then(retry, (failure) =>
-      setError(failure),
-    );
-  };
 
   return (
     <div className="setsquare-web-root" ref={host}>
@@ -287,16 +288,12 @@ export const WebRoot = () => {
           <button type="button" onClick={retry}>
             {t("workspace.accountRetry")}
           </button>
-          <button type="button" onClick={backToDrawings}>
-            {t("workspace.accountBackToDrawings")}
-          </button>
         </div>
       ) : booted && ownerWindow ? (
         <AccountContext.Provider
           value={{ state: account, ownerWindow, store: booted.store, expire }}
         >
           <Workspace booted={booted} ownerWindow={ownerWindow} {...theme} />
-          <AccountNotice />
         </AccountContext.Provider>
       ) : (
         <LoadingMessage theme={theme.editorTheme} delay={LOADING_DELAY_MS} />

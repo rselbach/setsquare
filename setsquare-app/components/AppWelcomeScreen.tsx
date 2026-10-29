@@ -45,17 +45,21 @@ export const AppWelcomeScreen: React.FC<{
         <WelcomeScreen.Center.Heading>
           {storage === "account" ? (
             t("workspace.accountPrivate")
-          ) : isTauri() ? (
-            t("welcomeScreen.app.center_heading_desktop")
           ) : (
             <>
-              {t("welcomeScreen.app.center_heading")}
+              {isTauri() ? (
+                t("welcomeScreen.app.center_heading_desktop")
+              ) : (
+                <>
+                  {t("welcomeScreen.app.center_heading")}
+                  <br />
+                  {t("welcomeScreen.app.center_heading_line2")}
+                </>
+              )}
               <br />
-              {t("welcomeScreen.app.center_heading_line2")}
+              {t("welcomeScreen.app.center_heading_line3")}
             </>
           )}
-          <br />
-          {t("welcomeScreen.app.center_heading_line3")}
         </WelcomeScreen.Center.Heading>
         <WelcomeScreen.Center.Menu>
           {actions ? (

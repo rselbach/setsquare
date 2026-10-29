@@ -18,6 +18,8 @@ import type { Theme } from "@setsquare/element/types";
 import { useAppLangCode } from "../../app-language/language-state";
 import { STORAGE_KEYS } from "../../app_constants";
 import { useWorkspaceAccount } from "../../web/accountContext";
+import { AccountNotice } from "../../web/accountControls";
+import { useBrowserImport } from "../../web/browserImport";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
@@ -113,6 +115,7 @@ const WorkspaceView = ({
 }: Omit<WorkspacePageProps, "theme">) => {
   const { t } = useI18n();
   const account = useWorkspaceAccount();
+  const browserImport = useBrowserImport(store);
   const isPhone = useEditorInterface().formFactor === "phone";
   const snapshot = useWorkspaceSnapshot(store);
   const now = useNow();
@@ -339,12 +342,36 @@ const WorkspaceView = ({
               </FilledButton>
               {(!account ||
                 account.state.kind === "local" ||
-                account.state.kind === "signedOut") && (
+                account.state.kind === "signedOut" ||
+                account.state.kind === "unreachable") && (
                 <p className="workspace-empty__warning">
                   {t("welcomeScreen.app.center_heading")}{" "}
                   {t("welcomeScreen.app.center_heading_line2")}
                 </p>
               )}
+              {browserImport &&
+                browserImport.state.kind !== "checking" &&
+                browserImport.state.pending > 0 && (
+                  <div className="workspace-empty__import">
+                    <p>
+                      {browserImport.state.pending === 1
+                        ? t("workspace.emptyImportOne")
+                        : t("workspace.emptyImport", {
+                            count: browserImport.state.pending,
+                          })}
+                    </p>
+                    <button
+                      type="button"
+                      className="account-button"
+                      disabled={browserImport.state.kind === "importing"}
+                      onClick={browserImport.run}
+                    >
+                      {browserImport.state.kind === "importing"
+                        ? t("workspace.accountImporting")
+                        : t("workspace.accountImport")}
+                    </button>
+                  </div>
+                )}
             </EmptyState>
           ) : (
             <EmptyState title={t("workspace.emptyFolder")}>
@@ -451,6 +478,7 @@ const WorkspaceView = ({
           />
         )}
         <WorkspaceToast toast={toast} />
+        {isPhone && <AccountNotice />}
       </div>
     </WorkspaceDragProvider>
   );

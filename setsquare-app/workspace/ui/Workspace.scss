@@ -909,6 +909,23 @@
     font-size: 0.8125rem;
   }
 
+  // the browser's drawings the account doesn't have, offered to it
+  .workspace-empty__import {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 20rem;
+    margin-top: 1rem;
+    padding: 0.875rem;
+    border: 1px solid var(--rule-strong);
+    border-inline-start: 3px solid var(--ink);
+    background-color: var(--island-bg-color);
+    color: var(--text-primary-color);
+    text-align: start;
+  }
+
   // the Trash, a register of what was thrown out, ruled like the revision
   // table of a title block: the sheet, what and where it was, when it went
 

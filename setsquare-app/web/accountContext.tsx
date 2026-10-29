@@ -1,11 +1,13 @@
 import { createContext, useContext } from "react";
 
-import type { AccountUser, SessionInfo } from "../workspace/api";
+import type { AccountUser } from "../workspace/api";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
+
+import type { AccountSession } from "./workspaceStore";
 
 /** Account changes never replace an editor that may still have unsaved work. */
 export type AccountState =
-  | SessionInfo
+  | AccountSession
   | { kind: "expired"; user: AccountUser }
   | { kind: "changed" };
 

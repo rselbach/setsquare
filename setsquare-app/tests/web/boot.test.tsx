@@ -194,7 +194,7 @@ describe("web app boot", () => {
     renderPlain(<SetsquareApp />);
 
     expect(
-      await screen.findByRole("button", { name: "back to your drawings" }),
+      await screen.findByRole("button", { name: "Retry" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "clearing the canvas" })).toBe(
       null,

@@ -108,9 +108,11 @@
       }
     }
 
+    // keeps to the right whether or not the host fills the footer
     .layer-ui__wrapper__footer-right {
       margin-top: auto;
       margin-bottom: auto;
+      margin-inline-start: auto;
     }
   }
 
