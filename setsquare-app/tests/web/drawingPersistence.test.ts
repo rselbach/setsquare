@@ -190,6 +190,31 @@ it("replays an unacknowledged write before saving a newer draft", async () => {
   await persistence.renderThumbnail();
 });
 
+it("resends an unacknowledged write after reload exactly as it was sent", async () => {
+  const { store, drawing } = await session();
+  const sent: Array<{ content: string; requestId?: string }> = [];
+  vi.spyOn(store, "saveDrawingContent").mockImplementation(
+    async (_id, content, _files, options) => {
+      sent.push({
+        content: JSON.stringify(content),
+        requestId: options?.requestId,
+      });
+      throw new Error("The acknowledgement was lost");
+    },
+  );
+  const persistence = persistenceFor(store, drawing);
+  const rectangle = API.createElement({ type: "rectangle", id: "britta" });
+  expect(rectangle.boundElements).toBe(null);
+  persistence.save([rectangle], appState(), {}, vi.fn());
+  await persistence.flush();
+  expect(persistence.getSaveState().kind).toBe("error");
+
+  const reopened = persistenceFor(store, await replayUnsaved(store, drawing));
+  await reopened.flush();
+  expect(sent).toHaveLength(2);
+  expect(sent[1]).toEqual(sent[0]);
+});
+
 it("keeps a conflicting draft across reload and recovers it as a copy", async () => {
   const { store, drawing } = await session();
   const original = store.saveDrawingContent.bind(store);

@@ -290,7 +290,11 @@ export const parseAccountDraft = (value: unknown): AccountDraft => {
         .object({
           requestId: id,
           baseRevision: revision,
-          content: contentSchema,
+          // a retry must resend the bytes the receipt hashed, so restoring
+          // the content here would turn the retry into a request id reuse
+          content: z.custom<DrawingData["content"]>(
+            (value) => contentSchema.safeParse(value).success,
+          ),
         })
         .optional(),
     })
