@@ -34,7 +34,10 @@ import {
 
 import { EmptyState } from "./EmptyState";
 import { ItemGrid } from "./ItemGrid";
+import { MoveDialog } from "./MoveDialog";
+import { TrashView } from "./TrashView";
 import { useThumbnails } from "./useThumbnails";
+import { WorkspaceDragProvider } from "./useWorkspaceDrag";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceNav } from "./WorkspaceNav";
 import { WorkspaceToast, useTasksOnPage } from "./WorkspaceToast";
@@ -58,9 +61,13 @@ import type { WorkspaceStore } from "../WorkspaceStore";
 import type { ItemActions } from "./ItemGrid";
 import type { Crumb } from "./WorkspaceHeader";
 import type { NavPlace } from "./WorkspaceNav";
+import type { WorkspaceToastState } from "./WorkspaceToast";
 
 /** The addresses the workspace page shows. */
-export type PageRoute = Extract<Route, { kind: "drawings" | "recent" }>;
+export type PageRoute = Extract<
+  Route,
+  { kind: "drawings" | "recent" | "trash" }
+>;
 
 type WorkspacePageProps = {
   store: WorkspaceStore;
@@ -72,6 +79,9 @@ type WorkspacePageProps = {
   onThemeChange: (theme: Theme | "system") => void;
   /** what's left to show from the editor or from opening files */
   tasks: QueuedTasks;
+  toast: WorkspaceToastState;
+  /** moves an item to the Trash, offering Undo */
+  trash: (item: ItemRef) => void;
 };
 
 const ROOT = { kind: "drawings", folderId: null } as const;
@@ -97,6 +107,8 @@ const WorkspaceView = ({
   appTheme,
   onThemeChange,
   tasks,
+  toast,
+  trash,
 }: Omit<WorkspacePageProps, "theme">) => {
   const { t } = useI18n();
   const isPhone = useEditorInterface().formFactor === "phone";
@@ -107,6 +119,8 @@ const WorkspaceView = ({
   const path = routeToPath(route);
   const [sortOrder, setSortOrder] = useSortOrder();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // what Move to… is moving
+  const [moving, setMoving] = useState<ItemRef | null>(null);
   // what's being renamed, on the page it shows on
   const [renaming, setRenaming] = useState<{
     item: ItemRef;
@@ -117,7 +131,7 @@ const WorkspaceView = ({
     // each page starts unsearched
     setSearch({ path, query: "", open: false });
   }
-  const { message, dismiss } = useTasksOnPage(tasks);
+  useTasksOnPage(tasks, toast.show);
 
   // a folder that's gone or in the Trash has nothing to show
   const requested = route.kind === "drawings" ? route.folderId : null;
@@ -129,7 +143,14 @@ const WorkspaceView = ({
   }, [requested, folderId]);
 
   const query = search.query.trim();
-  const view = query ? "search" : route.kind === "recent" ? "recent" : "folder";
+  const view =
+    route.kind === "trash"
+      ? "trash"
+      : query
+      ? "search"
+      : route.kind === "recent"
+      ? "recent"
+      : "folder";
   const items = useMemo((): WorkspaceItems => {
     const sorted = ({ folders, drawings }: WorkspaceItems) => ({
       folders: sortItems(folders, sortOrder),
@@ -142,6 +163,9 @@ const WorkspaceView = ({
         return { folders: [], drawings: recentDrawings(snapshot) };
       case "folder":
         return sorted(childrenOf(snapshot, folderId));
+      // the Trash lists its own
+      case "trash":
+        return { folders: [], drawings: [] };
     }
   }, [snapshot, view, query, folderId, sortOrder]);
   const thumbnails = useThumbnails(store, items.drawings);
@@ -186,6 +210,8 @@ const WorkspaceView = ({
     renameDrawing: (id, name) => {
       store.renameDrawing(id, name).catch((error) => console.error(error));
     },
+    move: setMoving,
+    trash,
     duplicate: async (drawing: DrawingMeta) => {
       try {
         const snap = store.getSnapshot();
@@ -202,11 +228,25 @@ const WorkspaceView = ({
     },
   };
 
+  const { undo } = toast;
+  const canUndo = !!toast.message?.undo;
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === KEYS.ESCAPE && drawerOpen) {
         setDrawerOpen(false);
       } else if (
+        // the toast's Undo, while it shows
+        canUndo &&
+        event.key.toLowerCase() === KEYS.Z &&
+        event[KEYS.CTRL_OR_CMD] &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !isWritableElement(event.target)
+      ) {
+        event.preventDefault();
+        undo();
+      } else if (
+        view !== "trash" &&
         event.key === KEYS.SLASH &&
         !event.ctrlKey &&
         !event.metaKey &&
@@ -221,7 +261,7 @@ const WorkspaceView = ({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [drawerOpen]);
+  }, [drawerOpen, canUndo, undo, view]);
 
   // a phone shows the field only once it's opened
   useEffect(() => {
@@ -235,9 +275,9 @@ const WorkspaceView = ({
   const crumbs: Crumb[] =
     view === "folder" && folderId !== null
       ? [
-          { to: ROOT, name: drawingsName },
+          { folderId: null, name: drawingsName },
           ...trail.slice(0, -1).map((folder) => ({
-            to: { kind: "drawings", folderId: folder.id } as const,
+            folderId: folder.id,
             name: folder.name,
           })),
         ]
@@ -247,6 +287,8 @@ const WorkspaceView = ({
       ? t("workspace.searchResults")
       : view === "recent"
       ? t("workspace.recent")
+      : view === "trash"
+      ? t("workspace.trash")
       : trail[trail.length - 1]?.name ?? drawingsName;
   const isRoot = view === "folder" && folderId === null;
   useEffect(() => {
@@ -256,7 +298,7 @@ const WorkspaceView = ({
   const place: NavPlace =
     view === "search"
       ? null
-      : route.kind === "recent"
+      : route.kind === "recent" || route.kind === "trash"
       ? route
       : { kind: "drawings", folderId };
 
@@ -284,6 +326,8 @@ const WorkspaceView = ({
           </EmptyState>
         );
         break;
+      case "trash":
+        break;
       case "folder":
         empty =
           folderId === null ? (
@@ -305,78 +349,114 @@ const WorkspaceView = ({
     }
   }
 
+  const drawer = {
+    id: navId,
+    open: drawerOpen,
+    onToggle: () => setDrawerOpen(!drawerOpen),
+  };
+
   return (
-    <div
-      className={clsx("workspace", { "workspace--drawer-open": drawerOpen })}
+    <WorkspaceDragProvider
+      snapshot={snapshot}
+      onMove={(item, target) => {
+        store.move(item, target).then(
+          (result) =>
+            result.ok || console.error("Couldn't move", item, result.reason),
+          (error) => console.error(error),
+        );
+      }}
+      onTrash={trash}
     >
-      <WorkspaceNav
-        id={navId}
-        snapshot={snapshot}
-        place={place}
-        appTheme={appTheme}
-        onThemeChange={onThemeChange}
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      />
-      {drawerOpen && (
-        <div
-          className="workspace__scrim"
-          aria-hidden="true"
-          onClick={() => setDrawerOpen(false)}
+      <div
+        className={clsx("workspace", {
+          "workspace--drawer-open": drawerOpen,
+        })}
+      >
+        <WorkspaceNav
+          id={navId}
+          snapshot={snapshot}
+          place={place}
+          appTheme={appTheme}
+          onThemeChange={onThemeChange}
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
         />
-      )}
-      <main className="workspace__main">
-        <WorkspaceHeader
-          title={title}
-          crumbs={crumbs}
-          back={crumbs[crumbs.length - 1] ?? null}
-          isPhone={isPhone}
-          drawer={{
-            id: navId,
-            open: drawerOpen,
-            onToggle: () => setDrawerOpen(!drawerOpen),
-          }}
-          search={{
-            query: search.query,
-            onChange: (query) => setSearch((search) => ({ ...search, query })),
-            inputRef: searchRef,
-            open: search.open,
-            onOpenChange: (open) =>
-              setSearch((search) => ({ ...search, open })),
-          }}
-          // Recent is in the order it was used
-          sort={
-            view === "recent"
-              ? null
-              : { order: sortOrder, onChange: setSortOrder }
-          }
-          actions={{ newDrawing, newFolder, openFile }}
-        />
-        <div className="workspace__content">
-          {empty ?? (
-            <ItemGrid
-              folders={items.folders}
-              drawings={items.drawings}
-              thumbnails={thumbnails}
+        {drawerOpen && (
+          <div
+            className="workspace__scrim"
+            aria-hidden="true"
+            onClick={() => setDrawerOpen(false)}
+          />
+        )}
+        <main className="workspace__main">
+          {view === "trash" ? (
+            <TrashView
+              store={store}
+              snapshot={snapshot}
               now={now}
-              locationOf={locationOf}
-              renaming={renaming?.path === path ? renaming.item : null}
-              actions={itemActions}
+              drawer={drawer}
             />
+          ) : (
+            <>
+              <WorkspaceHeader
+                title={title}
+                crumbs={crumbs}
+                back={crumbs[crumbs.length - 1] ?? null}
+                isPhone={isPhone}
+                drawer={drawer}
+                search={{
+                  query: search.query,
+                  onChange: (query) =>
+                    setSearch((search) => ({ ...search, query })),
+                  inputRef: searchRef,
+                  open: search.open,
+                  onOpenChange: (open) =>
+                    setSearch((search) => ({ ...search, open })),
+                }}
+                // Recent is in the order it was used
+                sort={
+                  view === "recent"
+                    ? null
+                    : { order: sortOrder, onChange: setSortOrder }
+                }
+                actions={{ newDrawing, newFolder, openFile }}
+              />
+              <div className="workspace__content">
+                {empty ?? (
+                  <ItemGrid
+                    folders={items.folders}
+                    drawings={items.drawings}
+                    thumbnails={thumbnails}
+                    now={now}
+                    locationOf={locationOf}
+                    renaming={renaming?.path === path ? renaming.item : null}
+                    actions={itemActions}
+                  />
+                )}
+              </div>
+            </>
           )}
-        </div>
-      </main>
-      <WorkspaceToast message={message} onDismiss={dismiss} />
-    </div>
+        </main>
+        {moving && (
+          <MoveDialog
+            store={store}
+            item={moving}
+            onClose={() => setMoving(null)}
+          />
+        )}
+        <WorkspaceToast toast={toast} />
+      </div>
+    </WorkspaceDragProvider>
   );
 };
 
 /**
  * The workspace's page of folders and drawings, at `/`, `/f/<id>` and
  * `/recent`: a nav with the folder tree, a header to search, sort and
- * create, and the items of the folder shown as cards that link to them. It
- * has the editor's look, theme and language without the editor, and shows
- * what's left from an editor that didn't come.
+ * create, and the items of the folder shown as cards that link to them,
+ * which can be moved, by Move to… or dragging, and trashed with Undo. At
+ * `/trash` it shows the Trash. It has the editor's look, theme and language
+ * without the editor, and shows what's left from an editor that didn't come.
  */
 export const WorkspacePage = ({ theme, ...props }: WorkspacePageProps) => {
   const [langCode] = useAppLangCode();

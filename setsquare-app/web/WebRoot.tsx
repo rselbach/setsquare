@@ -1,22 +1,27 @@
 import { LoadingMessage } from "@setsquare/setsquare/components/LoadingMessage";
 import { t } from "@setsquare/setsquare/i18n";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AppMainMenu } from "../components/AppMainMenu";
 import { AppWelcomeScreen } from "../components/AppWelcomeScreen";
 import { useHandleAppTheme } from "../useHandleAppTheme";
 import { WorkspacePage } from "../workspace/ui/WorkspacePage";
+import {
+  WorkspaceToast,
+  useWorkspaceToast,
+} from "../workspace/ui/WorkspaceToast";
 
 import { DrawingRoute } from "./DrawingRoute";
 import { EditorTasks, useEditorTasks } from "./editorTasks";
 import { useLaunchedFiles } from "./importFiles";
 import { openSceneUrl, sceneUrlFailed, useSceneUrlLinks } from "./importScene";
 import { initRouter, navigate, parseRoute, useRoute } from "./router";
-import { useDrawingActions } from "./workspaceActions";
+import { trashWithUndo, useDrawingActions } from "./workspaceActions";
 import { openWorkspaceStore } from "./workspaceStore";
 
 import type { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
-import type { DrawingId } from "../workspace/types";
+import type { DrawingId, ItemRef } from "../workspace/types";
+import type { WorkspaceToastState } from "../workspace/ui/WorkspaceToast";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 import type { EditorTask, QueuedTasks } from "./editorTasks";
@@ -56,7 +61,9 @@ const whenIdle = (callback: () => void) => {
   return () => window.clearTimeout(handle);
 };
 
-// the editor on a drawing, with the web app's menu, which create next to it
+// the editor on a drawing, with the web app's menu, which create next to it,
+// and the app's toast, which can't be the editor's own: that one can't
+// carry Undo, and phones don't show it
 const DrawingView = ({
   store,
   id,
@@ -64,13 +71,17 @@ const DrawingView = ({
   appTheme,
   setAppTheme,
   tasks,
+  toast,
+  trash,
 }: {
   store: WorkspaceStore;
   id: DrawingId;
   tasks: QueuedTasks;
+  toast: WorkspaceToastState;
+  trash: (item: ItemRef) => void;
 } & ReturnType<typeof useHandleAppTheme>) => {
   const [, forceRefresh] = useState(false);
-  const actions = useDrawingActions(store, id, tasks.queueTask);
+  const actions = useDrawingActions(store, id, tasks.queueTask, trash);
 
   return (
     <DrawingRoute
@@ -79,6 +90,8 @@ const DrawingView = ({
       theme={editorTheme}
       onThemeChange={setAppTheme}
       actions={actions}
+      tasks={tasks}
+      toast={toast}
     >
       <AppMainMenu
         theme={appTheme}
@@ -87,6 +100,7 @@ const DrawingView = ({
       />
       <AppWelcomeScreen actions={actions} />
       <EditorTasks tasks={tasks.tasks} onRun={tasks.onRun} />
+      <WorkspaceToast toast={toast} className="workspace-toast--editor" />
     </DrawingRoute>
   );
 };
@@ -99,6 +113,15 @@ const Workspace = ({
 } & ReturnType<typeof useHandleAppTheme>) => {
   const route = useRoute();
   const tasks = useEditorTasks(bootTasks);
+  // one toast for the page and the editor, so an Undo outlasts either
+  const toast = useWorkspaceToast();
+  const { show } = toast;
+  const trash = useCallback(
+    (item: ItemRef) => {
+      trashWithUndo(store, item, show).catch((error) => console.error(error));
+    },
+    [store, show],
+  );
 
   useSceneUrlLinks(store, tasks.queueTask);
   useLaunchedFiles(store, tasks.queueTask);
@@ -116,26 +139,35 @@ const Workspace = ({
     };
   }, [store]);
 
-  // there's no Trash page yet, nor any at other addresses
+  // there's no page at other addresses
   useEffect(() => {
-    if (route.kind === "trash" || route.kind === "notFound") {
+    if (route.kind === "notFound") {
       navigate(ROOT, { replace: true });
     }
   }, [route]);
 
   if (route.kind === "drawing") {
-    return <DrawingView store={store} id={route.id} tasks={tasks} {...theme} />;
+    return (
+      <DrawingView
+        store={store}
+        id={route.id}
+        tasks={tasks}
+        toast={toast}
+        trash={trash}
+        {...theme}
+      />
+    );
   }
   return (
     <WorkspacePage
       store={store}
-      route={
-        route.kind === "drawings" || route.kind === "recent" ? route : ROOT
-      }
+      route={route.kind === "notFound" ? ROOT : route}
       theme={theme.editorTheme}
       appTheme={theme.appTheme}
       onThemeChange={theme.setAppTheme}
       tasks={tasks}
+      toast={toast}
+      trash={trash}
     />
   );
 };

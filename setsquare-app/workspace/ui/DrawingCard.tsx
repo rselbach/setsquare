@@ -4,8 +4,9 @@ import clsx from "clsx";
 import { RouteLink } from "../../web/RouteLink";
 import { formatRelativeTime } from "../formatRelativeTime";
 
-import { InlineName, useCardRename } from "./InlineName";
+import { InlineName, useCardKeys } from "./InlineName";
 import { ItemMenu } from "./ItemMenu";
+import { useDragSource } from "./useWorkspaceDrag";
 
 import type { DrawingMeta, Thumbnail } from "../types";
 
@@ -25,7 +26,7 @@ const blankSheet = (
 /**
  * A drawing of the grid: its thumbnail on a sheet of paper, with the name
  * and when it was last edited in a ruled strip below, like the editor's
- * title block. The whole card is its link.
+ * title block. The whole card is its link, which can be dragged.
  */
 export const DrawingCard = ({
   drawing,
@@ -37,6 +38,8 @@ export const DrawingCard = ({
   onStopRename,
   onRename,
   onDuplicate,
+  onMove,
+  onTrash,
 }: {
   drawing: DrawingMeta;
   thumbnail?: Thumbnail;
@@ -48,21 +51,31 @@ export const DrawingCard = ({
   onStopRename: () => void;
   onRename: (name: string | null) => void;
   onDuplicate: () => void;
+  onMove: () => void;
+  onTrash: () => void;
 }) => {
   const { t, langCode } = useI18n();
-  const { cardRef, onKeyDown, onClose } = useCardRename({
+  const { cardRef, onKeyDown, onClose } = useCardKeys({
     renaming,
     onStart: onStartRename,
     onStop: onStopRename,
+    onTrash,
   });
   const shownName = drawing.name || t("labels.untitled");
   const to = { kind: "drawing", id: drawing.id } as const;
+  const { dragging, sourceProps } = useDragSource({
+    kind: "drawing",
+    id: drawing.id,
+  });
 
   return (
     <li
       ref={cardRef}
-      className="workspace-card drawing-card"
+      className={clsx("workspace-card drawing-card", {
+        "workspace-card--dragging": dragging,
+      })}
       onKeyDown={onKeyDown}
+      {...(renaming ? {} : sourceProps)}
     >
       <div className="drawing-card__sheet">
         {thumbnail ? (
@@ -109,6 +122,8 @@ export const DrawingCard = ({
           to={to}
           onRename={onStartRename}
           onDuplicate={onDuplicate}
+          onMove={onMove}
+          onTrash={onTrash}
         />
       </div>
     </li>

@@ -655,7 +655,7 @@ describe("opening files from the workspace page", () => {
     expect(window.location.pathname).toBe("/");
   });
 
-  it("says it on the page when the drawing it waited for is gone", async () => {
+  it("says it on the notice when the drawing it waited for is gone", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     Object.assign(window, {
       launchQueue: {
@@ -674,7 +674,9 @@ describe("opening files from the workspace page", () => {
 
     await renderPageAt("/d/pierce");
 
-    await waitForPage("/", "Drawings");
+    expect(
+      screen.getByRole("heading", { name: "This drawing isn't here" }),
+    ).toBeInTheDocument();
     expect(await screen.findByRole("alert")).toHaveTextContent(
       t("errors.openFileError", { name: "abed.setsquare" }),
     );

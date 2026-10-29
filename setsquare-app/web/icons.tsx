@@ -46,3 +46,27 @@ export const newFolderIcon = createIcon(
   </g>,
   tablerIconProps,
 );
+
+/** A folder with an arrow going in, for moving into another folder. */
+// tabler-icons: folder-symlink
+export const moveIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3 21v-4a3 3 0 0 1 3 -3h5" />
+    <path d="M8 17l3 -3l-3 -3" />
+    <path d="M3 11v-5a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-9.5" />
+  </g>,
+  tablerIconProps,
+);
+
+/** A counterclockwise arrow, for taking something out of the Trash. */
+// tabler-icons: restore
+export const restoreIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M3.06 13a9 9 0 1 0 .49 -4.087" />
+    <path d="M3 4.001v5h5" />
+    <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+  </g>,
+  tablerIconProps,
+);

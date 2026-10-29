@@ -21,6 +21,10 @@ export type ItemActions = {
   renameFolder: (id: FolderId, name: string) => void;
   renameDrawing: (id: DrawingId, name: string | null) => void;
   duplicate: (drawing: DrawingMeta) => void;
+  /** asks where to move the item */
+  move: (item: ItemRef) => void;
+  /** moves the item to the Trash, offering Undo */
+  trash: (item: ItemRef) => void;
 };
 
 const isRenaming = (renaming: ItemRef | null, item: ItemRef) =>
@@ -67,6 +71,8 @@ export const ItemGrid = ({
                   onStartRename={() => actions.startRename(ref)}
                   onStopRename={actions.stopRename}
                   onRename={(name) => actions.renameFolder(folder.id, name)}
+                  onMove={() => actions.move(ref)}
+                  onTrash={() => actions.trash(ref)}
                 />
               );
             })}
@@ -93,6 +99,8 @@ export const ItemGrid = ({
                   onStopRename={actions.stopRename}
                   onRename={(name) => actions.renameDrawing(drawing.id, name)}
                   onDuplicate={() => actions.duplicate(drawing)}
+                  onMove={() => actions.move(ref)}
+                  onTrash={() => actions.trash(ref)}
                 />
               );
             })}

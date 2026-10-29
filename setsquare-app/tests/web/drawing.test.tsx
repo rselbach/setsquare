@@ -8,7 +8,12 @@ import {
   getTextEditor,
   updateTextEditor,
 } from "@setsquare/setsquare/tests/queries/dom";
-import { act, screen, waitFor } from "@setsquare/setsquare/tests/test-utils";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+} from "@setsquare/setsquare/tests/test-utils";
 import { get } from "idb-keyval";
 
 import type { FileId } from "@setsquare/element/types";
@@ -224,7 +229,7 @@ describe("a drawing's page", () => {
     expect((await store.getDrawingMeta(plan.id))?.name).toBe(null);
   });
 
-  it("stops saving a drawing deleted elsewhere and goes to the drawings", async () => {
+  it("stops saving a drawing deleted elsewhere and says it's gone", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
     await store.deleteForever({ kind: "drawing", id: plan.id });
@@ -234,8 +239,16 @@ describe("a drawing's page", () => {
       captureUpdate: CaptureUpdateAction.IMMEDIATELY,
     });
 
-    await waitForPage("/", "Drawings");
+    expect(
+      await screen.findByRole("heading", { name: "This drawing isn't here" }),
+    ).toBeInTheDocument();
+    expect(window.location.pathname).toBe(`/d/${plan.id}`);
     expect(await store.getDrawingMeta(plan.id)).toBe(null);
+    expect(screen.queryByRole("button", { name: "Restore" })).toBe(null);
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to drawings" }));
+
+    await waitForPage("/", "Drawings");
     expect(screen.getByRole("link", { name: "Seating" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Floor plan" })).toBe(null);
   });

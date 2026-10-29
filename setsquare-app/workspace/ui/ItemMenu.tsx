@@ -3,27 +3,36 @@ import {
   DotsHorizontalIcon,
   DuplicateIcon,
   LoadIcon,
+  TrashIcon,
   pencilIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import { useState } from "react";
 
+import { moveIcon } from "../../web/icons";
 import { navigate } from "../../web/router";
 
 import type { Route } from "../../web/router";
 
-/** A card's `⋯` menu: Open, Rename, and Duplicate when given. */
+/**
+ * A card's `⋯` menu: Open, Rename, Duplicate when given, Move to… and Move
+ * to Trash.
+ */
 export const ItemMenu = ({
   label,
   to,
   onRename,
   onDuplicate,
+  onMove,
+  onTrash,
 }: {
   label: string;
   /** where Open goes */
   to: Route;
   onRename: () => void;
   onDuplicate?: () => void;
+  onMove: () => void;
+  onTrash: () => void;
 }) => {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -54,6 +63,13 @@ export const ItemMenu = ({
             {t("workspace.duplicate")}
           </DropdownMenu.Item>
         )}
+        <DropdownMenu.Item icon={moveIcon} onSelect={onMove}>
+          {t("workspace.moveTo")}
+        </DropdownMenu.Item>
+        <DropdownMenu.Separator />
+        <DropdownMenu.Item icon={TrashIcon} onSelect={onTrash}>
+          {t("workspace.moveToTrash")}
+        </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
   );

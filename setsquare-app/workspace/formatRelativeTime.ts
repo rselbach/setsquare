@@ -52,3 +52,23 @@ export const formatRelativeTime = (
     year: then.getFullYear() === today.getFullYear() ? undefined : "numeric",
   }).format(then);
 };
+
+/**
+ * How long ago something happened, in the locale's words and its largest
+ * whole unit up to days, as in "5 minutes ago", "yesterday" or "3 days ago".
+ * Returns null under a minute, which the locale only has "now" for.
+ */
+export const formatTimeAgo = (time: number, now: number, locale: string) => {
+  const elapsed = now - time;
+  if (elapsed < MINUTE) {
+    return null;
+  }
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  if (elapsed < HOUR) {
+    return format.format(-Math.floor(elapsed / MINUTE), "minute");
+  }
+  if (elapsed < DAY) {
+    return format.format(-Math.floor(elapsed / HOUR), "hour");
+  }
+  return format.format(-Math.floor(elapsed / DAY), "day");
+};

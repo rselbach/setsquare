@@ -6,18 +6,20 @@ import type { KeyboardEvent } from "react";
 const RENAME_KEY = "F2";
 
 /**
- * What a card that renames in place needs: F2 starts renaming, and the
- * card's link takes the focus back when Enter or Escape ends it, as it
- * had it before.
+ * What a card needs for its keys and renaming in place: F2 starts renaming,
+ * and the card's link takes the focus back when Enter or Escape ends it, as
+ * it had it before. Delete or Backspace on the link trashes the item.
  */
-export const useCardRename = ({
+export const useCardKeys = ({
   renaming,
   onStart,
   onStop,
+  onTrash,
 }: {
   renaming: boolean;
   onStart: () => void;
   onStop: () => void;
+  onTrash: () => void;
 }) => {
   const cardRef = useRef<HTMLLIElement>(null);
   const refocus = useRef(false);
@@ -32,9 +34,18 @@ export const useCardRename = ({
   return {
     cardRef,
     onKeyDown: (event: KeyboardEvent) => {
-      if (event.key === RENAME_KEY && !renaming) {
+      if (renaming) {
+        return;
+      }
+      if (event.key === RENAME_KEY) {
         event.preventDefault();
         onStart();
+      } else if (
+        (event.key === KEYS.DELETE || event.key === KEYS.BACKSPACE) &&
+        event.target === cardRef.current?.querySelector("a")
+      ) {
+        event.preventDefault();
+        onTrash();
       }
     },
     onClose: (byKey: boolean) => {

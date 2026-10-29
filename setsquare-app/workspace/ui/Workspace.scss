@@ -1,41 +1,5 @@
-// The workspace page is the drafting table the editor's sheets lie on: the
-// nav and header are vellum chrome, ruled like the editor's title block,
-// and each drawing is a sheet of paper with its own title strip.
-.setsquare.setsquare-workspace {
-  --workspace-nav-width: 15rem;
-  --workspace-gutter: 1.5rem;
-  --workspace-control-height: 2.25rem;
-
-  background-color: var(--vellum);
-
-  .workspace {
-    display: grid;
-    flex: 1;
-    grid-template-columns: var(--workspace-nav-width) minmax(0, 1fr);
-    min-width: 0;
-    height: 100%;
-  }
-
-  // captions name a field, like the small print in a title block's cells
-  .workspace-caption {
-    color: var(--lead);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--focus-highlight-color);
-    outline-offset: -2px;
-  }
-
-  // the editor's buttons, squared to the ruled chrome
+// the editor's buttons, squared to the ruled chrome
+@mixin square-buttons {
   .ExcButton {
     min-height: var(--workspace-control-height);
     padding: 0 0.875rem;
@@ -47,74 +11,11 @@
       height: 1.125rem;
     }
   }
+}
 
-  // nav
-
-  .workspace-nav {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow-y: auto;
-    border-inline-end: 1px solid var(--rule-strong);
-    background-color: var(--island-bg-color);
-  }
-
-  .workspace-nav__brand {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 0.5rem;
-    height: 4.5rem;
-    padding: 0 1rem;
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--graphite);
-    font-family: var(--ui-font-display);
-    font-size: 1.125rem;
-    font-weight: 700;
-
-    svg {
-      width: 1.375rem;
-      height: 1.375rem;
-    }
-  }
-
-  .workspace-nav__places {
-    margin: 0;
-    padding: 0.75rem 0;
-    list-style: none;
-  }
-
-  .workspace-nav__place {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    height: 2.25rem;
-    padding: 0 1rem;
-    border-inline-start: 2px solid transparent;
-    font-size: 0.9375rem;
-
-    svg {
-      flex: none;
-      width: 1.125rem;
-      height: 1.125rem;
-      color: var(--lead);
-    }
-
-    &:hover {
-      background-color: var(--button-hover-bg);
-    }
-
-    &[aria-current="page"] {
-      border-inline-start-color: var(--ink);
-      background-color: var(--button-hover-bg);
-      font-weight: 700;
-
-      svg {
-        color: var(--ink);
-      }
-    }
-  }
-
+// the folder tree, in the nav and in Move to…, which the editor's dialog
+// puts outside the page
+@mixin folder-tree {
   // nesting is drawn with guide lines, like a tree on a schematic
   .folder-tree,
   .folder-tree__group {
@@ -215,6 +116,184 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  // as a picker, each folder is a choice, marked like the folder shown
+  button.folder-tree__link {
+    border: none;
+    background: none;
+    color: inherit;
+    font-family: inherit;
+    text-align: start;
+    cursor: pointer;
+
+    &:disabled {
+      background: none;
+      color: var(--lead);
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .folder-tree__item[aria-selected="true"]
+    > .folder-tree__row
+    > button.folder-tree__link {
+    box-shadow: inset 2px 0 0 var(--ink);
+    background-color: var(--button-hover-bg);
+    font-weight: 700;
+
+    svg {
+      color: var(--ink);
+    }
+  }
+
+  &[dir="rtl"]
+    .folder-tree__item[aria-selected="true"]
+    > .folder-tree__row
+    > button.folder-tree__link {
+    box-shadow: inset -2px 0 0 var(--ink);
+  }
+
+  // where the item is now, tagged like a cell of the title block
+  .folder-tree__location {
+    flex: none;
+    margin-inline-start: auto;
+    padding: 0 0.3125rem;
+    border: 1px solid var(--rule-strong);
+    color: var(--lead);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1rem;
+    text-transform: uppercase;
+  }
+
+  // beats the editor's generic text input styles
+  input.folder-tree__name-field {
+    flex: 1;
+    min-width: 0;
+    height: 1.875rem;
+    padding: 0 0.375rem;
+    border: none;
+    border-radius: 0;
+    background-color: var(--input-bg-color);
+    box-shadow: inset 0 0 0 2px var(--focus-highlight-color);
+    color: var(--text-primary-color);
+    font-family: inherit;
+    font-size: 0.875rem;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+// The workspace page is the drafting table the editor's sheets lie on: the
+// nav and header are vellum chrome, ruled like the editor's title block,
+// and each drawing is a sheet of paper with its own title strip.
+.setsquare.setsquare-workspace {
+  --workspace-nav-width: 15rem;
+  --workspace-gutter: 1.5rem;
+  --workspace-control-height: 2.25rem;
+
+  background-color: var(--vellum);
+
+  .workspace {
+    display: grid;
+    flex: 1;
+    grid-template-columns: var(--workspace-nav-width) minmax(0, 1fr);
+    min-width: 0;
+    height: 100%;
+  }
+
+  // captions name a field, like the small print in a title block's cells
+  .workspace-caption {
+    color: var(--lead);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-highlight-color);
+    outline-offset: -2px;
+  }
+
+  @include square-buttons;
+
+  // nav
+
+  .workspace-nav {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    border-inline-end: 1px solid var(--rule-strong);
+    background-color: var(--island-bg-color);
+  }
+
+  .workspace-nav__brand {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    height: 4.5rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--graphite);
+    font-family: var(--ui-font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+
+    svg {
+      width: 1.375rem;
+      height: 1.375rem;
+    }
+  }
+
+  .workspace-nav__places {
+    margin: 0;
+    padding: 0.75rem 0;
+    list-style: none;
+  }
+
+  .workspace-nav__place {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: 2.25rem;
+    padding: 0 1rem;
+    border-inline-start: 2px solid transparent;
+    font-size: 0.9375rem;
+
+    svg {
+      flex: none;
+      width: 1.125rem;
+      height: 1.125rem;
+      color: var(--lead);
+    }
+
+    &:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    &[aria-current="page"] {
+      border-inline-start-color: var(--ink);
+      background-color: var(--button-hover-bg);
+      font-weight: 700;
+
+      svg {
+        color: var(--ink);
+      }
+    }
+  }
+
+  @include folder-tree;
 
   .workspace-nav__foot {
     display: flex;
@@ -535,10 +614,46 @@
   .workspace-card {
     position: relative;
     min-width: 0;
-    transition: box-shadow 0.15s ease-out;
+    transition: box-shadow 0.15s ease-out, opacity 0.15s ease-out;
 
     &:hover {
       box-shadow: 0.25rem 0.25rem 0 var(--rule-strong);
+    }
+  }
+
+  // the card being dragged leaves its outline behind
+  .workspace-card--dragging {
+    opacity: 0.4;
+  }
+
+  // where a dragged item would go, traced in ink like a construction line
+  .workspace-drop {
+    outline: 2px dashed var(--ink);
+    outline-offset: -2px;
+    background-color: color-mix(in srgb, var(--ink) 12%, transparent);
+    color: var(--text-primary-color);
+  }
+
+  .folder-card.workspace-drop {
+    outline: none;
+    background: none;
+    box-shadow: 0.25rem 0.25rem 0 var(--ink);
+
+    &::before,
+    .workspace-card__strip {
+      border-color: var(--ink);
+    }
+
+    .workspace-card__strip {
+      background-color: color-mix(
+        in srgb,
+        var(--ink) 12%,
+        var(--island-bg-color)
+      );
+    }
+
+    .folder-card__icon {
+      color: var(--ink);
     }
   }
 
@@ -794,39 +909,285 @@
     font-size: 0.8125rem;
   }
 
-  // the toast
+  // the Trash, a register of what was thrown out, ruled like the revision
+  // table of a title block: the sheet, what and where it was, when it went
 
-  .workspace-toast {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    z-index: var(--zIndex-toast);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: min(28rem, calc(100vw - 2rem));
-    padding-inline: 1rem 0.25rem;
-    transform: translateX(-50%);
-    border: 1px solid var(--graphite);
-    background-color: var(--island-bg-color);
-    box-shadow: var(--shadow-island);
-    font-size: 0.875rem;
-
-    &--error {
-      border-inline-start: 4px solid var(--redline);
-    }
-  }
-
-  .workspace-toast__message {
+  .trash-view__retention {
     flex: 1;
-    margin: 0.625rem 0;
+    min-width: 0;
+    margin: 0;
+    color: var(--lead);
+    font-size: 0.8125rem;
     line-height: 1.35;
   }
 
-  .workspace-toast__close.ToolIcon_type_button {
-    flex: none;
-    width: 2rem;
-    height: 2rem;
+  .trash-list {
+    max-width: 64rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--graphite);
+    background-color: var(--island-bg-color);
+    list-style: none;
+    container-type: inline-size;
+  }
+
+  .trash-row {
+    display: grid;
+    grid-template-areas: "sheet label deleted actions";
+    grid-template-columns: 5rem minmax(0, 1fr) 11rem auto;
+    min-height: 4.25rem;
+
+    & + .trash-row {
+      border-top: 1px solid var(--rule-strong);
+    }
+  }
+
+  .trash-row__sheet {
+    position: relative;
+    grid-area: sheet;
+    align-self: center;
+    justify-self: center;
+    width: 3.75rem;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--rule-strong);
+    background-color: var(--field);
+
+    img {
+      position: absolute;
+      inset: 0.1875rem;
+      width: calc(100% - 0.375rem);
+      height: calc(100% - 0.375rem);
+      object-fit: contain;
+      background-color: #fff;
+      filter: var(--theme-filter);
+    }
+
+    &--folder {
+      display: grid;
+      place-items: center;
+      border: none;
+      background: none;
+      color: var(--lead);
+
+      svg {
+        width: 1.75rem;
+        height: 1.75rem;
+      }
+    }
+  }
+
+  .trash-row__label {
+    display: flex;
+    flex-direction: column;
+    grid-area: label;
+    justify-content: center;
+    gap: 0.125rem;
+    min-width: 0;
+    padding: 0.5rem 0.75rem;
+    border-inline-start: 1px solid var(--rule-strong);
+  }
+
+  .trash-row__name,
+  .trash-row__location {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .trash-row__name {
+    font-family: var(--ui-font-display);
+    font-size: 0.9375rem;
+    font-weight: 700;
+
+    &--untitled {
+      color: var(--lead);
+      font-weight: 400;
+    }
+  }
+
+  .trash-row__location {
+    color: var(--lead);
+    font-size: 0.75rem;
+  }
+
+  .trash-row__deleted {
+    display: flex;
+    grid-area: deleted;
+    align-items: center;
+    padding: 0 0.75rem;
+    border-inline-start: 1px solid var(--rule-strong);
+    color: var(--lead);
+    font-family: var(--ui-font-numeric);
+    font-size: 0.875rem;
+  }
+
+  .trash-row__actions {
+    display: flex;
+    grid-area: actions;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-inline-start: 1px solid var(--rule-strong);
+  }
+
+  // every row can go for good, so it's quieter there than Empty trash
+  .trash-row__actions .ExcButton.ExcButton--color-danger:not(:hover) {
+    --border-color: var(--rule-strong);
+  }
+
+  // a narrow register puts when it went under where it was, and the
+  // actions on a line of their own
+  @container (max-width: 42rem) {
+    .trash-row {
+      grid-template-areas:
+        "sheet label"
+        "sheet deleted"
+        "actions actions";
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+    }
+
+    .trash-row__label {
+      padding-bottom: 0;
+    }
+
+    .trash-row__deleted {
+      padding: 0.125rem 0.75rem 0.5rem;
+      font-size: 0.8125rem;
+    }
+
+    .trash-row__actions {
+      border-top: 1px solid var(--rule);
+      border-inline-start: none;
+    }
+  }
+
+  // a drawing that can't open: its sheet stamped, like a drawing that's
+  // been voided, with its title block below
+
+  .drawing-notice {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: var(--workspace-gutter);
+    overflow-y: auto;
+    background-color: var(--vellum-2);
+    background-image: linear-gradient(
+        color-mix(in srgb, var(--rule) 55%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--rule) 55%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 1.5rem 1.5rem;
+  }
+
+  .drawing-notice__sheet {
+    width: min(30rem, 100%);
+    border: 1px solid var(--graphite);
+    background-color: var(--island-bg-color);
+    box-shadow: 0.375rem 0.375rem 0 var(--rule-strong);
+  }
+
+  .drawing-notice__paper {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-bottom: 1px solid var(--graphite);
+    background-color: var(--field);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0.375rem;
+      border: 1px solid var(--rule);
+      pointer-events: none;
+    }
+
+    img {
+      position: absolute;
+      inset: 1rem;
+      width: calc(100% - 2rem);
+      height: calc(100% - 2rem);
+      object-fit: contain;
+      background-color: #fff;
+      filter: var(--theme-filter);
+      opacity: 0.55;
+    }
+  }
+
+  .drawing-notice__blank {
+    width: 3.5rem;
+    fill: none;
+    stroke: var(--rule-strong);
+    stroke-width: 1;
+  }
+
+  .drawing-notice__stamp {
+    position: absolute;
+    padding: 0.25rem 0.875rem;
+    transform: rotate(-8deg);
+    border: 3px double var(--redline);
+    background-color: color-mix(in srgb, var(--field) 85%, transparent);
+    color: var(--redline);
+    font-family: var(--ui-font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  // a sheet that isn't there, outlined where it would be
+  .drawing-notice__sheet--missing {
+    .drawing-notice__paper {
+      background-color: var(--vellum);
+
+      &::before {
+        border-style: dashed;
+        border-color: var(--rule-strong);
+      }
+    }
+
+    .drawing-notice__stamp {
+      border-color: var(--lead);
+      color: var(--lead);
+    }
+  }
+
+  .drawing-notice__block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem 1.25rem;
+  }
+
+  .drawing-notice__title {
+    margin: 0;
+    font-family: var(--ui-font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+
+  .drawing-notice__hint {
+    margin: 0;
+    color: var(--lead);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .drawing-notice__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
   }
 
   // below 900 px, the nav is a drawer
@@ -1000,5 +1361,48 @@
     .folder-tree__toggle svg {
       transition: none;
     }
+  }
+}
+
+// Move to…, which the editor's dialog shows outside the page
+.setsquare .move-dialog {
+  --workspace-control-height: 2.25rem;
+
+  @include square-buttons;
+  @include folder-tree;
+
+  // squared and ruled like the page, not the editor's rounded island
+  .Modal__content {
+    border-color: var(--graphite);
+    border-radius: 0;
+  }
+
+  .Island {
+    border-radius: 0;
+  }
+
+  .move-dialog__tree {
+    max-height: min(22rem, 50vh);
+    padding: 0.25rem 0;
+    overflow-y: auto;
+    border: 1px solid var(--rule-strong);
+    background-color: var(--field);
+  }
+
+  .folder-tree {
+    padding-inline-start: 0.25rem;
+  }
+
+  .move-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .move-dialog__confirm {
+    display: flex;
+    gap: 0.5rem;
   }
 }

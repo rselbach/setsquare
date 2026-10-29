@@ -5,6 +5,7 @@ import {
   DotsHorizontalIcon,
   DuplicateIcon,
   PlusIcon,
+  TrashIcon,
   pencilIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useUIAppState } from "@setsquare/setsquare/context/ui-appState";
@@ -31,6 +32,8 @@ type DrawingsSidebarProps = {
   /** the drawing the editor has open */
   drawingId: DrawingId;
   onNewDrawing: () => void;
+  /** moves a drawing to the Trash, offering Undo */
+  onTrash: (id: DrawingId) => void;
   /** saves what the editor has of the open drawing, resolving once stored */
   saveDrawing: () => Promise<unknown>;
 };
@@ -92,6 +95,7 @@ const DrawingRow = ({
   now,
   onRename,
   onDuplicate,
+  onTrash,
 }: {
   drawing: DrawingMeta;
   name: string | null;
@@ -99,6 +103,7 @@ const DrawingRow = ({
   now: number;
   onRename: (name: string | null) => void;
   onDuplicate: () => void;
+  onTrash: () => void;
 }) => {
   const { t, langCode } = useI18n();
   const [renaming, setRenaming] = useState(false);
@@ -163,6 +168,9 @@ const DrawingRow = ({
           <DropdownMenu.Item icon={DuplicateIcon} onSelect={onDuplicate}>
             {t("workspace.duplicate")}
           </DropdownMenu.Item>
+          <DropdownMenu.Item icon={TrashIcon} onSelect={onTrash}>
+            {t("workspace.moveToTrash")}
+          </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu>
     </li>
@@ -174,6 +182,7 @@ const DrawingsTab = ({
   store,
   drawingId,
   onNewDrawing,
+  onTrash,
   saveDrawing,
 }: DrawingsSidebarProps) => {
   const { t } = useI18n();
@@ -254,6 +263,7 @@ const DrawingsTab = ({
               now={now}
               onRename={(name) => rename(drawing, name)}
               onDuplicate={() => duplicate(drawing)}
+              onTrash={() => onTrash(drawing.id)}
             />
           );
         })}
@@ -265,7 +275,7 @@ const DrawingsTab = ({
 /**
  * The editor's sidebar with a Drawings tab next to Search and Library. The
  * tab lists the drawings in the open drawing's folder, the latest edited
- * first, to switch between them, create, rename and duplicate them. Phones
+ * first, to switch between them, create, rename, duplicate and trash them. Phones
  * hide the footer, so this is where they rename the open drawing too.
  */
 export const DrawingsSidebar = (props: DrawingsSidebarProps) => {

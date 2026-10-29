@@ -18,13 +18,18 @@ import { useState } from "react";
 import { newDrawingIcon, newFolderIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 
+import { useDropTarget } from "./useWorkspaceDrag";
+
 import type { RefObject } from "react";
 
-import type { Route } from "../../web/router";
 import type { SortOrder } from "../tree";
+import type { ParentId } from "../types";
 
-/** A folder on the way to the one shown, linked. */
-export type Crumb = { to: Route; name: string };
+/** A folder on the way to the one shown, null for the root, linked. */
+export type Crumb = { folderId: ParentId; name: string };
+
+/** The nav where it's a drawer, below 900 px. */
+export type DrawerControl = { id: string; open: boolean; onToggle: () => void };
 
 /** What the page offers to create where it creates. */
 export type CreateActions = {
@@ -122,6 +127,48 @@ const CreateMenu = ({ actions }: { actions: CreateActions }) => {
   );
 };
 
+// a link back up, which items can be dropped on to move them there
+const CrumbLink = ({ crumb }: { crumb: Crumb }) => {
+  const { isOver, targetProps } = useDropTarget({
+    kind: "folder",
+    id: crumb.folderId,
+  });
+  return (
+    <li>
+      <RouteLink
+        to={{ kind: "drawings", folderId: crumb.folderId }}
+        className={isOver ? "workspace-drop" : undefined}
+        {...targetProps}
+      >
+        {crumb.name}
+      </RouteLink>
+      {chevronRight}
+    </li>
+  );
+};
+
+/**
+ * Opens the nav where it's a drawer, looking like the editor's main menu
+ * trigger.
+ */
+export const DrawerButton = ({ drawer }: { drawer: DrawerControl }) => {
+  const { t } = useI18n();
+  return (
+    <button
+      type="button"
+      className="workspace-header__drawer"
+      aria-label={t("buttons.menu")}
+      title={t("buttons.menu")}
+      aria-expanded={drawer.open}
+      aria-controls={drawer.id}
+      onClick={drawer.onToggle}
+    >
+      {SetsquareMarkIcon}
+      {chevronDownIcon}
+    </button>
+  );
+};
+
 const SearchField = ({
   search,
   onClose,
@@ -185,29 +232,14 @@ export const WorkspaceHeader = ({
   /** where a phone's back chevron goes, if anywhere */
   back: Crumb | null;
   isPhone: boolean;
-  drawer: { id: string; open: boolean; onToggle: () => void };
+  drawer: DrawerControl;
   search: SearchControl;
   /** the sort, where the page lets it change */
   sort: { order: SortOrder; onChange: (order: SortOrder) => void } | null;
   actions: CreateActions;
 }) => {
   const { t } = useI18n();
-
-  // the editor's main menu trigger, opening the nav where it's a drawer
-  const drawerButton = (
-    <button
-      type="button"
-      className="workspace-header__drawer"
-      aria-label={t("buttons.menu")}
-      title={t("buttons.menu")}
-      aria-expanded={drawer.open}
-      aria-controls={drawer.id}
-      onClick={drawer.onToggle}
-    >
-      {SetsquareMarkIcon}
-      {chevronDownIcon}
-    </button>
-  );
+  const drawerButton = <DrawerButton drawer={drawer} />;
 
   if (isPhone) {
     const searching = search.open || search.query !== "";
@@ -217,7 +249,7 @@ export const WorkspaceHeader = ({
           {drawerButton}
           {back && (
             <RouteLink
-              to={back.to}
+              to={{ kind: "drawings", folderId: back.folderId }}
               className="workspace-header__icon workspace-header__back"
               aria-label={t("workspace.back", { name: back.name })}
               title={t("workspace.back", { name: back.name })}
@@ -277,11 +309,8 @@ export const WorkspaceHeader = ({
           {crumbs.length > 0 && (
             <nav aria-label={t("workspace.breadcrumbs")}>
               <ol className="workspace-breadcrumbs">
-                {crumbs.map((crumb, index) => (
-                  <li key={index}>
-                    <RouteLink to={crumb.to}>{crumb.name}</RouteLink>
-                    {chevronRight}
-                  </li>
+                {crumbs.map((crumb) => (
+                  <CrumbLink key={crumb.folderId ?? ""} crumb={crumb} />
                 ))}
               </ol>
             </nav>

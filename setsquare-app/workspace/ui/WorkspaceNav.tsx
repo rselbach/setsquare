@@ -5,6 +5,7 @@ import {
   MoonIcon,
   SetsquareMarkIcon,
   SunIcon,
+  TrashIcon,
   historyIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
@@ -17,6 +18,7 @@ import { drawingsIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 
 import { FolderTree } from "./FolderTree";
+import { useDropTarget } from "./useWorkspaceDrag";
 
 import type { ReactNode } from "react";
 
@@ -27,6 +29,7 @@ import type { ParentId, WorkspaceSnapshot } from "../types";
 export type NavPlace =
   | { kind: "recent" }
   | { kind: "drawings"; folderId: ParentId }
+  | { kind: "trash" }
   /** search results, which aren't a place */
   | null;
 
@@ -34,17 +37,23 @@ const PlaceLink = ({
   to,
   current,
   icon,
+  drop,
   children,
 }: {
   to: Route;
   current: boolean;
   icon: ReactNode;
+  /** where the place takes dropped items, if it does */
+  drop?: ReturnType<typeof useDropTarget>;
   children: string;
 }) => (
   <RouteLink
     to={to}
-    className="workspace-nav__place"
+    className={clsx("workspace-nav__place", {
+      "workspace-drop": drop?.isOver,
+    })}
     aria-current={current ? "page" : undefined}
+    {...drop?.targetProps}
   >
     {icon}
     <span>{children}</span>
@@ -52,8 +61,9 @@ const PlaceLink = ({
 );
 
 /**
- * The page's navigation: Recent, then Drawings with the folder tree, and at
- * the foot where the drawings are kept, the theme and the language. Below
+ * The page's navigation: Recent, then Drawings with the folder tree, then
+ * Trash, and at the foot where the drawings are kept, the theme and the
+ * language. Items can be dropped on Drawings, its folders and Trash. Below
  * 900 px it's a drawer, which a link followed closes.
  */
 export const WorkspaceNav = ({
@@ -76,6 +86,8 @@ export const WorkspaceNav = ({
 }) => {
   const { t } = useI18n();
   const folderId = place?.kind === "drawings" ? place.folderId : null;
+  const dropOnRoot = useDropTarget({ kind: "folder", id: null });
+  const dropOnTrash = useDropTarget({ kind: "trash" });
 
   return (
     <nav
@@ -107,10 +119,21 @@ export const WorkspaceNav = ({
             to={{ kind: "drawings", folderId: null }}
             current={place?.kind === "drawings" && folderId === null}
             icon={drawingsIcon}
+            drop={dropOnRoot}
           >
             {t("workspace.drawings")}
           </PlaceLink>
           <FolderTree snapshot={snapshot} currentId={folderId} />
+        </li>
+        <li>
+          <PlaceLink
+            to={{ kind: "trash" }}
+            current={place?.kind === "trash"}
+            icon={TrashIcon}
+            drop={dropOnTrash}
+          >
+            {t("workspace.trash")}
+          </PlaceLink>
         </li>
       </ul>
       <div className="workspace-nav__foot">

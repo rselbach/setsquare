@@ -2,7 +2,12 @@ import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 import { t } from "@setsquare/setsquare/i18n";
 import { act, unmountComponent } from "@setsquare/setsquare/tests/test-utils";
-import { render as renderPlain, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render as renderPlain,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { set } from "idb-keyval";
 
 import type { FileId } from "@setsquare/element/types";
@@ -72,8 +77,8 @@ describe("web app boot", () => {
     expect(store.getSnapshot().drawings.size).toBe(0);
   });
 
-  // until there's a Trash page, and for folders and pages that aren't there
-  it.each(["/trash", "/f/greendale", "/paintball"])(
+  // for folders and pages that aren't there
+  it.each(["/f/greendale", "/paintball"])(
     "goes to the drawings from %s in place",
     async (path) => {
       const length = window.history.length;
@@ -85,7 +90,7 @@ describe("web app boot", () => {
     },
   );
 
-  it("goes to the drawings when the drawing is gone", async () => {
+  it("says when the drawing isn't there, and goes back to the drawings", async () => {
     const store = await workspace.open();
     await store.createDrawing({
       folderId: null,
@@ -94,6 +99,13 @@ describe("web app boot", () => {
     });
 
     await renderPageAt("/d/chang");
+
+    expect(
+      screen.getByRole("heading", { name: "This drawing isn't here" }),
+    ).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/d/chang");
+
+    fireEvent.click(screen.getByRole("button", { name: "Back to drawings" }));
 
     await waitForPage("/", "Drawings");
     expect(

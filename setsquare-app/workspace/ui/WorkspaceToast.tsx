@@ -6,21 +6,68 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { addToStoredLibrary } from "../../web/importFiles";
 
+import "./WorkspaceToast.scss";
+
 import type { EditorTask, QueuedTasks } from "../../web/editorTasks";
 
 const INFO_DURATION_MS = 5000;
+// long enough to notice what went and change one's mind
+const UNDO_DURATION_MS = 8000;
 
-/** Something the page tells the user. */
-export type PageMessage = { text: string; error: boolean };
+/** Something the app tells the user, over the page or the editor. */
+export type PageMessage = {
+  text: string;
+  error: boolean;
+  /** takes back what the message reports, offered as Undo */
+  undo?: () => void;
+};
 
 /**
- * Takes over the tasks there's no editor for while the page shows: errors
- * become messages, libraries merge into the stored element library, and
- * hints about the editor are dropped. Returns the message to show.
+ * The app's toast, which the page and the editor share so that it stays
+ * while one gives way to the other. An error stays until it's dismissed or
+ * another message replaces it; anything else goes after a while, longer when
+ * it can be undone.
  */
-export const useTasksOnPage = ({ tasks, onRun }: QueuedTasks) => {
-  const { t } = useI18n();
+export const useWorkspaceToast = () => {
   const [message, setMessage] = useState<PageMessage | null>(null);
+
+  useEffect(() => {
+    if (!message || message.error) {
+      return;
+    }
+    const timer = window.setTimeout(
+      () => setMessage(null),
+      message.undo ? UNDO_DURATION_MS : INFO_DURATION_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [message]);
+
+  const show = useCallback((message: PageMessage) => setMessage(message), []);
+  const dismiss = useCallback(() => setMessage(null), []);
+  // once, so a second press can't undo what came after
+  const undo = useCallback(() => {
+    if (message?.undo) {
+      setMessage(null);
+      message.undo();
+    }
+  }, [message]);
+
+  return { message, show, dismiss, undo };
+};
+
+/** The toast the app shows, and how to change it. */
+export type WorkspaceToastState = ReturnType<typeof useWorkspaceToast>;
+
+/**
+ * Takes over the tasks there's no editor for while a page shows: errors
+ * become messages, libraries merge into the stored element library, and
+ * hints about the editor are dropped.
+ */
+export const useTasksOnPage = (
+  { tasks, onRun }: QueuedTasks,
+  show: (message: PageMessage) => void,
+) => {
+  const { t } = useI18n();
   // StrictMode runs the effect twice for the same tasks
   const taken = useRef(new WeakSet<EditorTask>());
 
@@ -33,15 +80,14 @@ export const useTasksOnPage = ({ tasks, onRun }: QueuedTasks) => {
       taken.current.add(task);
       switch (task.kind) {
         case "error":
-          setMessage({ text: task.message(), error: true });
+          show({ text: task.message(), error: true });
           break;
         case "library":
           addToStoredLibrary(task.file).then(
-            () =>
-              setMessage({ text: t("workspace.libraryAdded"), error: false }),
+            () => show({ text: t("workspace.libraryAdded"), error: false }),
             (error) => {
               console.error(error);
-              setMessage({ text: t("errors.importLibraryError"), error: true });
+              show({ text: t("errors.importLibraryError"), error: true });
             },
           );
           break;
@@ -50,51 +96,47 @@ export const useTasksOnPage = ({ tasks, onRun }: QueuedTasks) => {
       }
     }
     onRun(fresh);
-  }, [tasks, onRun, t]);
-
-  const dismiss = useCallback(() => setMessage(null), []);
-  return { message, dismiss };
+  }, [tasks, onRun, show, t]);
 };
 
 /**
- * The page's toast. An error stays until it's dismissed or another message
- * replaces it; anything else goes after a while.
+ * The app's toast, on the page or over the editor, with Undo for what can
+ * be undone.
  */
 export const WorkspaceToast = ({
-  message,
-  onDismiss,
+  toast: { message, dismiss, undo },
+  className,
 }: {
-  message: PageMessage | null;
-  onDismiss: () => void;
+  toast: WorkspaceToastState;
+  className?: string;
 }) => {
   const { t } = useI18n();
-
-  useEffect(() => {
-    if (!message || message.error) {
-      return;
-    }
-    const timer = window.setTimeout(onDismiss, INFO_DURATION_MS);
-    return () => window.clearTimeout(timer);
-  }, [message, onDismiss]);
 
   if (!message) {
     return null;
   }
   return (
     <div
-      className={clsx("workspace-toast", {
+      className={clsx("workspace-toast", className, {
         "workspace-toast--error": message.error,
       })}
       role={message.error ? "alert" : "status"}
+      // undoing from the sidebar's overlay mustn't close it
+      data-prevent-outside-click
     >
       <p className="workspace-toast__message">{message.text}</p>
+      {message.undo && (
+        <button type="button" className="workspace-toast__undo" onClick={undo}>
+          {t("buttons.undo")}
+        </button>
+      )}
       <IconButton
         type="icon"
         icon={CloseIcon}
         aria-label={t("buttons.close")}
         title={t("buttons.close")}
         className="workspace-toast__close"
-        onClick={onDismiss}
+        onClick={dismiss}
       />
     </div>
   );

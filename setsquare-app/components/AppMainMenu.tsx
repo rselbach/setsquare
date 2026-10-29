@@ -1,5 +1,9 @@
 import { getShortcutFromShortcutName } from "@setsquare/setsquare/actions/shortcuts";
-import { LoadIcon, eyeIcon } from "@setsquare/setsquare/components/icons";
+import {
+  LoadIcon,
+  TrashIcon,
+  eyeIcon,
+} from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import { MainMenu } from "@setsquare/setsquare/index";
 import React from "react";
@@ -36,6 +40,9 @@ export const AppMainMenu: React.FC<{
         shortcut={getShortcutFromShortcutName("loadScene")}
       >
         {t("workspace.openFile")}
+      </MainMenu.Item>
+      <MainMenu.Item icon={TrashIcon} onSelect={props.actions.moveToTrash}>
+        {t("workspace.moveDrawingToTrash")}
       </MainMenu.Item>
       <MainMenu.DefaultItems.SaveToActiveFile />
       <MainMenu.DefaultItems.Export />
