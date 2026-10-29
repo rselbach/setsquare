@@ -76,9 +76,13 @@ const authorization = (clientId: string, extra: Record<string, string> = {}) =>
     ...extra,
   })}`;
 
-const consent = async (clientId: string, who = troy) => {
+const consent = async (
+  clientId: string,
+  who = troy,
+  extra: Record<string, string> = {},
+) => {
   const response = await app.inject({
-    url: authorization(clientId),
+    url: authorization(clientId, extra),
     headers: who.headers,
   });
   expect(response.statusCode).toBe(200);
@@ -87,11 +91,15 @@ const consent = async (clientId: string, who = troy) => {
   return nonce!;
 };
 
-const code = async (clientId: string, who = troy) => {
+const code = async (
+  clientId: string,
+  who = troy,
+  scope = "drawings:read drawings:write",
+) => {
   const nonce = await consent(clientId, who);
   const response = await form(
     "/oauth/authorize",
-    { consent: nonce, csrf_token: who.csrfToken, decision: "allow" },
+    { consent: nonce, csrf_token: who.csrfToken, decision: "allow", scope },
     who.headers,
   );
   expect(response.statusCode).toBe(303);
@@ -243,6 +251,144 @@ it("returns to consent after sign-in and rejects unregistered redirects and audi
   }
 });
 
+it("offers read-only or read-and-edit consent only for requested permissions", async () => {
+  const client = await register();
+  const page = await app.inject({
+    url: authorization(client.client_id),
+    headers: troy.headers,
+  });
+  expect(page.statusCode).toBe(200);
+  expect(page.body).toContain(
+    'type="radio" name="scope" value="drawings:read">',
+  );
+  expect(page.body).toContain(
+    'type="radio" name="scope" value="drawings:read drawings:write" checked>',
+  );
+  for (const explicit of [true, false]) {
+    const url = new URL(
+      authorization(client.client_id, { scope: "drawings:read" }),
+      config.origin,
+    );
+    if (!explicit) {
+      url.searchParams.delete("scope");
+    }
+    const readOnly = await app.inject({
+      url: `${url.pathname}${url.search}`,
+      headers: troy.headers,
+    });
+    expect(readOnly.statusCode).toBe(200);
+    expect(readOnly.body).toContain(
+      'type="radio" name="scope" value="drawings:read" checked>',
+    );
+    expect(readOnly.body).not.toContain("drawings:write");
+  }
+});
+
+it.each(["drawings:read", "drawings:read drawings:write"])(
+  "grants and refreshes the selected permissions: %s",
+  async (scope) => {
+    const client = await register();
+    const authorizationCode = await code(client.client_id, troy, scope);
+    const response = await exchange(client.client_id, authorizationCode);
+    expect(response.statusCode).toBe(200);
+    const tokens = response.json();
+    expect(tokens.scope).toBe(scope);
+    const refreshed = await refresh(client.client_id, tokens.refresh_token);
+    expect(refreshed.statusCode).toBe(200);
+    expect(refreshed.json().scope).toBe(scope);
+
+    const canWrite = scope.includes("drawings:write");
+    for (const token of [tokens.access_token, refreshed.json().access_token]) {
+      const read = await mcp(token, "tools/call", {
+        name: "list_workspace",
+        arguments: {},
+      });
+      expect(read.response.statusCode).toBe(200);
+      expect(read.body.result.isError).toBeUndefined();
+      const write = await mcp(token, "tools/call", {
+        name: "create_folder",
+        arguments: {
+          requestId: "consented",
+          folderId: "folder",
+          name: "Plans",
+        },
+      });
+      expect(write.response.statusCode).toBe(canWrite ? 200 : 403);
+      if (canWrite) {
+        expect(write.body.result.isError).toBeUndefined();
+      } else {
+        expect(write.response.headers["www-authenticate"]).toContain(
+          'scope="drawings:read drawings:write", error="insufficient_scope"',
+        );
+      }
+    }
+    const connections = await app.inject({
+      url: "/oauth/connections",
+      headers: troy.headers,
+    });
+    expect(connections.body).toContain(
+      canWrite ? "Read and edit drawings" : "Read drawings",
+    );
+    if (!canWrite) {
+      const expanded = await form("/oauth/token", {
+        grant_type: "refresh_token",
+        client_id: client.client_id,
+        refresh_token: refreshed.json().refresh_token,
+        resource,
+        scope: "drawings:read drawings:write",
+      });
+      expect(expanded.statusCode).toBe(400);
+      expect(expanded.json().error).toBe("invalid_scope");
+    }
+  },
+);
+
+it("rejects missing, invalid, and unrequested consent scopes without issuing a grant", async () => {
+  const client = await register();
+  const nonce = await consent(client.client_id, troy, {
+    scope: "drawings:read",
+  });
+  const input = {
+    consent: nonce,
+    csrf_token: troy.csrfToken,
+    decision: "allow",
+  };
+  for (const scope of [
+    undefined,
+    "",
+    "drawings:admin",
+    "drawings:write",
+    "drawings:read drawings:write",
+  ]) {
+    const rejected = await form(
+      "/oauth/authorize",
+      { ...input, ...(scope === undefined ? {} : { scope }) },
+      troy.headers,
+    );
+    expect(rejected.statusCode).toBe(400);
+    expect(rejected.json().error).toBe(
+      scope ? "invalid_scope" : "invalid_request",
+    );
+    expect(rejected.headers.location).toBeUndefined();
+  }
+  expect((await db.pool.query("SELECT id FROM mcp_grants")).rows).toEqual([]);
+  expect(
+    (await db.pool.query("SELECT token_hash FROM mcp_codes")).rows,
+  ).toEqual([]);
+  const approved = await form(
+    "/oauth/authorize",
+    { ...input, scope: "drawings:read" },
+    troy.headers,
+  );
+  expect(approved.statusCode).toBe(303);
+  const callback = new URL(String(approved.headers.location));
+  const tokens = await exchange(
+    client.client_id,
+    callback.searchParams.get("code")!,
+  );
+  expect(tokens.json().scope).toBe("drawings:read");
+});
+
 it("binds consent to the session, protects it from CSRF, and consumes it once", async () => {
   const client = await register();
   const nonce = await consent(client.client_id);
@@ -250,6 +396,7 @@ it("binds consent to the session, protects it from CSRF, and consumes it once", 
     consent: nonce,
     csrf_token: troy.csrfToken,
     decision: "allow",
+    scope: "drawings:read drawings:write",
   };
   expect(
     (
@@ -277,7 +424,11 @@ it("binds consent to the session, protects it from CSRF, and consumes it once", 
   );
   const denied = await form(
     "/oauth/authorize",
-    { ...input, consent: await consent(client.client_id), decision: "deny" },
+    {
+      consent: await consent(client.client_id),
+      csrf_token: troy.csrfToken,
+      decision: "deny",
+    },
     troy.headers,
   );
   expect(

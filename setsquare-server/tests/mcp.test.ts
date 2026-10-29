@@ -104,6 +104,9 @@ it("challenges missing and invalid tokens without accepting browser cookies", as
     expect(response.headers["www-authenticate"]).toContain(
       `${config.origin}/.well-known/oauth-protected-resource/mcp`,
     );
+    expect(response.headers["www-authenticate"]).toContain(
+      `scope="${READ_SCOPE} ${WRITE_SCOPE}"`,
+    );
   }
   vi.mocked(McpOAuthStore.prototype.verify).mockResolvedValue(null);
   expect(
@@ -119,6 +122,7 @@ it("publishes discovery for the exact MCP audience and PKCE endpoints", async ()
     resource: `${config.origin}/mcp`,
     authorization_servers: [config.origin],
     bearer_methods_supported: ["header"],
+    scopes_supported: [READ_SCOPE, WRITE_SCOPE],
   });
   const metadata = (
     await app.inject("/.well-known/oauth-authorization-server")
@@ -128,6 +132,7 @@ it("publishes discovery for the exact MCP audience and PKCE endpoints", async ()
     code_challenge_methods_supported: ["S256"],
     authorization_response_iss_parameter_supported: true,
     registration_endpoint: `${config.origin}/oauth/register`,
+    scopes_supported: [READ_SCOPE, WRITE_SCOPE],
   });
 });
 
@@ -460,6 +465,7 @@ it("escapes consent and requires browser CSRF before approving access", async ()
   const payload = new URLSearchParams({
     consent: "b".repeat(43),
     decision: "allow",
+    scope: READ_SCOPE,
     csrf_token: "csrf",
   }).toString();
   for (const origin of [undefined, "null", "https://attacker.example"]) {
@@ -488,7 +494,11 @@ it("escapes consent and requires browser CSRF before approving access", async ()
   });
   expect(allowed.statusCode).toBe(303);
   expect(allowed.headers["referrer-policy"]).toBe("no-referrer");
-  expect(approve).toHaveBeenCalledWith(signedIn, "b".repeat(43), true);
+  expect(approve).toHaveBeenCalledWith(signedIn, {
+    consent: "b".repeat(43),
+    decision: "allow",
+    scope: READ_SCOPE,
+  });
 });
 
 it("allows same-origin native forms to revoke connected clients", async () => {

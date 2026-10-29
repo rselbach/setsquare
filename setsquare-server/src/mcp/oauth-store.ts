@@ -86,6 +86,17 @@ export const authorizationSchema = z.object({
     .optional(),
 });
 export type Authorization = z.infer<typeof authorizationSchema>;
+export const consentSchema = z
+  .object({ consent: z.string().regex(/^[A-Za-z0-9_-]{43}$/) })
+  .and(
+    z.discriminatedUnion("decision", [
+      z.object({
+        decision: z.literal("allow"),
+        scope: z.string().min(1).max(256),
+      }),
+      z.object({ decision: z.literal("deny") }),
+    ]),
+  );
 type ClientMetadata = z.infer<typeof clientMetadataSchema>;
 export type RegisteredClient = ClientMetadata & {
   client_id: string;
@@ -211,11 +222,14 @@ export class McpOAuthStore {
     return nonce;
   }
 
-  async approve(session: AuthenticatedSession, nonce: string, allow: boolean) {
+  async approve(
+    session: AuthenticatedSession,
+    input: z.infer<typeof consentSchema>,
+  ) {
     return transaction(this.pool, async (db) => {
       const pending = await db.query(
         "DELETE FROM mcp_consents WHERE token_hash = $1 AND user_id = $2 AND session_hash = $3 AND expires_at > $4 RETURNING request",
-        [hash(nonce), session.user.id, session.tokenHash, this.now()],
+        [hash(input.consent), session.user.id, session.tokenHash, this.now()],
       );
       if (!pending.rows.length) {
         throw new OAuthError(
@@ -229,9 +243,17 @@ export class McpOAuthStore {
         redirect.searchParams.set("state", request.state);
       }
       redirect.searchParams.set("iss", new URL(this.resource).origin);
-      if (!allow) {
+      if (input.decision === "deny") {
         redirect.searchParams.set("error", "access_denied");
         return redirect.href;
+      }
+      const scopes = parseScopes(input.scope);
+      const requested = parseScopes(request.scope);
+      if (scopes.some((scope) => !requested.includes(scope))) {
+        throw new OAuthError(
+          "invalid_scope",
+          "Granted permissions must be requested by the client",
+        );
       }
       const grant = randomUUID();
       const code = token();
@@ -242,7 +264,7 @@ export class McpOAuthStore {
           session.user.id,
           request.client_id,
           this.resource,
-          parseScopes(request.scope),
+          scopes,
           this.now(),
           this.now() + GRANT_MS,
         ],

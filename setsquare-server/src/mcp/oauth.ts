@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   authorizationSchema,
   clientMetadataSchema,
+  consentSchema,
   equal,
   hash,
   OAuthError,
@@ -30,7 +31,7 @@ const field = (name: string, value: string) =>
 const page = (title: string, body: string) =>
   `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escape(
     title,
-  )} · Setsquare</title><style>body{font:17px/1.6 system-ui,sans-serif;max-width:640px;margin:10vh auto;padding:24px;color:#20252b;background:#faf9f6}h1{font-size:28px}button{font:inherit;padding:10px 24px;margin:16px 12px 0 0;border:1px solid #77818b;border-radius:6px;cursor:pointer}button[value=allow]{background:#185ea8;color:white;border-color:#185ea8}small{overflow-wrap:anywhere}section{border-bottom:1px solid #ccc;padding:16px 0}a{color:#185ea8}</style></head><body><p>Setsquare</p><h1>${escape(
+  )} · Setsquare</title><style>body{font:17px/1.6 system-ui,sans-serif;max-width:640px;margin:10vh auto;padding:24px;color:#20252b;background:#faf9f6}h1{font-size:28px}button{font:inherit;padding:10px 24px;margin:16px 12px 0 0;border:1px solid #77818b;border-radius:6px;cursor:pointer}button[value=allow]{background:#185ea8;color:white;border-color:#185ea8}small{overflow-wrap:anywhere}section{border-bottom:1px solid #ccc;padding:16px 0}a{color:#185ea8}fieldset{border:0;margin:24px 0 0;padding:0;min-width:0}legend{font-weight:600;margin-bottom:8px}label{display:flex;align-items:baseline;gap:12px;border:1px solid #77818b;border-radius:6px;padding:12px 16px;margin:8px 0;cursor:pointer}label:has(input:checked){border-color:#185ea8;background:#edf4fc}label:focus-within{outline:2px solid #185ea8;outline-offset:2px}label small{display:block}input[type=radio]{accent-color:#185ea8;flex-shrink:0}</style></head><body><p>Setsquare</p><h1>${escape(
     title,
   )}</h1>${body}</body></html>`;
 
@@ -303,11 +304,7 @@ export const registerMcpOAuth = async (
             client.client_name,
           )}</strong> is requesting access to the Setsquare account <strong>${escape(
             signedIn.user.login,
-          )}</strong>.</p><ul><li>Read your drawings, folders, and images.</li>${
-            write
-              ? "<li>Create and edit drawings, organize folders, and move items to or from the Trash.</li>"
-              : ""
-          }</ul><p>Allow only clients you trust. The name is provided by the client.</p><p><small>Callback: ${escape(
+          )}</strong>.</p><p>Allow only clients you trust. The name is provided by the client.</p><p><small>Callback: ${escape(
             input.redirect_uri,
           )}</small></p><form method="post" action="/oauth/authorize">${field(
             "consent",
@@ -315,7 +312,13 @@ export const registerMcpOAuth = async (
           )}${field(
             "csrf_token",
             signedIn.csrfToken,
-          )}<button name="decision" value="allow">Allow access</button><button name="decision" value="deny">Cancel</button></form><p>You can revoke access at <a href="/oauth/connections">Connected clients</a>.</p>`,
+          )}<fieldset><legend>Choose access</legend><label><input type="radio" name="scope" value="${READ_SCOPE}"${
+            write ? "" : " checked"
+          }><span><strong>Read only</strong><small>Read your drawings, folders, and images.</small></span></label>${
+            write
+              ? `<label><input type="radio" name="scope" value="${READ_SCOPE} ${WRITE_SCOPE}" checked><span><strong>Read and edit</strong><small>Read, create, and edit drawings; upload images; organize folders; and move items to or from the Trash.</small></span></label>`
+              : ""
+          }</fieldset><button name="decision" value="allow">Allow access</button><button name="decision" value="deny">Cancel</button></form><p>You can revoke access at <a href="/oauth/connections">Connected clients</a>.</p>`,
           // Browsers also apply form-action to the post-consent redirect.
           new URL(input.redirect_uri).origin,
         );
@@ -325,21 +328,8 @@ export const registerMcpOAuth = async (
         { bodyLimit: 16_384 },
         async (request, reply) => {
           const signedIn = await verifyConsent(request);
-          const input = z
-            .object({
-              consent: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
-              decision: z.enum(["allow", "deny"]),
-            })
-            .parse(request.body);
-          return reply
-            .code(303)
-            .redirect(
-              await store.approve(
-                signedIn,
-                input.consent,
-                input.decision === "allow",
-              ),
-            );
+          const input = consentSchema.parse(request.body);
+          return reply.code(303).redirect(await store.approve(signedIn, input));
         },
       );
       routes.post("/token", { bodyLimit: 16_384 }, async (request) => {
@@ -423,9 +413,9 @@ export const challenge = (
   reply
     .header(
       "WWW-Authenticate",
-      `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp", scope="${READ_SCOPE}${
-        error === "insufficient_scope" ? ` ${WRITE_SCOPE}` : ""
-      }"${error ? `, error="${error}"` : ""}`,
+      `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp", scope="${SCOPES.join(
+        " ",
+      )}"${error ? `, error="${error}"` : ""}`,
     )
     .status(error === "insufficient_scope" ? 403 : 401)
     .send({ error: error ?? "unauthorized" });
