@@ -332,9 +332,11 @@ export class Authentication {
         .object({ returnTo: z.string().max(2048).optional() })
         .parse(request.query);
       const destination = new URL(query.returnTo ?? "/", this.config.origin);
+      // A redirect to a path starting with "//" would leave this origin.
+      const pathname = destination.pathname.replace(/^\/+/, "/");
       if (
         destination.origin !== this.config.origin ||
-        destination.pathname.startsWith("/api/")
+        pathname.startsWith("/api/")
       ) {
         throw new ApiError(
           400,
@@ -349,7 +351,7 @@ export class Authentication {
         [
           hash(state),
           verifier,
-          destination.pathname + destination.search + destination.hash,
+          pathname + destination.search + destination.hash,
           this.now() + OAUTH_MS,
         ],
       );

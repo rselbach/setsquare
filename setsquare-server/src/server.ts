@@ -96,14 +96,8 @@ export const buildServer = async ({
             : "The request could not be read",
       });
     }
-    // Request URLs may carry OAuth codes, so errors log only a request id.
-    request.log.error(
-      {
-        requestId: request.id,
-        errorName: error instanceof Error ? error.name : "UnknownError",
-      },
-      "Request failed",
-    );
+    // Request URLs may carry OAuth codes, so errors log a request id, not the URL.
+    request.log.error({ requestId: request.id, err: error }, "Request failed");
     return reply.status(500).send({
       error: "server_error",
       message: "The server could not finish this request",

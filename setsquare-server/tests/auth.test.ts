@@ -266,6 +266,38 @@ it("rejects expired OAuth attempts and external return addresses", async () => {
   expect(callback.statusCode).toBe(400);
 });
 
+it("returns to a path on this origin when the return path starts with two slashes", async () => {
+  for (const returnTo of [
+    "/.//city-college.example/x",
+    "/a/..//city-college.example/x",
+    `${config.origin}//city-college.example/x`,
+  ]) {
+    const login = await app.inject({
+      url: `/api/auth/github?returnTo=${encodeURIComponent(returnTo)}`,
+    });
+    expect(login.statusCode).toBe(302);
+    const state = new URL(login.headers.location ?? "").searchParams.get(
+      "state",
+    );
+    const cookie = login.cookies.find(
+      (entry) => entry.name === "setsquare_oauth",
+    );
+    const callback = await app.inject({
+      url: `/api/auth/github/callback?state=${state}&code=greendale`,
+      headers: { cookie: `setsquare_oauth=${cookie?.value}` },
+    });
+    expect(callback.statusCode).toBe(302);
+    expect(callback.headers.location).toBe("/city-college.example/x");
+  }
+  expect(
+    (
+      await app.inject({
+        url: "/api/auth/github?returnTo=%2F.%2F%2Fapi%2Fauth%2Flogout",
+      })
+    ).statusCode,
+  ).toBe(400);
+});
+
 it("uses the OAuth library to verify state and exchange the PKCE verifier with GitHub", async () => {
   const github = new GitHubOAuth(config.origin, {
     clientId: "test-client",

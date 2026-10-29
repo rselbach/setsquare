@@ -32,9 +32,10 @@ const main = async () => {
   }
 };
 
-main().catch(() => {
+main().catch((error: unknown) => {
   console.error(
     "Setsquare could not start. Check the server configuration and PostgreSQL connection",
   );
+  console.error(error);
   process.exitCode = 1;
 });

@@ -680,7 +680,7 @@ export class WorkspaceDatabase {
     );
   }
 
-  /** Removes expired trash and images after their unreferenced grace period. */
+  /** Removes expired trash, old mutation receipts, and images after their unreferenced grace period. */
   async collect() {
     const now = this.now();
     const owners = await this.pool.query("SELECT id FROM users");
@@ -707,6 +707,11 @@ export class WorkspaceDatabase {
           `DELETE FROM assets a WHERE owner_id = $1 AND GREATEST(uploaded_at, last_retrieved) < $2
           AND NOT EXISTS (SELECT 1 FROM drawing_assets r WHERE r.owner_id = a.owner_id AND r.file_id = a.file_id)`,
           [owner, now - DAY],
+        );
+        // A browser resumes an interrupted import by replaying its import receipts.
+        await client.query(
+          "DELETE FROM mutation_receipts WHERE owner_id = $1 AND created_at <= $2 AND request_id NOT LIKE 'import-%'",
+          [owner, now - 30 * DAY],
         );
       });
     }

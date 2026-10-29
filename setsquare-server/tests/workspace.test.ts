@@ -206,6 +206,121 @@ it("retries a save after later changes without bumping its revision again", asyn
   expect(replay.json().snapshot.drawings[0].revision).toBe(3);
 });
 
+it("removes U+0000 from saved text and keys so retries return the stored receipt", async () => {
+  await createDrawing();
+  const requestId = randomUUID();
+  const edit = {
+    kind: "saveDrawing",
+    id: "plan",
+    content: {
+      ...content(),
+      elements: [
+        {
+          id: "annie",
+          type: "text",
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 25,
+          angle: 0,
+          strokeColor: "#000000",
+          backgroundColor: "transparent",
+          fillStyle: "solid",
+          strokeWidth: 1,
+          strokeStyle: "solid",
+          roundness: null,
+          roughness: 1,
+          opacity: 100,
+          seed: 1,
+          version: 1,
+          versionNonce: 1,
+          index: "a0",
+          isDeleted: false,
+          groupIds: [],
+          frameId: null,
+          boundElements: null,
+          updated: 1,
+          created: 1,
+          link: null,
+          locked: false,
+          fontSize: 20,
+          fontFamily: 1,
+          baseFontSize: null,
+          text: "a\u0000b",
+          textAlign: "left",
+          verticalAlign: "top",
+          containerId: null,
+          originalText: "a\u0000b",
+          autoResize: true,
+          lineHeight: 1.25,
+        },
+      ],
+      appState: {
+        ...content().appState,
+        lockedMultiSelections: { "study\u0000group": true },
+      },
+    },
+    fileIds: [],
+    baseRevision: 1,
+  };
+  const saved = await command(app, troy, edit, requestId);
+  expect(saved.statusCode).toBe(200);
+  expect(saved.json().result.result.meta.revision).toBe(2);
+  const loaded = (
+    await app.inject({
+      url: "/api/drawings/plan/content",
+      headers: troy.headers,
+    })
+  ).json().content;
+  expect(loaded.elements[0]).toMatchObject({
+    text: "ab",
+    originalText: "ab",
+  });
+  expect(loaded.appState.lockedMultiSelections).toEqual({ studygroup: true });
+  const retry = await command(app, troy, edit, requestId);
+  expect(retry.statusCode).toBe(200);
+  expect(retry.json().result).toEqual(saved.json().result);
+});
+
+it("collects mutation receipts after 30 days but keeps import receipts", async () => {
+  await createDrawing("plan");
+  await command(
+    app,
+    troy,
+    {
+      kind: "importFolder",
+      folder: {
+        id: "campus",
+        parentId: null,
+        name: "Campus",
+        createdAt: 100,
+        updatedAt: 200,
+        trashedAt: null,
+      },
+    },
+    "import-campus",
+  );
+  const receipts = async () =>
+    (
+      await db.pool.query(
+        "SELECT request_id FROM mutation_receipts ORDER BY request_id",
+      )
+    ).rows.map((row) => row.request_id);
+  const workspace = new WorkspaceDatabase(db.pool, clock);
+  now += 29 * 24 * 60 * 60 * 1000;
+  await createDrawing("study-room");
+  expect(await receipts()).toHaveLength(3);
+  await workspace.collect();
+  expect(await receipts()).toHaveLength(3);
+  now += 2 * 24 * 60 * 60 * 1000;
+  await workspace.collect();
+  expect(await receipts()).toHaveLength(2);
+  expect(await receipts()).toContain("import-campus");
+  now += 30 * 24 * 60 * 60 * 1000;
+  await workspace.collect();
+  expect(await receipts()).toEqual(["import-campus"]);
+});
+
 it("cannot create a folder cycle through concurrent moves", async () => {
   for (const id of ["troy", "abed"]) {
     expect(
