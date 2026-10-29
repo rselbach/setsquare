@@ -22,6 +22,17 @@ export const drawingsIcon = createIcon(
   tablerIconProps,
 );
 
+/** A sheet, for one drawing. */
+// tabler-icons: file
+export const drawingIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+  </g>,
+  tablerIconProps,
+);
+
 /** A sheet with a plus, for a new drawing. */
 // tabler-icons: file-plus
 export const newDrawingIcon = createIcon(
@@ -55,6 +66,17 @@ export const moveIcon = createIcon(
     <path d="M3 21v-4a3 3 0 0 1 3 -3h5" />
     <path d="M8 17l3 -3l-3 -3" />
     <path d="M3 11v-5a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-9.5" />
+  </g>,
+  tablerIconProps,
+);
+
+/** A window with a panel at its start, for showing or hiding the nav. */
+// tabler-icons: layout-sidebar
+export const sidebarIcon = createIcon(
+  <g strokeWidth={1.25}>
+    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+    <path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+    <path d="M9 4l0 16" />
   </g>,
   tablerIconProps,
 );

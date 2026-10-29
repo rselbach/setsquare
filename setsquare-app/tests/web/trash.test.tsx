@@ -9,9 +9,6 @@ import {
   within,
 } from "@setsquare/setsquare/tests/test-utils";
 
-import { toPrefs } from "../../workspace/drawingAppState";
-import { savePrefs } from "../../workspace/prefs";
-
 import {
   cleanUpWebApp,
   elementIds,
@@ -35,8 +32,11 @@ const card = (section: "Folders" | "Drawings", name: string) =>
     name,
   });
 
+// the page's menus, not the nav's for the same drawings
 const chooseFromMenu = async (label: string, item: string) => {
-  fireEvent.click(screen.getByRole("button", { name: label }));
+  fireEvent.click(
+    within(screen.getByRole("main")).getByRole("button", { name: label }),
+  );
   const menu = await screen.findByTestId("dropdown-menu");
   fireEvent.click(within(menu).getByRole("menuitem", { name: item }));
 };
@@ -311,7 +311,9 @@ describe("the Trash", () => {
 
     await chooseFromMenu("Actions for Greendale", "Move to Trash");
 
-    await waitFor(() => expect(screen.queryByRole("tree")).toBe(null));
+    await waitFor(() =>
+      expect(screen.queryByRole("treeitem", { name: "Greendale" })).toBe(null),
+    );
     expect(screen.queryByRole("region", { name: "Folders" })).toBe(null);
     fireEvent.click(screen.getByRole("link", { name: "Trash" }));
     await waitForPage("/trash", "Trash");
@@ -327,7 +329,9 @@ describe("the Trash", () => {
     );
 
     await waitFor(() =>
-      expect(screen.getByRole("tree", { name: "Folders" })).toBeInTheDocument(),
+      expect(
+        screen.getByRole("treeitem", { name: "Greendale" }),
+      ).toBeInTheDocument(),
     );
     fireEvent.click(
       within(screen.getByRole("tree", { name: "Folders" })).getByRole("link", {
@@ -412,11 +416,10 @@ describe("moving to the Trash from the editor", () => {
     );
   });
 
-  it("trashes another drawing from the sidebar, with Undo over the editor", async () => {
-    savePrefs(toPrefs({ openSidebar: { name: "default", tab: "drawings" } }));
+  it("trashes another drawing from the nav, with Undo over the editor", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
-    const list = await screen.findByRole("list", { name: "Study group" });
+    const list = screen.getByRole("treeitem", { name: "Study group" });
 
     fireEvent.click(
       within(list).getByRole("button", { name: "Actions for Seating" }),

@@ -732,6 +732,8 @@
     "allDrawings": "All drawings",
     "allDrawingsHint": "Setsquare now keeps many drawings. Find them under All drawings in the menu.",
     "navigation": "Drawings and folders",
+    "showNav": "Show sidebar",
+    "hideNav": "Hide sidebar",
     "recent": "Recent",
     "folders": "Folders",
     "newFolder": "New folder",

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import type { Theme } from "@setsquare/element/types";
 
-import { defaultLang, languages, setLanguage } from "../i18n";
+import { defaultLang, isLanguageLoaded, languages, setLanguage } from "../i18n";
 
 import { LoadingMessage } from "./LoadingMessage";
 
@@ -14,16 +14,22 @@ interface Props {
   theme?: Theme;
 }
 
+const findLanguage = (code: Language["code"]) =>
+  languages.find((lang) => lang.code === code) || defaultLang;
+
 export const InitializeApp = (props: Props) => {
-  const [loading, setLoading] = useState(true);
+  // a language another editor or page loaded shows at once, so moving
+  // between them doesn't flash the loading screen
+  const [loading, setLoading] = useState(
+    () => !isLanguageLoaded(findLanguage(props.langCode).code),
+  );
 
   useEffect(() => {
     const updateLang = async () => {
       await setLanguage(currentLang);
       setLoading(false);
     };
-    const currentLang =
-      languages.find((lang) => lang.code === props.langCode) || defaultLang;
+    const currentLang = findLanguage(props.langCode);
     updateLang();
   }, [props.langCode]);
 

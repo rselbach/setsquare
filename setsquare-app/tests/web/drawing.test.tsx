@@ -13,6 +13,7 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from "@setsquare/setsquare/tests/test-utils";
 import { get } from "idb-keyval";
 
@@ -249,7 +250,8 @@ describe("a drawing's page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Back to drawings" }));
 
     await waitForPage("/", "Drawings");
-    expect(screen.getByRole("link", { name: "Seating" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Floor plan" })).toBe(null);
+    const page = within(screen.getByRole("main"));
+    expect(page.getByRole("link", { name: "Seating" })).toBeInTheDocument();
+    expect(page.queryByRole("link", { name: "Floor plan" })).toBe(null);
   });
 });

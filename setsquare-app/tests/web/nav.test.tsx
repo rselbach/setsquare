@@ -9,17 +9,19 @@ import {
 } from "@setsquare/setsquare/tests/test-utils";
 import { KEYS } from "@setsquare/common";
 
-import { toPrefs } from "../../workspace/drawingAppState";
-import { savePrefs } from "../../workspace/prefs";
+import { STORAGE_KEYS } from "../../app_constants";
 
 import {
   cleanUpWebApp,
   elementIds,
+  navigateTo,
+  renderPageAt,
   renderWebAppAt,
   savedContent,
   setUpTestWorkspace,
   waitForAutosave,
   waitForDrawing,
+  waitForPage,
 } from "./helpers";
 
 import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
@@ -27,28 +29,24 @@ import type { DrawingMeta, Folder } from "../../workspace/types";
 
 const { h } = window;
 
-const DRAWINGS_TAB = { name: "default", tab: "drawings" };
+const nav = () =>
+  screen.getByRole("navigation", { name: "Drawings and folders" });
 
-const drawingList = (folderName: string) =>
-  screen.findByRole("list", { name: folderName });
-
-const rowLinks = async (folderName: string) =>
-  within(await drawingList(folderName))
+// the drawings the nav lists in a folder, and which one is open
+const drawingRows = (folderName: string) =>
+  within(within(nav()).getByRole("treeitem", { name: folderName }))
     .getAllByRole("link")
+    .filter((link) => link.getAttribute("href")?.startsWith("/d/"))
     .map((link) => ({
-      name: link.querySelector(".drawings-sidebar__name")?.textContent,
+      name: link.textContent,
       current: link.getAttribute("aria-current") === "page",
     }));
 
-const openRowMenu = async (name: string) => {
-  fireEvent.click(
-    await screen.findByRole("button", { name: `Actions for ${name}` }),
-  );
-  return screen.findByTestId("dropdown-menu");
-};
-
 const chooseFromRowMenu = async (name: string, item: string) => {
-  const menu = await openRowMenu(name);
+  fireEvent.click(
+    within(nav()).getByRole("button", { name: `Actions for ${name}` }),
+  );
+  const menu = await screen.findByTestId("dropdown-menu");
   fireEvent.click(within(menu).getByRole("menuitem", { name: item }));
 };
 
@@ -79,61 +77,80 @@ beforeEach(async () => {
     name: "Paintball",
     content: savedContent("Paintball", "chang"),
   });
-  // the tab as the user left it open
-  savePrefs(toPrefs({ openSidebar: DRAWINGS_TAB }));
 });
 
 afterEach(() => cleanUpWebApp(workspace));
 
-describe("the Drawings sidebar tab", () => {
-  it("lists the folder's drawings, the open one marked", async () => {
+describe("the nav beside the editor", () => {
+  it("lists the open drawing's folder by name, the drawing marked", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
 
-    expect(
-      screen.getByRole("heading", { name: "Greendale" }),
-    ).toBeInTheDocument();
-    expect(await rowLinks("Greendale")).toEqual([
-      { name: "Seating", current: false },
+    expect(drawingRows("Greendale")).toEqual([
       { name: "Floor plan", current: true },
+      { name: "Seating", current: false },
     ]);
+    expect(within(nav()).queryByRole("link", { name: "Paintball" })).toBe(null);
   });
 
-  it("switches drawings and stays open", async () => {
+  it("stays as it switches drawings and goes to the folder", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
+    const shown = nav();
 
-    fireEvent.click(
-      within(await drawingList("Greendale")).getByRole("link", {
-        name: /^Seating/,
-      }),
-    );
+    fireEvent.click(within(shown).getByRole("link", { name: "Seating" }));
 
     await waitForDrawing(seating.id, ["abed"]);
-    expect(h.state.openSidebar).toEqual(DRAWINGS_TAB);
-    expect(await rowLinks("Greendale")).toContainEqual({
+    expect(nav()).toBe(shown);
+    expect(drawingRows("Greendale")).toContainEqual({
       name: "Seating",
       current: true,
     });
+
+    fireEvent.click(within(shown).getByRole("link", { name: "Greendale" }));
+
+    await waitForPage(`/f/${greendale.id}`, "Greendale");
+    expect(nav()).toBe(shown);
+    expect(drawingRows("Greendale")).toEqual([
+      { name: "Floor plan", current: false },
+      { name: "Seating", current: false },
+    ]);
   });
 
-  it("creates a drawing in the folder and opens it", async () => {
+  it("goes between the page and the editor without a loading screen", async () => {
+    await renderPageAt(`/f/${greendale.id}`);
+    const loading: Element[] = [];
+    const observer = new MutationObserver(() => {
+      loading.push(...document.querySelectorAll(".LoadingMessage"));
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    await navigateTo({ kind: "drawing", id: plan.id });
+    await waitForDrawing(plan.id, ["troy"]);
+    await navigateTo({ kind: "drawings", folderId: greendale.id });
+    await waitForPage(`/f/${greendale.id}`, "Greendale");
+
+    observer.disconnect();
+    expect(loading).toEqual([]);
+  });
+
+  it("shows from the editor's top bar once hidden", async () => {
+    localStorage.setItem(
+      STORAGE_KEYS.LOCAL_STORAGE_WORKSPACE_NAV_HIDDEN,
+      "true",
+    );
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
+    const shell = document.querySelector(".workspace-shell");
+    expect(shell).toHaveClass("workspace-shell--nav-hidden");
 
-    fireEvent.click(await screen.findByRole("button", { name: "New drawing" }));
+    const show = screen.getByRole("button", { name: "Show sidebar" });
+    expect(show.closest(".setsquare-ui-top-left")).not.toBe(null);
+    fireEvent.click(show);
 
-    const created = await waitFor(() => {
-      const drawings = [...store.getSnapshot().drawings.values()];
-      expect(drawings).toHaveLength(4);
-      return drawings[3];
-    });
-    expect(created).toMatchObject({ folderId: greendale.id, name: null });
-    await waitForDrawing(created.id, []);
-    expect(await rowLinks("Greendale")).toContainEqual({
-      name: "Untitled",
-      current: true,
-    });
+    expect(shell).not.toHaveClass("workspace-shell--nav-hidden");
+    expect(h.state.isLoading).toBe(false);
+    expect(elementIds()).toEqual(["troy"]);
   });
 
   it("renames the open drawing for good", async () => {
@@ -147,6 +164,13 @@ describe("the Drawings sidebar tab", () => {
     fireEvent.keyDown(field, { key: KEYS.ENTER });
 
     expect(h.state.name).toBe("Paintball map");
+    // as the editor has it, before it's saved
+    await waitFor(() =>
+      expect(drawingRows("Greendale")).toContainEqual({
+        name: "Paintball map",
+        current: true,
+      }),
+    );
     await waitForAutosave();
     expect((await store.getDrawingMeta(plan.id))?.name).toBe("Paintball map");
 
@@ -179,7 +203,6 @@ describe("the Drawings sidebar tab", () => {
         null,
       ),
     );
-    expect(h.state.openSidebar).toEqual(DRAWINGS_TAB);
     expect(store.getSnapshot().drawings.get(seating.id)?.name).toBe("Seating");
 
     await chooseFromRowMenu("Seating", "Rename");
@@ -223,13 +246,29 @@ describe("the Drawings sidebar tab", () => {
     ).toEqual(["troy", "annie"]);
     expect(window.location.pathname).toBe(`/d/${plan.id}`);
     expect(elementIds()).toEqual(["troy", "annie"]);
-
-    await chooseFromRowMenu("Floor plan", "Duplicate");
-
     await waitFor(() =>
-      expect(
-        [...store.getSnapshot().drawings.values()].map(({ name }) => name),
-      ).toContain("Floor plan copy 2"),
+      expect(drawingRows("Greendale").map(({ name }) => name)).toEqual([
+        "Floor plan",
+        "Floor plan copy",
+        "Seating",
+      ]),
+    );
+  });
+
+  it("trashes the open drawing from its folder, with Undo", async () => {
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+
+    await chooseFromRowMenu("Floor plan", "Move to Trash");
+
+    await waitForPage(`/f/${greendale.id}`, "Greendale");
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "Moved “Floor plan” to Trash",
+    );
+    await waitFor(() =>
+      expect(drawingRows("Greendale")).toEqual([
+        { name: "Seating", current: false },
+      ]),
     );
   });
 });

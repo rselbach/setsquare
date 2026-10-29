@@ -7,6 +7,7 @@ import {
   render as renderPlain,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { set } from "idb-keyval";
 
@@ -58,10 +59,11 @@ describe("web app boot", () => {
     await renderPageAt("/");
 
     await waitForPage("/", "Drawings");
-    expect(screen.getByRole("link", { name: "Floor plan" })).toHaveAttribute(
-      "href",
-      `/d/${plan.id}`,
-    );
+    expect(
+      within(screen.getByRole("main")).getByRole("link", {
+        name: "Floor plan",
+      }),
+    ).toHaveAttribute("href", `/d/${plan.id}`);
     expect(store.getSnapshot().drawings.get(plan.id)?.openedAt).toBe(null);
     expect(store.getSnapshot().drawings.size).toBe(1);
     expect(document.title).toBe("Setsquare");
@@ -109,7 +111,9 @@ describe("web app boot", () => {
 
     await waitForPage("/", "Drawings");
     expect(
-      screen.getByRole("link", { name: "Floor plan" }),
+      within(screen.getByRole("main")).getByRole("link", {
+        name: "Floor plan",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -166,7 +170,9 @@ describe("web app boot", () => {
 
     await waitForPage("/", "Drawings");
     expect(
-      screen.getByRole("link", { name: "Study group" }),
+      within(screen.getByRole("main")).getByRole("link", {
+        name: "Study group",
+      }),
     ).toBeInTheDocument();
     expect(store.getSnapshot().drawings.size).toBe(1);
   });
@@ -181,7 +187,9 @@ describe("web app boot", () => {
     await renderPageAt("/recent");
 
     await waitForPage("/recent", "Recent");
-    expect(screen.getByRole("link", { name: "Untitled" })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).getByRole("link", { name: "Untitled" }),
+    ).toBeInTheDocument();
   });
 
   it("shows the error splash when the workspace can't open", async () => {

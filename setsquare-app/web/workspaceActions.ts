@@ -29,8 +29,6 @@ export type DrawingActions = WorkspaceActions & {
    * the Trash with Undo
    */
   moveToTrash: () => void;
-  /** moves a drawing to the Trash, the open one as moveToTrash does */
-  trashDrawing: (id: DrawingId) => void;
 };
 
 // the drawings New drawing made in this tab, with the revision they were
@@ -152,19 +150,8 @@ export const useDrawingActions = (
     trash({ kind: "drawing", id: drawingId });
   }, [folderId, trash, drawingId]);
 
-  const trashDrawing = useCallback(
-    (id: DrawingId) => {
-      if (id === drawingId) {
-        moveToTrash();
-      } else {
-        trash({ kind: "drawing", id });
-      }
-    },
-    [drawingId, moveToTrash, trash],
-  );
-
   return useMemo(
-    () => ({ ...actions, allDrawings, moveToTrash, trashDrawing }),
-    [actions, allDrawings, moveToTrash, trashDrawing],
+    () => ({ ...actions, allDrawings, moveToTrash }),
+    [actions, allDrawings, moveToTrash],
   );
 };

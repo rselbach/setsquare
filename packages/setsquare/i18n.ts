@@ -162,6 +162,10 @@ export const t = (
 /** @private atom used solely to rerender components using `useI18n` hook */
 const editorLangCodeAtom = atom(defaultLang.code);
 
+/** Whether `t` already translates to the language, which then needn't load. */
+export const isLanguageLoaded = (code: Language["code"]) =>
+  editorJotaiStore.get(editorLangCodeAtom) === code;
+
 // Should be used in components that fall under these cases:
 // - component is rendered as an <Setsquare> child
 // - component is rendered internally by <Setsquare>, but the component

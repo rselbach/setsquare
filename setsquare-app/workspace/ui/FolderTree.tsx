@@ -32,6 +32,12 @@ export type FolderPicker = {
   } | null;
 };
 
+/**
+ * What the nav lists in a folder after its folders, null for the root, as
+ * tree items: the drawings of the folder the page or the editor is in.
+ */
+export type FolderContents = { folderId: ParentId; items: ReactNode };
+
 // the folders outside the Trash in each folder, by name; a trashed folder
 // isn't listed, so neither is anything inside it
 const foldersByParent = (snapshot: WorkspaceSnapshot) => {
@@ -128,6 +134,7 @@ const TreeItem = ({
   byParent,
   expanded,
   currentId,
+  contents,
   onToggle,
   picker,
 }: {
@@ -135,23 +142,26 @@ const TreeItem = ({
   byParent: ReadonlyMap<ParentId, Folder[]>;
   expanded: ReadonlySet<FolderId>;
   currentId: ParentId;
+  contents?: FolderContents;
   onToggle: (id: FolderId) => void;
   picker?: FolderPicker;
 }) => {
   const { t } = useI18n();
   const children = byParent.get(folder.id) ?? [];
-  const isOpen = children.length > 0 && expanded.has(folder.id);
+  const items = contents?.folderId === folder.id ? contents.items : null;
+  const hasChildren = children.length > 0 || !!items;
+  const isOpen = hasChildren && expanded.has(folder.id);
 
   return (
     <li
       role="treeitem"
       aria-label={folder.name}
-      aria-expanded={children.length ? isOpen : undefined}
+      aria-expanded={hasChildren ? isOpen : undefined}
       aria-selected={folder.id === currentId}
       className="folder-tree__item"
     >
       <div className="folder-tree__row">
-        {children.length > 0 ? (
+        {hasChildren ? (
           <button
             type="button"
             className="folder-tree__toggle"
@@ -186,10 +196,12 @@ const TreeItem = ({
               byParent={byParent}
               expanded={expanded}
               currentId={currentId}
+              contents={contents}
               onToggle={onToggle}
               picker={picker}
             />
           ))}
+          {items}
         </ul>
       )}
     </li>
@@ -199,17 +211,23 @@ const TreeItem = ({
 /**
  * The folders of the workspace as a tree, the current one marked and the
  * way to it open. In the nav, folders are links that items can be dropped
- * on; as a picker, they're choices under the root. Folders open and close
- * with their toggles; there's no arrow-key navigation yet.
+ * on, and one folder can list more in it, such as its drawings; as a
+ * picker, they're choices under the root. Folders open and close with
+ * their toggles; there's no arrow-key navigation yet.
  */
 export const FolderTree = ({
   snapshot,
   currentId,
+  contents,
   picker,
 }: {
   snapshot: WorkspaceSnapshot;
-  /** the folder the page shows, if it shows one, or the picker's choice */
+  /**
+   * the folder the page shows, if it shows one, or the picker's choice;
+   * in the nav, null marks none, since the root isn't in the tree
+   */
   currentId: ParentId;
+  contents?: FolderContents;
   picker?: FolderPicker;
 }) => {
   const { t } = useI18n();
@@ -217,12 +235,13 @@ export const FolderTree = ({
   const [expanded, setExpanded] = useState<ReadonlySet<FolderId>>(
     () => new Set(),
   );
-  // opening a folder elsewhere, such as from the grid, reveals it here, but
-  // what the user closes stays closed until then
+  // opening a folder elsewhere, such as from the grid, or a drawing in it
+  // reveals it here, but what the user closes stays closed until then
+  const revealId = contents ? contents.folderId : currentId;
   const [revealed, setRevealed] = useState<ParentId | undefined>();
-  if (revealed !== currentId) {
-    setRevealed(currentId);
-    const path = ancestors(snapshot, currentId).map((folder) => folder.id);
+  if (revealed !== revealId) {
+    setRevealed(revealId);
+    const path = ancestors(snapshot, revealId).map((folder) => folder.id);
     setExpanded((expanded) => new Set([...expanded, ...path]));
   }
 
@@ -243,6 +262,7 @@ export const FolderTree = ({
       byParent={byParent}
       expanded={expanded}
       currentId={currentId}
+      contents={contents}
       onToggle={toggle}
       picker={picker}
     />
@@ -279,12 +299,14 @@ export const FolderTree = ({
       </ul>
     );
   }
-  if (!top.length) {
+  const rootItems = contents?.folderId === null ? contents.items : null;
+  if (!top.length && !rootItems) {
     return null;
   }
   return (
     <ul role="tree" aria-label={t("workspace.folders")} className="folder-tree">
       {items}
+      {rootItems}
     </ul>
   );
 };

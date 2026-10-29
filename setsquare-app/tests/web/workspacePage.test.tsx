@@ -46,8 +46,11 @@ const card = (section: "Folders" | "Drawings", name: string) =>
     name,
   });
 
+// the page's menus, not the nav's for the same drawings
 const chooseFromMenu = async (label: string, item: string) => {
-  fireEvent.click(screen.getByRole("button", { name: label }));
+  fireEvent.click(
+    within(screen.getByRole("main")).getByRole("button", { name: label }),
+  );
   const menu = await screen.findByTestId("dropdown-menu");
   fireEvent.click(within(menu).getByRole("menuitem", { name: item }));
   return menu;
@@ -278,7 +281,9 @@ describe("the workspace page", () => {
     expect(store.getSnapshot().drawings.get(plan.id)?.name).toBe("Floor plan");
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Actions for Floor plan" }),
+      within(screen.getByRole("main")).getByRole("button", {
+        name: "Actions for Floor plan",
+      }),
     );
     const menu = await screen.findByTestId("dropdown-menu");
     // the editor's menu, on the page
@@ -477,9 +482,32 @@ describe("the workspace page", () => {
     expect(screen.queryByRole("region", { name: "Folders" })).toBe(null);
   });
 
-  it("opens the nav as a drawer, which closes when it's used", async () => {
+  it("hides the nav beside the page, and remembers it", async () => {
+    const { unmount } = await renderPageAt(`/f/${studyGroup.id}`);
+    const show = screen.getByRole("button", { name: "Show sidebar" });
+    const shell = () => document.querySelector(".workspace-shell");
+    expect(show).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
+
+    expect(shell()).toHaveClass("workspace-shell--nav-hidden");
+    expect(show).toHaveAttribute("aria-expanded", "false");
+
+    unmount();
     await renderPageAt(`/f/${studyGroup.id}`);
-    const toggle = screen.getByRole("button", { name: "Menu" });
+
+    expect(shell()).toHaveClass("workspace-shell--nav-hidden");
+    fireEvent.click(screen.getByRole("button", { name: "Show sidebar" }));
+    expect(shell()).not.toHaveClass("workspace-shell--nav-hidden");
+    expect(
+      localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_WORKSPACE_NAV_HIDDEN),
+    ).toBe("false");
+  });
+
+  it("opens the nav as a drawer below 900 px, which closes when it's used", async () => {
+    Object.assign(window, { innerWidth: 800 });
+    await renderPageAt(`/f/${studyGroup.id}`);
+    const toggle = screen.getByRole("button", { name: "Show sidebar" });
     const nav = screen.getByRole("navigation", {
       name: "Drawings and folders",
     });
@@ -540,7 +568,7 @@ describe("the workspace page on a phone", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("searchbox")).toBe(null);
 
-    const toggle = screen.getByRole("button", { name: "Menu" });
+    const toggle = screen.getByRole("button", { name: "Show sidebar" });
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(

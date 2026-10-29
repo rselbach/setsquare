@@ -11,7 +11,7 @@ import { ancestors, parentOf, trashRoots } from "../tree";
 
 import { EmptyState } from "./EmptyState";
 import { useThumbnails } from "./useThumbnails";
-import { DrawerButton } from "./WorkspaceHeader";
+import { NavButton } from "./WorkspaceNav";
 
 import type {
   ItemRef,
@@ -23,7 +23,7 @@ import type { ReactNode } from "react";
 
 import type { WorkspaceStore } from "../WorkspaceStore";
 
-import type { DrawerControl } from "./WorkspaceHeader";
+import type { NavToggle } from "./WorkspaceNav";
 
 const refOf = (item: WorkspaceItem): ItemRef =>
   "parentId" in item
@@ -117,13 +117,14 @@ export const TrashView = ({
   store,
   snapshot,
   now,
-  drawer,
+  nav,
   account,
 }: {
   store: WorkspaceStore;
   snapshot: WorkspaceSnapshot;
   now: number;
-  drawer: DrawerControl;
+  /** shows the nav where it's hidden */
+  nav: NavToggle;
   /** who is signed in, at the right end of the bar */
   account: ReactNode;
 }) => {
@@ -163,7 +164,7 @@ export const TrashView = ({
     <>
       <header className="workspace-header">
         <div className="workspace-header__bar">
-          <DrawerButton drawer={drawer} />
+          <NavButton nav={nav} />
           <div className="workspace-header__heading">
             <h1 className="workspace-header__title">{t("workspace.trash")}</h1>
           </div>

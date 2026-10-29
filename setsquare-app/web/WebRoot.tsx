@@ -7,7 +7,12 @@ import { AppWelcomeScreen } from "../components/AppWelcomeScreen";
 import { useHandleAppTheme } from "../useHandleAppTheme";
 import { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
 import { RemoteWorkspaceStore } from "../workspace/remote/RemoteWorkspaceStore";
-import { WorkspacePage } from "../workspace/ui/WorkspacePage";
+import {
+  WorkspacePage,
+  isSearching,
+  usePageSearch,
+} from "../workspace/ui/WorkspacePage";
+import { WorkspaceShell, useNavState } from "../workspace/ui/WorkspaceShell";
 import {
   WorkspaceToast,
   useWorkspaceToast,
@@ -24,6 +29,8 @@ import { trashWithUndo, useDrawingActions } from "./workspaceActions";
 import { openWorkspaceStore, readAccountSession } from "./workspaceStore";
 
 import type { DrawingId, ItemRef } from "../workspace/types";
+import type { OpenDrawing } from "../workspace/ui/NavDrawingRow";
+import type { NavToggle } from "../workspace/ui/WorkspaceNav";
 import type { WorkspaceToastState } from "../workspace/ui/WorkspaceToast";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
@@ -78,12 +85,16 @@ const DrawingView = ({
   editorTheme,
   appTheme,
   setAppTheme,
+  nav,
+  onOpen,
   tasks,
   toast,
   trash,
 }: {
   store: WorkspaceStore;
   id: DrawingId;
+  nav: NavToggle;
+  onOpen: (drawing: OpenDrawing | null) => void;
   tasks: QueuedTasks;
   toast: WorkspaceToastState;
   trash: (item: ItemRef) => void;
@@ -98,6 +109,8 @@ const DrawingView = ({
       theme={editorTheme}
       onThemeChange={setAppTheme}
       actions={actions}
+      nav={nav}
+      onOpen={onOpen}
       tasks={tasks}
       toast={toast}
     >
@@ -126,6 +139,9 @@ const Workspace = ({
   ownerWindow: Window;
 } & ReturnType<typeof useHandleAppTheme>) => {
   const route = useRoute();
+  const nav = useNavState();
+  const [search, setSearch] = usePageSearch(route);
+  const [editing, setEditing] = useState<OpenDrawing | null>(null);
   const tasks = useEditorTasks(bootTasks);
   // one toast for the page and the editor, so an Undo outlasts either
   const toast = useWorkspaceToast();
@@ -163,29 +179,43 @@ const Workspace = ({
     }
   }, [route]);
 
-  if (route.kind === "drawing") {
-    return (
-      <DrawingView
-        store={store}
-        id={route.id}
-        tasks={tasks}
-        toast={toast}
-        trash={trash}
-        {...theme}
-      />
-    );
-  }
   return (
-    <WorkspacePage
+    <WorkspaceShell
       store={store}
-      route={route.kind === "notFound" ? ROOT : route}
+      route={route}
+      searching={isSearching(route, search)}
+      editing={editing}
+      trash={trash}
       theme={theme.editorTheme}
       appTheme={theme.appTheme}
       onThemeChange={theme.setAppTheme}
-      tasks={tasks}
-      toast={toast}
-      trash={trash}
-    />
+      nav={nav}
+    >
+      {route.kind === "drawing" ? (
+        <DrawingView
+          store={store}
+          id={route.id}
+          nav={nav.toggle}
+          onOpen={setEditing}
+          tasks={tasks}
+          toast={toast}
+          trash={trash}
+          {...theme}
+        />
+      ) : (
+        <WorkspacePage
+          store={store}
+          route={route.kind === "notFound" ? ROOT : route}
+          theme={theme.editorTheme}
+          nav={nav.toggle}
+          search={search}
+          setSearch={setSearch}
+          tasks={tasks}
+          toast={toast}
+          trash={trash}
+        />
+      )}
+    </WorkspaceShell>
   );
 };
 

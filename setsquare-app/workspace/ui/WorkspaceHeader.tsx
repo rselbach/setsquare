@@ -7,7 +7,6 @@ import {
   CloseIcon,
   LoadIcon,
   PlusIcon,
-  SetsquareMarkIcon,
   chevronDownIcon,
   chevronRight,
   searchIcon,
@@ -19,17 +18,17 @@ import { newDrawingIcon, newFolderIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 
 import { useDropTarget } from "./useWorkspaceDrag";
+import { NavButton } from "./WorkspaceNav";
 
 import type { ReactNode, RefObject } from "react";
 
 import type { SortOrder } from "../tree";
 import type { ParentId } from "../types";
 
+import type { NavToggle } from "./WorkspaceNav";
+
 /** A folder on the way to the one shown, null for the root, linked. */
 export type Crumb = { folderId: ParentId; name: string };
-
-/** The nav where it's a drawer, below 900 px. */
-export type DrawerControl = { id: string; open: boolean; onToggle: () => void };
 
 /** What the page offers to create where it creates. */
 export type CreateActions = {
@@ -147,28 +146,6 @@ const CrumbLink = ({ crumb }: { crumb: Crumb }) => {
   );
 };
 
-/**
- * Opens the nav where it's a drawer, looking like the editor's main menu
- * trigger.
- */
-export const DrawerButton = ({ drawer }: { drawer: DrawerControl }) => {
-  const { t } = useI18n();
-  return (
-    <button
-      type="button"
-      className="workspace-header__drawer"
-      aria-label={t("buttons.menu")}
-      title={t("buttons.menu")}
-      aria-expanded={drawer.open}
-      aria-controls={drawer.id}
-      onClick={drawer.onToggle}
-    >
-      {SetsquareMarkIcon}
-      {chevronDownIcon}
-    </button>
-  );
-};
-
 const SearchField = ({
   search,
   onClose,
@@ -221,7 +198,7 @@ export const WorkspaceHeader = ({
   crumbs,
   back,
   isPhone,
-  drawer,
+  nav,
   search,
   sort,
   actions,
@@ -233,7 +210,8 @@ export const WorkspaceHeader = ({
   /** where a phone's back chevron goes, if anywhere */
   back: Crumb | null;
   isPhone: boolean;
-  drawer: DrawerControl;
+  /** shows the nav where it's hidden */
+  nav: NavToggle;
   search: SearchControl;
   /** the sort, where the page lets it change */
   sort: { order: SortOrder; onChange: (order: SortOrder) => void } | null;
@@ -242,14 +220,14 @@ export const WorkspaceHeader = ({
   account: ReactNode;
 }) => {
   const { t } = useI18n();
-  const drawerButton = <DrawerButton drawer={drawer} />;
+  const navButton = <NavButton nav={nav} />;
 
   if (isPhone) {
     const searching = search.open || search.query !== "";
     return (
       <header className="workspace-header workspace-header--phone">
         <div className="workspace-header__bar">
-          {drawerButton}
+          {navButton}
           {back && (
             <RouteLink
               to={{ kind: "drawings", folderId: back.folderId }}
@@ -308,7 +286,7 @@ export const WorkspaceHeader = ({
   return (
     <header className="workspace-header">
       <div className="workspace-header__bar">
-        {drawerButton}
+        {navButton}
         <div className="workspace-header__heading">
           {crumbs.length > 0 && (
             <nav aria-label={t("workspace.breadcrumbs")}>

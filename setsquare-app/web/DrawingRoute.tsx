@@ -4,6 +4,7 @@ import { getShortcutFromShortcutName } from "@setsquare/setsquare/actions/shortc
 import { DEFAULT_CATEGORIES } from "@setsquare/setsquare/components/CommandPalette/CommandPalette";
 import { LoadingMessage } from "@setsquare/setsquare/components/LoadingMessage";
 import { LoadIcon, TrashIcon } from "@setsquare/setsquare/components/icons";
+import { useUIAppState } from "@setsquare/setsquare/context/ui-appState";
 import { t } from "@setsquare/setsquare/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -14,11 +15,11 @@ import type { SetsquareProps } from "@setsquare/setsquare/types";
 import { EditorShell } from "../editor/EditorShell";
 import { isTrashed } from "../workspace/tree";
 import { DrawingNotice } from "../workspace/ui/DrawingNotice";
+import { NavButton } from "../workspace/ui/WorkspaceNav";
 
 import { AccountMenu } from "./accountControls";
 import { createDrawingPersistence } from "./drawingPersistence";
 import { DrawingSaveStatus } from "./DrawingSaveStatus";
-import { DrawingsSidebar } from "./DrawingsSidebar";
 import { drawingsIcon, newDrawingIcon } from "./icons";
 import { navigate, parseRoute, setLeaveGuard } from "./router";
 import {
@@ -31,6 +32,8 @@ import { discardIfUnused } from "./workspaceActions";
 
 import type { DrawingId } from "../workspace/types";
 import type { NoticeKind } from "../workspace/ui/DrawingNotice";
+import type { OpenDrawing } from "../workspace/ui/NavDrawingRow";
+import type { NavToggle } from "../workspace/ui/WorkspaceNav";
 import type { WorkspaceToastState } from "../workspace/ui/WorkspaceToast";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
@@ -64,6 +67,35 @@ const openDrawing = async (
 const nextFrame = () =>
   new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+// tells the nav, from inside the editor, what it has open and its name,
+// ahead of the save, until it closes
+const ReportOpenDrawing = ({
+  id,
+  save,
+  trash,
+  onChange,
+}: {
+  id: DrawingId;
+  save: () => Promise<unknown>;
+  trash: () => void;
+  onChange: (drawing: OpenDrawing | null) => void;
+}) => {
+  const setsquareAPI = useSetsquareAPI();
+  const { name } = useUIAppState();
+  useEffect(() => {
+    onChange({
+      id,
+      name,
+      // so the editor's next save keeps the name, and the footer shows it
+      rename: (name) => setsquareAPI?.updateScene({ appState: { name } }),
+      save,
+      trash,
+    });
+    return () => onChange(null);
+  }, [id, name, save, trash, setsquareAPI, onChange]);
+  return null;
+};
+
 /**
  * What shows of one opening of a drawing: the editor, or the notice that
  * it's in the Trash or isn't there. Restoring it opens it again.
@@ -76,11 +108,11 @@ type Session = { id: DrawingId; attempt: number } & (
 type EditorSession = Extract<Session, { kind: "editor" }>;
 
 /**
- * The editor on one drawing of the workspace, with the Drawings sidebar to
- * switch to others. It opens the drawing first, and saves it before the app
- * leaves it, discarding it then if it's a new drawing that was never used.
- * A drawing in the Trash or that isn't there shows a notice instead, as
- * does the open drawing when another tab trashes or deletes it.
+ * The editor on one drawing of the workspace, beside the shell's nav, which
+ * it tells what it has open. It opens the drawing first, and saves it
+ * before the app leaves it, discarding it then if it's a new drawing that
+ * was never used. A drawing in the Trash or that isn't there shows a notice
+ * instead, as does the open drawing when another tab trashes or deletes it.
  */
 export const DrawingRoute = ({
   store,
@@ -88,6 +120,8 @@ export const DrawingRoute = ({
   theme,
   onThemeChange,
   actions,
+  nav,
+  onOpen,
   tasks,
   toast,
   children,
@@ -97,6 +131,10 @@ export const DrawingRoute = ({
   theme: Theme;
   onThemeChange: (theme: Theme | "system") => void;
   actions: DrawingActions;
+  /** shows the nav where it's hidden, from the top bar */
+  nav: NavToggle;
+  /** hears what the editor has open, or that it has nothing */
+  onOpen: (drawing: OpenDrawing | null) => void;
   /** what's left to show, which the notice shows in place of the editor */
   tasks: QueuedTasks;
   toast: WorkspaceToastState;
@@ -357,6 +395,7 @@ export const DrawingRoute = ({
         loadScene={false}
         commandPaletteItems={commandPaletteItems}
         openLinkedScene={openLinkedScene}
+        renderTopLeftUI={() => <NavButton nav={nav} inEditor />}
         // a phone's top bar has no room; its workspace header has the menu
         renderTopRightUI={(isMobile) =>
           isMobile ? null : <AccountMenu toast={toast} />
@@ -366,12 +405,11 @@ export const DrawingRoute = ({
         {store.recoveryKey && (
           <DrawingSaveStatus persistence={current.persistence} />
         )}
-        <DrawingsSidebar
-          store={store}
-          drawingId={id}
-          onNewDrawing={actions.newDrawing}
-          onTrash={actions.trashDrawing}
-          saveDrawing={current.persistence.flush}
+        <ReportOpenDrawing
+          id={id}
+          save={current.persistence.flush}
+          trash={actions.moveToTrash}
+          onChange={onOpen}
         />
       </EditorShell>
     </div>

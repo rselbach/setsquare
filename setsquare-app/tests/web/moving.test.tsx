@@ -23,7 +23,11 @@ const card = (section: "Folders" | "Drawings", name: string) =>
   });
 
 const openMoveDialog = async (name: string) => {
-  fireEvent.click(screen.getByRole("button", { name: `Actions for ${name}` }));
+  fireEvent.click(
+    within(screen.getByRole("main")).getByRole("button", {
+      name: `Actions for ${name}`,
+    }),
+  );
   const menu = await screen.findByTestId("dropdown-menu");
   fireEvent.click(within(menu).getByRole("menuitem", { name: "Move to…" }));
   return screen.findByRole("dialog");
