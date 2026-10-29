@@ -154,15 +154,13 @@ export class AppConnectorHandles {
     if (this.state.type === "pressed") {
       return true;
     }
-    // the selection's own handles come first, even where a connector handle
-    // sits on them
     const isOverTransformHandle = !!this.app.selectionTool.getTransformHandleAt(
       this.app.scene.getSelectedElements(this.app.state),
       scenePointer.x,
       scenePointer.y,
       pointerType,
     );
-    if (isOverScrollBar || isOverTransformHandle || !this.canShow()) {
+    if (isOverScrollBar || !this.canShow()) {
       this.hide();
       return false;
     }
@@ -193,6 +191,9 @@ export class AppConnectorHandles {
         !isHollowHit &&
         !isConnectorOf(hitElement, shown);
       const handle =
+        // Keep the connectors visible when crossing a selection border, but
+        // let the selection's resize and rotation handles take the pointer.
+        !isOverTransformHandle &&
         !hitTakesPrecedence &&
         getConnectorHandleAt(
           getConnectorHandles(shown, elementsMap, this.app.state.zoom),

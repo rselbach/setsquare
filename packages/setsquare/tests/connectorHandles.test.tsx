@@ -71,6 +71,37 @@ describe("connector handles", () => {
     expect(h.app.connectorHandles.render).toBe(null);
   });
 
+  it.each([
+    { direction: "up", edge: [50, 0], step: [0, -1] },
+    { direction: "right", edge: [100, 30], step: [1, 0] },
+    { direction: "down", edge: [50, 60], step: [0, 1] },
+    { direction: "left", edge: [0, 30], step: [-1, 0] },
+  ])(
+    "keeps the $direction connector clickable when crossing a selected shape's border",
+    ({ direction, edge, step }) => {
+      const rectangle = source();
+      API.setElements([rectangle]);
+      API.setSelectedElements([rectangle]);
+
+      mouse.moveTo(50, 30);
+      for (let distance = 0; distance <= 20; distance += 2) {
+        mouse.moveTo(
+          edge[0] + step[0] * distance,
+          edge[1] + step[1] * distance,
+        );
+        expect(h.app.connectorHandles.render?.elementId).toBe("source");
+      }
+      expect(h.app.connectorHandles.render?.active).toBe(direction);
+      mouse.click();
+
+      const [, copy] = shapes();
+      expect(shapes()).toHaveLength(2);
+      expect(arrows()).toHaveLength(1);
+      expect(arrows()[0].startBinding?.elementId).toBe("source");
+      expect(arrows()[0].endBinding?.elementId).toBe(copy.id);
+    },
+  );
+
   it("lets a shape under a handle take the click", () => {
     const neighbor = API.createElement({
       type: "rectangle",
@@ -214,28 +245,37 @@ describe("connector handles", () => {
     expect(API.getSelectedElements().map(({ id }) => id)).toEqual([copy.id]);
   });
 
-  it("connects to the shape a handle is dropped on", () => {
-    const target = API.createElement({
-      type: "ellipse",
-      id: "target",
-      x: 300,
-      y: 200,
-      width: 100,
-      height: 60,
-    });
-    API.setElements([source(), target]);
+  it.each([false, true])(
+    "connects to the shape a handle is dropped on (source selected: %s)",
+    (selected) => {
+      const rectangle = source();
+      const target = API.createElement({
+        type: "ellipse",
+        id: "target",
+        x: 300,
+        y: 200,
+        width: 100,
+        height: 60,
+      });
+      API.setElements([rectangle, target]);
+      if (selected) {
+        API.setSelectedElements([rectangle]);
+      }
 
-    hoverRightHandle();
-    mouse.downAt(...RIGHT_HANDLE);
-    mouse.moveTo(200, 120);
-    mouse.moveTo(350, 230);
-    mouse.upAt(350, 230);
+      mouse.moveTo(50, 30);
+      mouse.moveTo(104, 30);
+      mouse.moveTo(...RIGHT_HANDLE);
+      mouse.downAt(...RIGHT_HANDLE);
+      mouse.moveTo(200, 120);
+      mouse.moveTo(350, 230);
+      mouse.upAt(350, 230);
 
-    expect(shapes()).toHaveLength(2);
-    expect(arrows()).toHaveLength(1);
-    expect(arrows()[0].startBinding?.elementId).toBe("source");
-    expect(arrows()[0].endBinding?.elementId).toBe("target");
-  });
+      expect(shapes()).toHaveLength(2);
+      expect(arrows()).toHaveLength(1);
+      expect(arrows()[0].startBinding?.elementId).toBe("source");
+      expect(arrows()[0].endBinding?.elementId).toBe("target");
+    },
+  );
 
   it("adds a connected copy where a handle is dropped on empty canvas", () => {
     API.setElements([source()]);
@@ -388,6 +428,24 @@ describe("connector handles", () => {
     mouse.upAt(...RIGHT_HANDLE);
 
     expect(h.state.cursorButton).toBe("up");
+  });
+
+  it("lets a selected shape resize after hovering a connector", () => {
+    const rectangle = source();
+    API.setElements([rectangle]);
+    API.setSelectedElements([rectangle]);
+
+    hoverRightHandle();
+    expect(h.app.connectorHandles.render?.active).toBe("right");
+    mouse.moveTo(104, 30);
+    expect(h.app.connectorHandles.render?.active).toBe(null);
+    expect(GlobalTestState.interactiveCanvas.style.cursor).toBe("ew-resize");
+    mouse.down();
+    mouse.move(20, 0);
+    mouse.up();
+
+    expect(h.elements).toHaveLength(1);
+    expect(rectangle.width).toBeGreaterThan(100);
   });
 
   it("leaves the rotation handle of a selected shape alone", () => {
