@@ -40,6 +40,7 @@ import type {
   SetsquareProps,
 } from "@setsquare/setsquare/types";
 import type { ResolvablePromise } from "@setsquare/common/utils";
+import type { CommandPaletteItem } from "@setsquare/setsquare/components/CommandPalette/types";
 
 import CustomStats from "../CustomStats";
 import { useAtomValue } from "../app-jotai";
@@ -101,6 +102,19 @@ type EditorShellProps = {
   persistence: ScenePersistence;
   theme: Theme;
   onThemeChange: (theme: Theme | "system") => void;
+  /**
+   * whether the editor opens files over its scene, with its Open action and
+   * the files the app is launched with; the host opens them otherwise.
+   * Defaults to true.
+   */
+  loadScene?: boolean;
+  /** commands the host adds to the command palette */
+  commandPaletteItems?: CommandPaletteItem[];
+  /**
+   * opens the scene an element link points to if it's another one,
+   * returning whether it did; the editor scrolls to links in its own scene
+   */
+  openLinkedScene?: (link: string) => boolean;
   /** the main menu, the welcome screen and anything else the editor shows */
   children: SetsquareProps["children"];
 };
@@ -110,6 +124,9 @@ export const EditorShell = ({
   persistence,
   theme,
   onThemeChange,
+  loadScene = true,
+  commandPaletteItems = [],
+  openLinkedScene,
   children,
 }: EditorShellProps) => {
   const setsquareAPI = useSetsquareAPI();
@@ -445,6 +462,7 @@ export const EditorShell = ({
         UIOptions={{
           canvasActions: {
             toggleTheme: true,
+            loadScene,
           },
           // the desktop app's menu bar carries the main menu's items
           mainMenu: !isTauri(),
@@ -459,6 +477,9 @@ export const EditorShell = ({
         onLinkOpen={(element, event) => {
           if (element.link && isElementLink(element.link)) {
             event.preventDefault();
+            if (openLinkedScene?.(element.link)) {
+              return;
+            }
             setsquareAPI?.setViewport({
               target: element.link,
               fit: "scale-down",
@@ -504,6 +525,7 @@ export const EditorShell = ({
                 }
               },
             },
+            ...commandPaletteItems,
           ]}
         />
         {isVisualDebuggerEnabled() && setsquareAPI && (

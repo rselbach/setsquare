@@ -105,6 +105,35 @@ describe("launch queue", () => {
     });
   });
 
+  it("takes launches, and lets go of them when it unmounts", async () => {
+    const setConsumer = vi.fn();
+    Object.assign(window, {
+      launchQueue: { setConsumer },
+      LaunchParams: class {},
+    });
+
+    const { unmount } = await render(<Setsquare />);
+    expect(setConsumer).toHaveBeenCalledTimes(1);
+    unmount();
+
+    expect(setConsumer).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves launches to a host that doesn't let it load scenes", async () => {
+    const setConsumer = vi.fn();
+    Object.assign(window, {
+      launchQueue: { setConsumer },
+      LaunchParams: class {},
+    });
+
+    const { unmount } = await render(
+      <Setsquare UIOptions={{ canvasActions: { loadScene: false } }} />,
+    );
+    unmount();
+
+    expect(setConsumer).not.toHaveBeenCalled();
+  });
+
   it("reports a file it can't read and still loads the others", async () => {
     launch(
       {

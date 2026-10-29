@@ -721,6 +721,15 @@
       "bronze": "Bronze"
     }
   },
+  "workspace": {
+    "drawings": "Drawings",
+    "newDrawing": "New drawing",
+    "openFile": "Open file…",
+    "duplicate": "Duplicate",
+    "copyName": "{{name}} copy",
+    "drawingName": "Drawing name",
+    "drawingActions": "Actions for {{name}}"
+  },
   "commandPalette": {
     "title": "Command palette",
     "shortcuts": {

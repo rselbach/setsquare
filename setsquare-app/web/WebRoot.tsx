@@ -9,8 +9,11 @@ import { useHandleAppTheme } from "../useHandleAppTheme";
 import { recentDrawings } from "../workspace/tree";
 
 import { DrawingRoute } from "./DrawingRoute";
+import { EditorTasks, useEditorTasks } from "./editorTasks";
+import { useLaunchedFiles } from "./importFiles";
 import { openSceneUrl, useSceneUrlLinks } from "./importScene";
 import { initRouter, navigate, useRoute } from "./router";
+import { useWorkspaceActions } from "./workspaceActions";
 import { openWorkspaceStore } from "./workspaceStore";
 
 import type { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
@@ -87,8 +90,15 @@ const Workspace = ({
 } & ReturnType<typeof useHandleAppTheme>) => {
   const route = useRoute();
   const [, forceRefresh] = useState(false);
+  const { tasks, runInEditor, onRun } = useEditorTasks();
+  const actions = useWorkspaceActions(
+    store,
+    route.kind === "drawing" ? route.id : null,
+    runInEditor,
+  );
 
   useSceneUrlLinks(store, { failedOnOpen: !openedSceneUrl });
+  useLaunchedFiles(store, runInEditor);
 
   useEffect(() => {
     const purge = window.setInterval(() => {
@@ -112,12 +122,15 @@ const Workspace = ({
       id={route.id}
       theme={editorTheme}
       onThemeChange={setAppTheme}
+      actions={actions}
     >
       <AppMainMenu
         theme={appTheme}
         refresh={() => forceRefresh((prev) => !prev)}
+        actions={actions}
       />
-      <AppWelcomeScreen />
+      <AppWelcomeScreen actions={actions} />
+      <EditorTasks tasks={tasks} onRun={onRun} />
     </DrawingRoute>
   );
 };

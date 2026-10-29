@@ -23,6 +23,8 @@ import {
 } from "../workspace/drawingAppState";
 import { loadPrefs, savePrefs } from "../workspace/prefs";
 
+import { createThumbnailer } from "./thumbnail";
+
 import type { ScenePersistence } from "../editor/ScenePersistence";
 import type {
   DrawingContentAppState,
@@ -31,6 +33,7 @@ import type {
 } from "../workspace/types";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
+import type { ThumbnailScene } from "./thumbnail";
 import type { UnsavedDrawing } from "./unsavedJournal";
 
 /** The images the elements show, each once. */
@@ -63,13 +66,19 @@ const NOTHING_CHANGED = { scene: null, files: false } as const;
 export interface DrawingPersistence extends ScenePersistence {
   /** the newest scene it was asked to save that isn't stored yet, if any */
   unsaved(): UnsavedDrawing | null;
+  /**
+   * Brings the drawing's thumbnail up to what the editor showed last, as
+   * when the editor leaves it; call it once saving is done.
+   */
+  renderThumbnail(): Promise<void>;
 }
 
 /**
  * Loads and saves one opened drawing for one editor session. The session
  * only ever writes to that drawing, so opening another takes a new editor
  * with a session of its own. Content and view are written only when they
- * change, and only content writes bump the drawing's revision.
+ * change, and only content writes bump the drawing's revision, after which
+ * the drawing's thumbnail renders once the editor is quiet.
  */
 export const createDrawingPersistence = ({
   store,
@@ -98,6 +107,10 @@ export const createDrawingPersistence = ({
     elements: readonly SetsquareElement[];
     appState: AppState;
   } | null = null;
+  // the scene the editor reported last, for thumbnails rendered after it's
+  // gone
+  let latest: ThumbnailScene | null = null;
+  const thumbnailer = createThumbnailer({ store, id, scene: () => latest });
 
   const fileStorage = new FileManager({
     onFileStatusChange: FileStatusStore.updateStatuses.bind(FileStatusStore),
@@ -112,6 +125,7 @@ export const createDrawingPersistence = ({
     gone = true;
     pending = null;
     debouncedSave.cancel();
+    thumbnailer.cancel();
     onNotFound();
   };
 
@@ -141,6 +155,7 @@ export const createDrawingPersistence = ({
                 return stop();
               }
               lastRevision = result.meta.revision;
+              thumbnailer.schedule(lastRevision);
             },
             (error) => {
               storedContent = null;
@@ -220,6 +235,7 @@ export const createDrawingPersistence = ({
       if (gone) {
         return;
       }
+      latest = { elements, appState, files };
       pending = { elements, appState };
       debouncedSave(elements, appState, files, onFilesSaved);
     },
@@ -256,6 +272,11 @@ export const createDrawingPersistence = ({
         elements: getNonDeletedElements(pending.elements),
         appState: { ...content, ...view },
       };
+    },
+    renderThumbnail: async () => {
+      if (!gone) {
+        await thumbnailer.renderNow(lastRevision);
+      }
     },
     fileStorage,
   };

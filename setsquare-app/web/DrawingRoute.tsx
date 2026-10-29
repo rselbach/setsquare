@@ -1,22 +1,31 @@
 import { APP_NAME, EVENT } from "@setsquare/common";
 import { useSetsquareAPI } from "@setsquare/setsquare";
+import { getShortcutFromShortcutName } from "@setsquare/setsquare/actions/shortcuts";
+import { DEFAULT_CATEGORIES } from "@setsquare/setsquare/components/CommandPalette/CommandPalette";
 import { LoadingMessage } from "@setsquare/setsquare/components/LoadingMessage";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { LoadIcon } from "@setsquare/setsquare/components/icons";
+import { t } from "@setsquare/setsquare/i18n";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Theme } from "@setsquare/element/types";
+import type { CommandPaletteItem } from "@setsquare/setsquare/components/CommandPalette/types";
 import type { SetsquareProps } from "@setsquare/setsquare/types";
 
 import { EditorShell } from "../editor/EditorShell";
 
 import { createDrawingPersistence } from "./drawingPersistence";
-import { navigate, setLeaveGuard } from "./router";
+import { DrawingsSidebar } from "./DrawingsSidebar";
+import { newDrawingIcon } from "./icons";
+import { navigate, parseRoute, setLeaveGuard } from "./router";
 import { replayUnsaved, writeUnsaved } from "./unsavedJournal";
+import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
 
 import type { DrawingId, OpenedDrawing } from "../workspace/types";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 import type { DrawingPersistence } from "./drawingPersistence";
 import type { Route } from "./router";
+import type { WorkspaceActions } from "./workspaceActions";
 
 const DRAWINGS: Route = { kind: "drawings", folderId: null };
 
@@ -31,21 +40,23 @@ const nextFrame = () =>
 type Session = { id: DrawingId; persistence: DrawingPersistence };
 
 /**
- * The editor on one drawing of the workspace. It opens the drawing first,
- * going back to the drawings if it's gone, and saves it before the app
- * leaves it.
+ * The editor on one drawing of the workspace, with the Drawings sidebar to
+ * switch to others. It opens the drawing first, going back to the drawings
+ * if it's gone, and saves it before the app leaves it.
  */
 export const DrawingRoute = ({
   store,
   id,
   theme,
   onThemeChange,
+  actions,
   children,
 }: {
   store: WorkspaceStore;
   id: DrawingId;
   theme: Theme;
   onThemeChange: (theme: Theme | "system") => void;
+  actions: WorkspaceActions;
   /** the main menu, the welcome screen and anything else the editor shows */
   children: SetsquareProps["children"];
 }) => {
@@ -122,16 +133,38 @@ export const DrawingRoute = ({
     };
   }, [current, setsquareAPI]);
 
-  const name = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-  ).drawings.get(id)?.name;
+  // once its last changes are saved, the thumbnail shows what the editor left
+  useEffect(() => {
+    if (!current) {
+      return;
+    }
+    const { persistence } = current;
+    return () => {
+      persistence.flush().then(() => persistence.renderThumbnail());
+    };
+  }, [current]);
+
+  const name = useWorkspaceSnapshot(store).drawings.get(id)?.name;
   useEffect(() => {
     document.title = name ? `${name} · ${APP_NAME}` : APP_NAME;
     return () => {
       document.title = APP_NAME;
     };
   }, [name]);
+
+  // a link to an element of another drawing opens that drawing, which then
+  // scrolls to the element
+  const openLinkedScene = useCallback(
+    (link: string) => {
+      const route = parseRoute(link);
+      if (route.kind !== "drawing" || route.id === id) {
+        return false;
+      }
+      navigate(route);
+      return true;
+    },
+    [id],
+  );
 
   if (error) {
     // for the error boundary
@@ -140,14 +173,39 @@ export const DrawingRoute = ({
   if (!current) {
     return <LoadingMessage theme={theme} delay={250} />;
   }
+  const commandPaletteItems: CommandPaletteItem[] = [
+    {
+      label: t("workspace.newDrawing"),
+      category: DEFAULT_CATEGORIES.app,
+      icon: newDrawingIcon,
+      perform: actions.newDrawing,
+    },
+    {
+      label: t("workspace.openFile"),
+      category: DEFAULT_CATEGORIES.app,
+      icon: LoadIcon,
+      shortcut: getShortcutFromShortcutName("loadScene"),
+      perform: actions.openFile,
+    },
+  ];
   return (
     <EditorShell
       key={id}
       persistence={current.persistence}
       theme={theme}
       onThemeChange={onThemeChange}
+      // the workspace opens files as new drawings instead
+      loadScene={false}
+      commandPaletteItems={commandPaletteItems}
+      openLinkedScene={openLinkedScene}
     >
       {children}
+      <DrawingsSidebar
+        store={store}
+        drawingId={id}
+        onNewDrawing={actions.newDrawing}
+        saveDrawing={current.persistence.flush}
+      />
     </EditorShell>
   );
 };

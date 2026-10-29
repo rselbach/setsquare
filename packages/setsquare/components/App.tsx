@@ -3681,9 +3681,11 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     // a launched file replaces the initial scene, so it can only load once
-    // that scene is in place; the browser holds launches until then
+    // that scene is in place; the browser holds launches until then. A host
+    // that doesn't let the editor load scenes takes launches itself.
     if (
       !this.unmounted &&
+      this.props.UIOptions.canvasActions.loadScene &&
       "launchQueue" in this.ownerWindow &&
       "LaunchParams" in this.ownerWindow
     ) {
@@ -3910,7 +3912,10 @@ class App extends React.Component<AppProps, AppState> {
     this.elementRenderOverrides = new Map();
     this.elementRenderOffsets = new Map();
 
-    (this.ownerWindow as any).launchQueue?.setConsumer(() => {});
+    // leaves the host's consumer in place
+    if (this.props.UIOptions.canvasActions.loadScene) {
+      (this.ownerWindow as any).launchQueue?.setConsumer(() => {});
+    }
 
     this.renderer.destroy();
     this.scene.destroy();

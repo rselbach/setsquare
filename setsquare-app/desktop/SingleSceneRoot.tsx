@@ -1,7 +1,3 @@
-import { isTauri } from "@tauri-apps/api/core";
-import { useState } from "react";
-
-import { AppMainMenu } from "../components/AppMainMenu";
 import { AppWelcomeScreen } from "../components/AppWelcomeScreen";
 import { EditorShell } from "../editor/EditorShell";
 import { useHandleAppTheme } from "../useHandleAppTheme";
@@ -14,8 +10,6 @@ import { singleScenePersistence } from "./singleScenePersistence";
 export const SingleSceneRoot = () => {
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
 
-  const [, forceRefresh] = useState(false);
-
   useSceneUrlLinks();
 
   return (
@@ -24,14 +18,7 @@ export const SingleSceneRoot = () => {
       theme={editorTheme}
       onThemeChange={setAppTheme}
     >
-      {isTauri() ? (
-        <DesktopMenu theme={appTheme} setTheme={setAppTheme} />
-      ) : (
-        <AppMainMenu
-          theme={appTheme}
-          refresh={() => forceRefresh((prev) => !prev)}
-        />
-      )}
+      <DesktopMenu theme={appTheme} setTheme={setAppTheme} />
       <AppWelcomeScreen />
     </EditorShell>
   );

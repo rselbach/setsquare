@@ -1,4 +1,6 @@
-import { eyeIcon } from "@setsquare/setsquare/components/icons";
+import { getShortcutFromShortcutName } from "@setsquare/setsquare/actions/shortcuts";
+import { LoadIcon, eyeIcon } from "@setsquare/setsquare/components/icons";
+import { useI18n } from "@setsquare/setsquare/i18n";
 import { MainMenu } from "@setsquare/setsquare/index";
 import React from "react";
 
@@ -7,16 +9,31 @@ import { isDevEnv } from "@setsquare/common";
 import type { Theme } from "@setsquare/element/types";
 
 import { LanguageList } from "../app-language/LanguageList";
+import { newDrawingIcon } from "../web/icons";
 
 import { saveDebugState } from "./DebugCanvas";
 
+import type { WorkspaceActions } from "../web/workspaceActions";
+
+/** The web app's main menu; the desktop app has its menu bar instead. */
 export const AppMainMenu: React.FC<{
   theme: Theme | "system";
   refresh: () => void;
+  actions: WorkspaceActions;
 }> = React.memo((props) => {
+  const { t } = useI18n();
   return (
     <MainMenu>
-      <MainMenu.DefaultItems.LoadScene />
+      <MainMenu.Item icon={newDrawingIcon} onSelect={props.actions.newDrawing}>
+        {t("workspace.newDrawing")}
+      </MainMenu.Item>
+      <MainMenu.Item
+        icon={LoadIcon}
+        onSelect={props.actions.openFile}
+        shortcut={getShortcutFromShortcutName("loadScene")}
+      >
+        {t("workspace.openFile")}
+      </MainMenu.Item>
       <MainMenu.DefaultItems.SaveToActiveFile />
       <MainMenu.DefaultItems.Export />
       <MainMenu.DefaultItems.SaveAsImage />

@@ -1128,6 +1128,12 @@ export type CanvasActions = Partial<{
   changeViewBackgroundColor: boolean;
   clearCanvas: boolean;
   export: false | ExportOpts;
+  /**
+   * Whether the editor opens files over its scene: the Open action, its
+   * shortcut, and files the browser launches the app with. With `false`, the
+   * editor leaves the launch queue alone, so a host can set its own consumer
+   * and open files itself.
+   */
   loadScene: boolean;
   saveToActiveFile: boolean;
   /**
