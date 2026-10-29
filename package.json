@@ -4,6 +4,7 @@
   "packageManager": "yarn@1.22.22",
   "workspaces": [
     "setsquare-app",
+    "setsquare-server",
     "packages/*",
     "examples/*"
   ],
@@ -41,10 +42,15 @@
     "vitest-canvas-mock": "0.3.3"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "homepage": ".",
   "scripts": {
+    "start:server": "yarn workspace setsquare-server dev",
+    "build:server": "yarn workspace setsquare-server build",
+    "serve": "yarn workspace setsquare-server start",
+    "test:server": "yarn workspace setsquare-server test",
+    "test:server:typecheck": "yarn workspace setsquare-server typecheck",
     "build-node": "node ./scripts/build-node.js",
     "build:app:docker": "yarn --cwd ./setsquare-app build:app:docker",
     "build:app": "yarn --cwd ./setsquare-app build:app",
@@ -62,7 +68,7 @@
     "start:production": "yarn --cwd ./setsquare-app start:production",
     "start:example": "yarn build:packages && yarn --cwd ./examples/with-script-in-browser start",
     "tauri": "yarn --cwd ./setsquare-app tauri",
-    "test:all": "yarn test:typecheck && yarn test:code && yarn test:other && yarn test:app --watch=false",
+    "test:all": "yarn test:typecheck && yarn test:server:typecheck && yarn test:code && yarn test:other && yarn test:app --watch=false && yarn test:server",
     "test:app": "vitest",
     "test:code": "eslint --max-warnings=0 --ext .js,.ts,.tsx .",
     "test:other": "yarn prettier --list-different",

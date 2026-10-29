@@ -1,9 +1,14 @@
 import type { FileId } from "@setsquare/element/types";
 
+import type { BinaryFiles } from "@setsquare/setsquare/types";
+
 import type { FileManager } from "../data/FileManager";
+
+import type { SaveOptions } from "./api";
 
 import type {
   ChangeResult,
+  AccountDraft,
   DrawingContent,
   DrawingId,
   DrawingMeta,
@@ -42,6 +47,18 @@ export interface NewDrawing {
  * once there are accounts. Each call changes one item.
  */
 export interface WorkspaceStore {
+  /** the account whose recovery drafts this store may read */
+  readonly recoveryKey?: string;
+  /** the mounted browser's recovery storage, when using accounts */
+  readonly recoveryStorage?: Storage;
+  /** private recovery records belonging to individual editor sessions */
+  readonly recoveryDrafts?: {
+    save(draft: AccountDraft): Promise<void>;
+    load(id: DrawingId): Promise<AccountDraft[]>;
+    remove(draftId: string, generation?: string): Promise<void>;
+  };
+  /** caches image bytes locally before a network save can begin */
+  stageFiles?(files: BinaryFiles): Promise<void>;
   /** every folder and drawing, as of the last change this store saw */
   getSnapshot(): WorkspaceSnapshot;
   /**
@@ -74,6 +91,7 @@ export interface WorkspaceStore {
     id: DrawingId,
     content: DrawingContent,
     fileIds: readonly FileId[],
+    options?: SaveOptions,
   ): Promise<SaveResult>;
   /** saves where this browser left the drawing; not a change to it */
   saveDrawingView(id: DrawingId, view: DrawingView): Promise<ChangeResult>;

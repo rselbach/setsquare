@@ -39,8 +39,8 @@
   },
   "scripts": {
     "build-node": "node ./scripts/build-node.js",
-    "build:app:docker": "vite build",
-    "build:app": "vite build",
+    "build:app:docker": "yarn build:app",
+    "build:app": "yarn --cwd .. test:typecheck && vite build",
     "build:version": "node ../scripts/build-version.js",
     "build": "yarn build:app && yarn build:version",
     "start": "yarn && vite",

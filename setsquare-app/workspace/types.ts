@@ -93,6 +93,26 @@ export type DrawingContent = Readonly<{
 /** Where this browser last looked in a drawing and what it had selected. */
 export type DrawingView = Pick<AppState, DrawingViewKey>;
 
+/** A drawing edit kept locally until its server write is acknowledged. */
+export type DrawingDraft = {
+  id: DrawingId;
+  baseRevision: number;
+  elements: readonly NonDeletedSetsquareElement[];
+  appState: DrawingContentAppState & DrawingView;
+  request?: {
+    requestId: string;
+    baseRevision: number;
+    content: DrawingContent;
+  };
+};
+
+/** One editor session's recovery record, independent of other open tabs. */
+export type AccountDraft = DrawingDraft & {
+  draftId: string;
+  generation: string;
+  updatedAt: number;
+};
+
 /** A small picture of a drawing, rendered from one of its revisions. */
 export type Thumbnail = Readonly<{
   src: DataURL;
@@ -131,7 +151,8 @@ export type MoveResult =
 /** The drawing as saved, or why it couldn't be. */
 export type SaveResult =
   | { ok: true; meta: DrawingMeta }
-  | { ok: false; reason: "notFound" };
+  | { ok: false; reason: "notFound" }
+  | { ok: false; reason: "conflict"; meta: DrawingMeta };
 
 /** A drawing as the editor opens it. */
 export type OpenedDrawing = Readonly<{

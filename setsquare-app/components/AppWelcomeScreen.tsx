@@ -16,7 +16,8 @@ import type { WorkspaceActions } from "../web/workspaceActions";
  */
 export const AppWelcomeScreen: React.FC<{
   actions?: WorkspaceActions;
-}> = React.memo(({ actions }) => {
+  storage?: "browser" | "account";
+}> = React.memo(({ actions, storage = "browser" }) => {
   const { t } = useI18n();
 
   return (
@@ -42,7 +43,9 @@ export const AppWelcomeScreen: React.FC<{
           Setsquare
         </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>
-          {isTauri() ? (
+          {storage === "account" ? (
+            t("workspace.accountPrivate")
+          ) : isTauri() ? (
             t("welcomeScreen.app.center_heading_desktop")
           ) : (
             <>

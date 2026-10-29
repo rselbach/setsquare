@@ -6,6 +6,7 @@
 !.npmrc
 !.prettierrc
 !setsquare-app/
+!setsquare-server/
 !package.json
 !public/
 !packages/
@@ -19,3 +20,6 @@
 **/dist
 **/node_modules
 setsquare-app/src-tauri
+setsquare-server/.env*
+**/.env.local
+**/.env.*.local

@@ -84,6 +84,24 @@ describe("routes", () => {
 });
 
 describe("navigation", () => {
+  it("keeps the editor and address when its leave guard blocks", async () => {
+    const { result } = renderHook(() => useRoute());
+    setLeaveGuard(async () => false);
+    let changed: boolean | undefined;
+    await act(async () => {
+      changed = await navigate({ kind: "drawing", id: troy });
+    });
+    expect(changed).toBe(false);
+    expect(window.location.pathname).toBe("/");
+    expect(result.current).toEqual({ kind: "drawings", folderId: null });
+
+    await act(async () => {
+      window.history.pushState(null, "", "/d/troy");
+      window.dispatchEvent(new PopStateEvent("popstate"));
+    });
+    expect(window.location.pathname).toBe("/");
+    expect(result.current).toEqual({ kind: "drawings", folderId: null });
+  });
   it("shows the route the address held when it started", () => {
     stopRouter();
     window.history.replaceState(null, "", "/d/troy");

@@ -17,6 +17,7 @@ import type { Theme } from "@setsquare/element/types";
 
 import { useAppLangCode } from "../../app-language/language-state";
 import { STORAGE_KEYS } from "../../app_constants";
+import { useWorkspaceAccount } from "../../web/accountContext";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
@@ -111,6 +112,7 @@ const WorkspaceView = ({
   trash,
 }: Omit<WorkspacePageProps, "theme">) => {
   const { t } = useI18n();
+  const account = useWorkspaceAccount();
   const isPhone = useEditorInterface().formFactor === "phone";
   const snapshot = useWorkspaceSnapshot(store);
   const now = useNow();
@@ -335,10 +337,14 @@ const WorkspaceView = ({
               <FilledButton icon={PlusIcon} onClick={newDrawing}>
                 {t("workspace.newDrawing")}
               </FilledButton>
-              <p className="workspace-empty__warning">
-                {t("welcomeScreen.app.center_heading")}{" "}
-                {t("welcomeScreen.app.center_heading_line2")}
-              </p>
+              {(!account ||
+                account.state.kind === "local" ||
+                account.state.kind === "signedOut") && (
+                <p className="workspace-empty__warning">
+                  {t("welcomeScreen.app.center_heading")}{" "}
+                  {t("welcomeScreen.app.center_heading_line2")}
+                </p>
+              )}
             </EmptyState>
           ) : (
             <EmptyState title={t("workspace.emptyFolder")}>

@@ -14,6 +14,7 @@ import clsx from "clsx";
 import type { Theme } from "@setsquare/element/types";
 
 import { LanguageList } from "../../app-language/LanguageList";
+import { AccountControls } from "../../web/accountControls";
 import { drawingsIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 
@@ -137,12 +138,7 @@ export const WorkspaceNav = ({
         </li>
       </ul>
       <div className="workspace-nav__foot">
-        <p className="workspace-nav__storage">
-          <span className="workspace-caption">
-            {t("workspace.storedInBrowser")}
-          </span>
-          {t("welcomeScreen.app.center_heading_line2")}
-        </p>
+        <AccountControls />
         <div className="workspace-nav__prefs">
           <RadioGroup
             name="workspace-theme"

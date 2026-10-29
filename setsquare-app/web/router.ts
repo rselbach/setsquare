@@ -17,7 +17,7 @@ export type Route =
  * Runs before the app leaves the current page, by a link or back and
  * forward alike. The app waits for it, so it can save what's open.
  */
-export type LeaveGuard = () => Promise<void>;
+export type LeaveGuard = () => Promise<void | boolean>;
 
 const ROOT: Route = { kind: "drawings", folderId: null };
 
@@ -83,6 +83,7 @@ export const routeToPath = (route: Route): string => {
 // the route the app shows, which trails the address while a leave guard runs
 let current: Route = ROOT;
 let leaveGuard: LeaveGuard | null = null;
+let routerWindow: Window | null = null;
 const listeners = new Set<() => void>();
 
 const publish = (route: Route) => {
@@ -97,28 +98,35 @@ const publish = (route: Route) => {
 
 const runLeaveGuard = async () => {
   try {
-    await leaveGuard?.();
+    return (await leaveGuard?.()) !== false;
   } catch (error) {
     // a failed save mustn't trap the user on the page
     console.error(error);
+    return true;
   }
 };
 
 const onPopState = async () => {
   // the address already changed, but the old page saves before it goes
-  await runLeaveGuard();
-  publish(parseRoute(window.location.href));
+  if (!(await runLeaveGuard())) {
+    routerWindow?.history.replaceState(null, "", routeToPath(current));
+    return;
+  }
+  if (routerWindow) {
+    publish(parseRoute(routerWindow.location.href));
+  }
 };
 
 /**
  * Starts following the address bar, showing the route it holds now. Returns
  * a function that stops.
  */
-export const initRouter = () => {
-  current = parseRoute(window.location.href);
-  window.addEventListener("popstate", onPopState);
+export const initRouter = (ownerWindow: Window = window) => {
+  routerWindow = ownerWindow;
+  current = parseRoute(ownerWindow.location.href);
+  ownerWindow.addEventListener("popstate", onPopState);
   return () => {
-    window.removeEventListener("popstate", onPopState);
+    ownerWindow.removeEventListener("popstate", onPopState);
     leaveGuard = null;
   };
 };
@@ -133,7 +141,9 @@ export const navigate = async (
   route: Route,
   { replace = false }: { replace?: boolean } = {},
 ) => {
-  await runLeaveGuard();
+  if (!(await runLeaveGuard())) {
+    return false;
+  }
   const path = routeToPath(route);
   if (replace) {
     window.history.replaceState(null, "", path);
@@ -141,6 +151,7 @@ export const navigate = async (
     window.history.pushState(null, "", path);
   }
   publish(route);
+  return true;
 };
 
 const subscribe = (listener: () => void) => {

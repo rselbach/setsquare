@@ -9,6 +9,9 @@ import { createHtmlPlugin } from "vite-plugin-html";
 export default defineConfig(({ command, mode }) => {
   // To load .env variables
   const envVars = loadEnv(mode, `../`);
+  const apiUrl =
+    process.env.SETSQUARE_API_URL ??
+    loadEnv(mode, "../", "SETSQUARE_").SETSQUARE_API_URL;
   // set by the Tauri CLI when it runs the desktop app's build hooks
   const isTauri = Boolean(process.env.TAURI_ENV_PLATFORM);
   const enableESLint =
@@ -22,6 +25,7 @@ export default defineConfig(({ command, mode }) => {
       strictPort: isTauri,
       // open the browser
       open: !isTauri,
+      proxy: apiUrl ? { "/api": { target: apiUrl } } : undefined,
     },
     // We need to specify the envDir since now there are no
     //more located in parallel with the vite.config.ts file but in parent dir
@@ -143,6 +147,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [
       react(),
       checker({
+        enableBuild: false,
         typescript: true,
         eslint: enableESLint
           ? {

@@ -4,17 +4,35 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: setsquare
+          POSTGRES_PASSWORD: setsquare_test
+          POSTGRES_DB: setsquare_backend_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U setsquare -d setsquare_backend_test" --health-interval 5s --health-timeout 5s --health-retries 10
+
+
+    env:
+      TEST_DATABASE_URL: postgresql://setsquare:setsquare_test@localhost:5432/setsquare_backend_test
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20.x
+          node-version: 24.x
       - name: Install and test
         run: |
           yarn install
-          yarn test:app
+          yarn test:app --run
+          yarn test:server
+          yarn test:server:typecheck

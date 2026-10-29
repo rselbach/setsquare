@@ -21,6 +21,7 @@ import { openDatabase, request, transact } from "./idb";
 import { readLegacyScene } from "./migrateLegacy";
 
 import type { WorkspaceBroadcast } from "../broadcast";
+import type { SaveOptions } from "../api";
 import type {
   ChangeResult,
   DrawingContent,
@@ -385,6 +386,7 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     id: DrawingId,
     content: DrawingContent,
     fileIds: readonly FileId[],
+    options?: SaveOptions,
   ) {
     const at = this.now();
     // the drawing takes its name from the content, so renaming it in the
@@ -393,6 +395,15 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     return this.write(
       ["drawings", "contents"],
       async (tx): Promise<SaveResult> => {
+        if (options) {
+          const current = await get(tx, "drawings", id);
+          if (!current) {
+            return NOT_FOUND;
+          }
+          if (current.revision !== options.baseRevision) {
+            return { ok: false, reason: "conflict", meta: current };
+          }
+        }
         const meta = await update(tx, "drawings", id, (drawing) => ({
           ...edited(drawing, at),
           name,

@@ -1,0 +1,33 @@
+.drawing-save-status {
+  position: absolute;
+  z-index: var(--zIndex-viewportStatusFrame, 5);
+  left: 50%;
+  bottom: 3.5rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: min(32rem, calc(100% - 2rem));
+  width: max-content;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid var(--default-border-color);
+  background: var(--island-bg-color);
+  color: var(--text-primary-color);
+  font-size: 0.75rem;
+
+  &[data-state="saved"] {
+    opacity: 0.75;
+  }
+
+  button {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--default-border-color);
+    background: var(--button-gray-1);
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+  }
+}

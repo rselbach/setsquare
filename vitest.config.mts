@@ -1,6 +1,6 @@
 import path from "path";
 
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
@@ -81,6 +81,7 @@ export default defineConfig({
   },
   //@ts-ignore
   test: {
+    exclude: [...configDefaults.exclude, "setsquare-server/**"],
     // Since hooks are running in stack in v2, which means all hooks run serially whereas
     // we need to run them in parallel
     sequence: {

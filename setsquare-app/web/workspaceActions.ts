@@ -146,7 +146,9 @@ export const useDrawingActions = (
   const moveToTrash = useCallback(async () => {
     // leaving first saves the drawing, and the editor isn't there to see it
     // go, which it would take for another tab's doing
-    await navigate({ kind: "drawings", folderId: folderId() });
+    if (!(await navigate({ kind: "drawings", folderId: folderId() }))) {
+      return;
+    }
     trash({ kind: "drawing", id: drawingId });
   }, [folderId, trash, drawingId]);
 

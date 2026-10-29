@@ -1,0 +1,29 @@
+{
+  "name": "setsquare-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file=.env.local src/main.ts",
+    "start": "node dist/server.mjs",
+    "build": "yarn typecheck && esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=dist/server.mjs",
+    "test": "vitest run --config vitest.config.mts",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.5",
+    "@fastify/static": "10.1.8",
+    "fastify": "5.12.7",
+    "oauth4webapi": "3.8.8",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.15"
+  }
+}

@@ -16,20 +16,26 @@ import { isTrashed } from "../workspace/tree";
 import { DrawingNotice } from "../workspace/ui/DrawingNotice";
 
 import { createDrawingPersistence } from "./drawingPersistence";
+import { DrawingSaveStatus } from "./DrawingSaveStatus";
 import { DrawingsSidebar } from "./DrawingsSidebar";
 import { drawingsIcon, newDrawingIcon } from "./icons";
 import { navigate, parseRoute, setLeaveGuard } from "./router";
-import { replayUnsaved, writeUnsaved } from "./unsavedJournal";
+import {
+  recoverUnavailable,
+  replayUnsaved,
+  writeUnsaved,
+} from "./unsavedJournal";
 import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
 import { discardIfUnused } from "./workspaceActions";
 
-import type { DrawingId, OpenedDrawing } from "../workspace/types";
+import type { DrawingId } from "../workspace/types";
 import type { NoticeKind } from "../workspace/ui/DrawingNotice";
 import type { WorkspaceToastState } from "../workspace/ui/WorkspaceToast";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 import type { DrawingPersistence } from "./drawingPersistence";
 import type { QueuedTasks } from "./editorTasks";
+import type { RecoveredDrawing } from "./unsavedJournal";
 import type { DrawingActions } from "./workspaceActions";
 
 const drawingRef = (id: DrawingId) => ({ kind: "drawing", id } as const);
@@ -38,18 +44,18 @@ const drawingRef = (id: DrawingId) => ({ kind: "drawing", id } as const);
 const openDrawing = async (
   store: WorkspaceStore,
   id: DrawingId,
-): Promise<OpenedDrawing | NoticeKind> => {
+): Promise<RecoveredDrawing | NoticeKind> => {
   if (isTrashed(store.getSnapshot(), drawingRef(id))) {
-    return "trashed";
+    return (await recoverUnavailable(store, id, "trashed")) ?? "trashed";
   }
   const drawing = await store.openDrawing(id);
   if (!drawing) {
-    return "missing";
+    return (await recoverUnavailable(store, id, "missing")) ?? "missing";
   }
   // opening it brought the workspace up to date, which may show that
   // another tab trashed it
   if (isTrashed(store.getSnapshot(), drawingRef(id))) {
-    return "trashed";
+    return (await recoverUnavailable(store, id, "trashed")) ?? "trashed";
   }
   return replayUnsaved(store, drawing);
 };
@@ -97,6 +103,7 @@ export const DrawingRoute = ({
   children: SetsquareProps["children"];
 }) => {
   const setsquareAPI = useSetsquareAPI();
+  const host = useRef<HTMLDivElement>(null);
   const snapshot = useWorkspaceSnapshot(store);
   const [session, setSession] = useState<Session | null>(null);
   // restoring the drawing from the notice opens it again
@@ -106,7 +113,7 @@ export const DrawingRoute = ({
   const opening = useRef<{
     id: DrawingId;
     attempt: number;
-    drawing: Promise<OpenedDrawing | NoticeKind>;
+    drawing: Promise<RecoveredDrawing | NoticeKind>;
   } | null>(null);
   // the editor that's leaving its drawing, which may delete the drawing as
   // it goes; that's no reason for a notice
@@ -137,6 +144,10 @@ export const DrawingRoute = ({
           setSession({ id, attempt, kind: drawing });
           return;
         }
+        const ownerWindow = host.current?.ownerDocument.defaultView;
+        if (!ownerWindow) {
+          return;
+        }
         const editor: EditorSession = {
           id,
           attempt,
@@ -144,6 +155,7 @@ export const DrawingRoute = ({
           persistence: createDrawingPersistence({
             store,
             drawing,
+            ownerWindow,
             // such as when another tab deleted it
             onNotFound: () => giveWay(editor, "missing"),
           }),
@@ -182,13 +194,29 @@ export const DrawingRoute = ({
     setLeaveGuard(async () => {
       leaving.current = editor;
       await save(editor);
+      if (
+        store.recoveryKey &&
+        persistence.unsaved() &&
+        !persistence.hasDurableDraft()
+      ) {
+        leaving.current = null;
+        return false;
+      }
       await discardIfUnused(store, editor.id, persistence.unsaved() === null);
     });
     // the page may close before an IndexedDB write started now commits
-    const onPageHide = () => {
+    const onPageHide = (event: Event) => {
       const unsaved = persistence.unsaved();
       if (unsaved) {
-        writeUnsaved(unsaved);
+        writeUnsaved(unsaved, store.recoveryKey, store.recoveryStorage);
+        if (
+          event.type === EVENT.BEFORE_UNLOAD &&
+          store.recoveryKey &&
+          !persistence.hasDurableDraft()
+        ) {
+          event.preventDefault();
+          (event as BeforeUnloadEvent).returnValue = "";
+        }
       }
     };
     window.addEventListener("pagehide", onPageHide);
@@ -227,11 +255,15 @@ export const DrawingRoute = ({
     let active = true;
     save(editor)
       .catch((error) => console.error(error))
-      .then(() => active && giveWay(editor, gone));
+      .then(() => {
+        if (active && !(store.recoveryKey && editor.persistence.unsaved())) {
+          giveWay(editor, gone);
+        }
+      });
     return () => {
       active = false;
     };
-  }, [editor, gone, save, giveWay]);
+  }, [editor, gone, save, giveWay, store]);
 
   const name = snapshot.drawings.get(id)?.name;
   useEffect(() => {
@@ -260,24 +292,30 @@ export const DrawingRoute = ({
     throw error;
   }
   if (!current) {
-    return <LoadingMessage theme={theme} delay={250} />;
+    return (
+      <div ref={host} style={{ height: "100%" }}>
+        <LoadingMessage theme={theme} delay={250} />
+      </div>
+    );
   }
   if (current.kind !== "editor") {
     return (
-      <DrawingNotice
-        store={store}
-        id={id}
-        kind={current.kind}
-        theme={theme}
-        tasks={tasks}
-        toast={toast}
-        onRestore={() => {
-          store.restore(drawingRef(id)).then(
-            () => setAttempt((attempt) => attempt + 1),
-            (error) => console.error(error),
-          );
-        }}
-      />
+      <div ref={host} style={{ height: "100%" }}>
+        <DrawingNotice
+          store={store}
+          id={id}
+          kind={current.kind}
+          theme={theme}
+          tasks={tasks}
+          toast={toast}
+          onRestore={() => {
+            store.restore(drawingRef(id)).then(
+              () => setAttempt((attempt) => attempt + 1),
+              (error) => console.error(error),
+            );
+          }}
+        />
+      </div>
     );
   }
   const commandPaletteItems: CommandPaletteItem[] = [
@@ -308,24 +346,29 @@ export const DrawingRoute = ({
     },
   ];
   return (
-    <EditorShell
-      key={id}
-      persistence={current.persistence}
-      theme={theme}
-      onThemeChange={onThemeChange}
-      // the workspace opens files as new drawings instead
-      loadScene={false}
-      commandPaletteItems={commandPaletteItems}
-      openLinkedScene={openLinkedScene}
-    >
-      {children}
-      <DrawingsSidebar
-        store={store}
-        drawingId={id}
-        onNewDrawing={actions.newDrawing}
-        onTrash={actions.trashDrawing}
-        saveDrawing={current.persistence.flush}
-      />
-    </EditorShell>
+    <div ref={host} style={{ height: "100%" }}>
+      <EditorShell
+        key={id}
+        persistence={current.persistence}
+        theme={theme}
+        onThemeChange={onThemeChange}
+        // the workspace opens files as new drawings instead
+        loadScene={false}
+        commandPaletteItems={commandPaletteItems}
+        openLinkedScene={openLinkedScene}
+      >
+        {children}
+        {store.recoveryKey && (
+          <DrawingSaveStatus persistence={current.persistence} />
+        )}
+        <DrawingsSidebar
+          store={store}
+          drawingId={id}
+          onNewDrawing={actions.newDrawing}
+          onTrash={actions.trashDrawing}
+          saveDrawing={current.persistence.flush}
+        />
+      </EditorShell>
+    </div>
   );
 };
