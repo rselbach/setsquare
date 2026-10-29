@@ -337,6 +337,45 @@ describe("RemoteWorkspaceStore", () => {
     expect((await otherAccount.files.get([image.id])).loadedFiles).toEqual([]);
   });
 
+  it("uploads an image again after the server collected it", async () => {
+    const meta = drawing();
+    const image = file();
+    const saved = { ...meta, revision: 2, fileIds: [image.id] };
+    let collected = false;
+    const events: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input, init) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      if (path === "/api/files") {
+        events.push("image");
+        collected = false;
+        return response(JSON.parse(String(init?.body)));
+      }
+      if (collected) {
+        events.push("missing");
+        return response({ error: "missing_files" }, 400);
+      }
+      events.push("drawing");
+      return response({
+        result: { kind: "save", result: { ok: true, meta: saved } },
+        snapshot: workspace(saved),
+      });
+    };
+    const store = await open(fetch);
+    await store.files.save({ addedFiles: new Map([[image.id, image]]) });
+    collected = true;
+    const result = await store.saveDrawingContent(
+      meta.id,
+      emptyDrawingContent(meta.name),
+      [image.id],
+      { baseRevision: 1, requestId: "abed-save" },
+    );
+    expect(result).toEqual({ ok: true, meta: saved });
+    expect(events).toEqual(["image", "missing", "image", "drawing"]);
+  });
+
   it("rejects malformed metadata before changing the cached snapshot", async () => {
     const meta = drawing();
     const fetch = vi

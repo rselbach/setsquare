@@ -192,8 +192,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     content = emptyDrawingContent(name),
     fileIds = [],
   }: NewDrawing) {
-    await this.ensureFiles(fileIds);
-    const { result } = await this.command({
+    const { result } = await this.commandWithFiles(fileIds, {
       kind: "createDrawing",
       id: newDrawingId(),
       folderId,
@@ -278,8 +277,8 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     if (baseRevision === undefined) {
       return NOT_FOUND;
     }
-    await this.ensureFiles(fileIds);
-    const { result } = await this.command(
+    const { result } = await this.commandWithFiles(
+      fileIds,
       { kind: "saveDrawing", id, content, fileIds, baseRevision },
       options?.requestId,
     );
@@ -522,6 +521,28 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       throw new Error("The server did not confirm the imported item");
     }
     await this.cache.markImported(key);
+  }
+
+  // the server collects images no drawing has used for a day, which this
+  // tab may still remember uploading
+  private async commandWithFiles(
+    fileIds: readonly FileId[],
+    command: WorkspaceCommand,
+    requestId?: string,
+  ) {
+    await this.ensureFiles(fileIds);
+    try {
+      return await this.command(command, requestId);
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.message !== "missing_files") {
+        throw error;
+      }
+      for (const id of fileIds) {
+        this.confirmedFiles.delete(id);
+      }
+      await this.ensureFiles(fileIds);
+      return this.command(command, requestId);
+    }
   }
 
   private async ensureFiles(ids: readonly FileId[]) {
