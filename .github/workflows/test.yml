@@ -10,9 +10,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:18
@@ -28,14 +32,14 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql://setsquare:setsquare_test@localhost:5432/setsquare_backend_test
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.x
       - name: Restore dependencies
         id: dependencies
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             node_modules
@@ -43,10 +47,17 @@ jobs:
             setsquare-server/node_modules
             packages/*/node_modules
             examples/*/node_modules
-          key: dependencies-${{ runner.os }}-node24-${{ hashFiles('yarn.lock', '**/package.json', '.yarnrc', '.npmrc', '**/patches/**') }}
+          key: dependencies-v2-${{ runner.os }}-node24-${{ hashFiles('yarn.lock', '**/package.json', '.yarnrc', '.npmrc', '**/patches/**') }}
       - name: Install dependencies
         if: steps.dependencies.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile --non-interactive
+        # --frozen-lockfile ignores workspace package.json files
+        # (yarnpkg/yarn#5840), so install and fail if yarn.lock changes
+        run: |
+          yarn install --non-interactive
+          if ! git diff --exit-code -- yarn.lock; then
+            echo "yarn.lock is out of date. Run yarn install and commit it." >&2
+            exit 1
+          fi
       - name: Test frontend
         if: github.event_name != 'pull_request'
         run: yarn test:app --run
