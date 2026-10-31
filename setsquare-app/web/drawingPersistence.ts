@@ -19,6 +19,7 @@ import {
   DRAWING_CONTENT_KEYS,
   DRAWING_VIEW_KEYS,
   splitAppState,
+  toPrefs,
 } from "../workspace/drawingAppState";
 import { loadPrefs, savePrefs } from "../workspace/prefs";
 import {
@@ -64,6 +65,18 @@ const contentSignature = (
 
 const viewSignature = (view: DrawingView) =>
   JSON.stringify(DRAWING_VIEW_KEYS.map((key) => view[key]));
+
+/** What the drawing's storage keeps of a scene, as content and view. */
+const persistedSignature = (
+  elements: readonly SetsquareElement[],
+  appState: AppState,
+) => {
+  const { content, view } = splitAppState(appState);
+  return {
+    content: contentSignature(getNonDeletedElements(elements), content),
+    view: viewSignature(view),
+  };
+};
 
 const NOTHING_CHANGED = { scene: null, files: false } as const;
 
@@ -170,7 +183,12 @@ export const createDrawingPersistence = ({
         onFilesSaved: () => {},
       }
     : null;
+  let pendingSignature =
+    pending && persistedSignature(pending.elements, pending.appState);
   let latest: ThumbnailScene | null = pending;
+  // while above zero, the queue saves until nothing is pending instead of
+  // waiting for a pause in editing between saves
+  let settling = 0;
   let request: ContentWrite | null =
     recovered?.request && pending
       ? {
@@ -387,32 +405,23 @@ export const createDrawingPersistence = ({
       state.kind !== "expired"
     ) {
       const scene = request?.scene ?? pending;
-      const { content, view, prefs } = splitAppState(scene.appState);
-      savePrefs(prefs);
+      const { content, view } = splitAppState(scene.appState);
       publish({ kind: "saving" });
       if (!request) {
         await settleImageStaging();
         await saveImages(scene);
+        const elements = getNonDeletedElements(scene.elements);
+        const signature = contentSignature(elements, content);
+        request = {
+          uncertain: false,
+          phase: signature !== storedContent ? "content" : "view",
+          scene,
+          content: { elements, appState: content },
+          signature,
+          baseRevision: lastRevision,
+          requestId: ownerWindow.crypto.randomUUID(),
+        };
       }
-      request ??= {
-        uncertain: false,
-        phase:
-          contentSignature(getNonDeletedElements(scene.elements), content) !==
-          storedContent
-            ? "content"
-            : "view",
-        scene,
-        content: {
-          elements: getNonDeletedElements(scene.elements),
-          appState: content,
-        },
-        signature: contentSignature(
-          getNonDeletedElements(scene.elements),
-          content,
-        ),
-        baseRevision: lastRevision,
-        requestId: ownerWindow.crypto.randomUUID(),
-      };
       keepRecovery();
       await recoveryWriting;
       if (request.phase === "content") {
@@ -465,8 +474,15 @@ export const createDrawingPersistence = ({
         pending = null;
       }
       publish({ kind: pending ? "unsaved" : "saved" });
-      keepRecovery();
-      await recoveryWriting;
+      if (!pending) {
+        keepRecovery();
+        await recoveryWriting;
+      } else if (!settling) {
+        // edits made during this save wait for a pause in editing; the
+        // debounced recovery copy keeps them meanwhile
+        debouncedSave();
+        return;
+      }
     }
   };
 
@@ -509,6 +525,21 @@ export const createDrawingPersistence = ({
     keepRecovery,
     SAVE_TO_LOCAL_STORAGE_TIMEOUT,
   );
+  const debouncedPrefs = debounce(
+    (appState: AppState) => savePrefs(toPrefs(appState)),
+    SAVE_TO_LOCAL_STORAGE_TIMEOUT,
+  );
+
+  /** Waits until the queue has saved everything pending or has to stop. */
+  const settle = async () => {
+    settling++;
+    try {
+      await writing;
+      await recoveryWriting;
+    } finally {
+      settling--;
+    }
+  };
 
   return {
     load: async () => ({
@@ -527,7 +558,18 @@ export const createDrawingPersistence = ({
         return;
       }
       latest = { elements, appState, files };
+      debouncedPrefs(appState);
+      const signature = persistedSignature(elements, appState);
+      const kept = pending
+        ? pendingSignature
+        : { content: storedContent, view: storedView };
+      // a change to what the drawing doesn't keep, such as the pointer's
+      // button or an open menu, leaves nothing to save
+      if (signature.content === kept?.content && signature.view === kept.view) {
+        return;
+      }
       pending = { ...latest, onFilesSaved };
+      pendingSignature = signature;
       generation = ownerWindow.crypto.randomUUID();
       updatedAt = Date.now();
       stageImages(latest);
@@ -547,17 +589,18 @@ export const createDrawingPersistence = ({
     },
     flush: () => {
       debouncedRecovery.flush();
+      debouncedPrefs.flush();
       const before = queued;
       debouncedSave.flush();
       if (before === queued && pending && state.kind === "unsaved") {
         enqueue();
       }
-      return writing.then(() => recoveryWriting);
+      return settle();
     },
     isSavePaused: () => ownerWindow.document.hidden,
     changedElsewhere: async () => {
       debouncedSave.flush();
-      await writing;
+      await settle();
       if (gone) {
         return NOTHING_CHANGED;
       }
@@ -646,8 +689,7 @@ export const createDrawingPersistence = ({
         keepRecovery();
       }
       enqueue();
-      await writing;
-      await recoveryWriting;
+      await settle();
     },
     recoverAsCopy: async () => {
       await writing;
