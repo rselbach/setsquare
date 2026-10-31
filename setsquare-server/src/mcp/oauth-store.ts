@@ -4,6 +4,7 @@ import {
   randomUUID,
   timingSafeEqual,
 } from "node:crypto";
+import { isIPv6 } from "node:net";
 
 import { z } from "zod";
 
@@ -24,6 +25,44 @@ export const hash = (value: string) =>
 const token = () => randomBytes(32).toString("base64url");
 export const equal = (a: string, b: string) =>
   timingSafeEqual(Buffer.from(hash(a)), Buffer.from(hash(b)));
+
+/**
+ * The address a registration counts against: IPv4-mapped addresses as IPv4,
+ * and other IPv6 addresses by their /64, since one host can usually use any
+ * address in its /64.
+ */
+export const registrationSource = (ip: string) => {
+  if (!isIPv6(ip)) {
+    return ip;
+  }
+  const [address] = ip.toLowerCase().split("%");
+  const dotted = /(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(address);
+  const hex = dotted
+    ? address.slice(0, dotted.index) +
+      [1, 3]
+        .map((i) =>
+          ((Number(dotted[i]) << 8) | Number(dotted[i + 1])).toString(16),
+        )
+        .join(":")
+    : address;
+  const [head, tail] = hex.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const words = [
+    ...left,
+    ...Array(8 - left.length - right.length).fill("0"),
+    ...right,
+  ].map((group) => parseInt(group, 16));
+  if (words.slice(0, 5).every((word) => word === 0) && words[5] === 0xffff) {
+    return [words[6] >> 8, words[6] & 255, words[7] >> 8, words[7] & 255].join(
+      ".",
+    );
+  }
+  return `${words
+    .slice(0, 4)
+    .map((word) => word.toString(16))
+    .join(":")}::/64`;
+};
 
 export class OAuthError extends Error {
   constructor(readonly code: string, message: string, readonly status = 400) {
@@ -143,7 +182,7 @@ export class McpOAuthStore {
     const secret =
       metadata.token_endpoint_auth_method === "none" ? undefined : token();
     await transaction(this.pool, async (db) => {
-      const ipHash = hash(ip);
+      const ipHash = hash(registrationSource(ip));
       await db.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [
         `mcp-register:${ipHash}`,
       ]);
@@ -258,6 +297,10 @@ export class McpOAuthStore {
           "Granted permissions must be requested by the client",
         );
       }
+      await db.query(
+        "UPDATE mcp_clients SET authorized_at = $2 WHERE id = $1 AND authorized_at IS NULL",
+        [request.client_id, this.now()],
+      );
       const grant = randomUUID();
       const code = token();
       await db.query(
@@ -484,5 +527,12 @@ export class McpOAuthStore {
     await this.pool.query("DELETE FROM mcp_grants WHERE expires_at <= $1", [
       this.now(),
     ]);
+    // Authorized clients stay after their grants expire so their cached
+    // client_id can authorize again.
+    await this.pool.query(
+      `DELETE FROM mcp_clients WHERE authorized_at IS NULL AND created_at <= $1
+      AND NOT EXISTS (SELECT 1 FROM mcp_consents WHERE client_id = mcp_clients.id)`,
+      [this.now() - 24 * 60 * MINUTE],
+    );
   }
 }

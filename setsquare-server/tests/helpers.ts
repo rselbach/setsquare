@@ -49,6 +49,7 @@ export const config: ServerConfig = {
   staticDir: "/tmp/setsquare-backend-no-build",
   github: { clientId: "test-client", clientSecret: "test-secret" },
   allowedGithubIds: null,
+  trustProxy: false,
 };
 
 /** A provider whose external calls can be exercised without GitHub credentials. */

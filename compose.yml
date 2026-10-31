@@ -9,6 +9,7 @@ services:
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?Set the GitHub OAuth secret}
       ALLOWED_GITHUB_IDS: ${ALLOWED_GITHUB_IDS:-}
       ALLOW_ANY_GITHUB_ACCOUNT: ${ALLOW_ANY_GITHUB_ACCOUNT:-}
+      TRUST_PROXY: ${TRUST_PROXY:-}
       DATABASE_URL: postgresql://setsquare:${POSTGRES_PASSWORD:?Set a database password}@db:5432/setsquare
     depends_on:
       db:

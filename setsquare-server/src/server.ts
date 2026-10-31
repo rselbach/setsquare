@@ -41,6 +41,7 @@ export const buildServer = async ({
   logger = false,
   cleanup = true,
 }: ServerOptions) => {
+  const { trustProxy } = config;
   const app = Fastify({
     logger: logger
       ? {
@@ -56,6 +57,11 @@ export const buildServer = async ({
     bodyLimit: 12 * 1024 * 1024,
     requestTimeout: 30_000,
     routerOptions: { maxParamLength: 1024 },
+    // Fastify ignores numeric hop counts, so trust the nearest hops explicitly
+    trustProxy:
+      typeof trustProxy === "number"
+        ? (_address: string, hop: number) => hop < trustProxy
+        : trustProxy,
   });
   await app.register(cookie);
   const auth = new Authentication(
