@@ -189,6 +189,9 @@ export const createDrawingPersistence = ({
   // while above zero, the queue saves until nothing is pending instead of
   // waiting for a pause in editing between saves
   let settling = 0;
+  // set while edits made during a save wait for the debounce, so a drain
+  // queued before that save finished doesn't send them at once
+  let awaitingPause = false;
   let request: ContentWrite | null =
     recovered?.request && pending
       ? {
@@ -397,6 +400,9 @@ export const createDrawingPersistence = ({
   };
 
   const drain = async () => {
+    if (awaitingPause && !settling) {
+      return;
+    }
     while (
       pending &&
       !gone &&
@@ -480,6 +486,7 @@ export const createDrawingPersistence = ({
       } else if (!settling) {
         // edits made during this save wait for a pause in editing; the
         // debounced recovery copy keeps them meanwhile
+        awaitingPause = true;
         debouncedSave();
         return;
       }
@@ -520,7 +527,10 @@ export const createDrawingPersistence = ({
       keepRecovery();
     });
   };
-  const debouncedSave = debounce(enqueue, SAVE_TO_LOCAL_STORAGE_TIMEOUT);
+  const debouncedSave = debounce(() => {
+    awaitingPause = false;
+    enqueue();
+  }, SAVE_TO_LOCAL_STORAGE_TIMEOUT);
   const debouncedRecovery = debounce(
     keepRecovery,
     SAVE_TO_LOCAL_STORAGE_TIMEOUT,

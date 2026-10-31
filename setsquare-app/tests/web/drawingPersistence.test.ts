@@ -227,6 +227,7 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
     await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1));
     edit("troy", "annie", "abed");
     edit("troy", "annie", "abed", "shirley");
+    await vi.advanceTimersByTimeAsync(SAVE_TO_LOCAL_STORAGE_TIMEOUT);
     const saved = new Promise<void>((resolve) =>
       persistence.subscribeSaveState(() => {
         if (persistence.getSaveState().kind === "unsaved") {
