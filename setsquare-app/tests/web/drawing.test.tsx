@@ -2,6 +2,7 @@ import { KEYS } from "@setsquare/common";
 import { getNonDeletedElements } from "@setsquare/element";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { getDefaultAppState } from "@setsquare/setsquare/appState";
+import { restoreElements } from "@setsquare/setsquare/data/restore";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 import { Keyboard } from "@setsquare/setsquare/tests/helpers/ui";
 import {
@@ -25,6 +26,7 @@ import type {
   NormalizedZoomValue,
 } from "@setsquare/setsquare/types";
 
+import { FileStatusStore } from "../../data/fileStatusStore";
 import { filesStore } from "../../data/localFiles";
 import * as workspaceStore from "../../web/workspaceStore";
 import {
@@ -256,6 +258,49 @@ describe("a drawing's page", () => {
     const page = within(screen.getByRole("main"));
     expect(page.getByRole("link", { name: "Seating" })).toBeInTheDocument();
     expect(page.queryByRole("link", { name: "Floor plan" })).toBe(null);
+  });
+
+  it("shows the images it can't read as broken instead of loading", async () => {
+    const fileId = "pierce" as FileId;
+    const content = savedContent("Yearbook", "troy");
+    const image = API.createElement({
+      type: "image",
+      fileId,
+      id: "pierce",
+      status: "saved",
+    });
+    const yearbook = await store.createDrawing({
+      folderId: null,
+      name: "Yearbook",
+      content: {
+        ...content,
+        elements: getNonDeletedElements(
+          restoreElements([...content.elements, image], null),
+        ),
+      },
+      fileIds: [fileId],
+    });
+    vi.mocked(workspaceStore.openWorkspaceStore).mockImplementation(
+      async () => {
+        const appStore = await workspace.open();
+        // as an account store does once the session expires
+        vi.spyOn(appStore.files, "get").mockRejectedValue(
+          new ApiError(401, "unauthorized"),
+        );
+        return appStore;
+      },
+    );
+
+    await renderWebAppAt(`/d/${yearbook.id}`);
+
+    await waitForDrawing(yearbook.id, ["troy", "pierce"]);
+    await waitFor(() =>
+      expect(h.elements.find(({ id }) => id === "pierce")).toMatchObject({
+        status: "error",
+      }),
+    );
+    // which Export waits on
+    expect(FileStatusStore.getSnapshot().value.get(fileId)).toBe("error");
   });
 });
 

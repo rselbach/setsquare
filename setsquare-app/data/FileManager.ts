@@ -146,7 +146,16 @@ export class FileManager {
     this._onFileStatusChange?.(ids.map((id) => [id, "loading"]));
 
     try {
-      const { loadedFiles, erroredFiles } = await this._getFiles(ids);
+      const { loadedFiles, erroredFiles } = await this._getFiles(ids).catch(
+        (error) => {
+          // none loaded, and none may stay loading, which Export waits on
+          console.error("Couldn't load images", error);
+          return {
+            loadedFiles: [],
+            erroredFiles: new Map(ids.map((id) => [id, true as const])),
+          };
+        },
+      );
 
       for (const file of loadedFiles) {
         this.savedFiles.set(file.id, this.getFileVersion(file));
