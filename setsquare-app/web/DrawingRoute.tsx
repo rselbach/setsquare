@@ -408,6 +408,7 @@ export const DrawingRoute = ({
         <DrawingSaveStatus
           persistence={current.persistence}
           local={!store.recoveryKey}
+          onDiscarded={() => setAttempt((attempt) => attempt + 1)}
         />
         <ReportOpenDrawing
           id={id}

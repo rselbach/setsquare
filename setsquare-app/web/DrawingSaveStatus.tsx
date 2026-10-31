@@ -77,9 +77,12 @@ const statusFor = (state: DrawingSaveState, local: boolean): Status => {
 export const DrawingSaveStatus = ({
   persistence,
   local = false,
+  onDiscarded,
 }: {
   persistence: DrawingPersistence;
   local?: boolean;
+  /** opens the drawing again once this session's changes are discarded */
+  onDiscarded: () => void;
 }) => {
   const app = useApp();
   const isPhone = useEditorInterface().formFactor === "phone";
@@ -87,7 +90,7 @@ export const DrawingSaveStatus = ({
     persistence.subscribeSaveState,
     persistence.getSaveState,
   );
-  const [copying, setCopying] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
   const failures = useRef(0);
 
@@ -114,7 +117,7 @@ export const DrawingSaveStatus = ({
   }, [state.kind, persistence, app]);
 
   const copy = async () => {
-    setCopying(true);
+    setBusy(true);
     setCopyFailed(false);
     try {
       const drawing = await persistence.recoverAsCopy();
@@ -125,14 +128,26 @@ export const DrawingSaveStatus = ({
       console.error(error);
       setCopyFailed(true);
     } finally {
-      setCopying(false);
+      setBusy(false);
+    }
+  };
+
+  const discard = async () => {
+    setBusy(true);
+    try {
+      await persistence.discard();
+      onDiscarded();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setBusy(false);
     }
   };
 
   let status = statusFor(state, local);
   const recoveryFailed = persistence.getRecoveryError() !== null;
   const storageFull = persistence.isDeviceStorageFull();
-  let action: { label: string; run: () => void } | null = null;
+  let actions: Array<{ label: string; run: () => void }> = [];
   if (recoveryFailed) {
     status = {
       tone: "danger",
@@ -154,14 +169,19 @@ export const DrawingSaveStatus = ({
     if (copyFailed) {
       status = { ...status, detail: t("workspace.saveCopyFailed") };
     }
-    action = { label: t("workspace.saveCopy"), run: copy };
+    actions = [
+      { label: t("workspace.saveCopy"), run: copy },
+      { label: t("workspace.saveDiscard"), run: discard },
+    ];
   } else if (state.kind === "error" || state.kind === "rejected") {
-    action = {
-      label: t("workspace.saveRetry"),
-      run: () => {
-        persistence.retry().catch((error) => console.error(error));
+    actions = [
+      {
+        label: t("workspace.saveRetry"),
+        run: () => {
+          persistence.retry().catch((error) => console.error(error));
+        },
       },
-    };
+    ];
   }
   if (isPhone && status.tone === "quiet") {
     return null;
@@ -193,16 +213,17 @@ export const DrawingSaveStatus = ({
           {t("workspace.exportRecovery")}
         </button>
       )}
-      {action && (
+      {actions.map((action) => (
         <button
+          key={action.label}
           type="button"
           className="drawing-save-status__action"
           onClick={action.run}
-          disabled={copying}
+          disabled={busy}
         >
           {action.label}
         </button>
-      )}
+      ))}
     </div>
   );
   return isPhone ? box : <Footer>{box}</Footer>;

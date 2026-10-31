@@ -798,6 +798,7 @@
     "saveConflict": "This drawing changed in another tab or browser. Your changes are kept on this device.",
     "saveMissing": "This drawing was deleted or moved to the Trash elsewhere. Your changes are kept on this device.",
     "saveCopy": "Save as a copy",
+    "saveDiscard": "Discard my changes",
     "saveRetry": "Retry",
     "saveCopyName": "{{name}} recovered",
     "saveCopyFailed": "Could not save the copy. Your changes are still on this device.",

@@ -58,13 +58,16 @@ export const writeUnsaved = (
   }
 };
 
-/** Removes an editor's own draft, or a recovered version that has not changed. */
+/**
+ * Removes an editor's own draft, or, given `notAfter`, every copy of a
+ * recovered one last edited at or before it.
+ */
 export const clearUnsaved = (
   id: DrawingId,
   account?: string,
   storage: Storage = localStorage,
   draftId?: string,
-  generation?: string,
+  notAfter?: number,
 ) => {
   if (account && !draftId) {
     return;
@@ -79,11 +82,11 @@ export const clearUnsaved = (
         return;
       }
     }
-    if (generation) {
+    if (notAfter !== undefined) {
       const saved = z
-        .object({ generation: z.string() })
+        .object({ updatedAt: z.number() })
         .safeParse(JSON.parse(storage.getItem(key) ?? "null"));
-      if (!saved.success || saved.data.generation !== generation) {
+      if (saved.success && saved.data.updatedAt > notAfter) {
         return;
       }
     }
