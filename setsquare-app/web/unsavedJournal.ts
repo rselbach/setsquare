@@ -38,6 +38,26 @@ const keyFor = (id: DrawingId, account?: string, draftId?: string) =>
     ? `${localPrefixFor(id)}${draftId}`
     : KEY;
 
+/**
+ * The account's localStorage drafts as stored, without restoring them; a
+ * value that is not JSON reads as `undefined`.
+ */
+export const storedAccountDrafts = (account: string, storage: Storage) => {
+  const values: unknown[] = [];
+  for (let index = 0; index < storage.length; index++) {
+    const key = storage.key(index);
+    if (!key?.startsWith(`${KEY}:${account}:`)) {
+      continue;
+    }
+    try {
+      values.push(JSON.parse(storage.getItem(key) ?? "null"));
+    } catch {
+      values.push(undefined);
+    }
+  }
+  return values;
+};
+
 /** Writes the synchronous fallback for edits whose IndexedDB write is pending. */
 export const writeUnsaved = (
   draft: UnsavedDrawing,

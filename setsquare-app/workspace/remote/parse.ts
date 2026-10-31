@@ -318,3 +318,32 @@ export const parseAccountDraft = (value: unknown): AccountDraft => {
     appState: { ...content.appState, ...parseView(draft.appState) },
   };
 };
+
+const draftImages = z.object({
+  elements: z.array(z.unknown()),
+  request: z
+    .object({ content: z.object({ elements: z.array(z.unknown()) }) })
+    .optional(),
+});
+const imageReference = z.object({ fileId: z.string() });
+
+/**
+ * Every image a stored draft or its pinned request may show, read loosely so
+ * a draft this build cannot restore still protects its images. Null when the
+ * value is not shaped like a draft at all.
+ */
+export const draftFileIds = (value: unknown) => {
+  const draft = draftImages.safeParse(value);
+  if (!draft.success) {
+    return null;
+  }
+  return [
+    ...draft.data.elements,
+    ...(draft.data.request?.content.elements ?? []),
+  ].flatMap((element) => {
+    const image = imageReference.safeParse(element);
+    return image.success
+      ? [image.data.fileId as FilesData["files"][number]["id"]]
+      : [];
+  });
+};

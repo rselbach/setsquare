@@ -900,7 +900,7 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
     const [valid] = await cache.loadDrafts(drawing.meta.id);
     const db = await openDatabase(
       `setsquare-account-${fixture.dbName}`,
-      2,
+      3,
       () => {},
     );
     await transact(db, ["drafts"], "readwrite", (tx) =>

@@ -8,6 +8,8 @@ import { API } from "@setsquare/setsquare/tests/helpers/api";
 import type { FileId } from "@setsquare/element/types";
 import type { BinaryFileData } from "@setsquare/setsquare/types";
 
+import { STORAGE_KEYS } from "../../app_constants";
+import { writeUnsaved } from "../../web/unsavedJournal";
 import {
   emptyDrawingContent,
   splitAppState,
@@ -31,7 +33,11 @@ import type {
   WorkspaceCommand,
   WorkspaceData,
 } from "../../workspace/api";
-import type { DrawingMeta, DrawingId } from "../../workspace/types";
+import type {
+  AccountDraft,
+  DrawingMeta,
+  DrawingId,
+} from "../../workspace/types";
 
 const stores: RemoteWorkspaceStore[] = [];
 let accounts = 0;
@@ -89,7 +95,7 @@ const cachedFile = async (
 ) => {
   const db = await openDatabase(
     `setsquare-account-${account.user.id}`,
-    2,
+    3,
     () => {},
   );
   try {
@@ -131,7 +137,7 @@ describe("RemoteWorkspaceStore", () => {
 
     const db = await openDatabase(
       `setsquare-account-${account.user.id}`,
-      3,
+      4,
       () => {},
     );
     db.close();
@@ -532,7 +538,7 @@ describe("RemoteWorkspaceStore", () => {
       const store = await open(fetch, account);
       const db = await openDatabase(
         `setsquare-account-${account.user.id}`,
-        2,
+        3,
         () => {},
       );
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -1022,146 +1028,6 @@ describe("RemoteWorkspaceStore", () => {
     }
   });
 
-  it("evicts views of drawings the snapshot no longer has but keeps staged, drafted and pinned-request images", async () => {
-    const account = session();
-    const used = file("used" as FileId);
-    const orphan = file("orphan" as FileId);
-    const drafted = file("drafted" as FileId);
-    const requested = file("requested" as FileId);
-    const staged = file("staged" as FileId);
-    const unconfirmed = file("unconfirmed" as FileId);
-    const gone = { ...drawing(), fileIds: [orphan.id, requested.id] };
-    const meta = { ...drawing(), fileIds: [used.id] };
-    let data: WorkspaceData = { folders: [], drawings: [gone, meta] };
-    const fetch: typeof globalThis.fetch = async (input) => {
-      if (String(input) === "/api/workspace") {
-        return response(data);
-      }
-      throw new Error(`Unexpected request: ${String(input)}`);
-    };
-    const store = await open(fetch, account);
-    const db = await openDatabase(
-      `setsquare-account-${account.user.id}`,
-      2,
-      () => {},
-    );
-    try {
-      const draft = {
-        id: "recovered" as DrawingId,
-        baseRevision: 1,
-        draftId: "recovery",
-        generation: "generation",
-        updatedAt: 1000,
-        elements: [API.createElement({ type: "image", fileId: drafted.id })],
-        appState: {
-          ...emptyDrawingContent(meta.name).appState,
-          ...splitAppState(getDefaultAppState()).view,
-        },
-        request: {
-          requestId: "pinned-request",
-          baseRevision: 1,
-          content: {
-            elements: [
-              API.createElement({ type: "image", fileId: requested.id }),
-            ],
-            appState: emptyDrawingContent(meta.name).appState,
-          },
-        },
-      };
-      await transact(
-        db,
-        ["views", "files", "drafts"],
-        "readwrite",
-        async (tx) => {
-          await request(tx.objectStore("views").put({ scrollX: 1 }, meta.id));
-          await request(tx.objectStore("views").put({ scrollX: 2 }, gone.id));
-          await request(tx.objectStore("files").put(used, used.id));
-          await request(tx.objectStore("files").put(orphan, orphan.id));
-          await request(tx.objectStore("files").put(drafted, drafted.id));
-          await request(tx.objectStore("files").put(requested, requested.id));
-          await request(
-            tx.objectStore("files").put(unconfirmed, unconfirmed.id),
-          );
-          await request(
-            tx
-              .objectStore("drafts")
-              .put(JSON.parse(JSON.stringify(draft)), draft.draftId),
-          );
-        },
-      );
-      await store.stageFiles({ [staged.id]: staged });
-      data = { folders: [], drawings: [meta] };
-      await store.refresh();
-      await transact(
-        db,
-        ["views", "files", "drafts"],
-        "readonly",
-        async (tx) => {
-          expect(await request(tx.objectStore("views").get(meta.id))).toEqual({
-            scrollX: 1,
-          });
-          expect(
-            await request(tx.objectStore("views").get(gone.id)),
-          ).toBeUndefined();
-          for (const image of [
-            used,
-            orphan,
-            drafted,
-            requested,
-            staged,
-            unconfirmed,
-          ]) {
-            expect(
-              await request(tx.objectStore("files").get(image.id)),
-            ).toEqual(image);
-          }
-          expect(
-            await request(tx.objectStore("drafts").get("recovery")),
-          ).toEqual(draft);
-        },
-      );
-    } finally {
-      db.close();
-    }
-  });
-
-  it("keeps another store's staged image bytes through a refresh", async () => {
-    const account = session();
-    const image = file("staged-elsewhere" as FileId);
-    const meta = { ...drawing(), fileIds: [image.id] };
-    let data: WorkspaceData = { folders: [], drawings: [meta] };
-    const fetch: typeof globalThis.fetch = async (input) => {
-      if (String(input) === "/api/workspace") {
-        return response(data);
-      }
-      throw new Error(`Unexpected request: ${String(input)}`);
-    };
-    const first = await open(fetch, account);
-    const second = await open(fetch, account);
-    await second.stageFiles({ [image.id]: image });
-    // the drawing that referenced the image is gone by the time the other
-    // store refreshes, but the image is still staged for recovery
-    data = { folders: [], drawings: [] };
-    await first.refresh();
-    await expect(
-      second.stageFiles({ [image.id]: image }),
-    ).resolves.toBeUndefined();
-    const db = await openDatabase(
-      `setsquare-account-${account.user.id}`,
-      2,
-      () => {},
-    );
-    try {
-      await transact(db, ["files"], "readonly", async (tx) => {
-        expect(await request(tx.objectStore("files").get(image.id))).toEqual(
-          image,
-        );
-      });
-    } finally {
-      db.close();
-    }
-  });
-
   it("still runs content commands when the device cache cannot be read", async () => {
     const meta = drawing();
     const image = file();
@@ -1424,5 +1290,393 @@ describe("RemoteWorkspaceStore", () => {
     } finally {
       local.close();
     }
+  });
+});
+
+describe("RemoteWorkspaceStore image cache", () => {
+  // one LockManager for every store, as a browser shares one across its tabs
+  const held = new Set<string>();
+  let duringQuery: (() => Promise<void>) | null = null;
+  const locks = {
+    request: async (name: string, callback: () => Promise<void>) => {
+      held.add(name);
+      try {
+        return await callback();
+      } finally {
+        held.delete(name);
+      }
+    },
+    // the answer is a snapshot, so locks taken while it travels are missing
+    query: async () => {
+      const snapshot = [...held].map((name) => ({ name }));
+      const run = duringQuery;
+      duringQuery = null;
+      await run?.();
+      return { held: snapshot, pending: [] };
+    },
+  };
+
+  beforeEach(() => {
+    Object.defineProperty(window.navigator, "locks", {
+      configurable: true,
+      value: locks,
+    });
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(window.navigator, "locks");
+    duringQuery = null;
+    localStorage.clear();
+  });
+
+  const serving =
+    (
+      files: readonly BinaryFileData[],
+      data: () => WorkspaceData,
+    ): typeof globalThis.fetch =>
+    async (input) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(data());
+      }
+      if (path.startsWith("/api/files?")) {
+        const ids = decodeURIComponent(
+          path.slice(path.indexOf("ids=") + 4),
+        ).split(",");
+        return response({ files: files.filter(({ id }) => ids.includes(id)) });
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+
+  const draftShowing = (
+    draftId: string,
+    shown: FileId,
+    requested?: FileId,
+  ): AccountDraft => ({
+    id: "recovered" as DrawingId,
+    baseRevision: 1,
+    draftId,
+    generation: "generation",
+    updatedAt: 1000,
+    elements: [API.createElement({ type: "image", fileId: shown })],
+    appState: {
+      ...emptyDrawingContent("Dreamatorium").appState,
+      ...splitAppState(getDefaultAppState()).view,
+    },
+    ...(requested && {
+      request: {
+        requestId: "pinned-request",
+        baseRevision: 1,
+        content: {
+          elements: [API.createElement({ type: "image", fileId: requested })],
+          appState: emptyDrawingContent("Dreamatorium").appState,
+        },
+      },
+    }),
+  });
+
+  const withCache = async <T>(
+    account: Extract<SessionInfo, { kind: "signedIn" }>,
+    stores: readonly string[],
+    fn: (tx: IDBTransaction) => Promise<T>,
+  ) => {
+    const db = await openDatabase(
+      `setsquare-account-${account.user.id}`,
+      3,
+      () => {},
+    );
+    try {
+      return await transact(db, stores, "readwrite", fn);
+    } finally {
+      db.close();
+    }
+  };
+
+  it("keeps newer bytes another store staged, through its memoized restaging and after it closes", async () => {
+    const account = session();
+    const image = file("staged-elsewhere" as FileId);
+    const newer = {
+      ...image,
+      version: 2,
+      dataURL: "data:image/png;base64,BBBB" as BinaryFileData["dataURL"],
+    };
+    let data = workspace({ ...drawing(), fileIds: [image.id] });
+    const fetch = serving([image], () => data);
+    const first = await open(fetch, account);
+    const second = await open(fetch, account);
+    await first.files.get([image.id]);
+    await second.stageFiles({ [image.id]: newer });
+    // the drawing that referenced the image is gone by the time the other
+    // store refreshes, but the newer bytes are still staged for recovery
+    data = { folders: [], drawings: [] };
+    await first.refresh();
+    await expect(
+      second.stageFiles({ [image.id]: newer }),
+    ).resolves.toBeUndefined();
+    await first.refresh();
+    expect(await cachedFile(account, image.id)).toEqual(newer);
+
+    second.close();
+    await first.refresh();
+    expect(await cachedFile(account, image.id)).toEqual(newer);
+  });
+
+  it("reclaims a confirmed image once every store that staged it has closed", async () => {
+    const account = session();
+    const image = file("confirmed" as FileId);
+    let data = workspace({ ...drawing(), fileIds: [image.id] });
+    const fetch = serving([image], () => data);
+    const first = await open(fetch, account);
+    const second = await open(fetch, account);
+    await first.files.get([image.id]);
+    await second.stageFiles({ [image.id]: image });
+    data = { folders: [], drawings: [] };
+    await first.refresh();
+    await second.stageFiles({ [image.id]: image });
+    await first.refresh();
+    expect(await cachedFile(account, image.id)).toEqual(image);
+
+    second.close();
+    await first.refresh();
+    expect(await cachedFile(account, image.id)).toBeUndefined();
+  });
+
+  it("keeps images that drawings, stored drafts and pinned requests show, and unconfirmed ones", async () => {
+    const account = session();
+    const used = file("used" as FileId);
+    const orphan = file("orphan" as FileId);
+    const drafted = file("drafted" as FileId);
+    const requested = file("requested" as FileId);
+    const fallback = file("fallback" as FileId);
+    const unconfirmed = file("unconfirmed" as FileId);
+    const confirmed = [used, orphan, drafted, requested, fallback];
+    const meta = { ...drawing(), fileIds: [used.id] };
+    const gone = { ...drawing(), fileIds: confirmed.map(({ id }) => id) };
+    let data: WorkspaceData = { folders: [], drawings: [gone, meta] };
+    const fetch = serving(confirmed, () => data);
+    const store = await open(fetch, account);
+    await store.files.get(confirmed.map(({ id }) => id));
+    const closed = await open(fetch, account);
+    await closed.stageFiles({ [unconfirmed.id]: unconfirmed });
+    closed.close();
+    await store.recoveryDrafts.save(
+      draftShowing("recovery", drafted.id, requested.id),
+    );
+    writeUnsaved(
+      draftShowing("fallback", fallback.id),
+      account.user.id,
+      localStorage,
+    );
+    const { view } = splitAppState(getDefaultAppState());
+    await store.saveDrawingView(meta.id, view);
+    await store.saveDrawingView(gone.id, view);
+    data = { folders: [], drawings: [meta] };
+    await store.refresh();
+
+    expect(await cachedFile(account, orphan.id)).toBeUndefined();
+    for (const image of [used, drafted, requested, fallback, unconfirmed]) {
+      expect(await cachedFile(account, image.id)).toEqual(image);
+    }
+    await withCache(account, ["views"], async (tx) => {
+      expect(await request(tx.objectStore("views").get(meta.id))).toEqual(
+        JSON.parse(JSON.stringify(view)),
+      );
+      expect(
+        await request(tx.objectStore("views").get(gone.id)),
+      ).toBeUndefined();
+    });
+  });
+
+  it.each([
+    [
+      "IndexedDB",
+      (account: Extract<SessionInfo, { kind: "signedIn" }>) =>
+        withCache(account, ["drafts"], (tx) =>
+          request(
+            tx.objectStore("drafts").put({ id: "recovered" }, "unreadable"),
+          ),
+        ),
+    ],
+    [
+      "localStorage",
+      async (account: Extract<SessionInfo, { kind: "signedIn" }>) =>
+        localStorage.setItem(
+          `${STORAGE_KEYS.LOCAL_STORAGE_UNSAVED}:${account.user.id}:recovered:unreadable`,
+          "{",
+        ),
+    ],
+  ])(
+    "keeps every image while a draft in %s cannot be read",
+    async (_, storeUnreadable) => {
+      const account = session();
+      const image = file("orphan" as FileId);
+      let data = workspace({ ...drawing(), fileIds: [image.id] });
+      const store = await open(
+        serving([image], () => data),
+        account,
+      );
+      await store.files.get([image.id]);
+      await storeUnreadable(account);
+      data = { folders: [], drawings: [] };
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        await store.refresh();
+      } finally {
+        warn.mockRestore();
+      }
+      expect(await cachedFile(account, image.id)).toEqual(image);
+    },
+  );
+
+  it.each([
+    [
+      "IndexedDB",
+      (store: RemoteWorkspaceStore, draft: AccountDraft) =>
+        store.recoveryDrafts.save(draft),
+      (store: RemoteWorkspaceStore, draft: AccountDraft) =>
+        store.recoveryDrafts.remove(draft.draftId),
+    ],
+    [
+      "localStorage",
+      async (store: RemoteWorkspaceStore, draft: AccountDraft) => {
+        writeUnsaved(draft, store.recoveryKey, localStorage);
+      },
+      async () => localStorage.clear(),
+    ],
+  ])(
+    "keeps what a closed store drafted in %s until the draft goes",
+    async (_, saveDraft, removeDraft) => {
+      const account = session();
+      const image = file("closed-tab" as FileId);
+      let data = workspace({ ...drawing(), fileIds: [image.id] });
+      const fetch = serving([image], () => data);
+      const first = await open(fetch, account);
+      const second = await open(fetch, account);
+      await first.files.get([image.id]);
+      await second.stageFiles({ [image.id]: image });
+      const draft = draftShowing("closed-tab", image.id);
+      await saveDraft(second, draft);
+      second.close();
+      data = { folders: [], drawings: [] };
+      await first.refresh();
+      expect(await cachedFile(account, image.id)).toEqual(image);
+
+      await removeDraft(first, draft);
+      await first.refresh();
+      expect(await cachedFile(account, image.id)).toBeUndefined();
+    },
+  );
+
+  it("keeps an image that a store opened while maintenance was deciding stages", async () => {
+    const account = session();
+    const image = file("mid-maintenance" as FileId);
+    let data = workspace({ ...drawing(), fileIds: [image.id] });
+    const fetch = serving([image], () => data);
+    const first = await open(fetch, account);
+    await first.files.get([image.id]);
+    data = { folders: [], drawings: [] };
+    duringQuery = async () => {
+      const second = await open(fetch, account);
+      // its own refresh found the image unused, so the server's copy returns
+      await second.files.get([image.id]);
+      await second.stageFiles({ [image.id]: image });
+    };
+    await first.refresh();
+    expect(duringQuery).toBeNull();
+    expect(await cachedFile(account, image.id)).toEqual(image);
+  });
+
+  it.each([
+    [
+      "IndexedDB",
+      (store: RemoteWorkspaceStore, draft: AccountDraft) =>
+        store.recoveryDrafts.save(draft),
+    ],
+    [
+      "localStorage",
+      async (store: RemoteWorkspaceStore, draft: AccountDraft) => {
+        writeUnsaved(draft, store.recoveryKey, localStorage);
+      },
+    ],
+  ])(
+    "keeps an image a draft in %s showed once maintenance had checked the locks",
+    async (_, saveDraft) => {
+      const account = session();
+      const image = file("drafted-mid-maintenance" as FileId);
+      let data = workspace({ ...drawing(), fileIds: [image.id] });
+      const fetch = serving([image], () => data);
+      const first = await open(fetch, account);
+      const second = await open(fetch, account);
+      await first.files.get([image.id]);
+      data = { folders: [], drawings: [] };
+      duringQuery = async () => {
+        await saveDraft(second, draftShowing("late", image.id));
+        second.close();
+      };
+      await first.refresh();
+      expect(duringQuery).toBeNull();
+      expect(await cachedFile(account, image.id)).toEqual(image);
+    },
+  );
+
+  it("keeps images, staging and saves working when maintenance fails", async () => {
+    const account = session();
+    const image = file("kept" as FileId);
+    const meta = { ...drawing(), fileIds: [image.id] };
+    let data = workspace(meta);
+    const saved = { ...meta, revision: 2 };
+    const files = serving([image], () => data);
+    const fetch: typeof globalThis.fetch = async (input, init) =>
+      String(input) === "/api/commands"
+        ? response({
+            result: { kind: "save", result: { ok: true, meta: saved } },
+            snapshot: workspace(saved),
+          })
+        : files(input, init);
+    const store = await open(fetch, account);
+    await store.files.get([image.id]);
+    data = { folders: [], drawings: [] };
+    duringQuery = async () => {
+      throw new DOMException("Lost", "InvalidStateError");
+    };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await expect(store.refresh()).resolves.toBeUndefined();
+      expect(warn).toHaveBeenCalledWith(
+        "Could not clean up the device cache",
+        expect.any(DOMException),
+      );
+    } finally {
+      warn.mockRestore();
+    }
+    expect(await cachedFile(account, image.id)).toEqual(image);
+    await expect(
+      store.stageFiles({ [image.id]: image }),
+    ).resolves.toBeUndefined();
+    data = workspace(meta);
+    await store.refresh();
+    await expect(
+      store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [image.id],
+        { baseRevision: 1, requestId: "pierce-save" },
+      ),
+    ).resolves.toEqual({ ok: true, meta: saved });
+  });
+
+  it("keeps every image when the browser has no Web Locks", async () => {
+    Reflect.deleteProperty(window.navigator, "locks");
+    const account = session();
+    const image = file("lockless" as FileId);
+    let data = workspace({ ...drawing(), fileIds: [image.id] });
+    const store = await open(
+      serving([image], () => data),
+      account,
+    );
+    await store.files.get([image.id]);
+    data = { folders: [], drawings: [] };
+    await store.refresh();
+    expect(await cachedFile(account, image.id)).toEqual(image);
   });
 });

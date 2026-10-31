@@ -27,7 +27,8 @@ type FileChange = Parameters<WorkspaceFiles["save"]>[0];
  *   device.
  * - The server's bytes are the account's copy. A download replaces the cached
  *   rendering at its version and is confirmed when it is at least as new as
- *   the confirmed copy.
+ *   the confirmed copy. Downloads and confirmed uploads mark the device copy
+ *   confirmed, which lets `AccountCache.maintain` reclaim it.
  * - An upload is skipped when the server has confirmed the same or a higher
  *   version. When another device uploaded the version first
  *   (`409 image_collision`), its bytes are adopted if they are at least as new.
@@ -56,12 +57,14 @@ export class FileSync {
         if (staged && (file.version ?? 1) <= staged.version) {
           return staged.saved;
         }
-        const saved = this.cache.saveFiles([file]).catch((error) => {
-          if (this.stagedFiles.get(file.id)?.saved === saved) {
-            this.stagedFiles.delete(file.id);
-          }
-          throw error;
-        });
+        const saved = this.cache
+          .saveFiles([file], { lease: true })
+          .catch((error) => {
+            if (this.stagedFiles.get(file.id)?.saved === saved) {
+              this.stagedFiles.delete(file.id);
+            }
+            throw error;
+          });
         this.stagedFiles.set(file.id, { version: file.version ?? 1, saved });
         return saved;
       }),
@@ -168,6 +171,7 @@ export class FileSync {
         throw new Error("The server did not confirm the saved image");
       }
       this.confirmedFiles.set(file.id, { ...saved });
+      await this.cacheFiles([saved], { replace: true });
     }
   }
 
