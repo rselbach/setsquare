@@ -1040,8 +1040,8 @@ export type HasBrand<T> = {
 type RemoveAllBrands<T> =
   HasBrand<T> extends true
     ? {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         [
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           K in keyof T as K extends `~brand~${infer _}` | "_brand" ? never : K
         ]: T[K];
       }
