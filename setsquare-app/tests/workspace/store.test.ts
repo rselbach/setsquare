@@ -54,6 +54,23 @@ describe("LocalWorkspaceStore", () => {
     ).rejects.toBeInstanceOf(DatabaseClosedError);
   });
 
+  it("finishes a change already running when a newer build's upgrade closes it", async () => {
+    const store = await workspace.open();
+
+    const creating = store.createDrawing({
+      folderId: null,
+      name: "Pillow fort",
+    });
+    const db = await openDatabase(
+      workspace.dbName,
+      SCHEMA_VERSION + 1,
+      () => {},
+    );
+    db.close();
+
+    await expect(creating).resolves.toMatchObject({ name: "Pillow fort" });
+  });
+
   it("stores a JSON-safe view when given a live linear element editor", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({ folderId: null, name: "Arrow" });

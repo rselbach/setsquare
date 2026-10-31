@@ -216,11 +216,7 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   }: LocalWorkspaceOptions = {}) {
     const db = await openDatabase(dbName, SCHEMA_VERSION, upgrade, {
       onBlocked,
-      onVersionChange: () => {
-        // no event reaches the connection before the store below exists
-        store.close();
-        onVersionChange?.();
-      },
+      onVersionChange,
     });
     const store = new LocalWorkspaceStore(db, channelName, now);
     try {
