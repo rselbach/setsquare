@@ -138,7 +138,7 @@ const remoteSession = async () => {
   return { server, ...(await withDrawing(await openRemote(server))) };
 };
 
-const persistenceFor = (store: AccountStore, drawing: OpenedDrawing) =>
+const persistenceFor = (store: WorkspaceStore, drawing: OpenedDrawing) =>
   createDrawingPersistence({
     store,
     drawing,
@@ -1352,5 +1352,110 @@ describe("against the account server's rules", () => {
     expect(save).toHaveBeenCalledTimes(1);
     expect([...states]).toEqual(["expired"]);
     expect(ids(persistence.unsaved()?.elements)).toEqual(["troy", "abed"]);
+  });
+});
+
+describe("with a signed-out store", () => {
+  const ids = (elements: readonly { id: string }[] | null | undefined) =>
+    elements?.map(({ id }) => id);
+
+  const signedOut = async () => {
+    const store = await fixture.open();
+    const meta = await store.createDrawing({
+      folderId: null,
+      name: "Greendale",
+      content: savedContent("Greendale", "troy"),
+    });
+    const drawing = await store.openDrawing(meta.id);
+    if (!drawing) {
+      throw new Error("The test drawing is missing");
+    }
+    return { store, drawing };
+  };
+
+  it("doesn't overwrite what another tab saved since this one loaded", async () => {
+    const { store, drawing } = await signedOut();
+    const otherTab = await fixture.open();
+    await otherTab.saveDrawingContent(
+      drawing.meta.id,
+      savedContent("Greendale", "troy", "abed"),
+      [],
+    );
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "troy", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await persistence.flush();
+
+    expect(persistence.getSaveState().kind).toBe("conflict");
+    expect(
+      ids((await store.loadDrawingContent(drawing.meta.id))?.elements),
+    ).toEqual(["troy", "abed"]);
+    expect(ids(persistence.unsaved()?.elements)).toEqual(["troy", "annie"]);
+  });
+
+  it("doesn't overwrite another tab's work with a save it retries later", async () => {
+    const { store, drawing } = await signedOut();
+    vi.spyOn(store, "saveDrawingContent").mockRejectedValueOnce(
+      new DOMException("The transaction was aborted", "AbortError"),
+    );
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "troy", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await persistence.flush();
+    expect(persistence.getSaveState().kind).toBe("error");
+    const otherTab = await fixture.open();
+    await otherTab.saveDrawingContent(
+      drawing.meta.id,
+      savedContent("Greendale", "troy", "abed"),
+      [],
+    );
+
+    await persistence.retry();
+
+    expect(persistence.getSaveState().kind).toBe("conflict");
+    expect(
+      ids((await store.loadDrawingContent(drawing.meta.id))?.elements),
+    ).toEqual(["troy", "abed"]);
+  });
+
+  it("treats a reopened save that had already committed as saved", async () => {
+    const { store, drawing } = await signedOut();
+    const original = store.saveDrawingContent.bind(store);
+    vi.spyOn(store, "saveDrawingContent").mockImplementationOnce(
+      async (...args) => {
+        await original(...args);
+        throw new Error("The page closed before the save finished");
+      },
+    );
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "troy", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await persistence.flush();
+    expect(persistence.unsaved()?.request).toBeDefined();
+    const opened = await store.openDrawing(drawing.meta.id);
+    if (!opened) {
+      throw new Error("The saved drawing is missing");
+    }
+
+    const reopened = persistenceFor(store, await replayUnsaved(store, opened));
+    await reopened.flush();
+
+    expect(reopened.getSaveState().kind).toBe("saved");
+    expect((await store.getDrawingMeta(drawing.meta.id))?.revision).toBe(2);
+    expect(
+      ids((await store.loadDrawingContent(drawing.meta.id))?.elements),
+    ).toEqual(["troy", "annie"]);
   });
 });

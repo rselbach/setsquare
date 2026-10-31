@@ -136,7 +136,7 @@ it("keeps the conflict draft when a save conflicts during the content read", asy
 });
 
 it.each(["getDrawingMeta", "loadDrawingContent"] as const)(
-  "discards %s after an edit and save complete during the read",
+  "discards %s and keeps an edit saved during the read, signed out",
   async (method) => {
     const { store, drawing, persistence } = await session(false);
     const remote = savedContent(appState.name, "remote");
@@ -147,20 +147,14 @@ it.each(["getDrawingMeta", "loadDrawingContent"] as const)(
     const local = savedContent(appState.name, "local");
     persistence.save(local.elements, appState, {}, vi.fn());
     await persistence.flush();
-    expect(persistence.unsaved()).toBe(null);
+    expect(persistence.getSaveState().kind).toBe("conflict");
     release.resolve();
     const changed = await syncing;
 
     expect(changed).toEqual({ scene: null, files: false });
-    expect(persistence.getSaveState().kind).toBe("saved");
-    expect((await persistence.changedElsewhere()).scene).toBe(null);
-
-    const save = vi.spyOn(store, "saveDrawingContent");
-    persistence.save(remote.elements, appState, {}, vi.fn());
-    await persistence.flush();
-    expect(save).toHaveBeenCalledTimes(1);
+    expect(persistence.getSaveState().kind).toBe("conflict");
+    expect(persistence.unsaved()?.elements).toEqual(local.elements);
     expect(await store.loadDrawingContent(drawing.meta.id)).toEqual(remote);
-    await persistence.renderThumbnail();
   },
 );
 
