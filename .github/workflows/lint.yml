@@ -22,10 +22,25 @@ jobs:
         with:
           node-version: 24.x
 
-      - name: Install and lint
-        run: |
-          yarn install
-          yarn test:other
-          yarn test:code
-          yarn test:typecheck
-          yarn test:server:typecheck
+      - name: Restore dependencies
+        id: dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            node_modules
+            setsquare-app/node_modules
+            setsquare-server/node_modules
+            packages/*/node_modules
+            examples/*/node_modules
+          key: dependencies-${{ runner.os }}-node24-${{ hashFiles('yarn.lock', '**/package.json', '.yarnrc', '.npmrc', '**/patches/**') }}
+      - name: Install dependencies
+        if: steps.dependencies.outputs.cache-hit != 'true'
+        run: yarn install --frozen-lockfile --non-interactive
+      - name: Check formatting
+        run: yarn test:other
+      - name: Lint code
+        run: yarn test:code
+      - name: Typecheck frontend
+        run: yarn test:typecheck
+      - name: Typecheck server
+        run: yarn test:server:typecheck
