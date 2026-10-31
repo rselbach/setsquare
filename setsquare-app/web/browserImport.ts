@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 import { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
 import { RemoteWorkspaceStore } from "../workspace/remote/RemoteWorkspaceStore";
 
-import type { ImportResult } from "../workspace/remote/RemoteWorkspaceStore";
+import type { ImportResult } from "../workspace/remote/localImport";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
 /**
