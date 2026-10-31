@@ -54,13 +54,16 @@ it("serves static navigation while keeping API and missing asset requests out of
   );
   const app = await testServer(db.pool, Date.now, { staticDir: directory });
   try {
-    const page = await app.inject({
-      url: "/d/greendale",
-      headers: { accept: "text/html" },
-    });
-    expect(page.statusCode).toBe(200);
-    expect(page.body).toContain("<main>Greendale</main>");
-    expect(page.headers["cache-control"]).toBe("no-cache");
+    for (const url of ["/", "/index.html", "/d/greendale"]) {
+      const page = await app.inject({ url, headers: { accept: "text/html" } });
+      expect(page.statusCode).toBe(200);
+      expect(page.body).toContain("<main>Greendale</main>");
+      expect(page.headers["cache-control"]).toBe("no-cache");
+      expect(page.headers["x-frame-options"]).toBe("DENY");
+      expect(page.headers["content-security-policy"]).toContain(
+        "frame-ancestors 'none'",
+      );
+    }
     const asset = await app.inject({ url: "/assets/app-abc123.js" });
     expect(asset.statusCode).toBe(200);
     expect(asset.headers["cache-control"]).toContain("immutable");
