@@ -11,10 +11,10 @@ import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import {
   cleanUpWebApp,
   findToast,
-  toastRegion,
   renderPageAt,
   savedContent,
   setUpTestWorkspace,
+  toastRegion,
   waitForPage,
 } from "./helpers";
 
@@ -231,6 +231,46 @@ describe("Move to…", () => {
       within(screen.getByRole("region", { name: "Folders" })).getAllByRole(
         "link",
       )[0],
+    );
+  });
+
+  it("gives the page's heading the focus when the last card moves away", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    const dialog = await openMoveDialog("Floor plan");
+    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Study group" }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it("gives the page's heading the focus when the last card is trashed", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    fireEvent.click(
+      within(screen.getByRole("main")).getByRole("button", {
+        name: "Actions for Floor plan",
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByTestId("dropdown-menu")).getByRole("menuitem", {
+        name: "Move to Trash",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Study group" }),
+      ).toHaveFocus(),
+    );
+    await waitFor(() =>
+      expect(store.getSnapshot().drawings.get(plan.id)?.trashedAt).not.toBe(
+        null,
+      ),
     );
   });
 

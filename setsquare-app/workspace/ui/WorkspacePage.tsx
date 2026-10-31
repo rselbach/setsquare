@@ -149,10 +149,11 @@ const isFocusLost = () =>
   !document.activeElement || document.activeElement === document.body;
 
 // back to the card's ⋯ button, or once the card's gone, to the link of the
-// card that took its place, or the one before it, or the first one left
+// card that took its place, or the one before it, or the first one left, or
+// with none left, to the page's heading
 const focusBack = (
   { card, list, index }: CardPlace,
-  content: HTMLElement | null,
+  main: HTMLElement | null,
 ) => {
   if (card.isConnected) {
     card.querySelector<HTMLElement>(".workspace-card__more")?.focus();
@@ -160,8 +161,9 @@ const focusBack = (
   }
   const cards = list?.isConnected ? [...list.children] : [];
   const near =
-    cards[Math.min(index, cards.length - 1)] ?? content?.querySelector("li");
-  near?.querySelector("a")?.focus();
+    cards[Math.min(index, cards.length - 1)] ??
+    main?.querySelector(".workspace__content li");
+  (near?.querySelector("a") ?? main?.querySelector<HTMLElement>("h1"))?.focus();
 };
 
 const WorkspaceView = ({
@@ -190,7 +192,7 @@ const WorkspaceView = ({
   } | null>(null);
   const movedFrom = useRef<CardPlace | null>(null);
   const trashedFrom = useRef<CardPlace | null>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   // what's being renamed, on the page it shows on
   const [renaming, setRenaming] = useState<{
     item: ItemRef;
@@ -240,7 +242,7 @@ const WorkspaceView = ({
     if (!moving && from) {
       movedFrom.current = null;
       if (isFocusLost()) {
-        focusBack(from, contentRef.current);
+        focusBack(from, mainRef.current);
       }
     }
   }, [moving]);
@@ -252,7 +254,7 @@ const WorkspaceView = ({
     if (from && !from.card.isConnected) {
       trashedFrom.current = null;
       if (isFocusLost()) {
-        focusBack(from, contentRef.current);
+        focusBack(from, mainRef.current);
       }
     }
   }, [items]);
@@ -476,7 +478,7 @@ const WorkspaceView = ({
 
   return (
     <div className="workspace">
-      <main className="workspace__main">
+      <main className="workspace__main" ref={mainRef}>
         {view === "trash" ? (
           <TrashView
             store={store}
@@ -511,7 +513,7 @@ const WorkspaceView = ({
               actions={{ newDrawing, newFolder, openFile }}
               account={accountMenu}
             />
-            <div className="workspace__content" ref={contentRef}>
+            <div className="workspace__content">
               {empty ?? (
                 <ItemGrid
                   folders={items.folders}
