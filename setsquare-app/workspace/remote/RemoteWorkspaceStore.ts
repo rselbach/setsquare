@@ -379,9 +379,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
 
   private async maintainCache() {
     try {
-      await this.cache.maintain(
-        new Set(this.state.getSnapshot().drawings.keys()),
-      );
+      await this.cache.maintain(this.state.getSnapshot().drawings);
     } catch (error) {
       console.warn("Could not clean up the device cache", error);
     }
