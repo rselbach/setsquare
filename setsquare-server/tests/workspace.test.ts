@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import pg from "pg";
+
 import { legacyPayloadHash } from "../src/canonical";
 
 import { buildServer } from "../src/server";
@@ -750,6 +752,39 @@ it("accepts a newer SVG format version without allowing stale replacements", asy
     version: 2,
     dataURL: migrated.dataURL,
   });
+});
+
+it("refreshes an identical re-upload without reading or rewriting its bytes", async () => {
+  const upload = () =>
+    app.inject({
+      method: "POST",
+      url: "/api/files",
+      headers: troy.headers,
+      payload: { files: [pixel] },
+    });
+  expect((await upload()).statusCode).toBe(200);
+  now += DAY;
+  const queries = vi.spyOn(pg.Client.prototype, "query");
+  try {
+    expect((await upload()).statusCode).toBe(200);
+    const sql = queries.mock.calls.map(([text]) => String(text));
+    expect(
+      sql.filter((text) =>
+        /\bbytes\b/.test(text.replaceAll("sha256(bytes)", "")),
+      ),
+    ).toEqual([]);
+    expect(sql.some((text) => text.includes("sha256(bytes)"))).toBe(true);
+  } finally {
+    queries.mockRestore();
+  }
+  expect(
+    (await db.pool.query("SELECT last_retrieved, bytes FROM assets")).rows,
+  ).toEqual([
+    {
+      last_retrieved: String(now),
+      bytes: Buffer.from(pixel.dataURL.split(",")[1], "base64"),
+    },
+  ]);
 });
 
 it("retains staged uploads for a day before collecting unreferenced images", async () => {

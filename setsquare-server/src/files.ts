@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { transaction } from "./database";
@@ -146,16 +148,22 @@ export class FileDatabase {
       ]);
       for (const { file, bytes } of uploads) {
         const result = await client.query(
-          "SELECT mime_type, bytes, version FROM assets WHERE owner_id = $1 AND file_id = $2",
-          [owner, file.id],
+          `SELECT mime_type, version, sha256(bytes) = $3 AS same
+          FROM assets WHERE owner_id = $1 AND file_id = $2`,
+          [owner, file.id, createHash("sha256").update(bytes).digest()],
         );
         if (result.rows.length) {
           const existing = result.rows[0];
-          if (
-            (existing.mime_type !== file.mimeType ||
-              !bytes.equals(existing.bytes)) &&
-            (file.version ?? 1) <= existing.version
-          ) {
+          // assigning bytes, even identical ones, writes a new TOAST value
+          if (existing.mime_type === file.mimeType && existing.same) {
+            await client.query(
+              `UPDATE assets SET last_retrieved = $3, version = GREATEST(version, $4)
+              WHERE owner_id = $1 AND file_id = $2`,
+              [owner, file.id, this.now(), file.version ?? 1],
+            );
+            continue;
+          }
+          if ((file.version ?? 1) <= existing.version) {
             throw new ApiError(
               409,
               "image_collision",
