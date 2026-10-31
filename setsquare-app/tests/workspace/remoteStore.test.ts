@@ -333,23 +333,48 @@ describe("RemoteWorkspaceStore", () => {
     expect(store.getSnapshot().drawings.get(meta.id)?.revision).toBe(4);
   });
 
-  it("reports expired sessions once and never retries unauthorized mutations", async () => {
+  it.each([
+    [401, "unauthenticated"],
+    [403, "csrf_failed"],
+  ] as const)(
+    "reports expired sessions once and stops sending mutations (%s %s)",
+    async (status, message) => {
+      const meta = drawing();
+      const expired = vi.fn();
+      const fetch = vi
+        .fn<typeof globalThis.fetch>()
+        .mockResolvedValueOnce(response(workspace(meta)))
+        .mockImplementation(async () => response({ error: message }, status));
+      const store = await open(fetch, session(), expired);
+      await expect(
+        store.trash({ kind: "drawing", id: meta.id }),
+      ).rejects.toMatchObject({ status, message });
+      await expect(
+        store.saveDrawingContent(meta.id, emptyDrawingContent(meta.name), [], {
+          baseRevision: 1,
+          requestId: "troy-expired-save",
+        }),
+      ).rejects.toMatchObject({ status: 401 });
+      expect(expired).toHaveBeenCalledTimes(1);
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(store.getSnapshot().drawings.get(meta.id)).toEqual(meta);
+    },
+  );
+
+  it("stops sending mutations once a read finds the session expired", async () => {
     const meta = drawing();
-    const expired = vi.fn();
     const fetch = vi
       .fn<typeof globalThis.fetch>()
       .mockResolvedValueOnce(response(workspace(meta)))
       .mockImplementation(async () =>
-        response({ error: "Sign in again" }, 401),
+        response({ error: "unauthenticated" }, 401),
       );
-    const store = await open(fetch, session(), expired);
+    const store = await open(fetch);
     await expect(store.refresh()).rejects.toMatchObject({ status: 401 });
     await expect(
       store.trash({ kind: "drawing", id: meta.id }),
     ).rejects.toBeInstanceOf(ApiError);
-    expect(expired).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledTimes(3);
-    expect(store.getSnapshot().drawings.get(meta.id)).toEqual(meta);
+    expect(fetch).toHaveBeenCalledTimes(2);
   });
 
   it("restores content and keeps a drawing's view separate for each account", async () => {
