@@ -470,19 +470,26 @@ export const createDrawingPersistence = ({
       if (gone) {
         return NOTHING_CHANGED;
       }
+      const seen = generation;
       try {
         const meta = await store.getDrawingMeta(id);
         if (!meta || meta.revision <= lastRevision) {
           return NOTHING_CHANGED;
         }
-        if (pending) {
-          if (!request) {
+        const changedDuringRead = () => {
+          if (!gone && !request && !pending && generation === seen) {
+            return false;
+          }
+          if (!gone && pending && !request && state.kind !== "missing") {
             publish({ kind: "conflict", meta });
           }
+          return true;
+        };
+        if (changedDuringRead()) {
           return NOTHING_CHANGED;
         }
         const content = await store.loadDrawingContent(id);
-        if (!content) {
+        if (changedDuringRead() || !content) {
           return NOTHING_CHANGED;
         }
         // a later snapshot must not authorize writes over content we did not load
