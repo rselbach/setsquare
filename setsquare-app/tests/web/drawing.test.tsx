@@ -15,9 +15,10 @@ import {
   waitFor,
   within,
 } from "@setsquare/setsquare/tests/test-utils";
+import { t } from "@setsquare/setsquare/i18n";
 import { get } from "idb-keyval";
 
-import type { FileId } from "@setsquare/element/types";
+import type { FileId, SetsquareElement } from "@setsquare/element/types";
 import type {
   AppState,
   DataURL,
@@ -25,10 +26,12 @@ import type {
 } from "@setsquare/setsquare/types";
 
 import { filesStore } from "../../data/localFiles";
+import * as workspaceStore from "../../web/workspaceStore";
 import {
   emptyDrawingContent,
   splitAppState,
 } from "../../workspace/drawingAppState";
+import { ApiError } from "../../workspace/remote/ApiError";
 
 import {
   cleanUpWebApp,
@@ -253,5 +256,122 @@ describe("a drawing's page", () => {
     const page = within(screen.getByRole("main"));
     expect(page.getByRole("link", { name: "Seating" })).toBeInTheDocument();
     expect(page.queryByRole("link", { name: "Floor plan" })).toBe(null);
+  });
+});
+
+describe("a drawing's save warnings", () => {
+  const full = () => new DOMException("Full", "QuotaExceededError");
+
+  const signedIn = async () => {
+    // an account store keeps a device copy of images before uploading them
+    const account = Object.assign(await workspace.open(), {
+      recoveryKey: "troy-barnes",
+      recoveryStorage: window.localStorage,
+      stageFiles: vi.fn().mockResolvedValue(undefined),
+    });
+    vi.mocked(workspaceStore.openWorkspaceStore).mockResolvedValue(account);
+    return account;
+  };
+
+  const edit = (
+    element: SetsquareElement = API.createElement({
+      type: "ellipse",
+      id: "annie",
+    }),
+  ) =>
+    API.updateScene({
+      elements: [...h.elements, element],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+
+  const banners = () => [
+    screen.queryByText(t("alerts.imageSaveFailed")),
+    screen.queryByText(t("alerts.localStorageQuotaExceeded")),
+  ];
+
+  it.each([
+    {
+      name: "refused",
+      error: new ApiError(400, "invalid_image"),
+      state: "rejected",
+      want: t("workspace.saveImageRejected", { files: "pierce" }),
+    },
+    {
+      name: "unreachable",
+      error: new TypeError("Failed to fetch"),
+      state: "error",
+      want: t("workspace.saveFailed"),
+    },
+  ])(
+    "blames the upload, not browser storage, when an image is $name",
+    async ({ error, state, want }) => {
+      const account = await signedIn();
+      vi.spyOn(account.files, "save").mockImplementation(
+        async ({ addedFiles }) => ({
+          savedFiles: new Map(),
+          erroredFiles: new Map(addedFiles),
+          errors: new Map([...addedFiles.keys()].map((id) => [id, error])),
+        }),
+      );
+      await renderWebAppAt(`/d/${plan.id}`);
+      await waitForDrawing(plan.id, ["troy"]);
+      const fileId = "pierce" as FileId;
+      act(() => {
+        h.app.addFiles([
+          { id: fileId, dataURL: PIXEL, mimeType: "image/png", created: 1 },
+        ]);
+      });
+      edit(API.createElement({ type: "image", fileId, id: "pierce" }));
+      await waitForAutosave();
+
+      const status = screen.getByRole("status");
+      expect(status).toHaveAttribute("data-state", state);
+      expect(status).toHaveTextContent(want);
+      expect(banners()).toEqual([null, null]);
+    },
+  );
+
+  it("says the device is full when it can't stage a recovery copy", async () => {
+    const account = await signedIn();
+    account.stageFiles.mockRejectedValue(full());
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(account, "saveDrawingContent").mockRejectedValue(
+      new TypeError("Failed to fetch"),
+    );
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    edit();
+    await waitForAutosave();
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      t("workspace.recoveryStorageFull"),
+    );
+    expect(banners()).toEqual([null, null]);
+  });
+
+  it("says the device is full, not that changes are lost, and only for that drawing", async () => {
+    const account = await signedIn();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const saveView = vi
+      .spyOn(account, "saveDrawingView")
+      .mockRejectedValue(full());
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    edit();
+    await waitForAutosave();
+
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("data-state", "saved");
+    expect(status).toHaveTextContent(t("workspace.deviceStorageFull"));
+    expect(banners()).toEqual([null, null]);
+    expect(await storedIds(account, plan.id)).toEqual(["troy", "annie"]);
+
+    saveView.mockRestore();
+    await navigateTo({ kind: "drawing", id: seating.id });
+    await waitForDrawing(seating.id, ["abed"]);
+    await waitForAutosave();
+
+    expect(screen.getByRole("status")).toHaveAttribute("data-state", "saved");
+    expect(screen.queryByText(t("workspace.deviceStorageFull"))).toBe(null);
   });
 });

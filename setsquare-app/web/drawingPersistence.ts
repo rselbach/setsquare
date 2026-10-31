@@ -12,14 +12,9 @@ import type { FileId, SetsquareElement } from "@setsquare/element/types";
 import type { Merge } from "@setsquare/common/utility-types";
 import type { AppState, BinaryFiles } from "@setsquare/setsquare/types";
 
-import { appJotaiStore } from "../app-jotai";
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT } from "../app_constants";
 import { FileManager, FileSaveError } from "../data/FileManager";
 import { FileStatusStore } from "../data/fileStatusStore";
-import {
-  imageSaveFailedAtom,
-  localStorageQuotaExceededAtom,
-} from "../data/LocalData";
 import {
   DRAWING_CONTENT_KEYS,
   DRAWING_VIEW_KEYS,
@@ -72,6 +67,9 @@ const viewSignature = (view: DrawingView) =>
 
 const NOTHING_CHANGED = { scene: null, files: false } as const;
 
+const isQuotaExceeded = (error: unknown) =>
+  error instanceof DOMException && error.name === "QuotaExceededError";
+
 /** Whether this session's latest edit has reached persistent storage. */
 export type DrawingSaveState =
   | { kind: "saved" | "unsaved" | "saving" | "expired" | "missing" }
@@ -97,6 +95,7 @@ export type DrawingPersistence = Merge<
     hasDurableDraft(): boolean;
     keepRecovery(): void;
     getRecoveryError(): unknown | null;
+    isDeviceStorageFull(): boolean;
     exportRecovery(): void;
   }
 >;
@@ -145,6 +144,7 @@ export const createDrawingPersistence = ({
   let imagesGeneration: string | null = null;
   let recoveryError: unknown | null = null;
   let imageRecoveryError: unknown | null = null;
+  let viewError: unknown | null = null;
   let recoveredSource = recovered && "draftId" in recovered ? recovered : null;
   const listeners = new Set<() => void>();
   let state: DrawingSaveState = drawing.unavailable
@@ -304,6 +304,9 @@ export const createDrawingPersistence = ({
     onNotFound();
   };
 
+  const recoveryProblem = () =>
+    pending ? imageRecoveryError ?? recoveryError : null;
+
   const localImagesSaved = (scene: PendingScene) =>
     imageFileIds(getNonDeletedElements(scene.elements)).every((id) =>
       scene.files[id]
@@ -317,7 +320,6 @@ export const createDrawingPersistence = ({
       ...scene,
       elements: getNonDeletedElements(scene.elements),
     });
-    appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
     if (erroredFiles.size) {
       throw new FileSaveError(
         new Map([...erroredFiles.keys()].map((id) => [id, errors?.get(id)])),
@@ -450,7 +452,9 @@ export const createDrawingPersistence = ({
             return;
           }
           storedView = nextView;
+          viewError = null;
         } catch (error) {
+          viewError = error;
           // where this browser left the drawing is a convenience; its
           // content is already saved
           console.warn("Could not save the drawing's view", id, error);
@@ -460,7 +464,6 @@ export const createDrawingPersistence = ({
       if (pending === scene) {
         pending = null;
       }
-      appJotaiStore.set(localStorageQuotaExceededAtom, false);
       publish({ kind: pending ? "unsaved" : "saved" });
       keepRecovery();
       await recoveryWriting;
@@ -471,12 +474,6 @@ export const createDrawingPersistence = ({
     queued++;
     writing = writing.then(drain).catch((error: unknown) => {
       const cause = apiFailureCause(error);
-      if (
-        cause instanceof DOMException &&
-        cause.name === "QuotaExceededError"
-      ) {
-        appJotaiStore.set(localStorageQuotaExceededAtom, true);
-      }
       const kinds =
         cause instanceof FileSaveError
           ? [...cause.errors.values()].map(apiFailureKind)
@@ -600,8 +597,9 @@ export const createDrawingPersistence = ({
     unsaved,
     keepRecovery,
     getSaveState: () => state,
-    getRecoveryError: () =>
-      pending ? imageRecoveryError ?? recoveryError : null,
+    getRecoveryError: recoveryProblem,
+    isDeviceStorageFull: () =>
+      isQuotaExceeded(viewError) || isQuotaExceeded(recoveryProblem()),
     hasDurableDraft: () =>
       !pending ||
       (imagesGeneration === generation &&
