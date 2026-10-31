@@ -23,7 +23,7 @@ import { AccountContext } from "./accountContext";
 import { AccountNotice } from "./accountControls";
 import { EditorTasks, useEditorTasks } from "./editorTasks";
 import { useLaunchedFiles } from "./importFiles";
-import { openSceneUrl, sceneUrlFailed, useSceneUrlLinks } from "./importScene";
+import { openSceneUrl, useSceneUrlLinks } from "./importScene";
 import { initRouter, navigate, parseRoute, useRoute } from "./router";
 import { trashWithUndo, useDrawingActions } from "./workspaceActions";
 import { openWorkspaceStore, readAccountSession } from "./workspaceStore";
@@ -57,7 +57,7 @@ const boot = async (options: OpenWorkspaceOptions): Promise<Booted> => {
     await store.purgeExpiredTrash().catch((error) => console.error(error));
   }
   // before the page shows another drawing, which would be open for nothing
-  const tasks = (await openSceneUrl(store)) ? [] : [sceneUrlFailed()];
+  const tasks = await openSceneUrl(store);
   // the first visit after the upgrade opens the drawing there was, once
   const route = parseRoute(options.ownerWindow?.location.href ?? "/");
   if (migrated && route.kind === "drawings" && route.folderId === null) {

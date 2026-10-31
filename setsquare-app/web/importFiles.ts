@@ -12,7 +12,7 @@ import { useCallback, useEffect } from "react";
 
 import { LibraryIndexedDBAdapter } from "../data/LocalData";
 
-import { importSceneAsDrawing } from "./importScene";
+import { importSceneAsDrawing, missingImagesTask } from "./importScene";
 import { navigate } from "./router";
 
 import type { DrawingMeta, ParentId } from "../workspace/types";
@@ -32,12 +32,13 @@ const errorTask = (message: () => string): EditorTask => ({
   message,
 });
 
-// a scene becomes a new drawing in folderId; anything else leaves a task
+// a scene becomes a new drawing in folderId; anything else, or a scene
+// missing images, leaves a task
 const openFile = async (
   store: WorkspaceStore,
   item: File | FileSystemFileHandle,
   folderId: ParentId,
-): Promise<{ drawing: DrawingMeta } | { task: EditorTask }> => {
+): Promise<{ drawing: DrawingMeta | null; task: EditorTask | null }> => {
   let file: File;
   try {
     file = await normalizeFile(
@@ -46,6 +47,7 @@ const openFile = async (
   } catch (error) {
     console.error(error);
     return {
+      drawing: null,
       task: errorTask(() => t("errors.openFileError", { name: item.name })),
     };
   }
@@ -54,6 +56,7 @@ const openFile = async (
     opened = await loadSceneOrLibraryFromBlob(file, null, null);
   } catch (error) {
     return {
+      drawing: null,
       task: errorTask(() =>
         error instanceof ImageSceneDataError
           ? t("alerts.cannotRestoreFromImage")
@@ -62,18 +65,23 @@ const openFile = async (
     };
   }
   if (opened.type === MIME_TYPES.setsquarelib) {
-    return { task: { kind: "library", file } };
+    return { drawing: null, task: { kind: "library", file } };
   }
   try {
-    const drawing = await importSceneAsDrawing(store, opened.data, {
-      folderId,
+    const { drawing, missingImages } = await importSceneAsDrawing(
+      store,
+      opened.data,
       // named after the file
-      name: opened.data.appState.name,
-    });
-    return { drawing };
+      { folderId, name: opened.data.appState.name },
+    );
+    return {
+      drawing,
+      task: missingImages ? missingImagesTask(file.name, missingImages) : null,
+    };
   } catch (error) {
     console.error(error);
     return {
+      drawing: null,
       task: errorTask(() => t("errors.openFileError", { name: file.name })),
     };
   }
@@ -109,11 +117,10 @@ const openFiles = async (
   const tasks: EditorTask[] = [];
   // in order, so the drawings are created as the files were given
   for (const item of items) {
-    const opened = await openFile(store, item, folderId);
-    if ("drawing" in opened) {
-      last = opened.drawing;
-    } else {
-      tasks.push(opened.task);
+    const { drawing, task } = await openFile(store, item, folderId);
+    last = drawing ?? last;
+    if (task) {
+      tasks.push(task);
     }
   }
   if (last) {
