@@ -608,9 +608,14 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     fn: (tx: IDBTransaction) => Promise<T>,
   ) {
     const result = await transact(this.db, storeNames, "readwrite", fn);
-    await this.refresh();
-    this.notify();
+    // committed, so a failed refresh mustn't fail the write or silence it
     this.broadcast.post();
+    try {
+      await this.refresh();
+    } catch (error) {
+      console.error("Couldn't refresh after a committed change", error);
+    }
+    this.notify();
     return result;
   }
 
