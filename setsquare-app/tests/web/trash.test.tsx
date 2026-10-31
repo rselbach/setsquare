@@ -336,9 +336,10 @@ describe("the Trash", () => {
     expect(
       fireEvent.keyDown(target, { key: "z", [KEYS.CTRL_OR_CMD]: true }),
     ).toBe(true);
+    // nor the browser's own Open file, in place of the app
     expect(
       fireEvent.keyDown(target, { key: KEYS.O, [KEYS.CTRL_OR_CMD]: true }),
-    ).toBe(true);
+    ).toBe(false);
 
     expect(toastRegion()).not.toBeEmptyDOMElement();
     expect(isTrashed(store, chang)).toBe(true);

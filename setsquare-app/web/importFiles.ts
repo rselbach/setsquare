@@ -13,6 +13,7 @@ import { useCallback, useEffect } from "react";
 import { LibraryIndexedDBAdapter } from "../data/LocalData";
 
 import { importSceneAsDrawing, missingImagesTask } from "./importScene";
+import { isModalOpen } from "./isModalOpen";
 import { navigate } from "./router";
 
 import type { DrawingMeta, ParentId } from "../workspace/types";
@@ -162,7 +163,9 @@ export const useOpenFile = (
       ) {
         // the browser would open the file in a tab of its own
         event.preventDefault();
-        openFile();
+        if (!isModalOpen(document)) {
+          openFile();
+        }
       }
     };
     document.addEventListener(EVENT.KEYDOWN, onKeyDown);

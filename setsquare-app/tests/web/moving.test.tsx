@@ -281,9 +281,10 @@ describe("Move to…", () => {
     expect(
       fireEvent.keyDown(here, { key: "z", [KEYS.CTRL_OR_CMD]: true }),
     ).toBe(true);
+    // nor the browser's own Open file, in place of the app
     expect(
       fireEvent.keyDown(here, { key: KEYS.O, [KEYS.CTRL_OR_CMD]: true }),
-    ).toBe(true);
+    ).toBe(false);
 
     expect(toastRegion()).not.toBeEmptyDOMElement();
     expect(store.getSnapshot().drawings.get(chang.id)?.trashedAt).not.toBe(
