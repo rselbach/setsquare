@@ -5,7 +5,7 @@ import pg from "pg";
 import { legacyPayloadHash } from "../src/canonical";
 
 import { buildServer } from "../src/server";
-import { WorkspaceDatabase } from "../src/workspace";
+import { trashedFolder, WorkspaceDatabase } from "../src/workspace";
 
 import {
   account,
@@ -648,6 +648,22 @@ it("rejects writes under a folder cycle instead of walking it forever", async ()
       item: { kind: "drawing", id: "plan" },
     }),
   ).toBe("invalid_tree");
+});
+
+it("applies the requested policy to a two-folder cycle", () => {
+  const chain = [
+    { id: "troy", trashed: false, cycle: false },
+    { id: "abed", trashed: false, cycle: false },
+    { id: "troy", trashed: false, cycle: true },
+  ];
+  expect(trashedFolder(chain, "trashed")).toBe(true);
+  expect(() => trashedFolder(chain, "throw")).toThrow(
+    expect.objectContaining({ status: 409, code: "invalid_tree" }),
+  );
+  expect(trashedFolder(chain.slice(0, 2), "throw")).toBe(false);
+  expect(
+    trashedFolder([{ id: "troy", trashed: true, cycle: false }], "throw"),
+  ).toBe(true);
 });
 
 it("commits images before references and keeps each version private and immutable", async () => {

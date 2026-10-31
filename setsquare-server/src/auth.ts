@@ -1,9 +1,4 @@
-import {
-  createHash,
-  randomBytes,
-  randomUUID,
-  timingSafeEqual,
-} from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import * as oauth from "oauth4webapi";
 import { z } from "zod";
@@ -12,6 +7,7 @@ import { transaction } from "./database";
 
 import { ApiError } from "./errors";
 import { registrationSource } from "./mcp/oauth-store";
+import { equalSecret, hash, token } from "./tokens";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Pool } from "pg";
@@ -193,12 +189,6 @@ const oauthFailure = (error: unknown) => {
   };
 };
 
-const hash = (value: string) =>
-  createHash("sha256").update(value).digest("hex");
-const token = () => randomBytes(32).toString("base64url");
-const equalToken = (a: string, b: string) =>
-  timingSafeEqual(Buffer.from(hash(a)), Buffer.from(hash(b)));
-
 /** Owns session creation and validation independently of HTTP routing. */
 export class SessionDatabase {
   constructor(
@@ -320,7 +310,7 @@ export class Authentication {
       if (
         request.headers.origin !== this.config.origin ||
         typeof csrf !== "string" ||
-        !equalToken(csrf, session.csrfToken)
+        !equalSecret(csrf, session.csrfToken)
       ) {
         throw new ApiError(
           403,
@@ -476,7 +466,7 @@ export class Authentication {
       const state = callback.searchParams.get("state");
       const cookieState = request.cookies[this.attemptCookie];
       this.clearCookie(reply, this.attemptCookie);
-      if (!state || !cookieState || !equalToken(state, cookieState)) {
+      if (!state || !cookieState || !equalSecret(state, cookieState)) {
         throw new ApiError(
           400,
           "invalid_oauth_state",

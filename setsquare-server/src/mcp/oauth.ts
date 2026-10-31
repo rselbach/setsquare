@@ -1,11 +1,11 @@
 import { z } from "zod";
 
+import { equalSecret, hash } from "../tokens";
+
 import {
   authorizationSchema,
   clientMetadataSchema,
   consentSchema,
-  equal,
-  hash,
   OAuthError,
   READ_SCOPE,
   SCOPES,
@@ -212,7 +212,7 @@ export const registerMcpOAuth = async (
           request.headers.origin !== config.origin ||
           request.headers["sec-fetch-site"] === "cross-site" ||
           !body.csrf_token ||
-          !equal(body.csrf_token, signedIn.csrfToken)
+          !equalSecret(body.csrf_token, signedIn.csrfToken)
         ) {
           throw new OAuthError(
             "access_denied",
@@ -279,7 +279,7 @@ export const registerMcpOAuth = async (
           (method !== "none" &&
             (!secret ||
               !client.secretHash ||
-              !equal(hash(secret), client.secretHash)))
+              !equalSecret(hash(secret), client.secretHash)))
         ) {
           throw new OAuthError(
             "invalid_client",

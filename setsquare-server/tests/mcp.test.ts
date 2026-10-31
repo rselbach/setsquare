@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { vi } from "vitest";
+import { z } from "zod";
 
 import { SessionDatabase } from "../src/auth";
 import { FileDatabase } from "../src/files";
@@ -13,8 +14,12 @@ import {
 } from "../src/mcp/oauth-store";
 import { WorkspaceDatabase } from "../src/workspace";
 import {
+  drawingContentInputSchema,
   drawingMetaSchema,
   folderSchema,
+  idSchema,
+  itemSchema,
+  nameSchema,
   thumbnailSchema,
   filesSchema,
 } from "../src/validation";
@@ -176,6 +181,29 @@ it("supports initialization, discovery, notifications, and protocol errors", asy
     (await rpc("tools/call", { name: "get_drawing", arguments: {} })).body
       .result.isError,
   ).toBe(true);
+});
+
+it("publishes tool and drawing schemas derived from the command schemas", async () => {
+  const json = (schema: z.ZodType) => {
+    const { $schema: _schema, ...rest } = z.toJSONSchema(schema, {
+      io: "input",
+    });
+    return rest;
+  };
+  const tools: Array<{ name: string; inputSchema: any }> = (
+    await rpc("tools/list")
+  ).body.result.tools;
+  const input = (name: string) =>
+    tools.find((tool) => tool.name === name)!.inputSchema.properties;
+  expect(input("create_folder").folderId).toEqual(json(idSchema));
+  expect(input("create_folder").name).toEqual(json(nameSchema));
+  expect(input("move_item").item).toEqual(json(itemSchema));
+  const resource = await rpc("resources/read", {
+    uri: "setsquare://schema/drawing",
+  });
+  expect(JSON.parse(resource.body.result.contents[0].text)).toEqual(
+    z.toJSONSchema(drawingContentInputSchema, { io: "input" }),
+  );
 });
 
 it("serves the current per-request protocol without an initialize handshake", async () => {
@@ -385,6 +413,38 @@ it("paginates matching items and hides descendants of trashed folders", async ()
   ).body.result.structuredContent;
   expect(second.items.map((item: { id: string }) => item.id)).toEqual(["b"]);
   expect(second.nextCursor).toBeNull();
+});
+
+it("lists items under a folder cycle as trashed instead of failing", async () => {
+  const folder = (id: string, parentId: string) =>
+    folderSchema.parse({
+      id,
+      parentId,
+      name: id,
+      createdAt: now(),
+      updatedAt: now(),
+      trashedAt: null,
+    });
+  vi.spyOn(WorkspaceDatabase.prototype, "getSnapshot").mockResolvedValue({
+    folders: [folder("troy", "abed"), folder("abed", "troy")],
+    drawings: [meta("plan", "troy"), meta("study")],
+  });
+  const list = async (includeTrash: boolean) =>
+    (
+      await rpc("tools/call", {
+        name: "list_workspace",
+        arguments: { includeTrash },
+      })
+    ).body.result.structuredContent.items.map(
+      (item: { id: string; inTrash: boolean }) => [item.id, item.inTrash],
+    );
+  expect(await list(false)).toEqual([["study", false]]);
+  expect(await list(true)).toEqual([
+    ["plan", true],
+    ["study", false],
+    ["abed", true],
+    ["troy", true],
+  ]);
 });
 
 it("does not return stale previews or internal database errors", async () => {

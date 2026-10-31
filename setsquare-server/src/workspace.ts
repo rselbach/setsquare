@@ -61,14 +61,16 @@ const namedContent = (
   appState: { ...content.appState, name },
 });
 
-const filesIn = (content: DrawingContent) =>
-  [
-    ...new Set(
-      content.elements.flatMap((element) =>
-        element.type === "image" && element.fileId ? [element.fileId] : [],
-      ),
+/** Lists the image file ids a drawing references, once each, in element order. */
+export const imageFileIds = (content: DrawingContent) => [
+  ...new Set(
+    content.elements.flatMap((element) =>
+      element.type === "image" && element.fileId ? [element.fileId] : [],
     ),
-  ].sort();
+  ),
+];
+
+const filesIn = (content: DrawingContent) => imageFileIds(content).sort();
 
 const checkFiles = (content: DrawingContent, declared: readonly string[]) => {
   const ids = filesIn(content);
@@ -130,6 +132,9 @@ const snapshot = async (
   return parseStored(dataSchema, result.rows[0].data);
 };
 
+/** One folder in an ancestor chain; cycle marks a repeated folder that closes a loop. */
+export type Ancestor = { id: string; trashed: boolean; cycle: boolean };
+
 // the folder and its ancestors, nearest first; a repeated folder closes a cycle
 const ancestors = async (db: Queryable, owner: string, id: ParentId) => {
   if (id === null) {
@@ -146,14 +151,23 @@ const ancestors = async (db: Queryable, owner: string, id: ParentId) => {
     ) SELECT id, trashed, cycle FROM up ORDER BY depth`,
     [owner, id],
   );
-  return result.rows as Array<{ id: string; trashed: boolean; cycle: boolean }>;
+  return result.rows as Ancestor[];
 };
 
-const trashedFolder = (
-  chain: Awaited<ReturnType<typeof ancestors>>,
+/**
+ * Reports whether an ancestor chain, nearest first, reaches a trashed folder.
+ * A chain that loops first counts as trashed for listings ("trashed") and
+ * fails mutations with 409 invalid_tree ("throw").
+ */
+export const trashedFolder = (
+  chain: readonly Ancestor[],
+  onCycle: "trashed" | "throw",
 ): boolean => {
   for (const folder of chain) {
     if (folder.cycle) {
+      if (onCycle === "trashed") {
+        return true;
+      }
       throw new ApiError(
         409,
         "invalid_tree",
@@ -181,7 +195,7 @@ const checkParent = async (
       "The destination folder does not exist",
     );
   }
-  if (!importing && trashedFolder(chain)) {
+  if (!importing && trashedFolder(chain, "throw")) {
     throw new ApiError(
       409,
       "target_trashed",
@@ -593,13 +607,13 @@ export class WorkspaceDatabase {
         };
       }
     }
-    if (trashedFolder(chain)) {
+    if (trashedFolder(chain, "throw")) {
       return { kind: "move", result: { ok: false, reason: "targetTrashed" } };
     }
     // what's in the Trash comes out only through restore, as in the app
     if (
       existing.trashed ||
-      trashedFolder(await ancestors(client, owner, existing.parent))
+      trashedFolder(await ancestors(client, owner, existing.parent), "throw")
     ) {
       return { kind: "move", result: NOT_FOUND };
     }
@@ -639,6 +653,7 @@ export class WorkspaceDatabase {
     }
     const destination = trashedFolder(
       await ancestors(client, owner, record.parent),
+      "throw",
     )
       ? null
       : record.parent;

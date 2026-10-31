@@ -2,47 +2,37 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import { ApiError } from "../errors";
+import { imageFileIds, trashedFolder } from "../workspace";
 import {
   commandSchema,
   contentSchema,
   drawingContentInputSchema,
   filesSchema,
+  idSchema,
+  itemSchema,
+  nameSchema,
+  revisionSchema,
 } from "../validation";
 
 import type { CallToolResult } from "@modelcontextprotocol/server";
 import type { FastifyBaseLogger } from "fastify";
 import type { FileDatabase } from "../files";
-import type { WorkspaceDatabase } from "../workspace";
-import type { DrawingContent } from "../../../setsquare-app/workspace/types";
+import type { Ancestor, WorkspaceDatabase } from "../workspace";
+import type { Folder } from "../../../setsquare-app/workspace/types";
 
-const id = z
-  .string()
-  .min(1)
-  .max(256)
-  .regex(/^[A-Za-z0-9_-]+$/);
-const name = z.string().trim().min(1).max(256);
-const requestId = id.describe(
+const requestId = idSchema.describe(
   "Unique ID for this mutation. Retry an uncertain request with exactly the same ID and arguments; use a new ID for a new edit.",
 );
 const mutation = { requestId };
-const drawing = { drawingId: id };
-const revision = z
-  .number()
-  .int()
-  .positive()
-  .max(Number.MAX_SAFE_INTEGER)
-  .describe(
-    "Revision returned by get_drawing. A stale revision fails without overwriting newer work.",
-  );
-const item = z.discriminatedUnion("kind", [
-  z.strictObject({ kind: z.literal("drawing"), id }),
-  z.strictObject({ kind: z.literal("folder"), id }),
-]);
+const drawing = { drawingId: idSchema };
+const revision = revisionSchema.describe(
+  "Revision returned by get_drawing. A stale revision fails without overwriting newer work.",
+);
 
 export const mcpToolSchemas = {
   list_workspace: z.strictObject({
     query: z.string().max(256).default(""),
-    folderId: id
+    folderId: idSchema
       .nullable()
       .optional()
       .describe(
@@ -55,11 +45,11 @@ export const mcpToolSchemas = {
   get_drawing: z.strictObject(drawing),
   create_drawing: z.strictObject({
     ...mutation,
-    drawingId: id.describe(
+    drawingId: idSchema.describe(
       "New drawing ID, stable across retries; use a UUID or another unique identifier.",
     ),
-    name,
-    folderId: id.nullable().default(null),
+    name: nameSchema,
+    folderId: idSchema.nullable().default(null),
     content: drawingContentInputSchema.optional(),
   }),
   update_drawing: z.strictObject({
@@ -74,26 +64,34 @@ export const mcpToolSchemas = {
     ...mutation,
     ...drawing,
     baseRevision: revision,
-    name,
+    name: nameSchema,
   }),
   duplicate_drawing: z.strictObject({
     ...mutation,
-    sourceId: id,
-    drawingId: id,
-    name,
+    sourceId: idSchema,
+    drawingId: idSchema,
+    name: nameSchema,
   }),
   create_folder: z.strictObject({
     ...mutation,
-    folderId: id,
-    parentId: id.nullable().default(null),
-    name,
+    folderId: idSchema,
+    parentId: idSchema.nullable().default(null),
+    name: nameSchema,
   }),
-  rename_folder: z.strictObject({ ...mutation, folderId: id, name }),
-  move_item: z.strictObject({ ...mutation, item, folderId: id.nullable() }),
-  trash_item: z.strictObject({ ...mutation, item }),
-  restore_item: z.strictObject({ ...mutation, item }),
+  rename_folder: z.strictObject({
+    ...mutation,
+    folderId: idSchema,
+    name: nameSchema,
+  }),
+  move_item: z.strictObject({
+    ...mutation,
+    item: itemSchema,
+    folderId: idSchema.nullable(),
+  }),
+  trash_item: z.strictObject({ ...mutation, item: itemSchema }),
+  restore_item: z.strictObject({ ...mutation, item: itemSchema }),
   get_drawing_preview: z.strictObject(drawing),
-  get_images: z.strictObject({ fileIds: z.array(id).min(1).max(20) }),
+  get_images: z.strictObject({ fileIds: z.array(idSchema).min(1).max(20) }),
   upload_images: filesSchema,
 };
 export type McpToolName = keyof typeof mcpToolSchemas;
@@ -172,13 +170,6 @@ const transientCodes = new Set([
 const isTransient = ({ code, message }: ReturnType<typeof describe>) =>
   (code !== undefined && (transientCodes.has(code) || /^(08|53)/.test(code))) ||
   (message?.startsWith("Connection terminated") ?? false);
-const fileIds = (content: DrawingContent) => [
-  ...new Set(
-    content.elements.flatMap((element) =>
-      element.type === "image" && element.fileId ? [element.fileId] : [],
-    ),
-  ),
-];
 
 /** One request's tools close over an OAuth-verified account, never a caller-supplied owner. */
 export const createWorkspaceMcp = (
@@ -251,26 +242,30 @@ export const createWorkspaceMcp = (
       case "list_workspace": {
         const input = mcpToolSchemas.list_workspace.parse(raw);
         const snapshot = await workspace.getSnapshot(owner);
-        const folders = new Map(
-          snapshot.folders.map((folder) => [folder.id as string, folder]),
+        const folders = new Map<string | null, Folder>(
+          snapshot.folders.map((folder) => [folder.id, folder]),
         );
-        const inTrash = (parent: string | null): boolean => {
-          const visited = new Set<string>();
-          while (parent) {
-            if (visited.has(parent)) {
-              return true;
+        // the snapshot's version of the database's ancestor walk
+        const inTrash = (parent: string | null) => {
+          const chain: Ancestor[] = [];
+          const seen = new Set<string>();
+          for (
+            let folder = folders.get(parent);
+            folder;
+            folder = folders.get(folder.parentId)
+          ) {
+            const cycle = seen.has(folder.id);
+            chain.push({
+              id: folder.id,
+              trashed: folder.trashedAt !== null,
+              cycle,
+            });
+            if (cycle) {
+              break;
             }
-            visited.add(parent);
-            const folder = folders.get(parent);
-            if (!folder) {
-              return false;
-            }
-            if (folder.trashedAt !== null) {
-              return true;
-            }
-            parent = folder.parentId;
+            seen.add(folder.id);
           }
-          return false;
+          return trashedFolder(chain, "trashed");
         };
         const entries = [
           ...snapshot.folders.map((folder) => ({
@@ -336,7 +331,7 @@ export const createWorkspaceMcp = (
           folderId: input.folderId,
           name: input.name,
           content,
-          fileIds: fileIds(content),
+          fileIds: imageFileIds(content),
         });
       }
       case "update_drawing": {
@@ -347,7 +342,7 @@ export const createWorkspaceMcp = (
           id: input.drawingId,
           baseRevision: input.baseRevision,
           content,
-          fileIds: fileIds(content),
+          fileIds: imageFileIds(content),
         });
       }
       case "rename_drawing": {
@@ -570,7 +565,7 @@ export const createWorkspaceMcp = (
       mimeType: "application/json",
     },
     async (uri, variables) => {
-      const drawingId = id.parse(variables.drawingId);
+      const drawingId = idSchema.parse(variables.drawingId);
       try {
         return {
           contents: [
