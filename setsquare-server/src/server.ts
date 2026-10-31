@@ -30,6 +30,8 @@ export type ServerOptions = {
   now?: () => number;
   logger?: boolean;
   cleanup?: boolean;
+  /** Raw image bytes per image read, unless one image is larger on its own. */
+  fileBudget?: number;
 };
 
 /** Builds the same-origin web and account API server. */
@@ -40,6 +42,7 @@ export const buildServer = async ({
   now = Date.now,
   logger = false,
   cleanup = true,
+  fileBudget,
 }: ServerOptions) => {
   const { trustProxy } = config;
   const app = Fastify({
@@ -75,7 +78,7 @@ export const buildServer = async ({
     now,
   );
   const workspace = new WorkspaceDatabase(pool, now);
-  const files = new FileDatabase(pool, now);
+  const files = new FileDatabase(pool, now, fileBudget);
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof ApiError) {
       return reply

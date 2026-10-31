@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto";
 
+import { buildServer } from "../src/server";
 import { WorkspaceDatabase } from "../src/workspace";
 
 import {
   account,
   command,
+  config,
   content,
+  fakeProvider,
   imageContent,
   pixel,
   testDatabase,
@@ -652,6 +655,83 @@ it("accepts the editor's SVG exports and JFIF images without changing their byte
       .files.map((file: { dataURL: string }) => file.dataURL)
       .sort(),
   ).toEqual(files.map((file) => file.dataURL).sort());
+});
+
+it("pages image reads at the byte budget and touches every requested image", async () => {
+  const bytes = Buffer.from(pixel.dataURL.split(",")[1], "base64");
+  const image = (id: string, data = bytes) => ({
+    ...pixel,
+    id,
+    dataURL: `data:image/png;base64,${data.toString("base64")}`,
+  });
+  const budgeted = await buildServer({
+    config,
+    pool: db.pool,
+    provider: fakeProvider,
+    now: clock,
+    cleanup: false,
+    fileBudget: bytes.length * 2,
+  });
+  const read = async (ids: string) => {
+    const response = await budgeted.inject({
+      url: `/api/files?ids=${ids}`,
+      headers: troy.headers,
+    });
+    if (response.statusCode !== 200) {
+      return response.statusCode;
+    }
+    const { files, remaining } = response.json();
+    return {
+      files: files.map((file: { id: string }) => file.id).sort(),
+      remaining,
+    };
+  };
+  try {
+    const saved = await budgeted.inject({
+      method: "POST",
+      url: "/api/files",
+      headers: troy.headers,
+      payload: {
+        files: [
+          image("pierce"),
+          image("britta"),
+          image(
+            "shirley",
+            Buffer.concat([bytes, Buffer.alloc(bytes.length * 2)]),
+          ),
+        ],
+      },
+    });
+    expect(saved.statusCode).toBe(200);
+    now += DAY;
+    expect(await read("pierce,britta,shirley")).toEqual({
+      files: ["britta", "pierce"],
+      remaining: ["shirley"],
+    });
+    expect(
+      (
+        await db.pool.query(
+          "SELECT file_id, last_retrieved FROM assets ORDER BY file_id",
+        )
+      ).rows,
+    ).toEqual(
+      ["britta", "pierce", "shirley"].map((id) => ({
+        file_id: id,
+        last_retrieved: String(now),
+      })),
+    );
+    expect(await read("shirley,pierce")).toEqual({
+      files: ["shirley"],
+      remaining: ["pierce"],
+    });
+    expect(await read("pierce,pierce")).toEqual({
+      files: ["pierce"],
+      remaining: [],
+    });
+    expect(await read("pierce,chang")).toBe(404);
+  } finally {
+    await budgeted.close();
+  }
 });
 
 it("preserves imported ids and metadata without overwriting an existing drawing", async () => {
