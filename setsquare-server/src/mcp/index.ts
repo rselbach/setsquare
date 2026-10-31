@@ -32,7 +32,8 @@ export const registerMcp = async (
   const handler = createMcpHandler(
     (context) => {
       const owner = context.authInfo?.extra?.userId;
-      if (typeof owner !== "string") {
+      const requestId = context.authInfo?.extra?.requestId;
+      if (typeof owner !== "string" || typeof requestId !== "string") {
         throw new Error("MCP requires an authenticated account");
       }
       return createWorkspaceMcp(
@@ -41,6 +42,8 @@ export const registerMcp = async (
         owner,
         config.origin,
         context.authInfo!.scopes.includes(WRITE_SCOPE),
+        app.log,
+        requestId,
       );
     },
     { maxRequestBodySize: 12 * 1024 * 1024 },
@@ -140,7 +143,7 @@ export const registerMcp = async (
             scopes: grant.scopes,
             resource: new URL(grant.resource),
             expiresAt: Math.floor(Number(grant.access_expires_at) / 1000),
-            extra: { userId: grant.user_id },
+            extra: { userId: grant.user_id, requestId: request.id },
           },
         },
       );

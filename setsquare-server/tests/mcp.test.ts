@@ -27,6 +27,7 @@ import type { Pool } from "pg";
 const userId = randomUUID();
 const access = "a".repeat(43);
 let app: FastifyInstance;
+let pool: Pool;
 const now = () => Date.UTC(2026, 9, 29);
 const headers = {
   host: new URL(config.origin).host,
@@ -59,7 +60,7 @@ const meta = (id = "drawing", folderId: string | null = null) =>
 beforeEach(async () => {
   vi.spyOn(McpOAuthStore.prototype, "verify").mockResolvedValue(grant());
   // HTTP/protocol tests fail if a database call escapes its mocked boundary.
-  const pool = {
+  pool = {
     query: vi.fn(() => {
       throw new Error("Unexpected database access");
     }),
@@ -393,6 +394,88 @@ it("does not return stale previews or internal database errors", async () => {
   });
   expect(failed.body.result.isError).toBe(true);
   expect(failed.response.body).not.toContain("secret SQL");
+});
+
+it("logs unexpected tool failures once and advises a retry only for transient ones", async () => {
+  const log = vi.spyOn(app.log, "error");
+  const rename = () =>
+    rpc("tools/call", {
+      name: "rename_folder",
+      arguments: { requestId: "r1", folderId: "f1", name: "Study Room F" },
+    });
+  vi.spyOn(WorkspaceDatabase.prototype, "command").mockRejectedValueOnce({
+    code: "40001",
+  });
+  const transient = await rename();
+  expect(transient.body.result.structuredContent).toMatchObject({
+    error: "server_error",
+    retryable: true,
+  });
+  expect(log).toHaveBeenCalledTimes(1);
+  expect(log).toHaveBeenCalledWith(
+    {
+      requestId: expect.any(String),
+      tool: "rename_folder",
+      errorName: undefined,
+      code: "40001",
+      message: undefined,
+    },
+    "MCP tool failed",
+  );
+  vi.mocked(WorkspaceDatabase.prototype.command).mockRejectedValueOnce(
+    Object.assign(new Error("invalid input syntax for type json"), {
+      name: "DatabaseError",
+      code: "22P02",
+      detail: "Token Greendale is invalid",
+    }),
+  );
+  const permanent = await rename();
+  expect(permanent.body.result.structuredContent).toEqual({
+    error: "server_error",
+    retryable: false,
+    message:
+      "The server could not complete this request. Retrying the same arguments will not help.",
+  });
+  expect(permanent.response.body).not.toContain("invalid input syntax");
+  expect(log).toHaveBeenCalledTimes(2);
+  expect(log.mock.calls[1][0]).toMatchObject({
+    tool: "rename_folder",
+    errorName: "DatabaseError",
+    code: "22P02",
+  });
+  expect(JSON.stringify(log.mock.calls)).not.toMatch(/Study Room F|Greendale/);
+});
+
+it("reports stored data that fails its schema as a logged server error", async () => {
+  const error = vi.spyOn(app.log, "error");
+  const warn = vi.spyOn(app.log, "warn");
+  vi.mocked(pool.query).mockResolvedValue({
+    rows: [{ data: { folders: [{ id: "f1" }], drawings: [] } }],
+  } as never);
+  const listed = await rpc("tools/call", {
+    name: "list_workspace",
+    arguments: {},
+  });
+  expect(listed.body.result.structuredContent).toMatchObject({
+    error: "server_error",
+    retryable: false,
+  });
+  expect(error).toHaveBeenCalledOnce();
+  expect(error.mock.calls[0][0]).toMatchObject({
+    tool: "list_workspace",
+    errorName: "StoredDataError",
+  });
+  const read = await rpc("resources/read", {
+    uri: "setsquare://drawings/drawing",
+  });
+  expect(read.body.error.message).toContain("The drawing could not be read");
+  expect(warn).toHaveBeenCalledWith(
+    expect.objectContaining({
+      resource: "drawing",
+      errorName: "StoredDataError",
+    }),
+    "MCP resource read failed",
+  );
 });
 
 it("requires HTTPS or loopback redirects and S256 PKCE", () => {

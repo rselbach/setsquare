@@ -10,6 +10,7 @@ import {
 } from "../validation";
 
 import type { CallToolResult } from "@modelcontextprotocol/server";
+import type { FastifyBaseLogger } from "fastify";
 import type { FileDatabase } from "../files";
 import type { WorkspaceDatabase } from "../workspace";
 import type { DrawingContent } from "../../../setsquare-app/workspace/types";
@@ -141,6 +142,36 @@ const result = (
   structuredContent: data,
   ...(isError ? { isError: true } : {}),
 });
+// Log fields only: arguments and pg's detail can carry user data.
+const describe = (error: unknown) => {
+  // A failed rollback wraps the error that actually failed the transaction.
+  const failure: Record<string, unknown> = Object(
+    error instanceof AggregateError ? error.errors[0] : error,
+  );
+  const text = (value: unknown) =>
+    typeof value === "string" ? value : undefined;
+  return {
+    errorName: text(failure.name),
+    code: text(failure.code),
+    message: text(failure.message),
+  };
+};
+// Failures where the same request can succeed later; anything else repeats.
+const transientCodes = new Set([
+  "40001",
+  "40P01",
+  "55P03",
+  "57014",
+  "57P01",
+  "57P02",
+  "57P03",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+]);
+const isTransient = ({ code, message }: ReturnType<typeof describe>) =>
+  (code !== undefined && (transientCodes.has(code) || /^(08|53)/.test(code))) ||
+  (message?.startsWith("Connection terminated") ?? false);
 const fileIds = (content: DrawingContent) => [
   ...new Set(
     content.elements.flatMap((element) =>
@@ -156,6 +187,8 @@ export const createWorkspaceMcp = (
   owner: string,
   origin: string,
   canWrite: boolean,
+  log: FastifyBaseLogger,
+  requestId: string,
 ) => {
   const server = new McpServer(
     { name: "setsquare", version: "1.0.0" },
@@ -483,13 +516,23 @@ export const createWorkspaceMcp = (
               true,
             );
           }
+          const failure = describe(error);
+          log.error({ requestId, tool, ...failure }, "MCP tool failed");
           // Database errors must not leak SQL or another record's contents to clients.
           return result(
-            {
-              error: "server_error",
-              message:
-                "The request could not be completed. Retry with the same requestId and arguments.",
-            },
+            isTransient(failure)
+              ? {
+                  error: "server_error",
+                  retryable: true,
+                  message:
+                    "A temporary server failure interrupted the request. Retry with the same arguments, including requestId.",
+                }
+              : {
+                  error: "server_error",
+                  retryable: false,
+                  message:
+                    "The server could not complete this request. Retrying the same arguments will not help.",
+                },
             true,
           );
         }
@@ -539,11 +582,14 @@ export const createWorkspaceMcp = (
           ],
         };
       } catch (error) {
-        throw new Error(
-          error instanceof ApiError
-            ? error.message
-            : "The drawing could not be read",
+        if (error instanceof ApiError) {
+          throw new Error(error.message);
+        }
+        log.warn(
+          { requestId, resource: "drawing", ...describe(error) },
+          "MCP resource read failed",
         );
+        throw new Error("The drawing could not be read");
       }
     },
   );

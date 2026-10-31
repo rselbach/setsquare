@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { transaction } from "./database";
 
-import { ApiError } from "./errors";
+import { ApiError, parseStored } from "./errors";
 
 import {
   contentSchema,
@@ -100,7 +100,9 @@ const folderById = async (db: Queryable, owner: string, id: string) => {
     `SELECT ${folderMeta} AS data FROM folders f WHERE owner_id = $1 AND id = $2`,
     [owner, id],
   );
-  return result.rows.length ? folderSchema.parse(result.rows[0].data) : null;
+  return result.rows.length
+    ? parseStored(folderSchema, result.rows[0].data)
+    : null;
 };
 
 const drawingById = async (
@@ -112,7 +114,9 @@ const drawingById = async (
     `SELECT jsonb_build_object('meta', ${drawingMeta}, 'content', d.content) AS data FROM drawings d WHERE d.owner_id = $1 AND d.id = $2`,
     [owner, id],
   );
-  return result.rows.length ? drawingSchema.parse(result.rows[0].data) : null;
+  return result.rows.length
+    ? parseStored(drawingSchema, result.rows[0].data)
+    : null;
 };
 
 const drawingMetaById = async (db: Queryable, owner: string, id: string) => {
@@ -121,7 +125,7 @@ const drawingMetaById = async (db: Queryable, owner: string, id: string) => {
     [owner, id],
   );
   return result.rows.length
-    ? drawingMetaSchema.parse(result.rows[0].data)
+    ? parseStored(drawingMetaSchema, result.rows[0].data)
     : null;
 };
 
@@ -136,7 +140,7 @@ const snapshot = async (
   ) AS data`,
     [owner],
   );
-  return dataSchema.parse(result.rows[0].data);
+  return parseStored(dataSchema, result.rows[0].data);
 };
 
 // the folder and its ancestors, nearest first; a repeated folder closes a cycle
@@ -341,7 +345,9 @@ export class WorkspaceDatabase {
     }
     return result.rows.flatMap(
       (row): Array<[string, ReturnType<typeof thumbnailSchema.parse>]> =>
-        row.thumbnail ? [[row.id, thumbnailSchema.parse(row.thumbnail)]] : [],
+        row.thumbnail
+          ? [[row.id, parseStored(thumbnailSchema, row.thumbnail)]]
+          : [],
     );
   }
 
