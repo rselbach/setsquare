@@ -31,6 +31,7 @@ const openWithRecovery = async (saveDraft: () => Promise<void>) => {
     recoveryDrafts: {
       save: vi.fn(saveDraft),
       load: vi.fn().mockResolvedValue([]),
+      list: vi.fn().mockResolvedValue([]),
       remove: vi.fn().mockResolvedValue(undefined),
     },
   });

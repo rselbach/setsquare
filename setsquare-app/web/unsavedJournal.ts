@@ -96,25 +96,59 @@ export const clearUnsaved = (
   }
 };
 
-/** Reads recovery independently of whether the server still has the drawing. */
-export const readAccountRecovery = async (
-  store: WorkspaceStore,
-  id: DrawingId,
-): Promise<AccountDraft | null> => {
-  if (!store.recoveryKey) {
-    return null;
-  }
+const lockName = (draftId: string) => `setsquare-draft:${draftId}`;
+
+/** Holds the draft's lock until `until` settles, queued behind any holder. */
+export const holdDraft = (
+  locks: LockManager | undefined,
+  draftId: string,
+  until: Promise<void>,
+) => {
+  locks
+    ?.request(lockName(draftId), () => until)
+    .catch((error) => console.warn("Could not lock a recovery draft", error));
+};
+
+/**
+ * Takes the draft's lock unless an editor session holds it. Locks that fail
+ * leave the draft to whoever reads it, as a browser without them does.
+ */
+const claimDraft = (locks: LockManager, draftId: string) =>
+  new Promise<(() => void) | null>((resolve) => {
+    locks
+      .request(lockName(draftId), { ifAvailable: true }, (lock) => {
+        if (!lock) {
+          resolve(null);
+          return;
+        }
+        return new Promise<void>((release) => resolve(() => release()));
+      })
+      .catch((error) => {
+        console.warn("Could not lock a recovery draft", error);
+        resolve(() => {});
+      });
+  });
+
+/**
+ * Each draft's newest copy, from IndexedDB and from the localStorage keys of
+ * the account's drawings that `id` matches.
+ */
+const readDrafts = async (
+  account: string,
+  storage: Storage | undefined,
+  saved: () => Promise<AccountDraft[]> | undefined,
+  id?: DrawingId,
+) => {
   const drafts = new Map<string, AccountDraft>();
   try {
-    for (const draft of (await store.recoveryDrafts?.load(id)) ?? []) {
+    for (const draft of (await saved()) ?? []) {
       drafts.set(draft.draftId, draft);
     }
   } catch (error) {
     console.warn("Could not read IndexedDB recovery", error);
   }
-  const storage = store.recoveryStorage;
   if (storage) {
-    const prefix = prefixFor(id, store.recoveryKey);
+    const prefix = id ? prefixFor(id, account) : `${KEY}:${account}:`;
     for (let index = 0; index < storage.length; index++) {
       const key = storage.key(index);
       if (!key?.startsWith(prefix)) {
@@ -124,6 +158,10 @@ export const readAccountRecovery = async (
         const draft = parseAccountDraft(
           JSON.parse(storage.getItem(key) ?? "null"),
         );
+        // so another account whose id this one's starts with keeps its own
+        if (key !== keyFor(draft.id, account, draft.draftId)) {
+          continue;
+        }
         const previous = drafts.get(draft.draftId);
         if (!previous || previous.updatedAt <= draft.updatedAt) {
           drafts.set(draft.draftId, draft);
@@ -133,9 +171,99 @@ export const readAccountRecovery = async (
       }
     }
   }
-  return (
-    [...drafts.values()].sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null
+  return [...drafts.values()].sort((a, b) => b.updatedAt - a.updatedAt);
+};
+
+/**
+ * Reads recovery independently of whether the server still has the drawing.
+ * Where the browser has locks, it skips drafts an open editor session holds,
+ * such as another tab's, and keeps the draft it returns locked until the
+ * current task ends, so the editor that adopts it must lock it before then.
+ */
+export const readAccountRecovery = async (
+  store: WorkspaceStore,
+  id: DrawingId,
+): Promise<AccountDraft | null> => {
+  if (!store.recoveryKey) {
+    return null;
+  }
+  const drafts = await readDrafts(
+    store.recoveryKey,
+    store.recoveryStorage,
+    () => store.recoveryDrafts?.load(id),
+    id,
   );
+  const locks = store.recoveryLocks;
+  if (!locks) {
+    return drafts[0] ?? null;
+  }
+  for (const draft of drafts) {
+    const release = await claimDraft(locks, draft.draftId);
+    if (release) {
+      setTimeout(release);
+      return draft;
+    }
+  }
+  return null;
+};
+
+/** How long a draft of a drawing the workspace no longer has is kept. */
+export const ORPHAN_DRAFT_AGE = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Lists the newest draft of each drawing the workspace no longer has, such
+ * as one deleted on another device, which opening the drawing recovers.
+ * Drafts last edited more than `ORPHAN_DRAFT_AGE` ago are deleted instead,
+ * unless an editor session holds them.
+ */
+export const collectOrphanDrafts = async (
+  store: WorkspaceStore,
+  now = Date.now(),
+): Promise<AccountDraft[]> => {
+  const account = store.recoveryKey;
+  if (!account) {
+    return [];
+  }
+  const storage = store.recoveryStorage;
+  const drafts = await readDrafts(account, storage, () =>
+    store.recoveryDrafts?.list(),
+  );
+  const { drawings } = store.getSnapshot();
+  const orphans = new Map<DrawingId, AccountDraft>();
+  for (const draft of drafts) {
+    if (drawings.has(draft.id)) {
+      continue;
+    }
+    if (now - draft.updatedAt <= ORPHAN_DRAFT_AGE) {
+      if (!orphans.has(draft.id)) {
+        orphans.set(draft.id, draft);
+      }
+      continue;
+    }
+    const release = store.recoveryLocks
+      ? await claimDraft(store.recoveryLocks, draft.draftId)
+      : () => {};
+    if (!release) {
+      continue;
+    }
+    try {
+      await store.recoveryDrafts?.remove(draft.draftId, draft.updatedAt);
+      if (storage) {
+        clearUnsaved(
+          draft.id,
+          account,
+          storage,
+          draft.draftId,
+          draft.updatedAt,
+        );
+      }
+    } catch (error) {
+      console.warn("Could not remove an expired recovery draft", error);
+    } finally {
+      release();
+    }
+  }
+  return [...orphans.values()];
 };
 
 /** Opens a surviving draft even after the saved drawing was deleted or trashed. */

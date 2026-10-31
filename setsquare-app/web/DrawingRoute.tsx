@@ -272,14 +272,19 @@ export const DrawingRoute = ({
     };
   }, [editor, save, store]);
 
-  // once its last changes are saved, the thumbnail shows what the editor left
+  // once its last changes are saved, the thumbnail shows what the editor
+  // left, and other tabs may recover what it couldn't save
   useEffect(() => {
     if (!editor) {
       return;
     }
     const { persistence } = editor;
+    const release = persistence.hold();
     return () => {
-      persistence.flush().then(() => persistence.renderThumbnail());
+      persistence
+        .flush()
+        .finally(release)
+        .then(() => persistence.renderThumbnail());
     };
   }, [editor]);
 

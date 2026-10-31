@@ -89,6 +89,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   readonly user;
   readonly recoveryKey: string;
   readonly recoveryStorage: Storage;
+  readonly recoveryLocks?: LockManager;
   readonly recoveryDrafts: NonNullable<WorkspaceStore["recoveryDrafts"]>;
   private readonly fetch: typeof fetch;
   private readonly listeners = new Set<() => void>();
@@ -117,9 +118,12 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     this.user = options.session.user;
     this.recoveryKey = this.user.id;
     this.recoveryStorage = options.ownerWindow.localStorage;
+    // missing outside secure contexts, and in jsdom
+    this.recoveryLocks = options.ownerWindow.navigator.locks;
     this.recoveryDrafts = {
       save: (draft) => cache.saveDraft(draft),
       load: (id) => cache.loadDrafts(id),
+      list: () => cache.listDrafts(),
       remove: (id, notAfter) => cache.removeDraft(id, notAfter),
     };
     this.fetch =

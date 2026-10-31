@@ -1011,6 +1011,15 @@
     line-height: 1.35;
   }
 
+  .trash-view__recovered {
+    max-width: 64rem;
+    margin-top: 2rem;
+
+    .trash-view__retention {
+      margin-bottom: 1rem;
+    }
+  }
+
   .trash-list {
     max-width: 64rem;
     margin: 0;

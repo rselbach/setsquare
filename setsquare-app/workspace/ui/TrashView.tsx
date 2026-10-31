@@ -3,9 +3,11 @@ import { FilledButton } from "@setsquare/setsquare/components/FilledButton";
 import { LoadIcon, TrashIcon } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { restoreIcon } from "../../web/icons";
+import { navigate } from "../../web/router";
+import { collectOrphanDrafts } from "../../web/unsavedJournal";
 import { formatTimeAgo } from "../formatRelativeTime";
 import { ancestors, parentOf, trashRoots } from "../tree";
 
@@ -14,6 +16,7 @@ import { useThumbnails } from "./useThumbnails";
 import { NavButton } from "./WorkspaceNav";
 
 import type {
+  AccountDraft,
   ItemRef,
   Thumbnail,
   WorkspaceItem,
@@ -107,11 +110,55 @@ const TrashRow = ({
   );
 };
 
+/** A draft of a drawing deleted elsewhere, which opens to be saved as a copy. */
+const RecoveredRow = ({ draft, now }: { draft: AccountDraft; now: number }) => {
+  const { t, langCode } = useI18n();
+  const name = draft.appState.name || t("labels.untitled");
+  const ago = formatTimeAgo(draft.updatedAt, now, langCode);
+
+  return (
+    <li className="trash-row" aria-label={name}>
+      <div className="trash-row__sheet" aria-hidden="true" />
+      <div className="trash-row__label">
+        <span
+          className={clsx("trash-row__name", {
+            "trash-row__name--untitled": !draft.appState.name,
+          })}
+          title={name}
+        >
+          {name}
+        </span>
+        <span className="trash-row__location">
+          {t("workspace.recoveredDraftLocation")}
+        </span>
+      </div>
+      <time
+        className="trash-row__deleted"
+        dateTime={new Date(draft.updatedAt).toISOString()}
+      >
+        {ago === null
+          ? t("workspace.editedJustNow")
+          : t("workspace.editedAgo", { time: ago })}
+      </time>
+      <div className="trash-row__actions">
+        <FilledButton
+          variant="outlined"
+          icon={LoadIcon}
+          onClick={() => navigate({ kind: "drawing", id: draft.id })}
+        >
+          {t("workspace.open")}
+        </FilledButton>
+      </div>
+    </li>
+  );
+};
+
 /**
  * The Trash at `/trash`: what was moved there, the latest first, with
  * where each was and when it went. A folder there holds what was in it,
  * which shows again once it's restored. Restoring needs no confirmation,
- * but deleting for good does. Nothing here opens in the editor.
+ * but deleting for good does. Nothing here opens in the editor, except
+ * what this device kept of drawings deleted elsewhere, listed below.
  */
 export const TrashView = ({
   store,
@@ -140,6 +187,17 @@ export const TrashView = ({
     [folders, drawings],
   );
   const thumbnails = useThumbnails(store, drawings);
+  const [recovered, setRecovered] = useState<AccountDraft[]>([]);
+  useEffect(() => {
+    let active = true;
+    collectOrphanDrafts(store).then(
+      (drafts) => active && setRecovered(drafts),
+      (error) => console.warn("Could not list recovery drafts", error),
+    );
+    return () => {
+      active = false;
+    };
+  }, [store, snapshot]);
 
   const drawingsName = t("workspace.drawings");
   // where it was, as its folder is now; one that's gone means the root,
@@ -218,6 +276,27 @@ export const TrashView = ({
           <EmptyState title={t("workspace.trashEmpty")}>
             <p>{t("workspace.trashEmptyHint")}</p>
           </EmptyState>
+        )}
+        {recovered.length > 0 && (
+          <section
+            className="trash-view__recovered"
+            aria-labelledby="trash-recovered"
+          >
+            <h2 id="trash-recovered" className="workspace-section__caption">
+              {t("workspace.recoveredDrafts")}
+            </h2>
+            <p className="trash-view__retention">
+              {t("workspace.recoveredDraftsHint")}
+            </p>
+            <ul
+              className="trash-list"
+              aria-label={t("workspace.recoveredDrafts")}
+            >
+              {recovered.map((draft) => (
+                <RecoveredRow key={draft.id} draft={draft} now={now} />
+              ))}
+            </ul>
+          </section>
         )}
       </div>
       {confirming && (

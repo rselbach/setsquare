@@ -10,6 +10,17 @@ import { parseAccountDraft, parseFiles, parseView } from "./parse";
 
 import type { AccountDraft, DrawingId, DrawingView } from "../types";
 
+const parseDrafts = (values: unknown[]) =>
+  values.flatMap((value) => {
+    try {
+      return [parseAccountDraft(value)];
+    } catch (error) {
+      // left in place for a build that can read it
+      console.warn("Skipping an unreadable recovery draft", error);
+      return [];
+    }
+  });
+
 /** Recovery images and views belonging to one account on this device. */
 export class AccountCache {
   static async open(ownerWindow: Window, accountId: string) {
@@ -126,15 +137,14 @@ export class AccountCache {
     const values = await transact(this.db, ["drafts"], "readonly", (tx) =>
       request<unknown[]>(tx.objectStore("drafts").index("drawing").getAll(id)),
     );
-    return values.flatMap((value) => {
-      try {
-        return [parseAccountDraft(value)];
-      } catch (error) {
-        // left in place for a build that can read it
-        console.warn("Skipping an unreadable recovery draft", id, error);
-        return [];
-      }
-    });
+    return parseDrafts(values);
+  }
+
+  async listDrafts() {
+    const values = await transact(this.db, ["drafts"], "readonly", (tx) =>
+      request<unknown[]>(tx.objectStore("drafts").getAll()),
+    );
+    return parseDrafts(values);
   }
 
   /**
