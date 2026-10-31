@@ -198,6 +198,24 @@ describe("Move to…", () => {
     expect(card("Drawings", "Señor Chang's office")).toBeInTheDocument();
     expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
   });
+
+  it("closes when another tab moves the item to the trash", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    await openMoveDialog("Floor plan");
+    await store.trash({ kind: "folder", id: studyGroup.id });
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
+    expect(store.getSnapshot().drawings.get(plan.id)?.folderId).toBe(
+      studyGroup.id,
+    );
+
+    await openMoveDialog("Señor Chang's office");
+    await store.trash({ kind: "drawing", id: chang.id });
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
+    expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
+  });
 });
 
 describe("dragging cards", () => {

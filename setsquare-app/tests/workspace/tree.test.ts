@@ -239,6 +239,18 @@ describe("canMove", () => {
     ).toEqual({ ok: false, reason: "targetTrashed" });
   });
 
+  it("refuses items in the trash, themselves or through a folder", () => {
+    const snap = greendale();
+
+    expect(canMove(snap, folderRef("paintball"), null)).toEqual({
+      ok: false,
+      reason: "notFound",
+    });
+    expect(
+      canMove(snap, drawingRef("battle-map"), "personal" as FolderId),
+    ).toEqual({ ok: false, reason: "notFound" });
+  });
+
   it("refuses items and folders that don't exist", () => {
     const snap = greendale();
 
