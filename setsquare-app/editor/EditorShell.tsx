@@ -340,6 +340,8 @@ export const EditorShell = ({
   }, [setsquareAPI, setLangCode, loadImages, persistence]);
 
   useEffect(() => {
+    // starts the save and guards images still uploading; whether unsaved
+    // edits need the prompt is up to whoever owns the persistence
     const unloadHandler = (event: BeforeUnloadEvent) => {
       persistence.flush();
 

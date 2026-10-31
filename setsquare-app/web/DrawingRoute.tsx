@@ -246,7 +246,9 @@ export const DrawingRoute = ({
       }
       await discardIfUnused(store, editor.id, persistence.unsaved() === null);
     });
-    // the page may close before an IndexedDB write started now commits
+    // the page may close before an IndexedDB write started now commits.
+    // this listener alone decides the close prompt, so it writes the local
+    // copy itself instead of relying on the editor's flush having run first
     const onPageHide = (event: Event) => {
       const unsaved = persistence.unsaved();
       if (unsaved) {
