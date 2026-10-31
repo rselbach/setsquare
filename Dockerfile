@@ -29,4 +29,4 @@ COPY --from=build /opt/node_app/setsquare-app/build /opt/setsquare-app/build
 USER node
 EXPOSE 3002
 HEALTHCHECK CMD node -e "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "dist/server.mjs"]
+CMD ["node", "dist/missing.mjs"]
