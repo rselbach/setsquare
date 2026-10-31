@@ -132,7 +132,8 @@ const openFiles = async (
 
 /**
  * Lets the user pick a file to open, with Open file… and Cmd+O, importing it
- * into the folder `folderId` gives at the time. Returns what Open file… does.
+ * into the folder `folderId` gives once it's picked, or at the root if that
+ * folder is gone or in the Trash by then. Returns what Open file… does.
  */
 export const useOpenFile = (
   store: WorkspaceStore,

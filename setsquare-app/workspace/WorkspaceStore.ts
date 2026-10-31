@@ -77,9 +77,15 @@ export interface WorkspaceStore {
    */
   subscribeThumbnails(listener: () => void): () => void;
 
+  /**
+   * Rejects when the parent is gone or in the Trash, where the folder
+   * wouldn't show. Callers that should land somewhere anyway resolve the
+   * parent with `visibleFolder` first.
+   */
   createFolder(parentId: ParentId, name: string): Promise<Folder>;
   renameFolder(id: FolderId, name: string): Promise<ChangeResult>;
 
+  /** rejects when the folder is gone or in the Trash, as createFolder does */
   createDrawing(drawing: NewDrawing): Promise<DrawingMeta>;
   /** copies the drawing into its folder, or resolves null if it's gone */
   duplicateDrawing(

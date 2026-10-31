@@ -13,6 +13,7 @@ import {
   parentOf,
   subtree,
   trashRoots,
+  visibleFolder,
 } from "../tree";
 import { newDrawingMeta, newFolderId, nextSnapshot } from "../types";
 
@@ -141,6 +142,18 @@ const readTree = (tx: IDBTransaction) =>
 
 const readSnapshot = async (tx: IDBTransaction) =>
   nextSnapshot(EMPTY, ...(await readTree(tx)));
+
+// refuses, as an account does, to put an item in a folder that's gone or in
+// the Trash
+const checkParent = async (tx: IDBTransaction, parentId: ParentId) => {
+  if (parentId === null) {
+    return;
+  }
+  const snap = nextSnapshot(EMPTY, await getAll(tx, "folders"), []);
+  if (visibleFolder(snap, parentId) !== parentId) {
+    throw new Error("The destination folder is gone or in the Trash");
+  }
+};
 
 const putDrawing = (
   tx: IDBTransaction,
@@ -286,9 +299,10 @@ export class LocalWorkspaceStore implements WorkspaceStore {
       updatedAt: at,
       trashedAt: null,
     };
-    await this.write(["folders"], (tx) =>
-      put(tx, "folders", folder.id, folder),
-    );
+    await this.write(["folders"], async (tx) => {
+      await checkParent(tx, parentId);
+      await put(tx, "folders", folder.id, folder);
+    });
     return folder;
   }
 
@@ -311,9 +325,10 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     fileIds = [],
   }: NewDrawing) {
     const meta = newDrawingMeta({ name, folderId, fileIds }, this.now());
-    await this.write(["drawings", "contents"], (tx) =>
-      putDrawing(tx, { meta, content: withName(content, name) }),
-    );
+    await this.write(["folders", "drawings", "contents"], async (tx) => {
+      await checkParent(tx, folderId);
+      await putDrawing(tx, { meta, content: withName(content, name) });
+    });
     return meta;
   }
 

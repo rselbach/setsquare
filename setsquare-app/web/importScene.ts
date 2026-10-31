@@ -13,6 +13,7 @@ import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { getSceneUrl } from "../desktop/sceneUrl";
 import { splitAppState } from "../workspace/drawingAppState";
+import { visibleFolder } from "../workspace/tree";
 
 import { imageFileIds } from "./persistence/saveContent";
 import { navigate } from "./router";
@@ -24,7 +25,8 @@ import type { EditorTask } from "./editorTasks";
 
 /**
  * Creates a drawing from a restored scene, such as an opened file, with the
- * scene's images. Of its appState, only what belongs to a drawing is kept,
+ * scene's images, in folderId, or at the root if that folder went to the
+ * Trash or was deleted by the time it's created. Of its appState, only what belongs to a drawing is kept,
  * so the file's preferences and scroll don't carry over. Images the scene
  * lacks or the store refuses are left out, with how many there were.
  */
@@ -57,7 +59,8 @@ export const importSceneAsDrawing = async (
       !isInitializedImageElement(element) || !missing.has(element.fileId),
   );
   const drawing = await store.createDrawing({
-    folderId,
+    // read now, after the waits, since another tab may have trashed it
+    folderId: visibleFolder(store.getSnapshot(), folderId),
     name,
     content: {
       elements: kept,
