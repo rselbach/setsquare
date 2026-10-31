@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import type { FileId } from "@setsquare/element/types";
 
 import type { BinaryFileData } from "@setsquare/setsquare/types";
@@ -124,16 +126,30 @@ export class AccountCache {
     const values = await transact(this.db, ["drafts"], "readonly", (tx) =>
       request<unknown[]>(tx.objectStore("drafts").index("drawing").getAll(id)),
     );
-    return values.map(parseAccountDraft);
+    return values.flatMap((value) => {
+      try {
+        return [parseAccountDraft(value)];
+      } catch (error) {
+        // left in place for a build that can read it
+        console.warn("Skipping an unreadable recovery draft", id, error);
+        return [];
+      }
+    });
   }
 
+  /**
+   * Deletes a draft, but only at `generation` when one is given. The check
+   * reads just the generation, so a record this build cannot parse still
+   * goes, and one without a readable generation is deleted outright.
+   */
   removeDraft(draftId: string, generation?: string) {
     return transact(this.db, ["drafts"], "readwrite", async (tx) => {
       const store = tx.objectStore("drafts");
       const value: unknown = await request(store.get(draftId));
+      const saved = z.object({ generation: z.string() }).safeParse(value);
       if (
         value !== undefined &&
-        (!generation || parseAccountDraft(value).generation === generation)
+        (!generation || !saved.success || saved.data.generation === generation)
       ) {
         await request(store.delete(draftId));
       }
