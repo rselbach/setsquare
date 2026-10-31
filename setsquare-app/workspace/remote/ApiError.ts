@@ -6,14 +6,6 @@ export class ApiError extends Error {
   }
 }
 
-/** One image id and version cannot name two different images. */
-export class ImageVersionCollision extends Error {
-  constructor() {
-    super("An image version cannot be reused for different image data");
-    this.name = "ImageVersionCollision";
-  }
-}
-
 /** The operation's commit outcome, independently of its last failure reason. */
 export class RequestFailure extends Error {
   constructor(

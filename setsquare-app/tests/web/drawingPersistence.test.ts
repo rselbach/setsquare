@@ -16,7 +16,6 @@ import {
   replayUnsaved,
 } from "../../web/unsavedJournal";
 import { AccountCache } from "../../workspace/remote/AccountCache";
-import { ImageVersionCollision } from "../../workspace/remote/ApiError";
 import { workspaceFixture } from "../workspace/helpers";
 
 import { savedContent } from "./helpers";
@@ -543,21 +542,33 @@ it("still saves when staging images for recovery fails", async () => {
   expect(persistence.unsaved()).toBe(null);
 });
 
-it("still reports an image version collision from staging", async () => {
+it("saves a scene whose deleted image can no longer be uploaded", async () => {
   const { store, drawing } = await session();
-  vi.spyOn(console, "warn").mockImplementation(() => {});
-  vi.spyOn(store, "stageFiles").mockRejectedValue(new ImageVersionCollision());
-  const save = vi.spyOn(store, "saveDrawingContent");
+  const fileId = "pierce-image" as FileId;
+  const file: BinaryFileData = {
+    id: fileId,
+    dataURL: "data:image/png;base64,AAAA" as DataURL,
+    mimeType: "image/png",
+    created: 1,
+  };
+  vi.spyOn(store.files, "save").mockImplementation(async ({ addedFiles }) => ({
+    savedFiles: new Map(),
+    erroredFiles: new Map(addedFiles),
+  }));
+  const staging = vi.spyOn(store, "stageFiles");
   const persistence = persistenceFor(store, drawing);
   persistence.save(
-    savedContent("Greendale", "troy").elements,
+    [
+      ...savedContent("Greendale", "troy").elements,
+      API.createElement({ type: "image", fileId, isDeleted: true }),
+    ],
     appState(),
-    {},
+    { [fileId]: file },
     vi.fn(),
   );
   await persistence.flush();
-  expect(save).not.toHaveBeenCalled();
-  expect(persistence.getSaveState().kind).toBe("error");
+  expect(staging).toHaveBeenCalledWith({});
+  expect(persistence.getSaveState().kind).toBe("saved");
 });
 
 it("never pairs old content with the revision of a newer metadata refresh", async () => {

@@ -10,7 +10,6 @@ import {
   ApiError,
   apiFailureCause,
   apiFailureKind,
-  ImageVersionCollision,
   RequestFailure,
 } from "./ApiError";
 import {
@@ -92,7 +91,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private readonly savingFiles = new Set<FileId>();
   private readonly stagedFiles = new Map<
     FileId,
-    { dataURL: string; version: number; saved: Promise<void> }
+    { version: number; saved: Promise<void> }
   >();
   private snapshot: WorkspaceSnapshot = {
     folders: new Map(),
@@ -128,16 +127,9 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     return Promise.all(
       Object.values(files).map((file) => {
         const staged = this.stagedFiles.get(file.id);
-        if (staged) {
-          if (
-            staged.dataURL !== file.dataURL &&
-            (file.version ?? 1) === staged.version
-          ) {
-            throw new ImageVersionCollision();
-          }
-          if ((file.version ?? 1) <= staged.version) {
-            return staged.saved;
-          }
+        // other bytes at a staged version are another rendering of the image
+        if (staged && (file.version ?? 1) <= staged.version) {
+          return staged.saved;
         }
         const saved = this.cache.saveFiles([file]).catch((error) => {
           if (this.stagedFiles.get(file.id)?.saved === saved) {
@@ -145,11 +137,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
           }
           throw error;
         });
-        this.stagedFiles.set(file.id, {
-          dataURL: file.dataURL,
-          version: file.version ?? 1,
-          saved,
-        });
+        this.stagedFiles.set(file.id, { version: file.version ?? 1, saved });
         return saved;
       }),
     ).then(() => {});
@@ -613,17 +601,14 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     }
   }
 
-  /**
-   * Keeps a device copy of images the server already holds. A version
-   * collision is the caller's, not the device's, so it still fails.
-   */
-  private async cacheFiles(files: readonly BinaryFileData[]) {
+  /** Keeps a device copy of images without letting a cache failure stop a save. */
+  private async cacheFiles(
+    files: readonly BinaryFileData[],
+    options?: { replace?: boolean },
+  ) {
     try {
-      await this.cache.saveFiles(files);
+      await this.cache.saveFiles(files, options);
     } catch (error) {
-      if (error instanceof ImageVersionCollision) {
-        throw error;
-      }
       console.warn("Could not keep a device copy of the images", error);
     }
   }
@@ -645,7 +630,8 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
         const loaded = parseFiles(
           await this.get(this.withIds("/api/files", batch)),
         ).files;
-        await this.cacheFiles(loaded);
+        // the server's bytes are the account's copy of each image version
+        await this.cacheFiles(loaded, { replace: true });
         for (const file of loaded) {
           const confirmed = this.confirmedFiles.get(file.id);
           if (!confirmed || (file.version ?? 1) >= (confirmed.version ?? 1)) {
@@ -669,22 +655,10 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
 
   private async upload(files: readonly BinaryFileData[]) {
     for (const file of files) {
+      // ids name the original image, so any confirmed bytes at this version
+      // render it; browsers resize and encode the same picture differently
       const confirmed = this.confirmedFiles.get(file.id);
-      if (confirmed && (file.version ?? 1) < (confirmed.version ?? 1)) {
-        continue;
-      }
-      if (
-        confirmed &&
-        confirmed.dataURL !== file.dataURL &&
-        (file.version ?? 1) <= (confirmed.version ?? 1)
-      ) {
-        throw new ImageVersionCollision();
-      }
-      if (
-        confirmed &&
-        confirmed.dataURL === file.dataURL &&
-        (file.version ?? 1) <= (confirmed.version ?? 1)
-      ) {
+      if (confirmed && (file.version ?? 1) <= (confirmed.version ?? 1)) {
         continue;
       }
       let data: ReturnType<typeof parseFiles>;
@@ -707,8 +681,9 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
           cause.status === 409 &&
           cause.message === "image_collision"
         ) {
+          // another device uploaded this version first: adopt its bytes
           const [current] = await this.download([file.id]);
-          if (current && (current.version ?? 1) > (file.version ?? 1)) {
+          if (current && (current.version ?? 1) >= (file.version ?? 1)) {
             continue;
           }
         }

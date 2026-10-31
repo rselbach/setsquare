@@ -4,7 +4,6 @@ import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { request, transact } from "../local/idb";
 
-import { ImageVersionCollision } from "./ApiError";
 import { parseAccountDraft, parseFiles, parseView } from "./parse";
 
 import type { AccountDraft, DrawingId, DrawingView } from "../types";
@@ -45,21 +44,28 @@ export class AccountCache {
       .files;
   }
 
-  async saveFiles(files: readonly BinaryFileData[]) {
+  /**
+   * Keeps the newest version of each image. Image ids name the original
+   * picture, so other bytes at the same version are another rendering of it:
+   * the cached copy stays unless `replace` marks the server's confirmed copy.
+   */
+  async saveFiles(
+    files: readonly BinaryFileData[],
+    { replace = false }: { replace?: boolean } = {},
+  ) {
     await transact(this.db, ["files"], "readwrite", async (tx) => {
       const store = tx.objectStore("files");
       for (const file of files) {
         const previous: unknown = await request(store.get(file.id));
         if (previous !== undefined) {
           const [saved] = parseFiles({ files: [previous] }).files;
-          if ((file.version ?? 1) < (saved.version ?? 1)) {
-            continue;
-          }
+          const version = file.version ?? 1;
+          const savedVersion = saved.version ?? 1;
           if (
-            saved.dataURL !== file.dataURL &&
-            (file.version ?? 1) === (saved.version ?? 1)
+            version < savedVersion ||
+            (version === savedVersion && !replace)
           ) {
-            throw new ImageVersionCollision();
+            continue;
           }
         }
         await request(store.put(file, file.id));

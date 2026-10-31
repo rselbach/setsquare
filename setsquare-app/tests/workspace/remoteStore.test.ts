@@ -72,6 +72,24 @@ const open = async (
   return store;
 };
 
+const cachedFile = async (
+  account: Extract<SessionInfo, { kind: "signedIn" }>,
+  id: FileId,
+) => {
+  const db = await openDatabase(
+    `setsquare-account-${account.user.id}`,
+    2,
+    () => {},
+  );
+  try {
+    return await transact(db, ["files"], "readonly", (tx) =>
+      request(tx.objectStore("files").get(id)),
+    );
+  } finally {
+    db.close();
+  }
+};
+
 const file = (id = "dreamatorium" as FileId): BinaryFileData => ({
   id,
   mimeType: "image/png",
@@ -600,32 +618,123 @@ describe("RemoteWorkspaceStore", () => {
     expect(loaded.erroredFiles).toEqual(new Map([[missing, true]]));
   });
 
-  it("refuses different image bytes without overwriting the recovery cache", async () => {
+  it("keeps the server's image when the same version arrives with different bytes", async () => {
     const meta = drawing();
+    const account = session();
     const image = file();
-    const fetch: typeof globalThis.fetch = async (input, init) =>
-      String(input) === "/api/workspace"
-        ? response(workspace(meta))
-        : init?.method === "POST"
-        ? response(JSON.parse(String(init.body)))
-        : response({ files: [image] });
-    const store = await open(fetch);
+    const uploads: unknown[] = [];
+    const fetch: typeof globalThis.fetch = async (input, init) => {
+      if (String(input) === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      uploads.push(JSON.parse(String(init?.body)));
+      return response(JSON.parse(String(init?.body)));
+    };
+    const store = await open(fetch, account);
     await store.files.save({ addedFiles: new Map([[image.id, image]]) });
+    const resized = {
+      ...image,
+      dataURL: "data:image/png;base64,BBBB" as BinaryFileData["dataURL"],
+    };
+    const result = await store.files.save({
+      addedFiles: new Map([[resized.id, resized]]),
+    });
+    expect(result.savedFiles.get(image.id)).toEqual(image);
+    expect(result.erroredFiles.size).toBe(0);
+    expect(uploads).toEqual([{ files: [image] }]);
+    expect(await cachedFile(account, image.id)).toEqual(image);
+  });
+
+  it("adopts the server's bytes for an image another device uploaded first", async () => {
+    const meta = drawing();
+    const account = session();
+    const ours = file("screenshot" as FileId);
+    const theirs = {
+      ...ours,
+      dataURL: "data:image/png;base64,BBBB" as BinaryFileData["dataURL"],
+    };
+    const saved = { ...meta, revision: 2, fileIds: [ours.id] };
+    const requests: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input, init) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      requests.push(`${init?.method} ${path}`);
+      if (path === "/api/files") {
+        // the server keeps the first bytes uploaded for an image version
+        const body = JSON.parse(String(init?.body));
+        return body.files[0].dataURL === theirs.dataURL
+          ? response(body)
+          : response({ error: "image_collision" }, 409);
+      }
+      if (path.startsWith("/api/files?")) {
+        return response({ files: [theirs] });
+      }
+      return response({
+        result: { kind: "save", result: { ok: true, meta: saved } },
+        snapshot: workspace(saved),
+      });
+    };
+    const store = await open(fetch, account);
+    await store.stageFiles({ [ours.id]: ours });
+    const result = await store.files.save({
+      addedFiles: new Map([[ours.id, ours]]),
+    });
+    expect(result.savedFiles.get(ours.id)).toEqual(theirs);
+    expect(result.erroredFiles.size).toBe(0);
+    expect(await cachedFile(account, ours.id)).toEqual(theirs);
+    requests.length = 0;
     await expect(
-      store.files.save({
-        addedFiles: new Map([
-          [
-            image.id,
-            {
-              ...image,
-              dataURL:
-                "data:image/png;base64,BBBB" as BinaryFileData["dataURL"],
-            },
-          ],
-        ]),
-      }),
-    ).rejects.toThrow("different image data");
-    expect((await store.files.get([image.id])).loadedFiles).toEqual([image]);
+      store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [ours.id],
+        { baseRevision: 1, requestId: "britta-save" },
+      ),
+    ).resolves.toEqual({ ok: true, meta: saved });
+    expect(requests).toEqual(["POST /api/commands"]);
+
+    // after a reload, the device re-uploads the bytes it adopted
+    const reloaded = await open(fetch, account);
+    requests.length = 0;
+    await expect(
+      reloaded.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [ours.id],
+        { baseRevision: 1, requestId: "britta-reload" },
+      ),
+    ).resolves.toEqual({ ok: true, meta: saved });
+    expect(requests).toEqual(["POST /api/files", "POST /api/commands"]);
+  });
+
+  it("stages either rendering of an image version and keeps the first", async () => {
+    const account = session();
+    const fetch: typeof globalThis.fetch = async (input) => {
+      if (String(input) === "/api/workspace") {
+        return response(workspace(drawing()));
+      }
+      throw new Error(`Unexpected request: ${String(input)}`);
+    };
+    const first = await open(fetch, account);
+    const second = await open(fetch, account);
+    const ours = file("logo" as FileId);
+    const theirs = {
+      ...ours,
+      dataURL: "data:image/png;base64,BBBB" as BinaryFileData["dataURL"],
+    };
+    await first.stageFiles({ [ours.id]: ours });
+    await expect(
+      first.stageFiles({ [theirs.id]: theirs }),
+    ).resolves.toBeUndefined();
+    await expect(
+      second.stageFiles({ [theirs.id]: theirs }),
+    ).resolves.toBeUndefined();
+    await expect(
+      second.stageFiles({ [ours.id]: ours }),
+    ).resolves.toBeUndefined();
+    expect(await cachedFile(account, ours.id)).toEqual(ours);
   });
 
   it("uploads images when the device cache cannot keep them", async () => {

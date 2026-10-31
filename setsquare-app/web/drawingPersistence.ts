@@ -29,7 +29,6 @@ import { loadPrefs, savePrefs } from "../workspace/prefs";
 import {
   apiFailureCause,
   apiFailureKind,
-  ImageVersionCollision,
   RequestFailure,
 } from "../workspace/remote/ApiError";
 import { visibleFolder } from "../workspace/tree";
@@ -331,8 +330,16 @@ export const createDrawingPersistence = ({
     scene.onFilesSaved();
   };
 
-  const stageImages = (files: BinaryFiles) => {
+  /** Stages the images the scene shows and the pinned request still needs. */
+  const stageImages = (scene: ThumbnailScene) => {
     const stagingGeneration = generation;
+    const ids = new Set<string>([
+      ...imageFileIds(getNonDeletedElements(scene.elements)),
+      ...(request ? imageFileIds(request.content.elements) : []),
+    ]);
+    const files: BinaryFiles = Object.fromEntries(
+      Object.entries(scene.files).filter(([id]) => ids.has(id)),
+    );
     imageStaging = (store.stageFiles?.(files) ?? Promise.resolve()).then(
       () => {
         if (store.stageFiles || (pending && localImagesSaved(pending))) {
@@ -362,9 +369,6 @@ export const createDrawingPersistence = ({
     try {
       await imageStaging;
     } catch (error) {
-      if (error instanceof ImageVersionCollision) {
-        throw error;
-      }
       console.warn(
         "Could not stage the drawing's images on this device",
         error,
@@ -528,7 +532,7 @@ export const createDrawingPersistence = ({
       pending = { ...latest, onFilesSaved };
       generation = ownerWindow.crypto.randomUUID();
       updatedAt = Date.now();
-      stageImages(files);
+      stageImages(latest);
       if (state.kind !== "conflict" && state.kind !== "missing") {
         if (state.kind !== "saving") {
           publish({ kind: "unsaved" });
@@ -628,7 +632,7 @@ export const createDrawingPersistence = ({
       debouncedSave.cancel();
       debouncedRecovery.cancel();
       if (pending) {
-        stageImages(pending.files);
+        stageImages(pending);
         keepRecovery();
       }
       enqueue();
