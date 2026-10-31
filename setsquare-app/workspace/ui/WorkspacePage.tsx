@@ -23,6 +23,7 @@ import {
   importBrowserDrawings,
 } from "../../web/accountControls";
 import { useBrowserImport } from "../../web/browserImport";
+import { isModalOpen } from "../../web/isModalOpen";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
@@ -335,6 +336,9 @@ const WorkspaceView = ({
   const canUndo = !!toast.message?.undo;
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (isModalOpen(document)) {
+        return;
+      }
       if (
         // the toast's Undo, while it shows
         canUndo &&
