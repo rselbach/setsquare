@@ -89,7 +89,11 @@ export const splitAppState = (
   prefs: Prefs;
 } => ({
   content: pick(appState, DRAWING_CONTENT_KEYS),
-  view: pick(appState, DRAWING_VIEW_KEYS),
+  view: {
+    ...pick(appState, DRAWING_VIEW_KEYS),
+    // Point editing is transient. Selection is restored from selectedElementIds.
+    selectedLinearElement: null,
+  },
   prefs: toPrefs(appState),
 });
 

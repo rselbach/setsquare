@@ -249,7 +249,11 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       return null;
     }
     this.publishDrawing(drawing.meta, sequence);
-    return { ...drawing, view: await this.cache.getView(id) };
+    const view = await this.cache.getView(id).catch((error) => {
+      console.warn("Could not read cached drawing view", id, error);
+      return null;
+    });
+    return { ...drawing, view };
   }
 
   async getDrawingMeta(id: DrawingId): Promise<DrawingMeta | null> {

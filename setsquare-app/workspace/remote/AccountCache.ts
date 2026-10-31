@@ -69,15 +69,26 @@ export class AccountCache {
   }
 
   async getView(id: DrawingId): Promise<DrawingView | null> {
-    const value = await transact(this.db, ["views"], "readonly", (tx) =>
-      request(tx.objectStore("views").get(id)),
-    );
-    return value === undefined ? null : parseView(value);
+    return transact(this.db, ["views"], "readwrite", async (tx) => {
+      const store = tx.objectStore("views");
+      const value: unknown = await request(store.get(id));
+      if (value === undefined) {
+        return null;
+      }
+      try {
+        return parseView(value);
+      } catch (error) {
+        console.warn("Discarding invalid cached drawing view", id, error);
+        await request(store.delete(id));
+        return null;
+      }
+    });
   }
 
   async saveView(id: DrawingId, view: DrawingView) {
+    const value: unknown = JSON.parse(JSON.stringify(view));
     await transact(this.db, ["views"], "readwrite", (tx) =>
-      request(tx.objectStore("views").put(view, id)),
+      request(tx.objectStore("views").put(value, id)),
     );
   }
 

@@ -428,7 +428,7 @@ export class LocalWorkspaceStore implements WorkspaceStore {
       if (!(await get(tx, "drawings", id))) {
         return NOT_FOUND;
       }
-      await put(tx, "views", id, view);
+      await put(tx, "views", id, JSON.parse(JSON.stringify(view)));
       return OK;
     });
   }
