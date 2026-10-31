@@ -47,10 +47,17 @@ jobs:
             setsquare-server/node_modules
             packages/*/node_modules
             examples/*/node_modules
-          key: dependencies-${{ runner.os }}-node24-${{ hashFiles('yarn.lock', '**/package.json', '.yarnrc', '.npmrc', '**/patches/**') }}
+          key: dependencies-v2-${{ runner.os }}-node24-${{ hashFiles('yarn.lock', '**/package.json', '.yarnrc', '.npmrc', '**/patches/**') }}
       - name: Install dependencies
         if: steps.dependencies.outputs.cache-hit != 'true'
-        run: yarn install --frozen-lockfile --non-interactive
+        # --frozen-lockfile ignores workspace package.json files
+        # (yarnpkg/yarn#5840), so install and fail if yarn.lock changes
+        run: |
+          yarn install --non-interactive
+          if ! git diff --exit-code -- yarn.lock; then
+            echo "yarn.lock is out of date. Run yarn install and commit it." >&2
+            exit 1
+          fi
       - name: Test frontend
         if: github.event_name != 'pull_request'
         run: yarn test:app --run
