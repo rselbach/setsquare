@@ -14,6 +14,7 @@ The server reads its settings from `/home/exedev/setsquare.env` on the VM. The f
 | `APP_ORIGIN` | `https://setsquare.rselbach.com` |
 | `DATABASE_URL` | The `setsquare` role and database on `pg-rselbach`, at its Tailscale address `100.94.176.81` |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | The GitHub OAuth app whose callback is `https://setsquare.rselbach.com/api/auth/github/callback` |
+| `ALLOWED_GITHUB_IDS` | `355691`, the GitHub user id of `rselbach`. Without it the server refuses to start, and the deploy rolls back |
 
 The database lives on the shared PostgreSQL VM `pg-rselbach`, which accepts connections only over Tailscale. Its `/etc/postgres/pg_hba.conf` allows the `setsquare` role into the `setsquare` database only from the `setsquare` VM's Tailscale address. The server applies its migrations when it starts.
 

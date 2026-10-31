@@ -398,14 +398,37 @@ it("requires HTTPS and OAuth configuration for production", async () => {
       DATABASE_URL: config.databaseUrl,
     }),
   ).toThrow();
-  const production = loadConfig({
+  const deployed = {
     NODE_ENV: "production",
     APP_ORIGIN: "https://setsquare.example",
     DATABASE_URL: config.databaseUrl,
     GITHUB_CLIENT_ID: "client",
     GITHUB_CLIENT_SECRET: "secret",
+  };
+  expect(() => loadConfig(deployed)).toThrow("ALLOWED_GITHUB_IDS");
+  expect(() =>
+    loadConfig({ ...deployed, ALLOWED_GITHUB_IDS: "troy-barnes" }),
+  ).toThrow("numeric");
+  expect(() =>
+    loadConfig({
+      ...deployed,
+      ALLOWED_GITHUB_IDS: "101",
+      ALLOW_ANY_GITHUB_ACCOUNT: "true",
+    }),
+  ).toThrow("not both");
+  expect(
+    loadConfig({ ...deployed, ALLOW_ANY_GITHUB_ACCOUNT: "true" })
+      .allowedGithubIds,
+  ).toBe(null);
+  expect(
+    loadConfig({ DATABASE_URL: config.databaseUrl }).allowedGithubIds,
+  ).toBe(null);
+  const production = loadConfig({
+    ...deployed,
+    ALLOWED_GITHUB_IDS: "101, 102",
   });
   expect(production.production).toBe(true);
+  expect(production.allowedGithubIds).toEqual(["101", "102"]);
   const secureApp = await testServer(db.pool, clock, production);
   try {
     const login = await secureApp.inject({ url: "/api/auth/github" });
@@ -414,5 +437,64 @@ it("requires HTTPS and OAuth configuration for production", async () => {
     ).toMatchObject({ secure: true, httpOnly: true, path: "/" });
   } finally {
     await secureApp.close();
+  }
+});
+
+it("admits only allowed GitHub accounts and cuts off existing sessions", async () => {
+  const signIn = async (server: FastifyInstance) => {
+    const login = await server.inject({ url: "/api/auth/github" });
+    const state = new URL(login.headers.location ?? "").searchParams.get(
+      "state",
+    );
+    const cookie = login.cookies.find(
+      (entry) => entry.name === "setsquare_oauth",
+    );
+    return server.inject({
+      url: `/api/auth/github/callback?state=${state}&code=greendale`,
+      headers: { cookie: `setsquare_oauth=${cookie?.value}` },
+    });
+  };
+  const closed = await testServer(db.pool, clock, {
+    allowedGithubIds: ["999"],
+  });
+  const open = await testServer(db.pool, clock, { allowedGithubIds: ["101"] });
+  try {
+    expect(
+      (await closed.inject({ url: "/api/workspace", headers: troy.headers }))
+        .statusCode,
+    ).toBe(401);
+    expect(
+      (
+        await closed.inject({ url: "/api/session", headers: troy.headers })
+      ).json(),
+    ).toEqual({ kind: "signedOut" });
+    expect(
+      (await open.inject({ url: "/api/workspace", headers: troy.headers }))
+        .statusCode,
+    ).toBe(200);
+    await db.pool.query("TRUNCATE users CASCADE");
+    const refused = await signIn(closed);
+    expect(refused.statusCode).toBe(403);
+    expect(refused.json().error).toBe("account_not_allowed");
+    expect(
+      refused.cookies.find((entry) => entry.name === "setsquare_session"),
+    ).toBeUndefined();
+    expect((await db.pool.query("SELECT id FROM users")).rows).toHaveLength(0);
+    const admitted = await signIn(open);
+    expect(admitted.statusCode).toBe(302);
+    const session = admitted.cookies.find(
+      (entry) => entry.name === "setsquare_session",
+    );
+    expect(
+      (
+        await open.inject({
+          url: "/api/session",
+          headers: { cookie: `setsquare_session=${session?.value}` },
+        })
+      ).json(),
+    ).toMatchObject({ kind: "signedIn", user: { login: "troy-barnes" } });
+  } finally {
+    await closed.close();
+    await open.close();
   }
 });

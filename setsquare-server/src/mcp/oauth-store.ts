@@ -133,6 +133,7 @@ export class McpOAuthStore {
     readonly pool: Pool,
     readonly resource: string,
     readonly now: () => number = Date.now,
+    readonly allowedGithubIds: string[] | null = null,
   ) {}
 
   async register(metadata: ClientMetadata, ip: string) {
@@ -437,9 +438,11 @@ export class McpOAuthStore {
     }
     const result = await this.pool.query<AccessGrant>(
       `SELECT g.*, t.expires_at AS access_expires_at FROM mcp_tokens t JOIN mcp_grants g ON g.id = t.grant_id
+      JOIN users u ON u.id = g.user_id
       WHERE t.token_hash = $1 AND t.kind = 'access' AND t.expires_at > $2
-      AND g.expires_at > $2 AND g.revoked_at IS NULL AND g.resource = $3`,
-      [hash(access), this.now(), this.resource],
+      AND g.expires_at > $2 AND g.revoked_at IS NULL AND g.resource = $3
+      AND ($4::text[] IS NULL OR u.github_id = ANY($4))`,
+      [hash(access), this.now(), this.resource, this.allowedGithubIds],
     );
     return result.rows[0] ?? null;
   }

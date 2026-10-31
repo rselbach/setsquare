@@ -14,6 +14,8 @@ const envSchema = z.object({
   HOST: z.string().default("127.0.0.1"),
   SETSQUARE_STATIC_DIR: z.string().optional(),
   MCP_ALLOWED_ORIGINS: z.string().optional(),
+  ALLOWED_GITHUB_IDS: z.string().optional(),
+  ALLOW_ANY_GITHUB_ACCOUNT: z.enum(["true", "false"]).optional(),
 });
 
 /** The server's validated deployment settings. */
@@ -25,6 +27,8 @@ export type ServerConfig = {
   port: number;
   staticDir: string;
   github: { clientId: string; clientSecret: string } | null;
+  /** GitHub user ids that may sign in, or null to admit any GitHub account. */
+  allowedGithubIds: string[] | null;
   mcpAllowedOrigins?: string[];
 };
 
@@ -35,6 +39,8 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
     GITHUB_CLIENT_ID: env.GITHUB_CLIENT_ID || undefined,
     GITHUB_CLIENT_SECRET: env.GITHUB_CLIENT_SECRET || undefined,
     MCP_ALLOWED_ORIGINS: env.MCP_ALLOWED_ORIGINS || undefined,
+    ALLOWED_GITHUB_IDS: env.ALLOWED_GITHUB_IDS || undefined,
+    ALLOW_ANY_GITHUB_ACCOUNT: env.ALLOW_ANY_GITHUB_ACCOUNT || undefined,
   });
   const origin = new URL(parsed.APP_ORIGIN);
   if (!["http:", "https:"].includes(origin.protocol)) {
@@ -63,6 +69,28 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
   if (production && (!clientId || !clientSecret)) {
     throw new Error("Production requires GitHub OAuth credentials");
   }
+  const allowedGithubIds =
+    parsed.ALLOWED_GITHUB_IDS?.split(",").map((value) => {
+      const id = value.trim();
+      // GitHub ids never change hands, unlike logins
+      if (!/^[1-9][0-9]*$/.test(id)) {
+        throw new Error(
+          "ALLOWED_GITHUB_IDS must contain numeric GitHub user ids",
+        );
+      }
+      return id;
+    }) ?? null;
+  const allowAny = parsed.ALLOW_ANY_GITHUB_ACCOUNT === "true";
+  if (allowedGithubIds && allowAny) {
+    throw new Error(
+      "Set ALLOWED_GITHUB_IDS or ALLOW_ANY_GITHUB_ACCOUNT=true, not both",
+    );
+  }
+  if (production && !allowedGithubIds && !allowAny) {
+    throw new Error(
+      "Production requires ALLOWED_GITHUB_IDS or ALLOW_ANY_GITHUB_ACCOUNT=true",
+    );
+  }
   return {
     production,
     origin: origin.origin,
@@ -73,6 +101,7 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
       parsed.SETSQUARE_STATIC_DIR ?? "../setsquare-app/build",
     ),
     github: clientId && clientSecret ? { clientId, clientSecret } : null,
+    allowedGithubIds,
     mcpAllowedOrigins: parsed.MCP_ALLOWED_ORIGINS?.split(",")
       .map((value) => z.url().parse(value.trim()))
       .map((value) => {

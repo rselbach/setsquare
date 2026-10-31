@@ -55,9 +55,10 @@ Set these environment variables before running `docker compose up --build -d`.
 | `APP_ORIGIN` | The public HTTPS origin, without a path |
 | `GITHUB_CLIENT_ID` | The production OAuth app's client ID |
 | `GITHUB_CLIENT_SECRET` | The production OAuth app's secret |
+| `ALLOWED_GITHUB_IDS` | The numeric GitHub user ids that may sign in, separated by commas. `gh api users/<login> --jq .id` prints an account's id |
 | `POSTGRES_PASSWORD` | A URL-safe database password, such as a random hex string |
 
-Compose keeps PostgreSQL in the `database` volume and does not expose its port. For an existing database, run the app image with `DATABASE_URL` instead of the Compose database service. Production startup requires HTTPS and OAuth credentials. `/api/health` checks the database connection.
+Compose keeps PostgreSQL in the `database` volume and does not expose its port. For an existing database, run the app image with `DATABASE_URL` instead of the Compose database service. Production startup requires HTTPS, OAuth credentials, and either `ALLOWED_GITHUB_IDS` or `ALLOW_ANY_GITHUB_ACCOUNT=true`. Accounts have no storage quotas, so `ALLOW_ANY_GITHUB_ACCOUNT=true` lets any GitHub user fill the database. Removing an id from `ALLOWED_GITHUB_IDS` ends that account's sessions and MCP access when the server restarts. `/api/health` checks the database connection.
 
 Back up the PostgreSQL database, including image bytes. Test restoring backups to a separate database. The server expires trash after 30 days and removes unreferenced images after a grace period. Referenced images in the Trash are retained. Individual image uploads are limited to 5 MiB.
 

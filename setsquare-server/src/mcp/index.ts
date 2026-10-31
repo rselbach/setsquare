@@ -21,7 +21,12 @@ export const registerMcp = async (
   files: FileDatabase,
   now: () => number,
 ) => {
-  const oauth = new McpOAuthStore(pool, `${config.origin}/mcp`, now);
+  const oauth = new McpOAuthStore(
+    pool,
+    `${config.origin}/mcp`,
+    now,
+    config.allowedGithubIds,
+  );
   await registerMcpOAuth(app, auth, oauth, config);
   const handler = createMcpHandler(
     (context) => {

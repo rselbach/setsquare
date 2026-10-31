@@ -7,6 +7,8 @@ services:
       APP_ORIGIN: ${APP_ORIGIN:?Set the public HTTPS origin}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?Set the GitHub OAuth client ID}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?Set the GitHub OAuth secret}
+      ALLOWED_GITHUB_IDS: ${ALLOWED_GITHUB_IDS:-}
+      ALLOW_ANY_GITHUB_ACCOUNT: ${ALLOW_ANY_GITHUB_ACCOUNT:-}
       DATABASE_URL: postgresql://setsquare:${POSTGRES_PASSWORD:?Set a database password}@db:5432/setsquare
     depends_on:
       db:

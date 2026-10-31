@@ -201,6 +201,7 @@ export class SessionDatabase {
   constructor(
     private readonly pool: Pool,
     private readonly now: () => number = Date.now,
+    private readonly allowedGithubIds: string[] | null = null,
   ) {}
 
   async create(profile: GitHubProfile, previousToken?: string) {
@@ -244,8 +245,9 @@ export class SessionDatabase {
     const tokenHash = hash(sessionToken);
     const result = await this.pool.query(
       `SELECT s.csrf_token, u.id, u.login, u.name, u.avatar_url AS "avatarUrl"
-      FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2`,
-      [tokenHash, this.now()],
+      FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = $1 AND s.expires_at > $2
+      AND ($3::text[] IS NULL OR u.github_id = ANY($3))`,
+      [tokenHash, this.now(), this.allowedGithubIds],
     );
     if (!result.rows.length) {
       return null;
@@ -277,7 +279,7 @@ export class Authentication {
     private readonly provider: OAuthProvider | null,
     private readonly now: () => number = Date.now,
   ) {
-    this.sessions = new SessionDatabase(pool, now);
+    this.sessions = new SessionDatabase(pool, now, config.allowedGithubIds);
     this.cookieName = config.production
       ? "__Host-setsquare-session"
       : "setsquare_session";
@@ -456,6 +458,18 @@ export class Authentication {
           400,
           "oauth_failed",
           "GitHub sign-in did not finish. Start sign-in again",
+        );
+      }
+      const allowed = this.config.allowedGithubIds;
+      if (allowed && !allowed.includes(profile.githubId)) {
+        request.log.warn(
+          { githubId: profile.githubId, login: profile.login },
+          "GitHub account is not allowed to sign in",
+        );
+        throw new ApiError(
+          403,
+          "account_not_allowed",
+          "This GitHub account cannot sign in to this Setsquare server",
         );
       }
       const session = await this.sessions.create(

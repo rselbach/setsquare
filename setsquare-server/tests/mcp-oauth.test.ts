@@ -609,6 +609,25 @@ it("shares grants across instances and applies migrations idempotently", async (
   }
 });
 
+it("rejects MCP access tokens of accounts outside the allowlist", async () => {
+  const { tokens } = await connect();
+  const closed = await testServer(db.pool, clock, {
+    allowedGithubIds: ["102"],
+  });
+  const open = await testServer(db.pool, clock, { allowedGithubIds: ["101"] });
+  try {
+    expect(
+      (await mcp(tokens.access_token, "ping", {}, closed)).response.statusCode,
+    ).toBe(401);
+    expect(
+      (await mcp(tokens.access_token, "ping", {}, open)).response.statusCode,
+    ).toBe(200);
+  } finally {
+    await closed.close();
+    await open.close();
+  }
+});
+
 it("serializes simultaneous refreshes and rejects scope escalation", async () => {
   const { client, tokens } = await connect();
   const replies = await Promise.all([
