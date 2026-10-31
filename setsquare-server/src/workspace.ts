@@ -6,6 +6,8 @@ import { transaction } from "./database";
 
 import { ApiError, parseStored } from "./errors";
 
+import { checkFiles, imageFileIds } from "./images";
+
 import {
   contentSchema,
   drawingMetaSchema,
@@ -61,28 +63,7 @@ const namedContent = (
   appState: { ...content.appState, name },
 });
 
-/** Lists the image file ids a drawing references, once each, in element order. */
-export const imageFileIds = (content: DrawingContent) => [
-  ...new Set(
-    content.elements.flatMap((element) =>
-      element.type === "image" && element.fileId ? [element.fileId] : [],
-    ),
-  ),
-];
-
 const filesIn = (content: DrawingContent) => imageFileIds(content).sort();
-
-const checkFiles = (content: DrawingContent, declared: readonly string[]) => {
-  const ids = filesIn(content);
-  if (canonical(ids) !== canonical([...new Set(declared)].sort())) {
-    throw new ApiError(
-      400,
-      "invalid_files",
-      "Image references must match the drawing",
-    );
-  }
-  return ids;
-};
 
 const folderById = async (db: Queryable, owner: string, id: string) => {
   const result = await db.query(

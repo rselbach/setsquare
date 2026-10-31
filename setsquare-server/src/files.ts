@@ -4,79 +4,12 @@ import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { transaction } from "./database";
 import { ApiError, parseStored } from "./errors";
+import { imageBytes } from "./images";
 import { filesSchema } from "./validation";
 
 import type { Pool } from "pg";
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const RESPONSE_BYTES = 16 * 1024 * 1024;
-
-const imageMatches = (bytes: Buffer, mime: string) => {
-  switch (mime) {
-    case "image/png":
-      return bytes
-        .subarray(0, 8)
-        .equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
-    case "image/jpeg":
-    case "image/jfif":
-      return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
-    case "image/gif":
-      return ["GIF87a", "GIF89a"].includes(
-        bytes.subarray(0, 6).toString("ascii"),
-      );
-    case "image/webp":
-      return (
-        bytes.subarray(0, 4).toString("ascii") === "RIFF" &&
-        bytes.subarray(8, 12).toString("ascii") === "WEBP"
-      );
-    case "image/bmp":
-      return bytes.subarray(0, 2).toString("ascii") === "BM";
-    case "image/x-icon":
-      return bytes.subarray(0, 4).equals(Buffer.from([0, 0, 1, 0]));
-    case "image/avif":
-      return (
-        bytes.subarray(4, 8).toString("ascii") === "ftyp" &&
-        /avif|avis/.test(bytes.subarray(8, 32).toString("ascii"))
-      );
-    case "image/svg+xml": {
-      const text = bytes
-        .toString("utf8")
-        .replace(/^\uFEFF/, "")
-        .replace(/<!DOCTYPE\s+svg\s+[^>\u005B]*>/i, "");
-      return (
-        /^\s*(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*<svg\b/i.test(text) &&
-        !/<!DOCTYPE|<!ENTITY|<script\b/i.test(text)
-      );
-    }
-    default:
-      return false;
-  }
-};
-
-const imageBytes = (file: BinaryFileData) => {
-  const match = /^data:([^;]+);base64,(.*)$/.exec(file.dataURL);
-  if (!match || match[1] !== file.mimeType) {
-    throw new ApiError(
-      400,
-      "invalid_image",
-      "Image content does not match its media type",
-    );
-  }
-  const bytes = Buffer.from(match[2], "base64");
-  if (
-    !bytes.length ||
-    bytes.length > MAX_FILE_BYTES ||
-    bytes.toString("base64") !== match[2] ||
-    !imageMatches(bytes, file.mimeType)
-  ) {
-    throw new ApiError(
-      400,
-      "invalid_image",
-      "Upload a supported image no larger than 5 MiB",
-    );
-  }
-  return bytes;
-};
 
 /** Stores private images independently of the drawings that reference them. */
 export class FileDatabase {
