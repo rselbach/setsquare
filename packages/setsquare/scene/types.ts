@@ -146,11 +146,7 @@ export type SceneScroll = {
 };
 
 export type ExportType =
-  | "png"
-  | "clipboard"
-  | "clipboard-svg"
-  | "backend"
-  | "svg";
+  "png" | "clipboard" | "clipboard-svg" | "backend" | "svg";
 
 export type ScrollBars = {
   horizontal: {
@@ -172,11 +168,7 @@ export type ScrollBars = {
 export type SVGPathString = string & { __brand: "SVGPathString" };
 
 export type ElementShape =
-  | Drawable
-  | Drawable[]
-  | Path2D
-  | (Drawable | SVGPathString)[]
-  | null;
+  Drawable | Drawable[] | Path2D | (Drawable | SVGPathString)[] | null;
 
 export type ElementShapes = {
   rectangle: Drawable;

@@ -1705,8 +1705,7 @@ const _renderInteractiveScene = ({
 
   if (appState.editingTextElement) {
     const textElement = allElementsMap.get(appState.editingTextElement.id) as
-      | SetsquareTextElement
-      | undefined;
+      SetsquareTextElement | undefined;
     if (textElement && !textElement.autoResize) {
       renderTextBox(
         textElement,
@@ -1879,16 +1878,12 @@ const _renderInteractiveScene = ({
         const remoteClients = renderConfig.remoteSelectedElementIds.get(
           element.id,
         );
-        if (
-          !(
-            // Elbow arrow elements cannot be selected when bound on either end
-            (
-              isSingleLinearElementSelected &&
-              isElbowArrow(element) &&
-              (element.startBinding || element.endBinding)
-            )
-          )
-        ) {
+        if (!(
+          // Elbow arrow elements cannot be selected when bound on either end
+          isSingleLinearElementSelected &&
+          isElbowArrow(element) &&
+          (element.startBinding || element.endBinding)
+        )) {
           // local user
           if (
             locallySelectedIds.has(element.id) &&

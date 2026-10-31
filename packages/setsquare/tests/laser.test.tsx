@@ -208,7 +208,9 @@ describe("iframe-like element hit testing outside frame bounds", () => {
   const mouse = new Pointer("mouse");
   const iframeLikeTypes = ["embeddable", "iframe"] as const;
 
-  const addFramedIframeLikeElement = (type: typeof iframeLikeTypes[number]) => {
+  const addFramedIframeLikeElement = (
+    type: (typeof iframeLikeTypes)[number],
+  ) => {
     const frame = API.createElement({
       type: "frame",
       x: 40,

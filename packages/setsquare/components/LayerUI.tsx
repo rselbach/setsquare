@@ -523,8 +523,8 @@ const LayerUI = ({
                     ? "strokeColor"
                     : "backgroundColor"
                   : colorPickerType === "elementBackground"
-                  ? "backgroundColor"
-                  : "strokeColor";
+                    ? "backgroundColor"
+                    : "strokeColor";
 
               if (selectedElements.length) {
                 const elementsMap = arrayToMap(elements);
@@ -567,19 +567,20 @@ const LayerUI = ({
         />
       )}
       <ActiveConfirmDialog />
-      {defaultUIEnabled && appState.openDialog?.name === "elementLinkSelector" && (
-        <ElementLinkDialog
-          sourceElementId={appState.openDialog.sourceElementId}
-          onClose={() => {
-            setAppState({
-              openDialog: null,
-            });
-          }}
-          scene={app.scene}
-          appState={appState}
-          generateLinkForSelection={generateLinkForSelection}
-        />
-      )}
+      {defaultUIEnabled &&
+        appState.openDialog?.name === "elementLinkSelector" && (
+          <ElementLinkDialog
+            sourceElementId={appState.openDialog.sourceElementId}
+            onClose={() => {
+              setAppState({
+                openDialog: null,
+              });
+            }}
+            scene={app.scene}
+            appState={appState}
+            generateLinkForSelection={generateLinkForSelection}
+          />
+        )}
       <tunnels.OverwriteConfirmDialogTunnel.Out />
       {renderImageExportDialog()}
       {renderJSONExportDialog()}

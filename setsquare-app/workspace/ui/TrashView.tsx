@@ -32,8 +32,7 @@ import type { NavToggle } from "./WorkspaceNav";
 
 /** What's to be deleted for good once the user confirms it. */
 type Confirming =
-  | { kind: "item"; item: ItemRef; name: string }
-  | { kind: "empty" };
+  { kind: "item"; item: ItemRef; name: string } | { kind: "empty" };
 
 const TrashRow = ({
   item,
@@ -337,8 +336,8 @@ export const TrashView = ({
             {confirming.kind === "empty"
               ? t("workspace.emptyTrashHint")
               : confirming.item.kind === "folder"
-              ? t("workspace.deleteFolderForeverHint")
-              : t("workspace.deleteDrawingForeverHint")}
+                ? t("workspace.deleteFolderForeverHint")
+                : t("workspace.deleteDrawingForeverHint")}
           </p>
         </ConfirmDialog>
       )}

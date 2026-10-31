@@ -55,7 +55,11 @@ export const registrationSource = (ip: string) => {
 };
 
 export class OAuthError extends Error {
-  constructor(readonly code: string, message: string, readonly status = 400) {
+  constructor(
+    readonly code: string,
+    message: string,
+    readonly status = 400,
+  ) {
     super(message);
   }
 }

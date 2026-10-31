@@ -161,8 +161,7 @@ export default defineConfig(({ command, mode }) => {
         typescript: true,
         eslint: enableESLint
           ? {
-              lintCommand:
-                'eslint --ignore-path ../.eslintignore "./**/*.{js,ts,tsx}"',
+              lintCommand: 'eslint "./**/*.{js,ts,tsx}"',
             }
           : undefined,
         overlay: {

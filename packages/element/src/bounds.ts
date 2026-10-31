@@ -1127,8 +1127,7 @@ export interface BoundingBox {
 
 export const getCommonBoundingBox = (
   elements:
-    | readonly SetsquareElement[]
-    | readonly NonDeleted<SetsquareElement>[],
+    readonly SetsquareElement[] | readonly NonDeleted<SetsquareElement>[],
 ): BoundingBox => {
   const [minX, minY, maxX, maxY] = getCommonBounds(elements);
   return {

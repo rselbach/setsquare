@@ -34,7 +34,7 @@ const openFile = (id: string, handle?: FileSystemFileHandle) => {
 };
 
 const handleFor = (name: string) =>
-  ({ kind: "file", name } as FileSystemFileHandle);
+  ({ kind: "file", name }) as FileSystemFileHandle;
 
 // a drawing with something to undo
 const drawTroy = () =>

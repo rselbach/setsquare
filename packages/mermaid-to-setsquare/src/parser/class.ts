@@ -61,8 +61,7 @@ const RELATION_TYPE = {
 };
 
 type RELATION_TYPE_VALUES =
-  | typeof RELATION_TYPE[keyof typeof RELATION_TYPE]
-  | "none";
+  (typeof RELATION_TYPE)[keyof typeof RELATION_TYPE] | "none";
 // Taken from mermaidParser.lineType
 const LINE_TYPE = {
   LINE: 0,

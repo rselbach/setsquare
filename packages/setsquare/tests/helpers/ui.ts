@@ -444,16 +444,16 @@ type DrawingToolName = Exclude<
 type Element<T extends DrawingToolName> = T extends "line" | "freedraw"
   ? SetsquareLinearElement
   : T extends "arrow"
-  ? SetsquareArrowElement
-  : T extends "text"
-  ? SetsquareTextElement
-  : T extends "rectangle"
-  ? SetsquareRectangleElement
-  : T extends "ellipse"
-  ? SetsquareEllipseElement
-  : T extends "diamond"
-  ? SetsquareDiamondElement
-  : SetsquareElement;
+    ? SetsquareArrowElement
+    : T extends "text"
+      ? SetsquareTextElement
+      : T extends "rectangle"
+        ? SetsquareRectangleElement
+        : T extends "ellipse"
+          ? SetsquareEllipseElement
+          : T extends "diamond"
+            ? SetsquareDiamondElement
+            : SetsquareElement;
 
 export class UI {
   static clickTool = (toolName: ToolType | "lock") => {

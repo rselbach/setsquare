@@ -211,8 +211,8 @@ describe("setElementRenderOverrides", () => {
             kind === "translation"
               ? { offset: { x: 10, y: 0 } }
               : kind === "empty"
-              ? {}
-              : { opacity: 0 },
+                ? {}
+                : { opacity: 0 },
           ],
         ]),
       );

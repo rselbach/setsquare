@@ -13,6 +13,4 @@ export type SetsquareElement = Mutable<
 >;
 
 export type SetsquareVertexElement =
-  | SetsquareRectangleElement
-  | SetsquareDiamondElement
-  | SetsquareEllipseElement;
+  SetsquareRectangleElement | SetsquareDiamondElement | SetsquareEllipseElement;

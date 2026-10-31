@@ -794,8 +794,8 @@ export class AppSelectionTool {
           pointerDownState.resize.center.y,
         );
     const startAngle = isSingle
-      ? pointerDownState.originalElements.get(element.id)?.angle ??
-        element.angle
+      ? (pointerDownState.originalElements.get(element.id)?.angle ??
+        element.angle)
       : 0;
     const grabAngle = Math.atan2(
       pointerDownState.origin.y - center[1],

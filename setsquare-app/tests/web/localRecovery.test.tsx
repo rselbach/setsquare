@@ -33,9 +33,8 @@ const { h } = window;
 let workspace: ReturnType<typeof setUpTestWorkspace>;
 const failed = () => new DOMException("Connection lost", "UnknownError");
 const journals = () =>
-  Array.from(
-    { length: localStorage.length },
-    (_, index) => localStorage.key(index)!,
+  Array.from({ length: localStorage.length }, (_, index) =>
+    localStorage.key(index)!,
   )
     .filter((k) => k.startsWith(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED))
     .map((k) => JSON.parse(localStorage.getItem(k)!));

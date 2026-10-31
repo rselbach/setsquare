@@ -33,8 +33,9 @@ export namespace TChat {
     errorType?: "parse" | "network" | "other";
     lastAttemptAt?: number;
     type: "user" | "assistant" | "warning";
-    warningType?: /* daily rate limit */
-    "messageLimitExceeded" | /* general 429 */ "rateLimitExceeded";
+    warningType?:
+      /* daily rate limit */
+      "messageLimitExceeded" | /* general 429 */ "rateLimitExceeded";
     content?: string;
   };
 

@@ -81,7 +81,10 @@ type AppTextDependencies = {
  * note, and a sticky note dropped from the toolbar.
  */
 export class AppText {
-  constructor(private app: App, private dependencies: AppTextDependencies) {}
+  constructor(
+    private app: App,
+    private dependencies: AppTextDependencies,
+  ) {}
 
   public textWysiwygSubmitHandler: ReturnType<typeof textWysiwyg> | null = null;
   private getTextCreationGridPoint = (x: number, y: number) => {
@@ -584,7 +587,7 @@ export class AppText {
           container,
         ),
       )
-      .reduce<typeof hits[number] | null>(
+      .reduce<(typeof hits)[number] | null>(
         (innermost, hit) =>
           !innermost || hit.area < innermost.area ? hit : innermost,
         null,
@@ -689,15 +692,15 @@ export class AppText {
     const existingTextElement = arrowEndpointBinding
       ? null
       : textElement !== undefined
-      ? textElement
-      : this.getSelectedTextElement(container) ||
-        (container && isArrowElement(container)
-          ? getBoundTextElement(
-              container,
-              this.app.scene.getNonDeletedElementsMap(),
-            )
-          : null) ||
-        this.getTextElementAtPosition(sceneX, sceneY);
+        ? textElement
+        : this.getSelectedTextElement(container) ||
+          (container && isArrowElement(container)
+            ? getBoundTextElement(
+                container,
+                this.app.scene.getNonDeletedElementsMap(),
+              )
+            : null) ||
+          this.getTextElementAtPosition(sceneX, sceneY);
 
     const fontFamily =
       existingTextElement?.fontFamily || this.app.state.currentItemFontFamily;
@@ -747,23 +750,23 @@ export class AppText {
         // caret-centering fudge may nudge it
         { x: sceneX, y: sceneY }
       : parentCenterPosition
-      ? {
-          x: parentCenterPosition.elementCenterX,
-          y: parentCenterPosition.elementCenterY,
-        }
-      : !existingTextElement
-      ? {
-          x: textCreationGridPoint?.x ?? sceneX,
-          y:
-            textCreationGridPoint === null
-              ? // Free text starts from a point cursor, so center the first line box on it.
-                sceneY - getLineHeightInPx(fontSize, lineHeight) / 2
-              : textCreationGridPoint.y,
-        }
-      : {
-          x: sceneX,
-          y: sceneY,
-        };
+        ? {
+            x: parentCenterPosition.elementCenterX,
+            y: parentCenterPosition.elementCenterY,
+          }
+        : !existingTextElement
+          ? {
+              x: textCreationGridPoint?.x ?? sceneX,
+              y:
+                textCreationGridPoint === null
+                  ? // Free text starts from a point cursor, so center the first line box on it.
+                    sceneY - getLineHeightInPx(fontSize, lineHeight) / 2
+                  : textCreationGridPoint.y,
+            }
+          : {
+              x: sceneX,
+              y: sceneY,
+            };
 
     const topLayerFrame = this.app.getTopLayerFrameAtSceneCoords({
       x: newTextElementPosition.x,
@@ -817,7 +820,7 @@ export class AppText {
           shouldBindToContainer && container && isArrowElement(container)
             ? DEFAULT_BOUND_TEXT_LABEL_POSITION
             : null,
-        groupIds: shouldBindToContainer ? container?.groupIds ?? [] : [],
+        groupIds: shouldBindToContainer ? (container?.groupIds ?? []) : [],
         lineHeight,
         angle:
           shouldBindToContainer && container && !isArrowElement(container)

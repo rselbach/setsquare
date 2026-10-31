@@ -28,9 +28,8 @@ const journal = (): UnsavedDrawing | null =>
   JSON.parse(
     localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED) ??
       localStorage.getItem(
-        Array.from(
-          { length: localStorage.length },
-          (_, index) => localStorage.key(index)!,
+        Array.from({ length: localStorage.length }, (_, index) =>
+          localStorage.key(index)!,
         ).find((key) =>
           key.startsWith(`${STORAGE_KEYS.LOCAL_STORAGE_UNSAVED}-local:`),
         ) ?? "",

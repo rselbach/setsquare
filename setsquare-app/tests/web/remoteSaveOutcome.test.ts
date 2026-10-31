@@ -58,11 +58,7 @@ const fixture = async () => {
   const failures: {
     files: "offline" | "invalid" | null;
     command:
-      | "lost-response"
-      | "server-error"
-      | "expired"
-      | "missing-files"
-      | null;
+      "lost-response" | "server-error" | "expired" | "missing-files" | null;
   } = { files: null, command: null };
   const requests: ReturnType<typeof commandSchema.parse>[] = [];
   const receipts = new Map<string, CommandResponse>();

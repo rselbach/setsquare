@@ -119,13 +119,13 @@ export const renderConnectorHandles = (
     const endBounds: Bounds | null = target
       ? getElementBounds(target, elementsMap)
       : preview.type === "node"
-      ? [
-          preview.center[0] - element.width / 2,
-          preview.center[1] - element.height / 2,
-          preview.center[0] + element.width / 2,
-          preview.center[1] + element.height / 2,
-        ]
-      : null;
+        ? [
+            preview.center[0] - element.width / 2,
+            preview.center[1] - element.height / 2,
+            preview.center[0] + element.width / 2,
+            preview.center[1] + element.height / 2,
+          ]
+        : null;
 
     if (endBounds) {
       const startBounds = getElementBounds(element, elementsMap);

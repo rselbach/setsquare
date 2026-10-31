@@ -370,8 +370,8 @@ const CombinedArrowProperties = ({
                     return element.elbowed
                       ? "elbow"
                       : element.roundness
-                      ? "round"
-                      : "sharp";
+                        ? "round"
+                        : "sharp";
                   }
                   return null;
                 },

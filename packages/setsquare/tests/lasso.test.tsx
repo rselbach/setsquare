@@ -363,7 +363,7 @@ describe("Basic lasso selection tests", () => {
           angle: e.angle as Radians,
           index: null,
           created: null,
-        } as SetsquareElement),
+        }) as SetsquareElement,
     );
 
     act(() => {

@@ -29,7 +29,8 @@
     @include isMobile {
       // Flatten translucent host colors over an opaque canvas UI surface so
       // the toolbar cannot show through the badge.
-      background: linear-gradient(
+      background:
+        linear-gradient(
           var(--viewport-status-frame-badge-background),
           var(--viewport-status-frame-badge-background)
         ),

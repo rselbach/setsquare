@@ -102,18 +102,18 @@ const ExtraToolsDropdown = ({
         {imageToolSelected
           ? ImageIcon
           : frameToolSelected
-          ? frameToolIcon
-          : embeddableToolSelected
-          ? EmbedIcon
-          : isFullStylesPanel && drawShapeToolSelected
-          ? drawShapeToolIcon
-          : laserToolSelected && !app.props.isCollaborating
-          ? laserPointerToolIcon
-          : lassoToolSelected
-          ? LassoIcon
-          : bucketFillToolSelected
-          ? bucketFillIcon
-          : DotsIcon}
+            ? frameToolIcon
+            : embeddableToolSelected
+              ? EmbedIcon
+              : isFullStylesPanel && drawShapeToolSelected
+                ? drawShapeToolIcon
+                : laserToolSelected && !app.props.isCollaborating
+                  ? laserPointerToolIcon
+                  : lassoToolSelected
+                    ? LassoIcon
+                    : bucketFillToolSelected
+                      ? bucketFillIcon
+                      : DotsIcon}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         onClickOutside={() => setIsExtraToolsMenuOpen(false)}

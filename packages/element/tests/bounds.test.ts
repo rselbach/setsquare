@@ -41,7 +41,7 @@ const _ce = ({
     width: w,
     height: h,
     angle: a,
-  } as SetsquareElement);
+  }) as SetsquareElement;
 
 describe("getElementAbsoluteCoords", () => {
   it("test x1 coordinate", () => {

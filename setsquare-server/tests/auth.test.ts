@@ -349,8 +349,8 @@ it("uses the OAuth library to verify state and exchange the PKCE verifier with G
         typeof input === "string"
           ? new URL(input)
           : input instanceof URL
-          ? input
-          : new URL(input.url);
+            ? input
+            : new URL(input.url);
       called.push({ url: url.href, body: String(options?.body ?? "") });
       if (url.href === "https://github.com/login/oauth/access_token") {
         const body = new URLSearchParams(String(options?.body));

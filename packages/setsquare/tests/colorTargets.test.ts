@@ -21,7 +21,7 @@ const appState = (overrides: Partial<AppState> = {}): AppState =>
     selectedElementIds: {},
     editingTextElement: null,
     ...overrides,
-  } as AppState);
+  }) as AppState;
 
 describe("resolveColorTarget", () => {
   const note = API.createElement({ type: "stickynote", id: "note" });

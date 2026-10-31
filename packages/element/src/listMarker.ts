@@ -119,8 +119,8 @@ const parseListMarker = (text: string): ListMarker | null => {
     parenValue !== undefined
       ? "()"
       : bracketValue !== undefined
-      ? "[]"
-      : plainSuffix;
+        ? "[]"
+        : plainSuffix;
 
   return {
     index: indent.length + (plainValue !== undefined ? 0 : 1),

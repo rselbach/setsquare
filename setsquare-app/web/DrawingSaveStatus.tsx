@@ -47,8 +47,8 @@ const statusFor = (state: DrawingSaveState, local: boolean): Status => {
                 files: [...state.error.errors.keys()].join(", "),
               })
             : state.error instanceof ApiError && state.error.status === 413
-            ? t("workspace.saveTooLarge")
-            : t("workspace.saveRejected"),
+              ? t("workspace.saveTooLarge")
+              : t("workspace.saveRejected"),
       };
     // the account notice says why, and signs in again
     case "expired":

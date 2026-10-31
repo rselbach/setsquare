@@ -22,9 +22,8 @@ const testEnv = vi.hoisted(() => ({ enabled: true }));
 
 vi.mock("@setsquare/common", async (importOriginal) => {
   const module = await importOriginal<typeof import("@setsquare/common")>();
-  const { mockThrottleRAF } = await import(
-    "@setsquare/setsquare/tests/helpers/mocks"
-  );
+  const { mockThrottleRAF } =
+    await import("@setsquare/setsquare/tests/helpers/mocks");
   return {
     ...module,
     throttleRAF: mockThrottleRAF,

@@ -1084,17 +1084,19 @@ describe("computeBucketFillPolygon", () => {
 
     const originalSet = Map.prototype.set;
     let spatialBucketSets = 0;
-    const setSpy = vi
-      .spyOn(Map.prototype, "set")
-      .mockImplementation(function (this: Map<unknown, unknown>, key, value) {
-        if (typeof key === "string" && /^-?\d+:-?\d+$/.test(key)) {
-          spatialBucketSets++;
-          if (spatialBucketSets > 512) {
-            throw new Error("spatial grid exceeded its bucket budget");
-          }
+    const setSpy = vi.spyOn(Map.prototype, "set").mockImplementation(function (
+      this: Map<unknown, unknown>,
+      key,
+      value,
+    ) {
+      if (typeof key === "string" && /^-?\d+:-?\d+$/.test(key)) {
+        spatialBucketSets++;
+        if (spatialBucketSets > 512) {
+          throw new Error("spatial grid exceeded its bucket budget");
         }
-        return originalSet.call(this, key, value);
-      });
+      }
+      return originalSet.call(this, key, value);
+    });
 
     const result = (() => {
       try {

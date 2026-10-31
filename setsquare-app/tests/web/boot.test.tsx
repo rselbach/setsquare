@@ -270,9 +270,8 @@ describe("web app boot", () => {
       await screen.findByText("Setsquare was updated in another tab"),
     ).toBeInTheDocument();
     expect(document.querySelector(".setsquare")).toBe(null);
-    const drafts = Array.from(
-      { length: localStorage.length },
-      (_, index) => localStorage.key(index)!,
+    const drafts = Array.from({ length: localStorage.length }, (_, index) =>
+      localStorage.key(index)!,
     )
       .filter((key) => key.startsWith(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED))
       .map((key) => JSON.parse(localStorage.getItem(key)!));

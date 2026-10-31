@@ -103,20 +103,18 @@ export class AppPan {
     // a new press supersedes whatever the previous session left pending
     this.suppressNextContextMenu = false;
     const isSecondary = event.button === POINTER_BUTTON.SECONDARY;
-    if (
-      !(
-        this.dependencies.getPointerCount() <= 1 &&
-        (((event.button === POINTER_BUTTON.WHEEL ||
-          isSecondary ||
-          (event.button === POINTER_BUTTON.MAIN && this.spaceHeld) ||
-          isHandToolActive(app.state)) &&
-          // reachable while non-interactive when the active tool is allowed
-          // via `interaction.enabled.tools` — panning must remain gated on
-          // `navigation` then
-          (app.isInteractionEnabled() || app.isNavigationEnabled())) ||
-          (app.state.viewModeEnabled && !app.isActiveToolPointerCapturing()))
-      )
-    ) {
+    if (!(
+      this.dependencies.getPointerCount() <= 1 &&
+      (((event.button === POINTER_BUTTON.WHEEL ||
+        isSecondary ||
+        (event.button === POINTER_BUTTON.MAIN && this.spaceHeld) ||
+        isHandToolActive(app.state)) &&
+        // reachable while non-interactive when the active tool is allowed
+        // via `interaction.enabled.tools` — panning must remain gated on
+        // `navigation` then
+        (app.isInteractionEnabled() || app.isNavigationEnabled())) ||
+        (app.state.viewModeEnabled && !app.isActiveToolPointerCapturing()))
+    )) {
       return false;
     }
     this.active = true;

@@ -52,8 +52,8 @@
   // only floating layers (menus, popovers, the undocked library) cast a
   // shadow; docked chrome is separated from the paper by tone alone
   --shadow-island: 0 0 0 1px var(--rule), 0 6px 16px rgba(42, 47, 43, 0.12);
-  --shadow-island-stronger: 0 0 0 1px var(--rule-strong),
-    0 8px 24px rgba(42, 47, 43, 0.18);
+  --shadow-island-stronger:
+    0 0 0 1px var(--rule-strong), 0 8px 24px rgba(42, 47, 43, 0.18);
 
   --button-hover-bg: var(--vellum-2);
   --button-active-bg: var(--vellum-3);
@@ -73,8 +73,8 @@
   --color-slider-track: var(--vellum-3);
   --color-slider-thumb: var(--graphite);
 
-  --modal-shadow: 0 0 0 1px var(--rule-strong),
-    0 16px 48px rgba(22, 29, 26, 0.24);
+  --modal-shadow:
+    0 0 0 1px var(--rule-strong), 0 16px 48px rgba(22, 29, 26, 0.24);
   --avatar-border-color: var(--rule);
   --sidebar-shadow: var(--shadow-island-stronger);
   --sidebar-border-color: var(--rule);
@@ -209,9 +209,10 @@
     --overlay-bg-color: rgba(8, 12, 10, 0.6);
 
     --shadow-island: 0 0 0 1px var(--rule), 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-island-stronger: 0 0 0 1px var(--rule-strong),
-      0 12px 32px rgba(0, 0, 0, 0.5);
-    --modal-shadow: 0 0 0 1px var(--rule-strong), 0 16px 48px rgba(0, 0, 0, 0.5);
+    --shadow-island-stronger:
+      0 0 0 1px var(--rule-strong), 0 12px 32px rgba(0, 0, 0, 0.5);
+    --modal-shadow:
+      0 0 0 1px var(--rule-strong), 0 16px 48px rgba(0, 0, 0, 0.5);
 
     --color-selection: #5cc8ea;
 

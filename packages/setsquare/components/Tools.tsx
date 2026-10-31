@@ -443,7 +443,7 @@ export const FreedrawToolPopover = ({
   ] as const;
 
   const [lastDrawingTool, setLastDrawingTool] = useState<
-    typeof DRAWING_TOOLS[number]["type"]
+    (typeof DRAWING_TOOLS)[number]["type"]
   >(activeTool.type === "autoshape" ? "autoshape" : "freedraw");
 
   useEffect(() => {

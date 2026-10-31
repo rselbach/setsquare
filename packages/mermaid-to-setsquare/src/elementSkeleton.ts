@@ -86,8 +86,7 @@ export type CardinalityArrowhead =
   | "cardinality_zero_or_many";
 
 export type SupportedArrowhead =
-  | ValidLinearElement["startArrowhead"]
-  | CardinalityArrowhead;
+  ValidLinearElement["startArrowhead"] | CardinalityArrowhead;
 
 export const createArrowSkeletonFromSVG = (
   arrowNode: SVGLineElement | SVGPathElement,

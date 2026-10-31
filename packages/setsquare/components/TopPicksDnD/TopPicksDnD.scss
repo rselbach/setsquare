@@ -18,7 +18,9 @@
       // no hover/tooltips while a drag is in flight; hit-testing is
       // coordinate-based so this doesn't affect dropping
       pointer-events: none;
-      transition: transform 0.14s ease, opacity 0.14s ease,
+      transition:
+        transform 0.14s ease,
+        opacity 0.14s ease,
         box-shadow 0.14s ease;
     }
   }
@@ -144,7 +146,9 @@
   will-change: transform;
   // NOTE transform is deliberately not transitioned here (tracks the pointer
   // every frame); --dropping adds it for the fly-to-target animation
-  transition: width 0.15s ease, height 0.15s ease;
+  transition:
+    width 0.15s ease,
+    height 0.15s ease;
 
   // content may set `--top-picks-dnd-ghost-ring` (a hairline box-shadow)
   // to keep under the drop shadows below
@@ -153,18 +157,23 @@
     height: 100%;
     box-sizing: border-box;
     box-shadow: var(--top-picks-dnd-ghost-ring, 0 0 transparent);
-    transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   &--lifted &__content {
     transform: scale(1.2);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25),
+    box-shadow:
+      0 6px 16px rgba(0, 0, 0, 0.25),
       var(--top-picks-dnd-ghost-ring, 0 0 transparent);
   }
 
   &--over &__content {
     transform: scale(1.05);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2),
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.2),
       var(--top-picks-dnd-ghost-ring, 0 0 transparent);
   }
 
@@ -174,7 +183,9 @@
   }
 
   &--dropping {
-    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1), width 0.18s ease,
+    transition:
+      transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1),
+      width 0.18s ease,
       height 0.18s ease;
   }
 

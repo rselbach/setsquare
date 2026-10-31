@@ -334,7 +334,7 @@ describe("alt-click cycling", () => {
           height: 100,
           backgroundColor: "red",
           fillStyle: "solid",
-          groupIds: name === "top" ? [] : groupIds[name] ?? [],
+          groupIds: name === "top" ? [] : (groupIds[name] ?? []),
         }),
     );
     API.setElements([bottom, middle, top]);

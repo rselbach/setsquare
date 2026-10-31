@@ -107,8 +107,8 @@ export const saveFailure = (
   const kind = kinds.includes("expired")
     ? "expired"
     : kinds.includes("rejected")
-    ? "rejected"
-    : "error";
+      ? "rejected"
+      : "error";
   return {
     event: { type: "failed", kind, error: cause },
     uncertain:

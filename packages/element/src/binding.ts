@@ -474,7 +474,7 @@ const bindingStrategyForNewSimpleArrowEndpointDragging = (
         element: otherElement,
         focusPoint: shiftKey
           ? elementCenterPoint(otherElement, elementsMap)
-          : origin ?? pointFrom<GlobalPoint>(arrow.x, arrow.y),
+          : (origin ?? pointFrom<GlobalPoint>(arrow.x, arrow.y)),
       };
 
       // We are hovering another element with the end point
@@ -825,25 +825,25 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
         focusPoint: startDragged
           ? globalPoint
           : // NOTE: Can only affect the start point because new arrows always drag the end point
-          opts?.newArrow
-          ? pointFromArray<GlobalPoint>(
-              getGridPoint(
-                appState.selectedLinearElement!.initialState.origin![0],
-                appState.selectedLinearElement!.initialState.origin![1],
-                opts.gridSize as NullableGridSize,
-              ),
-            )!
-          : otherBindableElement
-          ? getGlobalFixedPointForBindableElement(
-              otherBinding.fixedPoint,
-              otherBindableElement,
-              elementsMap,
-            )
-          : LinearElementEditor.getPointAtIndexGlobalCoordinates(
-              arrow,
-              0,
-              elementsMap,
-            ), // startFixedPoint,
+            opts?.newArrow
+            ? pointFromArray<GlobalPoint>(
+                getGridPoint(
+                  appState.selectedLinearElement!.initialState.origin![0],
+                  appState.selectedLinearElement!.initialState.origin![1],
+                  opts.gridSize as NullableGridSize,
+                ),
+              )!
+            : otherBindableElement
+              ? getGlobalFixedPointForBindableElement(
+                  otherBinding.fixedPoint,
+                  otherBindableElement,
+                  elementsMap,
+                )
+              : LinearElementEditor.getPointAtIndexGlobalCoordinates(
+                  arrow,
+                  0,
+                  elementsMap,
+                ), // startFixedPoint,
       },
       end: {
         mode: "inside",
@@ -851,16 +851,16 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
         focusPoint: endDragged
           ? globalPoint
           : otherBindableElement
-          ? getGlobalFixedPointForBindableElement(
-              otherBinding.fixedPoint,
-              otherBindableElement,
-              elementsMap,
-            )
-          : LinearElementEditor.getPointAtIndexGlobalCoordinates(
-              arrow,
-              -1,
-              elementsMap,
-            ), // endFixedPoint
+            ? getGlobalFixedPointForBindableElement(
+                otherBinding.fixedPoint,
+                otherBindableElement,
+                elementsMap,
+              )
+            : LinearElementEditor.getPointAtIndexGlobalCoordinates(
+                arrow,
+                -1,
+                elementsMap,
+              ), // endFixedPoint
       },
     };
   }
@@ -906,19 +906,19 @@ const getBindingStrategyForDraggingBindingElementEndpoints_simple = (
               opts?.angleLocked
                 ? globalPoint
                 : appState.gridModeEnabled
-                ? snapBoundPointToGrid(
-                    pointFrom<GlobalPoint>(scenePointerX, scenePointerY),
-                    hit,
-                    elementsMap,
-                    appState.gridSize as NullableGridSize,
-                    arrow,
-                    LinearElementEditor.getPointAtIndexGlobalCoordinates(
-                      arrow,
-                      startDragged ? 1 : -2,
+                  ? snapBoundPointToGrid(
+                      pointFrom<GlobalPoint>(scenePointerX, scenePointerY),
+                      hit,
                       elementsMap,
-                    ),
-                  )
-                : globalPoint,
+                      appState.gridSize as NullableGridSize,
+                      arrow,
+                      LinearElementEditor.getPointAtIndexGlobalCoordinates(
+                        arrow,
+                        startDragged ? 1 : -2,
+                        elementsMap,
+                      ),
+                    )
+                  : globalPoint,
               hit,
               startDragged ? "start" : "end",
               elementsMap,
@@ -2145,8 +2145,8 @@ export const updateBoundPoint = (
     return LinearElementEditor.createPointAt(
       arrow,
       elementsMap,
-      arrowTooShort ? focusPoint[0] : outlinePoint?.[0] ?? focusPoint[0],
-      arrowTooShort ? focusPoint[1] : outlinePoint?.[1] ?? focusPoint[1],
+      arrowTooShort ? focusPoint[0] : (outlinePoint?.[0] ?? focusPoint[0]),
+      arrowTooShort ? focusPoint[1] : (outlinePoint?.[1] ?? focusPoint[1]),
       null,
     );
   }
@@ -2397,9 +2397,8 @@ const newBoundElements = (
   nextBoundElements.push(
     ...elementsToAdd.map(
       (x) =>
-        ({ id: x.id, type: x.type } as
-          | SetsquareArrowElement
-          | SetsquareTextElement),
+        ({ id: x.id, type: x.type }) as
+          SetsquareArrowElement | SetsquareTextElement,
     ),
   );
 
@@ -2417,10 +2416,7 @@ export const bindingProperties: Set<BindableProp | BindingProp> = new Set([
 export type BindableProp = "boundElements";
 
 export type BindingProp =
-  | "frameId"
-  | "containerId"
-  | "startBinding"
-  | "endBinding";
+  "frameId" | "containerId" | "startBinding" | "endBinding";
 
 type BoundElementsVisitingFunc = (
   boundElement: SetsquareElement | undefined,
@@ -2738,13 +2734,11 @@ export const getGlobalFixedPoints = (
   const startElement =
     arrow.startBinding &&
     (elementsMap.get(arrow.startBinding.elementId) as
-      | SetsquareBindableElement
-      | undefined);
+      SetsquareBindableElement | undefined);
   const endElement =
     arrow.endBinding &&
     (elementsMap.get(arrow.endBinding.elementId) as
-      | SetsquareBindableElement
-      | undefined);
+      SetsquareBindableElement | undefined);
   const startPoint =
     startElement && arrow.startBinding
       ? getGlobalFixedPointForBindableElement(

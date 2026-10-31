@@ -225,8 +225,8 @@ export const handleBindTextResize = (
             shouldResizeFromCenter
               ? "center"
               : shouldResizeFromTop
-              ? "bottom"
-              : "top",
+                ? "bottom"
+                : "top",
           )),
       });
     }

@@ -122,8 +122,7 @@ export type Thumbnail = Readonly<{
 
 /** Points at a folder or a drawing. */
 export type ItemRef =
-  | { kind: "folder"; id: FolderId }
-  | { kind: "drawing"; id: DrawingId };
+  { kind: "folder"; id: FolderId } | { kind: "drawing"; id: DrawingId };
 
 /** Every folder and drawing in the workspace, the trashed ones included. */
 export type WorkspaceSnapshot = Readonly<{
