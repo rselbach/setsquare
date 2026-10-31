@@ -330,12 +330,18 @@ export class McpOAuthStore {
     });
   }
 
-  private async issue(db: PoolClient, grant: Grant, refresh: boolean) {
+  // refresh tokens leave scopes NULL so they always carry the grant's scopes
+  private async issue(
+    db: PoolClient,
+    grant: Grant,
+    scopes: string[],
+    refresh: boolean,
+  ) {
     const access = token();
     const expires = Math.min(this.now() + ACCESS_MS, Number(grant.expires_at));
     await db.query(
-      "INSERT INTO mcp_tokens(token_hash, grant_id, kind, expires_at) VALUES($1,$2,'access',$3)",
-      [hash(access), grant.id, expires],
+      "INSERT INTO mcp_tokens(token_hash, grant_id, kind, expires_at, scopes) VALUES($1,$2,'access',$3,$4)",
+      [hash(access), grant.id, expires, scopes],
     );
     const refreshToken = refresh ? token() : undefined;
     if (refreshToken) {
@@ -348,7 +354,7 @@ export class McpOAuthStore {
       access_token: access,
       token_type: "Bearer",
       expires_in: Math.floor((expires - this.now()) / 1000),
-      scope: grant.scopes.join(" "),
+      scope: scopes.join(" "),
       ...(refreshToken ? { refresh_token: refreshToken } : {}),
     };
   }
@@ -444,19 +450,17 @@ export class McpOAuthStore {
       if (Number(record.expires_at) <= this.now()) {
         return null;
       }
-      if (input.scope !== undefined) {
-        const requested = parseScopes(input.scope);
-        if (requested.some((scope) => !grant.scopes.includes(scope))) {
-          throw new OAuthError(
-            "invalid_scope",
-            "Refresh cannot expand the approved permissions",
-          );
-        }
-        grant.scopes = requested;
-        await db.query("UPDATE mcp_grants SET scopes = $2 WHERE id = $1", [
-          grant.id,
-          requested,
-        ]);
+      // A narrower refresh scope applies only to the new access token
+      // (RFC 6749 section 6); the code exchange takes its scopes from consent.
+      const scopes =
+        isCode || input.scope === undefined
+          ? grant.scopes
+          : parseScopes(input.scope);
+      if (scopes.some((scope) => !grant.scopes.includes(scope))) {
+        throw new OAuthError(
+          "invalid_scope",
+          "Refresh cannot expand the approved permissions",
+        );
       }
       await db.query(`UPDATE ${table} SET used_at = $2 WHERE token_hash = $1`, [
         tokenHash,
@@ -465,6 +469,7 @@ export class McpOAuthStore {
       return this.issue(
         db,
         grant,
+        scopes,
         client.grant_types.includes("refresh_token"),
       );
     });
@@ -482,7 +487,9 @@ export class McpOAuthStore {
       return null;
     }
     const result = await this.pool.query<AccessGrant>(
-      `SELECT g.*, t.expires_at AS access_expires_at FROM mcp_tokens t JOIN mcp_grants g ON g.id = t.grant_id
+      `SELECT g.id, g.user_id, g.client_id, g.resource, COALESCE(t.scopes, g.scopes) AS scopes,
+      g.expires_at, g.revoked_at, t.expires_at AS access_expires_at
+      FROM mcp_tokens t JOIN mcp_grants g ON g.id = t.grant_id
       JOIN users u ON u.id = g.user_id
       WHERE t.token_hash = $1 AND t.kind = 'access' AND t.expires_at > $2
       AND g.expires_at > $2 AND g.revoked_at IS NULL AND g.resource = $3
