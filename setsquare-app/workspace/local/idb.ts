@@ -61,11 +61,16 @@ export const openDatabase = (
   });
 
 /** Resolves with a request's result, or rejects with its error. */
-export const request = <T>(req: IDBRequest<T>) =>
-  new Promise<T>((resolve, reject) => {
+export const request = <T>(req: IDBRequest<T>) => {
+  const result = new Promise<T>((resolve, reject) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+  // a failed request aborts its transaction, which transact reports, so one
+  // left behind by a later synchronous throw isn't an unhandled rejection
+  result.catch(() => {});
+  return result;
+};
 
 const abort = (tx: IDBTransaction) => {
   try {

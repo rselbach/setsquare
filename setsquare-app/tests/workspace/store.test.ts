@@ -392,6 +392,24 @@ describe("LocalWorkspaceStore", () => {
     expect(isTrashed(snap, { kind: "folder", id: paintball.id })).toBe(true);
   });
 
+  it("restores a folder into the root when its parent is still trashed", async () => {
+    const store = await workspace.open();
+    const greendale = await store.createFolder(null, "Greendale");
+    const studyGroup = await store.createFolder(greendale.id, "Study group");
+    const studyGroupRef = { kind: "folder", id: studyGroup.id } as const;
+    await store.trash(studyGroupRef);
+    await store.trash({ kind: "folder", id: greendale.id });
+
+    expect(await store.restore(studyGroupRef)).toEqual({ ok: true });
+
+    const snap = store.getSnapshot();
+    expect(snap.folders.get(studyGroup.id)).toMatchObject({
+      parentId: null,
+      trashedAt: null,
+    });
+    expect(isTrashed(snap, { kind: "folder", id: greendale.id })).toBe(true);
+  });
+
   it("deletes a folder forever with everything in it", async () => {
     const store = await workspace.open();
     const greendale = await store.createFolder(null, "Greendale");
@@ -415,6 +433,42 @@ describe("LocalWorkspaceStore", () => {
       views: 0,
       thumbnails: 0,
     });
+  });
+
+  it("deletes nothing forever when a delete fails partway", async () => {
+    const store = await workspace.open();
+    const greendale = await store.createFolder(null, "Greendale");
+    for (const name of ["Floor plan", "Seating chart"]) {
+      const drawing = await store.createDrawing({
+        folderId: greendale.id,
+        name,
+      });
+      await store.saveDrawingView(drawing.id, { scrollX: 1 } as DrawingView);
+      await store.saveThumbnail(drawing.id, thumbnailOf(1));
+    }
+    const before = await workspace.countRecords();
+    const failure = new DOMException("Chang pulled the plug", "UnknownError");
+    const deleteRecord = IDBObjectStore.prototype.delete;
+    let deletes = 0;
+    const spy = vi
+      .spyOn(IDBObjectStore.prototype, "delete")
+      .mockImplementation(function (this: IDBObjectStore, query) {
+        if (++deletes === 3) {
+          throw failure;
+        }
+        return deleteRecord.call(this, query);
+      });
+
+    try {
+      await expect(
+        store.deleteForever({ kind: "folder", id: greendale.id }),
+      ).rejects.toBe(failure);
+    } finally {
+      spy.mockRestore();
+    }
+    expect(deletes).toBe(3);
+    expect(await workspace.countRecords()).toEqual(before);
+    expect(store.getSnapshot().folders.has(greendale.id)).toBe(true);
   });
 
   it("empties the trash", async () => {
@@ -461,6 +515,29 @@ describe("LocalWorkspaceStore", () => {
       drawings: 0,
       contents: 0,
     });
+  });
+
+  it("purges a drawing 30 days after it was trashed, before its folder", async () => {
+    const store = await workspace.open();
+    const start = workspace.clock.now;
+    const paintball = await store.createFolder(null, "Paintball");
+    const map = await store.createDrawing({
+      folderId: paintball.id,
+      name: "Battle map",
+    });
+    await store.trash({ kind: "drawing", id: map.id });
+    workspace.clock.now += 10 * DAY;
+    await store.trash({ kind: "folder", id: paintball.id });
+
+    // each item expires on its own trashedAt, as the server's collect() does
+    workspace.clock.now = start + TRASH_RETENTION_MS;
+    await store.purgeExpiredTrash();
+    expect(store.getSnapshot().drawings.has(map.id)).toBe(false);
+    expect(store.getSnapshot().folders.has(paintball.id)).toBe(true);
+
+    workspace.clock.now += 10 * DAY;
+    await store.purgeExpiredTrash();
+    expect(store.getSnapshot().folders.has(paintball.id)).toBe(false);
   });
 
   it("tells subscribers about each change, but not about views", async () => {
