@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { readdir, readFile } from "node:fs/promises";
 
 import pg from "pg";
 
@@ -34,36 +35,89 @@ export const transaction = async <T>(
   }
 };
 
-/** Applies each migration once, including when several servers start together. */
-export const migrate = async (pool: Pool) => {
-  const migrations = [
-    "001-initial.sql",
-    "002-mcp-oauth.sql",
-    "003-mcp-client-authorized.sql",
-    "004-auth-attempt-limits.sql",
-  ];
+const migrationPattern = /^(\d{3})-[a-z0-9-]+\.sql$/;
+
+// the schema migrations in a directory, keyed and ordered by version
+const readMigrations = async (directory: URL) => {
+  const filenames = (await readdir(directory))
+    .filter((filename) => !filename.startsWith("."))
+    .sort();
+  const migrations = new Map<
+    number,
+    { filename: string; sql: string; checksum: string }
+  >();
+  for (const filename of filenames) {
+    const match = migrationPattern.exec(filename);
+    if (!match) {
+      throw new Error(
+        `Migration ${filename} must be named like 001-description.sql`,
+      );
+    }
+    const version = Number(match[1]);
+    const duplicate = migrations.get(version);
+    if (duplicate) {
+      throw new Error(
+        `Migrations ${duplicate.filename} and ${filename} share version ${version}`,
+      );
+    }
+    const bytes = await readFile(new URL(filename, directory));
+    migrations.set(version, {
+      filename,
+      sql: bytes.toString("utf8"),
+      checksum: createHash("sha256").update(bytes).digest("hex"),
+    });
+  }
+  return migrations;
+};
+
+/** Applies each migration file once, including when several servers start together. */
+export const migrate = async (
+  pool: Pool,
+  directory = new URL("../migrations/", import.meta.url),
+) => {
+  const migrations = await readMigrations(directory);
   await transaction(pool, async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(731894127493::bigint)");
     await client.query(
       "CREATE TABLE IF NOT EXISTS schema_migrations (version integer PRIMARY KEY)",
     );
-    for (const filename of migrations) {
-      const version = Number(filename.split("-")[0]);
-      const result = await client.query(
-        "SELECT version FROM schema_migrations WHERE version = $1",
-        [version],
-      );
-      if (result.rowCount) {
+    await client.query(
+      "ALTER TABLE schema_migrations ADD COLUMN IF NOT EXISTS checksum text",
+    );
+    const applied = await client.query<{
+      version: number;
+      checksum: string | null;
+    }>("SELECT version, checksum FROM schema_migrations");
+    for (const { version, checksum } of applied.rows) {
+      const migration = migrations.get(version);
+      if (!migration) {
+        throw new Error(
+          `Migration version ${version} was applied, but no migration file has that version, so this build may be older than the database`,
+        );
+      }
+      if (checksum === null) {
+        await client.query(
+          "UPDATE schema_migrations SET checksum = $2 WHERE version = $1",
+          [version, migration.checksum],
+        );
         continue;
       }
-      const sql = await readFile(
-        new URL(`../migrations/${filename}`, import.meta.url),
-        "utf8",
+      if (checksum !== migration.checksum) {
+        throw new Error(
+          `Migration ${migration.filename} changed after it was applied`,
+        );
+      }
+    }
+    const appliedVersions = new Set(applied.rows.map((row) => row.version));
+    for (const [version, migration] of migrations) {
+      if (appliedVersions.has(version)) {
+        continue;
+      }
+      await client.query(migration.sql);
+      await client.query(
+        "INSERT INTO schema_migrations(version, checksum) VALUES($1, $2)",
+        [version, migration.checksum],
       );
-      await client.query(sql);
-      await client.query("INSERT INTO schema_migrations(version) VALUES($1)", [
-        version,
-      ]);
     }
   });
 };
