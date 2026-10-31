@@ -1,0 +1,3 @@
+# ESLint 10 and Prettier 3 migration (#124). Mostly the Prettier 3 reformat,
+# which the squash merge combined with the config changes.
+20b6b2c2f2bb70178cba6720893a4603f70401a7
