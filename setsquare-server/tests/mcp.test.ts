@@ -233,6 +233,27 @@ it("rejects DNS rebinding and unexpected origins and supports browser preflight"
   ).toBe(405);
 });
 
+it("accepts loopback hosts only in development and never the bind address", async () => {
+  const probe = async (server: FastifyInstance, host: string) =>
+    (await server.inject({ method: "OPTIONS", url: "/mcp", headers: { host } }))
+      .statusCode;
+  const production = await testServer(pool, now, { production: true });
+  try {
+    for (const [host, development, deployed] of [
+      [headers.host, 204, 204],
+      ["localhost:3002", 204, 403],
+      ["127.0.0.1:3002", 204, 403],
+      ["[::1]:3002", 204, 403],
+      ["0.0.0.0:3002", 403, 403],
+    ] as const) {
+      expect(await probe(app, host), host).toBe(development);
+      expect(await probe(production, host), host).toBe(deployed);
+    }
+  } finally {
+    await production.close();
+  }
+});
+
 it("challenges writes with read-only tokens before calling workspace code", async () => {
   vi.mocked(McpOAuthStore.prototype.verify).mockResolvedValue({
     ...grant(),

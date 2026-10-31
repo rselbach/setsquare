@@ -2,7 +2,7 @@ services:
   app:
     build: .
     ports:
-      - "3002:3002"
+      - "${SETSQUARE_BIND:-127.0.0.1}:3002:3002"
     environment:
       APP_ORIGIN: ${APP_ORIGIN:?Set the public HTTPS origin}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?Set the GitHub OAuth client ID}

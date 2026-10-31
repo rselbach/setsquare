@@ -49,6 +49,15 @@ export const registerMcp = async (
     { maxRequestBodySize: 12 * 1024 * 1024 },
   );
   app.addHook("onClose", async () => handler.close());
+  // Development clients may also reach the API server directly over loopback.
+  const allowedHosts = new Set([
+    new URL(config.origin).host,
+    ...(config.production
+      ? []
+      : ["localhost", "127.0.0.1", "[::1]"].map(
+          (name) => `${name}:${config.port}`,
+        )),
+  ]);
   const verified = new WeakMap<
     FastifyRequest,
     { token: string; grant: AccessGrant }
@@ -65,10 +74,7 @@ export const registerMcp = async (
     }
     // Use the configured public origin; forwarded headers never choose token audiences.
     const host = request.headers.host;
-    if (
-      host !== new URL(config.origin).host &&
-      host !== `${config.host}:${config.port}`
-    ) {
+    if (!host || !allowedHosts.has(host)) {
       return reply.status(403).send({ error: "forbidden_host" });
     }
     if (request.headers.origin) {
