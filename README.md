@@ -170,6 +170,8 @@ The TypeScript command layer lives in `packages/setsquare/automation/`. `setsqua
 
 `yarn test:all` runs type checks, ESLint, Prettier, frontend tests, and backend integration tests. Backend tests need PostgreSQL. Set `TEST_DATABASE_URL` to a test database. Without it, tests use the local `postgres` database through the `/tmp` socket. Each run creates and removes its own temporary schema.
 
+`yarn install` also installs a pre-commit hook. It runs `eslint --fix` and `prettier --write` on staged files, and the commit fails if lint errors remain. It does not run tests or type checks. To skip it, run `git commit --no-verify`.
+
 Run `yarn test:server` for backend tests alone. They exercise real PostgreSQL and an external GitHub provider stub. Live GitHub login needs your registered OAuth app's credentials.
 
 ## License

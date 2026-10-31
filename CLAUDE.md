@@ -15,6 +15,7 @@ Setsquare is a **monorepo** with a clear separation between the core library and
 2. **App Development**: Work in `setsquare-app/` for app-specific features
 3. **Testing**: Always run `yarn test:update` before committing
 4. **Type Safety**: Use `yarn test:typecheck` to verify TypeScript
+5. **Pre-commit hook**: `yarn install` sets up a husky hook that runs `lint-staged` on staged files: `eslint --fix` for JS/TS and `prettier --write` for CSS, SCSS, JSON, Markdown, HTML and YAML. It does not run tests or type checks. Skip it with `git commit --no-verify`
 
 ## Development Commands
 
