@@ -381,7 +381,8 @@ export const createDrawingPersistence = ({
       pending &&
       !gone &&
       state.kind !== "conflict" &&
-      state.kind !== "missing"
+      state.kind !== "missing" &&
+      state.kind !== "expired"
     ) {
       const scene = request?.scene ?? pending;
       const { content, view, prefs } = splitAppState(scene.appState);
