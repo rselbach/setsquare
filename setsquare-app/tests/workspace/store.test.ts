@@ -136,6 +136,29 @@ describe("LocalWorkspaceStore", () => {
     );
   });
 
+  it("refuses to create in a folder that's gone or in the Trash", async () => {
+    const store = await workspace.open();
+    const greendale = await store.createFolder(null, "Greendale");
+    const studyGroup = await store.createFolder(greendale.id, "Study group");
+    await store.trash({ kind: "folder", id: greendale.id });
+
+    for (const parent of [greendale.id, studyGroup.id, "gone" as FolderId]) {
+      await expect(
+        store.createDrawing({ folderId: parent, name: "Battle map" }),
+      ).rejects.toThrow("The destination folder is gone or in the Trash");
+      await expect(store.createFolder(parent, "Paintball")).rejects.toThrow(
+        "The destination folder is gone or in the Trash",
+      );
+    }
+    expect(store.getSnapshot().drawings.size).toBe(0);
+    expect(store.getSnapshot().folders.size).toBe(2);
+    expect(await workspace.countRecords()).toMatchObject({
+      folders: 2,
+      drawings: 0,
+      contents: 0,
+    });
+  });
+
   it("refuses to rename or duplicate what's gone", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({ folderId: null, name: null });
@@ -344,8 +367,12 @@ describe("LocalWorkspaceStore", () => {
       name: "Battle map",
     });
     const orphan = await store.createDrawing({
-      folderId: "gone" as FolderId,
+      folderId: null,
       name: "Chang's notes",
+    });
+    await workspace.putRecord("drawings", orphan.id, {
+      ...orphan,
+      folderId: "gone" as FolderId,
     });
     const mapRef = { kind: "drawing", id: map.id } as const;
     const orphanRef = { kind: "drawing", id: orphan.id } as const;

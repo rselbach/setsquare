@@ -712,6 +712,33 @@ describe("opening files from the workspace page", () => {
     await waitForDrawing(created.id, ["annie"]);
   });
 
+  it("opens a file at the root when the folder shown went to the Trash meanwhile", async () => {
+    let pick!: (file: File) => void;
+    vi.spyOn(filesystem, "fileOpen").mockReturnValue(
+      new Promise((resolve) => {
+        pick = resolve;
+      }) as any,
+    );
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    fireEvent.click(screen.getByRole("button", { name: "Open file…" }));
+    // as another tab would, while the picker is open
+    await act(() => store.trash({ kind: "folder", id: studyGroup.id }));
+    await waitFor(() => expect(window.location.pathname).toBe("/"));
+    pick(sceneFile("Battle map", "annie"));
+
+    const created = await newDrawingIn(store, plan, seating, chang);
+    expect(created).toMatchObject({
+      name: "Battle map",
+      folderId: null,
+      trashedAt: null,
+    });
+    await waitForDrawing(created.id, ["annie"]);
+    expect(
+      screen.queryByRole("heading", { name: "“Battle map” is in the Trash" }),
+    ).toBe(null);
+  });
+
   it("says on the page when Cmd+O opens what isn't a drawing", async () => {
     vi.spyOn(filesystem, "fileOpen").mockResolvedValue(
       new File(["Señor Chang"], "notes.txt", { type: "text/plain" }) as any,

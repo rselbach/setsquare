@@ -207,9 +207,13 @@ describe("the Trash", () => {
   it("restores without asking, to the root when its folder is gone", async () => {
     // as when the folder went in another browser
     const lost = await store.createDrawing({
-      folderId: "city-college" as FolderId,
+      folderId: null,
       name: "Paintball map",
       content: savedContent("Paintball map", "pierce"),
+    });
+    await workspace.putRecord("drawings", lost.id, {
+      ...lost,
+      folderId: "city-college" as FolderId,
     });
     await store.trash({ kind: "drawing", id: lost.id });
     await store.trash({ kind: "drawing", id: plan.id });
