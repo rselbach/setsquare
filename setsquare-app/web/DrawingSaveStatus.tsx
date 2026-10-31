@@ -131,12 +131,23 @@ export const DrawingSaveStatus = ({
 
   let status = statusFor(state, local);
   const recoveryFailed = persistence.getRecoveryError() !== null;
+  const storageFull = persistence.isDeviceStorageFull();
   let action: { label: string; run: () => void } | null = null;
   if (recoveryFailed) {
     status = {
       tone: "danger",
       label: t("workspace.saveNotSaved"),
-      detail: t("workspace.recoveryFailed"),
+      detail: t(
+        storageFull
+          ? "workspace.recoveryStorageFull"
+          : "workspace.recoveryFailed",
+      ),
+    };
+  } else if (storageFull && status.tone === "quiet") {
+    status = {
+      ...status,
+      tone: "warning",
+      detail: t("workspace.deviceStorageFull"),
     };
   }
   if (state.kind === "conflict" || state.kind === "missing") {
