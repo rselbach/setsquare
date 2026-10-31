@@ -4,10 +4,78 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - ".claude/**"
+      - "examples/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
   build-docker:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: setsquare
+          POSTGRES_PASSWORD: setsquare_test
+          POSTGRES_DB: setsquare
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U setsquare -d setsquare" --health-interval 5s --health-timeout 5s --health-retries 10
+
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - run: docker build -t setsquare .
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the image
+        run: docker build -t setsquare .
+      # production only checks that the GitHub credentials are present, so
+      # dummy values work
+      - name: Start the image
+        run: |
+          docker run -d --name setsquare --network host \
+            -e APP_ORIGIN=https://setsquare.example \
+            -e GITHUB_CLIENT_ID=ci -e GITHUB_CLIENT_SECRET=ci \
+            -e ALLOW_ANY_GITHUB_ACCOUNT=true \
+            -e DATABASE_URL=postgresql://setsquare:setsquare_test@127.0.0.1:5432/setsquare \
+            setsquare
+      - name: Check the server like deploy.sh does
+        run: |
+          base=http://127.0.0.1:3002
+          for _ in $(seq 60); do
+            curl -fs -o /dev/null "${base}/api/health" && break
+            sleep 1
+          done
+          if ! curl -fsS -o /dev/null "${base}/api/health"; then
+            echo "/api/health is not healthy" >&2
+            exit 1
+          fi
+          for page in / /d/ci; do
+            body="$(curl -fsS -H 'Accept: text/html' "${base}${page}")"
+            if [[ "${body}" != *'<title>Setsquare</title>'* ]]; then
+              echo "${page} did not serve the Setsquare page" >&2
+              exit 1
+            fi
+          done
+          status="$(curl -sS -o /dev/null -w '%{http_code}' \
+            "${base}/assets/ci-missing.js")"
+          if [[ "${status}" != 404 ]]; then
+            echo "a missing asset returned ${status} instead of 404" >&2
+            exit 1
+          fi
+          body="$(curl -fsS "${base}/api/session")"
+          if [[ "${body}" != *'"kind":"signedOut"'* ]]; then
+            echo "/api/session does not offer GitHub sign-in" >&2
+            exit 1
+          fi
+      - name: Show the server log
+        if: failure()
+        run: docker logs setsquare
