@@ -213,8 +213,8 @@ it("does not pin an upload failure and can save after the image is removed", asy
   expect(persistence.unsaved()).toBeNull();
 });
 
-it("keeps a previously uncertain request through an expired retry", async () => {
-  const { store, persistence } = await session();
+it("keeps a previously uncertain request through an expired session until reload", async () => {
+  const { store, drawing, persistence } = await session();
   const save = vi
     .spyOn(store, "saveDrawingContent")
     .mockRejectedValueOnce(new TypeError("Lost acknowledgement"))
@@ -237,6 +237,15 @@ it("keeps a previously uncertain request through an expired retry", async () => 
   expect(persistence.getSaveState().kind).toBe("expired");
   expect(persistence.unsaved()?.request).toEqual(request);
   await persistence.retry();
+  expect(save).toHaveBeenCalledTimes(2);
+
+  const reloaded = createDrawingPersistence({
+    store,
+    drawing: await replayUnsaved(store, drawing),
+    ownerWindow: window,
+    onNotFound: vi.fn(),
+  });
+  await reloaded.retry();
   expect(save.mock.calls[2]).toEqual(save.mock.calls[0]);
   expect(save.mock.calls[3][1].elements[0].id).toBe("latest");
 });

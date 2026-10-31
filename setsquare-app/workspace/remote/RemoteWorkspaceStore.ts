@@ -807,6 +807,11 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     if (this.closed) {
       throw new ApiError(0, "This workspace is closed");
     }
+    // the session's CSRF token is fixed, so a mutation can't succeed again
+    // until the page reloads with a new session
+    if (this.expired && init.method !== "GET") {
+      throw new ApiError(401, "expired");
+    }
     try {
       return await this.send(path, init);
     } catch (error) {

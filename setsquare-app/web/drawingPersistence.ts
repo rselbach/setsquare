@@ -381,7 +381,8 @@ export const createDrawingPersistence = ({
       pending &&
       !gone &&
       state.kind !== "conflict" &&
-      state.kind !== "missing"
+      state.kind !== "missing" &&
+      state.kind !== "expired"
     ) {
       const scene = request?.scene ?? pending;
       const { content, view, prefs } = splitAppState(scene.appState);
@@ -533,7 +534,13 @@ export const createDrawingPersistence = ({
       generation = ownerWindow.crypto.randomUUID();
       updatedAt = Date.now();
       stageImages(latest);
-      if (state.kind !== "conflict" && state.kind !== "missing") {
+      // an expired session refuses every save until the page reloads; the
+      // recovery draft keeps the edit meanwhile
+      if (
+        state.kind !== "conflict" &&
+        state.kind !== "missing" &&
+        state.kind !== "expired"
+      ) {
         if (state.kind !== "saving") {
           publish({ kind: "unsaved" });
         }
@@ -584,7 +591,7 @@ export const createDrawingPersistence = ({
         storedContent = contentSignature(content.elements, content.appState);
         return { scene: content, files: true };
       } catch (error) {
-        if (pending) {
+        if (pending && state.kind !== "expired") {
           publish({ kind: "error", error });
         }
         return NOTHING_CHANGED;
@@ -626,7 +633,12 @@ export const createDrawingPersistence = ({
       return () => listeners.delete(listener);
     },
     retry: async () => {
-      if (state.kind === "conflict" || state.kind === "missing" || gone) {
+      if (
+        state.kind === "conflict" ||
+        state.kind === "missing" ||
+        state.kind === "expired" ||
+        gone
+      ) {
         return;
       }
       debouncedSave.cancel();

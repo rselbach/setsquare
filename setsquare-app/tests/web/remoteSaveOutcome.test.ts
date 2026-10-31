@@ -8,6 +8,7 @@ import {
   createDrawingPersistence,
   imageFileIds,
 } from "../../web/drawingPersistence";
+import { replayUnsaved } from "../../web/unsavedJournal";
 import { parseFiles } from "../../workspace/remote/parse";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
 import { newDrawingMeta } from "../../workspace/types";
@@ -140,35 +141,41 @@ const fixture = async () => {
     }
     return response(result);
   };
-  const store = await RemoteWorkspaceStore.open({
-    session: {
-      kind: "signedIn",
-      user: {
-        id: `outcomes-${meta.id}`,
-        login: "troy-barnes",
-        name: "Troy Barnes",
-        avatarUrl: "https://avatars.githubusercontent.com/u/123",
+  // opens the account as a page load does, with any recovery draft
+  const load = async () => {
+    const store = await RemoteWorkspaceStore.open({
+      session: {
+        kind: "signedIn",
+        user: {
+          id: `outcomes-${meta.id}`,
+          login: "troy-barnes",
+          name: "Troy Barnes",
+          avatarUrl: "https://avatars.githubusercontent.com/u/123",
+        },
+        csrfToken: "outcome-tests",
       },
-      csrfToken: "outcome-tests",
-    },
-    ownerWindow: window,
-    onSessionExpired,
-    fetch,
-  });
-  stores.push(store);
-  const drawing = await store.openDrawing(meta.id);
-  if (!drawing) {
-    throw new Error("The fixture drawing is missing");
-  }
-  const persistence = createDrawingPersistence({
-    store,
-    drawing,
-    ownerWindow: window,
-    onNotFound: vi.fn(),
-  });
+      ownerWindow: window,
+      onSessionExpired,
+      fetch,
+    });
+    stores.push(store);
+    const drawing = await store.openDrawing(meta.id);
+    if (!drawing) {
+      throw new Error("The fixture drawing is missing");
+    }
+    const persistence = createDrawingPersistence({
+      store,
+      drawing: await replayUnsaved(store, drawing),
+      ownerWindow: window,
+      onNotFound: vi.fn(),
+    });
+    return { store, persistence };
+  };
+  const { store, persistence } = await load();
   return {
     store,
     persistence,
+    load,
     image,
     failures,
     requests,
@@ -221,10 +228,17 @@ it.each(["cached fallback", "missing_files repair"])(
 );
 
 it.each(["lost-response", "server-error"] as const)(
-  "recovers the same receipt after %s followed by an internal authentication refusal",
+  "recovers the same receipt on reload after %s followed by an internal authentication refusal",
   async (failure) => {
-    const { persistence, failures, requests, onSessionExpired, saved } =
-      await fixture();
+    const {
+      store,
+      persistence,
+      load,
+      failures,
+      requests,
+      onSessionExpired,
+      saved,
+    } = await fixture();
     failures.command = failure;
     persistence.save(
       contentWith(appState.name, "committed").elements,
@@ -240,11 +254,16 @@ it.each(["lost-response", "server-error"] as const)(
 
     failures.command = null;
     await persistence.retry();
-    expect(persistence.getSaveState().kind).toBe("saved");
-    expect(requests).toHaveLength(3);
-    expect(new Set(requests.map((request) => request.requestId)).size).toBe(1);
+    expect(requests).toHaveLength(2);
+
+    store.close();
+    const reloaded = (await load()).persistence;
+    await reloaded.retry();
+    expect(reloaded.getSaveState().kind).toBe("saved");
     expect(requests[2]).toEqual(requests[0]);
-    expect(saved().meta.revision).toBe(2);
-    expect(persistence.unsaved()).toBeNull();
+    expect(saved().content.elements.map((element) => element.id)).toEqual([
+      "committed",
+    ]);
+    expect(reloaded.unsaved()).toBeNull();
   },
 );

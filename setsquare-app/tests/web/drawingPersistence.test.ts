@@ -882,7 +882,7 @@ describe("against the account server's rules", () => {
   );
 
   it.each(["rotateCsrfToken", "expireSession"] as const)(
-    "keeps the draft when the session ends (%s)",
+    "keeps the draft and stops saving when the session ends (%s)",
     async (end) => {
       const { server, store, drawing } = await remoteSession();
       const persistence = persistenceFor(store, drawing);
@@ -895,8 +895,71 @@ describe("against the account server's rules", () => {
       );
       await persistence.flush();
       expect(persistence.getSaveState().kind).toBe("expired");
-      expect(ids(persistence.unsaved()?.elements)).toEqual(["troy", "annie"]);
+
+      const saving = vi.spyOn(store, "saveDrawingContent");
+      const states = new Set<string>();
+      persistence.subscribeSaveState(() =>
+        states.add(persistence.getSaveState().kind),
+      );
+      persistence.save(
+        savedContent("Greendale", "troy", "annie", "abed").elements,
+        appState(),
+        {},
+        vi.fn(),
+      );
+      await persistence.flush();
+      await persistence.retry();
+      await persistence.changedElsewhere();
+      expect(saving).not.toHaveBeenCalled();
+      expect([...states]).toEqual(["expired"]);
+      expect(persistence.getSaveState().kind).toBe("expired");
+      expect(ids(persistence.unsaved()?.elements)).toEqual([
+        "troy",
+        "annie",
+        "abed",
+      ]);
       expect(server.drawing(drawing.meta.id)?.meta.revision).toBe(1);
     },
   );
+
+  it("doesn't run a save queued behind the one that found the session expired", async () => {
+    const { server, store, drawing } = await remoteSession();
+    const original = store.saveDrawingContent.bind(store);
+    let release = () => {};
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const save = vi
+      .spyOn(store, "saveDrawingContent")
+      .mockImplementation(async (...args) => {
+        await blocked;
+        return original(...args);
+      });
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "troy", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    const first = persistence.flush();
+    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    persistence.save(
+      savedContent("Greendale", "troy", "abed").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    const second = persistence.flush();
+    const states = new Set<string>();
+    persistence.subscribeSaveState(() =>
+      states.add(persistence.getSaveState().kind),
+    );
+    server.expireSession();
+    release();
+    await Promise.all([first, second]);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect([...states]).toEqual(["expired"]);
+    expect(ids(persistence.unsaved()?.elements)).toEqual(["troy", "abed"]);
+  });
 });
