@@ -38,7 +38,6 @@
     "vite-plugin-html": "3.2.2"
   },
   "scripts": {
-    "build-node": "node ./scripts/build-node.js",
     "build:app:docker": "yarn build:app",
     "build:app": "yarn --cwd .. test:typecheck && vite build",
     "build:version": "node ../scripts/build-version.js",
