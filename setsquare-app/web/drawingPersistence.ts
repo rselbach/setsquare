@@ -26,7 +26,11 @@ import {
   splitAppState,
 } from "../workspace/drawingAppState";
 import { loadPrefs, savePrefs } from "../workspace/prefs";
-import { apiFailureKind } from "../workspace/remote/ApiError";
+import {
+  apiFailureCause,
+  apiFailureKind,
+  RequestFailure,
+} from "../workspace/remote/ApiError";
 import { visibleFolder } from "../workspace/tree";
 
 import { createThumbnailer } from "./thumbnail";
@@ -439,25 +443,30 @@ export const createDrawingPersistence = ({
   const enqueue = () => {
     queued++;
     writing = writing.then(drain).catch((error: unknown) => {
+      const cause = apiFailureCause(error);
       if (
-        error instanceof DOMException &&
-        error.name === "QuotaExceededError"
+        cause instanceof DOMException &&
+        cause.name === "QuotaExceededError"
       ) {
         appJotaiStore.set(localStorageQuotaExceededAtom, true);
       }
       const kinds =
-        error instanceof FileSaveError
-          ? [...error.errors.values()].map(apiFailureKind)
-          : [apiFailureKind(error)];
+        cause instanceof FileSaveError
+          ? [...cause.errors.values()].map(apiFailureKind)
+          : [apiFailureKind(cause)];
       const kind = kinds.includes("expired")
         ? "expired"
         : kinds.includes("rejected")
         ? "rejected"
         : "unknown";
+      const uncertain =
+        error instanceof RequestFailure
+          ? error.outcome === "unknown"
+          : kind === "unknown";
       // A refusal of a retry cannot disprove an earlier unacknowledged commit.
-      if (request && !request.uncertain && kind !== "unknown") {
+      if (request && !request.uncertain && !uncertain) {
         request = null;
-      } else if (request?.phase === "content" && kind === "unknown") {
+      } else if (request?.phase === "content" && uncertain) {
         request.uncertain = true;
       }
       publish(
@@ -465,7 +474,7 @@ export const createDrawingPersistence = ({
           ? { kind }
           : {
               kind: kind === "rejected" ? "rejected" : "error",
-              error,
+              error: cause,
             },
       );
       keepRecovery();

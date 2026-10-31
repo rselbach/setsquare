@@ -6,7 +6,12 @@ import { emptyDrawingContent } from "../drawingAppState";
 import { newDrawingId, newFolderId } from "../types";
 
 import { AccountCache } from "./AccountCache";
-import { ApiError, apiFailureKind } from "./ApiError";
+import {
+  ApiError,
+  apiFailureCause,
+  apiFailureKind,
+  RequestFailure,
+} from "./ApiError";
 import {
   parseCommand,
   parseDrawing,
@@ -571,18 +576,23 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   }
 
   private async ensureFiles(ids: readonly FileId[]) {
-    const cached = await this.cache.getFiles(ids);
-    const found = new Set(cached.map((file) => file.id));
-    const uncached = ids.filter(
-      (id) => !found.has(id) && !this.confirmedFiles.has(id),
-    );
-    if (uncached.length) {
-      await this.download(uncached);
-      if (uncached.some((id) => !this.confirmedFiles.has(id))) {
-        throw new Error("The drawing has images that have not been saved");
+    try {
+      const cached = await this.cache.getFiles(ids);
+      const found = new Set(cached.map((file) => file.id));
+      const uncached = ids.filter(
+        (id) => !found.has(id) && !this.confirmedFiles.has(id),
+      );
+      if (uncached.length) {
+        await this.download(uncached);
+        if (uncached.some((id) => !this.confirmedFiles.has(id))) {
+          throw new Error("The drawing has images that have not been saved");
+        }
       }
+      await this.upload(cached);
+    } catch (error) {
+      // Image requests cannot commit the drawing command they prepare.
+      throw new RequestFailure("not-committed", error);
     }
-    await this.upload(cached);
   }
 
   private async download(ids: readonly FileId[]) {
@@ -650,17 +660,19 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
           ),
         );
       } catch (error) {
+        // Image bytes can be uploaded again; only commands need receipts.
+        const cause = apiFailureCause(error);
         if (
-          error instanceof ApiError &&
-          error.status === 409 &&
-          error.message === "image_collision"
+          cause instanceof ApiError &&
+          cause.status === 409 &&
+          cause.message === "image_collision"
         ) {
           const [current] = await this.download([file.id]);
           if (current && (current.version ?? 1) > (file.version ?? 1)) {
             continue;
           }
         }
-        throw error;
+        throw cause;
       }
       const saved = data.files.find((saved) => saved.id === file.id);
       if (!saved || saved.dataURL !== file.dataURL) {
@@ -778,13 +790,13 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       response = await this.fetch(path, options);
     } catch (error) {
       if (retry && !this.closed) {
-        return this.request(path, init);
+        return this.retryUncertainRequest(path, init);
       }
       throw error;
     }
     if (!response.ok) {
       if (retry && response.status >= 500 && !this.closed) {
-        return this.request(path, init);
+        return this.retryUncertainRequest(path, init);
       }
       let message = `The request failed (${response.status})`;
       try {
@@ -808,5 +820,14 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       throw error;
     }
     return response.json();
+  }
+
+  private async retryUncertainRequest(path: string, init: RequestInit) {
+    try {
+      return await this.request(path, init);
+    } catch (error) {
+      // A refusal of the retry cannot disprove the first attempt's commit.
+      throw new RequestFailure("unknown", error);
+    }
   }
 }

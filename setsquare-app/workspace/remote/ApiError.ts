@@ -6,9 +6,24 @@ export class ApiError extends Error {
   }
 }
 
+/** The operation's commit outcome, independently of its last failure reason. */
+export class RequestFailure extends Error {
+  constructor(
+    readonly outcome: "not-committed" | "unknown",
+    readonly cause: unknown,
+  ) {
+    super(cause instanceof Error ? cause.message : "The request failed");
+    this.name = "RequestFailure";
+  }
+}
+
+export const apiFailureCause = (error: unknown): unknown =>
+  error instanceof RequestFailure ? apiFailureCause(error.cause) : error;
+
 export const apiFailureKind = (
   error: unknown,
 ): "expired" | "rejected" | "unknown" => {
+  error = apiFailureCause(error);
   if (!(error instanceof ApiError)) {
     return "unknown";
   }
