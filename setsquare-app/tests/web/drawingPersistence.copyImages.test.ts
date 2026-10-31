@@ -3,7 +3,7 @@ import { newElementWith } from "@setsquare/element";
 import { getDefaultAppState } from "@setsquare/setsquare/appState";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 
-import type { FileId } from "@setsquare/element/types";
+import type { FileId, SetsquareImageElement } from "@setsquare/element/types";
 import type { AppState } from "@setsquare/setsquare/types";
 
 import { createDrawingPersistence } from "../../web/drawingPersistence";
@@ -159,7 +159,9 @@ it("keeps deleting and adding images while the recovered copy is being saved", a
   });
   const copying = persistence.recoverAsCopy();
   await Promise.race([creatingStarted, copying]);
-  const deletedFirst = newElementWith(first, { isDeleted: true });
+  const deletedFirst = newElementWith<SetsquareImageElement>(first, {
+    isDeleted: true,
+  });
   persistence.save([...visible, deletedFirst, second], appState, {}, vi.fn());
   releaseCreate.resolve();
   await Promise.race([savingStarted, copying]);
@@ -168,7 +170,7 @@ it("keeps deleting and adding images while the recovered copy is being saved", a
     [
       ...visible,
       deletedFirst,
-      newElementWith(second, { isDeleted: true }),
+      newElementWith<SetsquareImageElement>(second, { isDeleted: true }),
       third,
     ],
     appState,
