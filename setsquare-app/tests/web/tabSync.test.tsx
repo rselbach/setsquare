@@ -7,6 +7,7 @@ import {
   unmountComponent,
   waitFor,
 } from "@setsquare/setsquare/tests/test-utils";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { set } from "idb-keyval";
 
 import type { FileId } from "@setsquare/element/types";
@@ -170,6 +171,57 @@ describe("a drawing open in two tabs", () => {
 
     expect(updateScene).not.toHaveBeenCalled();
     expect(elementIds()).toEqual(["troy", "abed"]);
+  });
+
+  it("shows a conflict when the other tab saves between this tab's focus check and its save", async () => {
+    let appStore!: LocalWorkspaceStore;
+    vi.mocked(workspaceStore.openWorkspaceStore).mockImplementation(
+      async () => {
+        appStore = await workspace.open();
+        return appStore;
+      },
+    );
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    const getDrawingMeta = vi.spyOn(appStore, "getDrawingMeta");
+    await focusWithSync(() => expect(getDrawingMeta).toHaveBeenCalled());
+    await act(() => getDrawingMeta.mock.results[0].value);
+
+    await otherTab.saveDrawingContent(
+      plan.id,
+      savedContent("Floor plan", "troy", "britta"),
+      [],
+    );
+    API.updateScene({
+      elements: [
+        ...h.elements,
+        API.createElement({ type: "ellipse", id: "abed" }),
+      ],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    await waitForAutosave();
+
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("data-state", "conflict");
+    expect(
+      (await otherTab.loadDrawingContent(plan.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["troy", "britta"]);
+    fireEvent.click(
+      within(status).getByRole("button", { name: "Save as a copy" }),
+    );
+    await waitFor(() =>
+      expect(window.location.pathname).not.toBe(`/d/${plan.id}`),
+    );
+    const copyId = window.location.pathname.slice("/d/".length);
+    await waitFor(async () =>
+      expect(
+        (
+          await otherTab.loadDrawingContent(copyId)
+        )?.elements.map(({ id }) => id),
+      ).toEqual(["troy", "abed"]),
+    );
   });
 
   it("doesn't sync a drawing it closed before the sync ran", async () => {
