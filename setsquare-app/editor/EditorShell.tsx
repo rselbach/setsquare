@@ -158,6 +158,7 @@ export const EditorShell = ({
   });
 
   const [, forceRefresh] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   useEffect(() => {
     if (isDevEnv()) {
@@ -220,10 +221,21 @@ export const EditorShell = ({
       return;
     }
 
-    persistence.load().then(async (scene) => {
-      loadImages(scene);
-      initialStatePromiseRef.current.promise.resolve(scene);
-    });
+    // the next run, or unmounting, ends this one; the first run of an editor
+    // opened after another has the previous editor's API
+    let active = true;
+    persistence.load().then(
+      (scene) => {
+        if (!active) {
+          return;
+        }
+        loadImages(scene);
+        initialStatePromiseRef.current.promise.resolve(scene);
+      },
+      // shown by the error boundary; an empty scene in its place would save
+      // over the stored one
+      (error) => active && setLoadError(error),
+    );
 
     const syncData = debounce(async () => {
       if (isTestEnv()) {
@@ -231,6 +243,9 @@ export const EditorShell = ({
       }
       if (!document.hidden) {
         const changed = await persistence.changedElsewhere();
+        if (!active) {
+          return;
+        }
         if (changed.scene) {
           const { elements, appState } = changed.scene;
           setLangCode(getPreferredLanguage());
@@ -246,13 +261,16 @@ export const EditorShell = ({
             },
             captureUpdate: CaptureUpdateAction.NEVER,
           });
-          LibraryIndexedDBAdapter.load().then((data) => {
-            if (data) {
-              setsquareAPI.updateLibrary({
-                libraryItems: data.libraryItems,
-              });
-            }
-          });
+          LibraryIndexedDBAdapter.load().then(
+            (data) => {
+              if (data) {
+                setsquareAPI.updateLibrary({
+                  libraryItems: data.libraryItems,
+                });
+              }
+            },
+            (error) => console.error("Couldn't load the library", error),
+          );
         }
 
         if (changed.files) {
@@ -308,6 +326,8 @@ export const EditorShell = ({
     document.addEventListener(EVENT.VISIBILITY_CHANGE, visibilityChange, false);
     window.addEventListener(EVENT.FOCUS, visibilityChange, false);
     return () => {
+      active = false;
+      syncData.cancel();
       window.removeEventListener(EVENT.UNLOAD, onUnload, false);
       window.removeEventListener(EVENT.BLUR, visibilityChange, false);
       window.removeEventListener(EVENT.FOCUS, visibilityChange, false);
@@ -452,6 +472,11 @@ export const EditorShell = ({
     },
     [],
   );
+
+  if (loadError) {
+    // for the error boundary
+    throw loadError;
+  }
 
   // const onExport = () => {
   //   return new Promise((r) => setTimeout(r, 2500));
