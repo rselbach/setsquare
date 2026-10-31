@@ -454,22 +454,30 @@ export const createDrawingPersistence = ({
           id,
           request.content,
           imageFileIds(request.content.elements),
-          store.recoveryKey
-            ? {
-                baseRevision: request.baseRevision,
-                requestId: request.requestId,
-              }
-            : undefined,
+          { baseRevision: request.baseRevision, requestId: request.requestId },
         );
         if (!saved.ok) {
           if (saved.reason === "notFound") {
             notFound();
             return;
           }
-          request = null;
-          publish({ kind: "conflict", meta: saved.meta });
-          keepRecovery();
-          return;
+          // a request whose outcome is unknown, such as one a closed page
+          // left, may be what moved the revision; unlike the server, this
+          // device's storage keeps no receipt to say so
+          const stored =
+            request.uncertain && !store.recoveryKey
+              ? await store.loadDrawingContent(id)
+              : null;
+          if (
+            !stored ||
+            contentSignature(stored.elements, stored.appState) !==
+              request.signature
+          ) {
+            request = null;
+            publish({ kind: "conflict", meta: saved.meta });
+            keepRecovery();
+            return;
+          }
         }
         // a resent request gets the receipt of its first commit, which a
         // later save elsewhere may have overwritten since

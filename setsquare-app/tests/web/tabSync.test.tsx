@@ -28,7 +28,7 @@ import {
 } from "./helpers";
 
 import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
-import type { DrawingMeta } from "../../workspace/types";
+import type { DrawingId, DrawingMeta } from "../../workspace/types";
 
 const testEnv = vi.hoisted(() => ({ enabled: true }));
 
@@ -214,7 +214,7 @@ describe("a drawing open in two tabs", () => {
     await waitFor(() =>
       expect(window.location.pathname).not.toBe(`/d/${plan.id}`),
     );
-    const copyId = window.location.pathname.slice("/d/".length);
+    const copyId = window.location.pathname.slice("/d/".length) as DrawingId;
     await waitFor(async () =>
       expect(
         (
