@@ -131,6 +131,62 @@ export type WorkspaceSnapshot = Readonly<{
   drawings: ReadonlyMap<DrawingId, DrawingMeta>;
 }>;
 
+// whether two records of the same kind hold the same values, comparing
+// arrays such as fileIds by their items
+const sameRecord = (a: object, b: object) => {
+  const values = b as Record<string, unknown>;
+  return (
+    Object.keys(a).length === Object.keys(b).length &&
+    Object.entries(a).every(([key, value]) => {
+      const other = values[key];
+      return (
+        Object.is(value, other) ||
+        (Array.isArray(value) &&
+          Array.isArray(other) &&
+          value.length === other.length &&
+          value.every((item, index) => Object.is(item, other[index])))
+      );
+    })
+  );
+};
+
+// the records by id, keeping each one previous has the same values for, or
+// previous itself if every record is the same
+const reuseRecords = <K, V extends { id: K }>(
+  previous: ReadonlyMap<K, V>,
+  records: readonly V[],
+): ReadonlyMap<K, V> => {
+  let changed = records.length !== previous.size;
+  const next = new Map<K, V>();
+  for (const record of records) {
+    const old = previous.get(record.id);
+    const kept = old && sameRecord(old, record) ? old : record;
+    changed ||= kept !== old;
+    next.set(record.id, kept);
+  }
+  return changed ? next : previous;
+};
+
+/**
+ * The snapshot of the folders and drawings, keeping each unchanged record
+ * of previous, and previous itself if nothing changed, so what shows them
+ * can tell what did.
+ */
+export const nextSnapshot = (
+  previous: WorkspaceSnapshot,
+  folders: readonly Folder[],
+  drawings: readonly DrawingMeta[],
+): WorkspaceSnapshot => {
+  const next = {
+    folders: reuseRecords(previous.folders, folders),
+    drawings: reuseRecords(previous.drawings, drawings),
+  };
+  return next.folders === previous.folders &&
+    next.drawings === previous.drawings
+    ? previous
+    : next;
+};
+
 /** Folders and drawings, apart because folders list first. */
 export type WorkspaceItems = {
   folders: Folder[];

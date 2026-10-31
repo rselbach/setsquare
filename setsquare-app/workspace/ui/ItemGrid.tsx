@@ -14,7 +14,7 @@ import type {
   WorkspaceItem,
 } from "../types";
 
-/** What the cards of the grid do to their items. */
+/** What the cards of the grid do to their items, the same for every card. */
 export type ItemActions = {
   startRename: (item: ItemRef) => void;
   stopRename: () => void;
@@ -60,22 +60,18 @@ export const ItemGrid = ({
             {t("workspace.folders")}
           </h2>
           <ul className="workspace-folders">
-            {folders.map((folder) => {
-              const ref = { kind: "folder", id: folder.id } as const;
-              return (
-                <FolderCard
-                  key={folder.id}
-                  folder={folder}
-                  location={locationOf?.(folder)}
-                  renaming={isRenaming(renaming, ref)}
-                  onStartRename={() => actions.startRename(ref)}
-                  onStopRename={actions.stopRename}
-                  onRename={(name) => actions.renameFolder(folder.id, name)}
-                  onMove={(card) => actions.move(ref, card)}
-                  onTrash={(card) => actions.trash(ref, card)}
-                />
-              );
-            })}
+            {folders.map((folder) => (
+              <FolderCard
+                key={folder.id}
+                folder={folder}
+                location={locationOf?.(folder)}
+                renaming={isRenaming(renaming, {
+                  kind: "folder",
+                  id: folder.id,
+                })}
+                actions={actions}
+              />
+            ))}
           </ul>
         </section>
       )}
@@ -85,25 +81,20 @@ export const ItemGrid = ({
             {t("workspace.drawings")}
           </h2>
           <ul className="workspace-drawings">
-            {drawings.map((drawing) => {
-              const ref = { kind: "drawing", id: drawing.id } as const;
-              return (
-                <DrawingCard
-                  key={drawing.id}
-                  drawing={drawing}
-                  thumbnail={thumbnails.get(drawing.id)}
-                  now={now}
-                  location={locationOf?.(drawing)}
-                  renaming={isRenaming(renaming, ref)}
-                  onStartRename={() => actions.startRename(ref)}
-                  onStopRename={actions.stopRename}
-                  onRename={(name) => actions.renameDrawing(drawing.id, name)}
-                  onDuplicate={() => actions.duplicate(drawing)}
-                  onMove={(card) => actions.move(ref, card)}
-                  onTrash={(card) => actions.trash(ref, card)}
-                />
-              );
-            })}
+            {drawings.map((drawing) => (
+              <DrawingCard
+                key={drawing.id}
+                drawing={drawing}
+                thumbnail={thumbnails.get(drawing.id)}
+                now={now}
+                location={locationOf?.(drawing)}
+                renaming={isRenaming(renaming, {
+                  kind: "drawing",
+                  id: drawing.id,
+                })}
+                actions={actions}
+              />
+            ))}
           </ul>
         </section>
       )}

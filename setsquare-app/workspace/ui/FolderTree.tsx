@@ -46,7 +46,12 @@ const foldersByParent = (snapshot: WorkspaceSnapshot) => {
   for (const folder of snapshot.folders.values()) {
     if (folder.trashedAt === null) {
       const parentId = parentOf(snapshot, folder);
-      byParent.set(parentId, [...(byParent.get(parentId) ?? []), folder]);
+      const siblings = byParent.get(parentId);
+      if (siblings) {
+        siblings.push(folder);
+      } else {
+        byParent.set(parentId, [folder]);
+      }
     }
   }
   for (const [parentId, folders] of byParent) {

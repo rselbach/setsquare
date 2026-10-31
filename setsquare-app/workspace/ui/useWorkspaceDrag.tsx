@@ -1,10 +1,18 @@
-import { createContext, useContext, useId, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useId,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { canMove, findItem, parentOf } from "../tree";
 
 import type { DragEvent, ReactNode } from "react";
 
-import type { ItemRef, ParentId, WorkspaceSnapshot } from "../types";
+import type { ItemRef, ParentId } from "../types";
+import type { WorkspaceStore } from "../WorkspaceStore";
 
 /** Where a dragged item can go: a folder, null for the root, or the Trash. */
 export type DropTarget = { kind: "folder"; id: ParentId } | { kind: "trash" };
@@ -13,13 +21,35 @@ export type DropTarget = { kind: "folder"; id: ParentId } | { kind: "trash" };
 // it saw picked up, since a drag can't be read until it's dropped
 const DRAG_TYPE = "application/x-setsquare-item";
 
+// the element the item is over, if it takes it, by the id its hook has; a
+// folder can be a target in several places. Kept out of React state, so
+// moving onto a target rerenders only it and the one the item left.
+const overStore = () => {
+  let over: string | null = null;
+  const listeners = new Set<() => void>();
+  return {
+    get: () => over,
+    set: (id: string | null) => {
+      if (id === over) {
+        return;
+      }
+      over = id;
+      for (const listener of listeners) {
+        listener();
+      }
+    },
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+  };
+};
+
 type WorkspaceDrag = {
   dragged: ItemRef | null;
-  /**
-   * the element the item is over, if it takes it, by the id its hook has;
-   * a folder can be a target in several places
-   */
-  over: string | null;
+  over: ReturnType<typeof overStore>;
   start: (item: ItemRef) => void;
   end: () => void;
   canDrop: (target: DropTarget) => boolean;
@@ -38,21 +68,24 @@ const WorkspaceDragContext = createContext<WorkspaceDrag | null>(null);
  * allowed. Touch has Move to… instead.
  */
 export const WorkspaceDragProvider = ({
-  snapshot,
+  store,
   onMove,
   onTrash,
   children,
 }: {
-  snapshot: WorkspaceSnapshot;
+  store: WorkspaceStore;
   onMove: (item: ItemRef, target: ParentId) => void;
   onTrash: (item: ItemRef) => void;
   children: ReactNode;
 }) => {
   const [dragged, setDragged] = useState<ItemRef | null>(null);
-  const [over, setOver] = useState<string | null>(null);
+  const [over] = useState(overStore);
 
+  // read as each drag event comes, so a change to the workspace doesn't
+  // rerender every card
   const drag = useMemo((): WorkspaceDrag => {
     const canDrop = (target: DropTarget) => {
+      const snapshot = store.getSnapshot();
       const item = dragged && findItem(snapshot, dragged);
       if (!dragged || !item) {
         return false;
@@ -66,7 +99,7 @@ export const WorkspaceDragProvider = ({
     };
     const end = () => {
       setDragged(null);
-      setOver(null);
+      over.set(null);
     };
     return {
       dragged,
@@ -74,8 +107,12 @@ export const WorkspaceDragProvider = ({
       start: setDragged,
       end,
       canDrop,
-      enter: setOver,
-      leave: (id) => setOver((over) => (over === id ? null : over)),
+      enter: over.set,
+      leave: (id) => {
+        if (over.get() === id) {
+          over.set(null);
+        }
+      },
       drop: (target) => {
         if (dragged && canDrop(target)) {
           if (target.kind === "trash") {
@@ -87,7 +124,7 @@ export const WorkspaceDragProvider = ({
         end();
       },
     };
-  }, [dragged, over, snapshot, onMove, onTrash]);
+  }, [dragged, over, store, onMove, onTrash]);
 
   return (
     <WorkspaceDragContext.Provider value={drag}>
@@ -128,6 +165,8 @@ export const useDragSource = (item: ItemRef) => {
   };
 };
 
+const noSubscription = () => () => {};
+
 /**
  * Makes an element a place to drop items: handlers for it, and whether an
  * item it would take is over it, to show so.
@@ -135,6 +174,10 @@ export const useDragSource = (item: ItemRef) => {
 export const useDropTarget = (target: DropTarget) => {
   const drag = useContext(WorkspaceDragContext);
   const id = useId();
+  const isOver = useSyncExternalStore(
+    drag?.over.subscribe ?? noSubscription,
+    () => drag?.over.get() === id,
+  );
   if (!drag) {
     return { isOver: false, targetProps: {} };
   }
@@ -148,7 +191,7 @@ export const useDropTarget = (target: DropTarget) => {
     drag.enter(id);
   };
   return {
-    isOver: drag.over === id,
+    isOver,
     targetProps: {
       onDragEnter: onDragOver,
       onDragOver,

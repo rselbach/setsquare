@@ -1,3 +1,5 @@
+import { nextSnapshot } from "../types";
+
 import { ApiError } from "./ApiError";
 import { parseCommand, parseDrawing, parseWorkspace } from "./parse";
 
@@ -94,13 +96,7 @@ export class SnapshotState {
       return;
     }
     this.snapshotShown = sequence;
-    this.snapshot = {
-      folders: new Map(data.folders.map((folder) => [folder.id, folder])),
-      drawings: new Map(data.drawings.map((drawing) => [drawing.id, drawing])),
-    };
-    for (const listener of this.listeners) {
-      listener();
-    }
+    this.show(nextSnapshot(this.snapshot, data.folders, data.drawings));
   }
 
   private publishDrawing(meta: DrawingMeta, sequence: number) {
@@ -108,10 +104,22 @@ export class SnapshotState {
       return;
     }
     this.snapshotShown = sequence;
-    this.snapshot = {
-      folders: this.snapshot.folders,
-      drawings: new Map(this.snapshot.drawings).set(meta.id, meta),
-    };
+    const { folders, drawings } = this.snapshot;
+    this.show(
+      nextSnapshot(
+        this.snapshot,
+        [...folders.values()],
+        [...new Map(drawings).set(meta.id, meta).values()],
+      ),
+    );
+  }
+
+  // tells the listeners only if the snapshot changed
+  private show(snapshot: WorkspaceSnapshot) {
+    if (snapshot === this.snapshot) {
+      return;
+    }
+    this.snapshot = snapshot;
     for (const listener of this.listeners) {
       listener();
     }

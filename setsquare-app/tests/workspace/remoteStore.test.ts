@@ -312,6 +312,52 @@ describe("RemoteWorkspaceStore", () => {
     expect(store.getSnapshot().drawings.get(meta.id)?.revision).toBe(3);
   });
 
+  it("keeps the records a command leaves alone, and says nothing when none changed", async () => {
+    const meta = drawing();
+    const other = { ...drawing(), name: "Study room" };
+    const next = { ...meta, revision: 2 };
+    const after = { folders: [], drawings: [next, other] };
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(response({ folders: [], drawings: [meta, other] }))
+      .mockResolvedValueOnce(
+        response({
+          result: { kind: "save", result: { ok: true, meta: next } },
+          snapshot: after,
+        }),
+      )
+      .mockResolvedValueOnce(
+        response({
+          result: { kind: "change", result: { ok: true } },
+          snapshot: after,
+        }),
+      );
+    const store = await open(fetch);
+    const before = store.getSnapshot();
+
+    await store.saveDrawingContent(
+      meta.id,
+      emptyDrawingContent(meta.name),
+      [],
+      { baseRevision: 1, requestId: "troy-save" },
+    );
+    const saved = store.getSnapshot();
+    expect(saved.drawings.get(meta.id)).toEqual(next);
+    expect(saved.drawings.get(other.id)).toBe(before.drawings.get(other.id));
+    expect(saved.folders).toBe(before.folders);
+
+    const listener = vi.fn();
+    const thumbnailListener = vi.fn();
+    store.subscribe(listener);
+    store.subscribeThumbnails(thumbnailListener);
+    expect(
+      await store.saveThumbnail(meta.id, { src: file().dataURL, revision: 2 }),
+    ).toEqual({ ok: true });
+    expect(store.getSnapshot()).toBe(saved);
+    expect(listener).not.toHaveBeenCalled();
+    expect(thumbnailListener).toHaveBeenCalledTimes(1);
+  });
+
   it("retries an uncertain mutation with its original request and base revision", async () => {
     const meta = drawing();
     const next = { ...meta, revision: 2 };

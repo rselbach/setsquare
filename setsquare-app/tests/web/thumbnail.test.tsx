@@ -1,15 +1,22 @@
 import * as setsquare from "@setsquare/setsquare";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
-import { act, waitFor } from "@setsquare/setsquare/tests/test-utils";
+import {
+  act,
+  screen,
+  waitFor,
+  within,
+} from "@setsquare/setsquare/tests/test-utils";
 
 import type { DataURL } from "@setsquare/setsquare/types";
 
 import { emptyDrawingContent } from "../../workspace/drawingAppState";
+import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 
 import {
   cleanUpWebApp,
   navigateTo,
+  renderPageAt,
   renderWebAppAt,
   savedContent,
   setUpTestWorkspace,
@@ -17,7 +24,6 @@ import {
   waitForDrawing,
 } from "./helpers";
 
-import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import type { DrawingId, DrawingMeta } from "../../workspace/types";
 
 const { h } = window;
@@ -33,6 +39,11 @@ const addEllipse = (id: string) =>
     elements: [...h.elements, API.createElement({ type: "ellipse", id })],
     captureUpdate: CaptureUpdateAction.IMMEDIATELY,
   });
+
+const drawingCard = (name: string) =>
+  within(screen.getByRole("region", { name: "Drawings" }))
+    .getByRole("link", { name })
+    .closest("li")!;
 
 // long enough for a thumbnail to have rendered if it was going to
 const settle = () =>
@@ -174,5 +185,38 @@ describe("thumbnails on the web", () => {
       (await store.loadDrawingContent(plan.id))?.elements.map(({ id }) => id),
     ).toEqual(["troy", "annie"]);
     expect(await thumbnailOf(store, plan.id)).toBe(undefined);
+  });
+
+  it("load on the page for drawings that changed, or once thumbnails may have", async () => {
+    const getThumbnails = vi.spyOn(
+      LocalWorkspaceStore.prototype,
+      "getThumbnails",
+    );
+    await renderPageAt("/");
+    await waitFor(() =>
+      expect(getThumbnails.mock.calls.flatMap(([ids]) => ids).sort()).toEqual(
+        [plan.id, seating.id].sort(),
+      ),
+    );
+    getThumbnails.mockClear();
+
+    await act(() => store.createFolder(null, "Greendale"));
+    await screen.findByRole("region", { name: "Folders" });
+    await settle();
+    // neither has a thumbnail, and neither changed
+    expect(getThumbnails).not.toHaveBeenCalled();
+
+    await act(() => store.renameDrawing(seating.id, "Study room"));
+    await waitFor(() => drawingCard("Study room"));
+    await settle();
+    expect(getThumbnails.mock.calls).toEqual([[[seating.id]]]);
+
+    await act(() => store.saveThumbnail(plan.id, { src: PIXEL, revision: 1 }));
+    await waitFor(() =>
+      expect(drawingCard("Floor plan").querySelector("img")).toHaveAttribute(
+        "src",
+        PIXEL,
+      ),
+    );
   });
 });

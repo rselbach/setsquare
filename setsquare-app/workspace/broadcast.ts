@@ -1,9 +1,16 @@
-const CHANGED = "changed";
+/**
+ * What another tab changed: the folders and drawings, or only thumbnails,
+ * which aren't in the snapshot.
+ */
+export type WorkspaceChange = "changed" | "thumbnails";
+
+const isChange = (data: unknown): data is WorkspaceChange =>
+  data === "changed" || data === "thumbnails";
 
 /** Tells this browser's other tabs that the workspace changed. */
 export interface WorkspaceBroadcast {
   /** tells the other tabs; this tab doesn't hear its own posts */
-  post(): void;
+  post(change: WorkspaceChange): void;
   close(): void;
 }
 
@@ -13,19 +20,19 @@ export interface WorkspaceBroadcast {
  */
 export const openBroadcast = (
   name: string,
-  onChange: () => void,
+  onChange: (change: WorkspaceChange) => void,
 ): WorkspaceBroadcast => {
   if (typeof BroadcastChannel === "undefined") {
     return { post: () => {}, close: () => {} };
   }
   const channel = new BroadcastChannel(name);
   channel.onmessage = (event: MessageEvent) => {
-    if (event.data === CHANGED) {
-      onChange();
+    if (isChange(event.data)) {
+      onChange(event.data);
     }
   };
   return {
-    post: () => channel.postMessage(CHANGED),
+    post: (change) => channel.postMessage(change),
     close: () => channel.close(),
   };
 };
