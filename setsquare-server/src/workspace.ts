@@ -690,13 +690,23 @@ export class WorkspaceDatabase {
     );
   }
 
-  /** Removes expired trash, old mutation receipts, and images after their unreferenced grace period. */
-  async collect() {
+  /**
+   * Removes expired sessions and sign-in attempts, expired trash, old mutation
+   * receipts, and images after their unreferenced grace period. A failing step
+   * or account is reported to onFailure and the remaining ones still run.
+   */
+  async collect(onFailure: (error: unknown, ownerId?: string) => void) {
     const now = this.now();
+    await this.pool
+      .query("DELETE FROM sessions WHERE expires_at <= $1", [now])
+      .catch(onFailure);
+    await this.pool
+      .query("DELETE FROM auth_attempts WHERE expires_at <= $1", [now])
+      .catch(onFailure);
     const owners = await this.pool.query("SELECT id FROM users");
     for (const row of owners.rows) {
+      const owner: string = row.id;
       await transaction(this.pool, async (client) => {
-        const owner: string = row.id;
         await client.query("SELECT id FROM users WHERE id = $1 FOR UPDATE", [
           owner,
         ]);
@@ -723,11 +733,7 @@ export class WorkspaceDatabase {
           "DELETE FROM mutation_receipts WHERE owner_id = $1 AND created_at <= $2 AND request_id NOT LIKE 'import-%'",
           [owner, now - 30 * DAY],
         );
-      });
+      }).catch((error) => onFailure(error, owner));
     }
-    await this.pool.query("DELETE FROM sessions WHERE expires_at <= $1", [now]);
-    await this.pool.query("DELETE FROM auth_attempts WHERE expires_at <= $1", [
-      now,
-    ]);
   }
 }

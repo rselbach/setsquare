@@ -237,28 +237,37 @@ export const buildServer = async ({
   });
 
   if (cleanup) {
+    const failed = (job: string) => (error: unknown, ownerId?: string) =>
+      app.log.error(
+        {
+          job,
+          ownerId,
+          errorName: error instanceof Error ? error.name : "UnknownError",
+          errorMessage: error instanceof Error ? error.message : undefined,
+          errorCode:
+            error instanceof Error && "code" in error ? error.code : undefined,
+        },
+        "Cleanup failed",
+      );
+    const workspaceFailed = failed("workspace");
     let collecting = false;
     const collect = async () => {
       if (collecting) {
         return;
       }
       collecting = true;
-      try {
-        await workspace.collect();
-        await mcpOAuth.collect();
-      } catch (error) {
-        app.log.error(
-          { errorName: error instanceof Error ? error.name : "UnknownError" },
-          "Workspace cleanup failed",
-        );
-      } finally {
-        collecting = false;
-      }
+      await workspace.collect(workspaceFailed).catch(workspaceFailed);
+      await mcpOAuth.collect().catch(failed("mcp-oauth"));
+      collecting = false;
     };
+    // A full pass can outlast the deploy health check, so serve first.
+    const first = setImmediate(collect);
     const interval = setInterval(collect, 60 * 60 * 1000);
     interval.unref();
-    app.addHook("onClose", async () => clearInterval(interval));
-    await collect();
+    app.addHook("onClose", async () => {
+      clearImmediate(first);
+      clearInterval(interval);
+    });
   }
   return app;
 };
