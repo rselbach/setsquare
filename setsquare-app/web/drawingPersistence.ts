@@ -91,6 +91,7 @@ export type DrawingPersistence = Merge<
     retry(): Promise<void>;
     recoverAsCopy(): Promise<DrawingMeta | null>;
     hasDurableDraft(): boolean;
+    keepRecovery(): void;
     getRecoveryError(): unknown | null;
     exportRecovery(): void;
   }
@@ -212,7 +213,9 @@ export const createDrawingPersistence = ({
       baseRevision: lastRevision,
       elements: getNonDeletedElements(pending.elements),
       appState: { ...content, ...view },
-      ...(store.recoveryKey && { draftId, generation, updatedAt }),
+      draftId,
+      generation,
+      updatedAt,
       ...(request &&
         request.phase === "content" && {
           request: {
@@ -224,16 +227,15 @@ export const createDrawingPersistence = ({
     };
   };
 
+  const recoveryStorage = store.recoveryStorage ?? ownerWindow.localStorage;
+
   const keepRecovery = () => {
-    if (!store.recoveryKey) {
-      return;
-    }
     const draft = unsaved();
     if (draft && "draftId" in draft) {
       const fallbackSaved = writeUnsaved(
         draft,
         store.recoveryKey,
-        store.recoveryStorage,
+        recoveryStorage,
       );
       if (fallbackSaved) {
         fallbackGeneration = draft.generation;
@@ -255,7 +257,10 @@ export const createDrawingPersistence = ({
         publish({ ...state });
       });
     } else {
-      clearUnsaved(id, store.recoveryKey, store.recoveryStorage, draftId);
+      clearUnsaved(id, store.recoveryKey, recoveryStorage, draftId);
+      if (!store.recoveryKey && recovered && !("draftId" in recovered)) {
+        clearUnsaved(id, undefined, recoveryStorage);
+      }
       const source = recoveredSource;
       recoveredSource = null;
       recoveryWriting = recoveryWriting
@@ -269,7 +274,7 @@ export const createDrawingPersistence = ({
             clearUnsaved(
               id,
               store.recoveryKey,
-              store.recoveryStorage,
+              recoveryStorage,
               source.draftId,
               source.generation,
             );
@@ -295,7 +300,15 @@ export const createDrawingPersistence = ({
     onNotFound();
   };
 
+  const localImagesSaved = (scene: PendingScene) =>
+    imageFileIds(getNonDeletedElements(scene.elements)).every((id) =>
+      scene.files[id]
+        ? fileStorage.isFileSaved(scene.files[id])
+        : drawing.meta.fileIds.includes(id),
+    );
+
   const saveImages = async (scene: PendingScene) => {
+    const savingGeneration = generation;
     const { erroredFiles, errors } = await fileStorage.saveFiles({
       ...scene,
       elements: getNonDeletedElements(scene.elements),
@@ -306,6 +319,10 @@ export const createDrawingPersistence = ({
         new Map([...erroredFiles.keys()].map((id) => [id, errors?.get(id)])),
       );
     }
+    if (!store.stageFiles && scene === pending && localImagesSaved(scene)) {
+      imagesGeneration = savingGeneration;
+      imageRecoveryError = null;
+    }
     scene.onFilesSaved();
   };
 
@@ -313,9 +330,15 @@ export const createDrawingPersistence = ({
     const stagingGeneration = generation;
     imageStaging = (store.stageFiles?.(files) ?? Promise.resolve()).then(
       () => {
-        imagesGeneration = stagingGeneration;
-        if (generation === stagingGeneration) {
-          imageRecoveryError = null;
+        if (store.stageFiles || (pending && localImagesSaved(pending))) {
+          imagesGeneration = stagingGeneration;
+          if (generation === stagingGeneration) {
+            imageRecoveryError = null;
+          }
+        } else if (generation === stagingGeneration) {
+          imageRecoveryError = new Error(
+            "The drawing's images have not been stored on this device",
+          );
         }
       },
       (error) => {
@@ -490,7 +513,7 @@ export const createDrawingPersistence = ({
       if (before === queued && pending && state.kind === "unsaved") {
         enqueue();
       }
-      return writing;
+      return writing.then(() => recoveryWriting);
     },
     isSavePaused: () => ownerWindow.document.hidden,
     changedElsewhere: async () => {
@@ -533,6 +556,7 @@ export const createDrawingPersistence = ({
       }
     },
     unsaved,
+    keepRecovery,
     getSaveState: () => state,
     getRecoveryError: () =>
       pending ? imageRecoveryError ?? recoveryError : null,
@@ -578,6 +602,7 @@ export const createDrawingPersistence = ({
       }
       enqueue();
       await writing;
+      await recoveryWriting;
     },
     recoverAsCopy: async () => {
       await writing;

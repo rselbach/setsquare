@@ -22,11 +22,7 @@ import { createDrawingPersistence } from "./drawingPersistence";
 import { DrawingSaveStatus } from "./DrawingSaveStatus";
 import { drawingsIcon, newDrawingIcon } from "./icons";
 import { navigate, parseRoute, setLeaveGuard } from "./router";
-import {
-  recoverUnavailable,
-  replayUnsaved,
-  writeUnsaved,
-} from "./unsavedJournal";
+import { recoverUnavailable, replayUnsaved } from "./unsavedJournal";
 import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
 import { discardIfUnused } from "./workspaceActions";
 
@@ -233,11 +229,7 @@ export const DrawingRoute = ({
     setLeaveGuard(async () => {
       leaving.current = editor;
       await save(editor);
-      if (
-        store.recoveryKey &&
-        persistence.unsaved() &&
-        !persistence.hasDurableDraft()
-      ) {
+      if (persistence.unsaved() && !persistence.hasDurableDraft()) {
         leaving.current = null;
         return false;
       }
@@ -247,10 +239,9 @@ export const DrawingRoute = ({
     const onPageHide = (event: Event) => {
       const unsaved = persistence.unsaved();
       if (unsaved) {
-        writeUnsaved(unsaved, store.recoveryKey, store.recoveryStorage);
+        persistence.keepRecovery();
         if (
           event.type === EVENT.BEFORE_UNLOAD &&
-          store.recoveryKey &&
           !persistence.hasDurableDraft()
         ) {
           event.preventDefault();
@@ -258,12 +249,13 @@ export const DrawingRoute = ({
         }
       }
     };
-    window.addEventListener("pagehide", onPageHide);
-    window.addEventListener(EVENT.BEFORE_UNLOAD, onPageHide);
+    const ownerWindow = host.current?.ownerDocument.defaultView;
+    ownerWindow?.addEventListener("pagehide", onPageHide);
+    ownerWindow?.addEventListener(EVENT.BEFORE_UNLOAD, onPageHide);
     return () => {
       setLeaveGuard(null);
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener(EVENT.BEFORE_UNLOAD, onPageHide);
+      ownerWindow?.removeEventListener("pagehide", onPageHide);
+      ownerWindow?.removeEventListener(EVENT.BEFORE_UNLOAD, onPageHide);
       // a no-op after the leave guard, but not every unmount runs it
       persistence.flush();
     };
@@ -402,9 +394,10 @@ export const DrawingRoute = ({
         }
       >
         {children}
-        {store.recoveryKey && (
-          <DrawingSaveStatus persistence={current.persistence} />
-        )}
+        <DrawingSaveStatus
+          persistence={current.persistence}
+          local={!store.recoveryKey}
+        />
         <ReportOpenDrawing
           id={id}
           save={current.persistence.flush}

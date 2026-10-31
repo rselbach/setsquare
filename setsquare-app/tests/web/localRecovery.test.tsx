@@ -6,6 +6,7 @@ import {
   fireEvent,
   screen,
   within,
+  waitFor,
 } from "@setsquare/setsquare/tests/test-utils";
 
 import type { FileId } from "@setsquare/element/types";
@@ -32,7 +33,10 @@ const { h } = window;
 let workspace: ReturnType<typeof setUpTestWorkspace>;
 const failed = () => new DOMException("Connection lost", "UnknownError");
 const journals = () =>
-  Object.keys(localStorage)
+  Array.from(
+    { length: localStorage.length },
+    (_, index) => localStorage.key(index)!,
+  )
     .filter((k) => k.startsWith(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED))
     .map((k) => JSON.parse(localStorage.getItem(k)!));
 const appState: AppState = {
@@ -77,10 +81,11 @@ it.each([true, false])(
     const save = vi
       .spyOn(store, "saveDrawingContent")
       .mockRejectedValue(failed());
-    if (!durable)
-      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    if (!durable) {
+      vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
         throw failed();
       });
+    }
     vi.spyOn(console, "error").mockImplementation(() => {});
     edit();
     await waitForAutosave();
@@ -94,7 +99,9 @@ it.each([true, false])(
       within(screen.getByRole("status")).getByRole("button", { name: "Retry" }),
     ).toBeVisible();
     const closing = new Event("beforeunload", { cancelable: true });
-    window.dispatchEvent(closing);
+    await act(async () => {
+      window.dispatchEvent(closing);
+    });
     expect(closing.defaultPrevented).toBe(!durable);
     let left: boolean | undefined;
     await act(async () => {
@@ -181,7 +188,7 @@ it("keeps separate local drafts for separate drawings and the latest edit genera
   await first.flush();
   expect(first.hasDurableDraft()).toBe(true);
   const storage = vi
-    .spyOn(Storage.prototype, "setItem")
+    .spyOn(window.localStorage, "setItem")
     .mockImplementation(() => {
       throw failed();
     });
@@ -239,4 +246,113 @@ it("does not call a text-only fallback durable when new image bytes fail to save
   expect(journals()).toHaveLength(1);
   expect(editor.hasDurableDraft()).toBe(false);
   expect(editor.getRecoveryError()).not.toBeNull();
+});
+
+it("blocks navigation and exports image bytes when their local save fails", async () => {
+  const { store, drawing } = await setup();
+  const fileId = "failed-image" as FileId;
+  const file: BinaryFileData = {
+    id: fileId,
+    dataURL:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" as BinaryFileData["dataURL"],
+    mimeType: "image/png",
+    created: 1,
+  };
+  const originalUpload = store.files.save;
+  const upload = vi
+    .spyOn(store.files, "save")
+    .mockImplementation(async ({ addedFiles }) => ({
+      savedFiles: new Map(),
+      erroredFiles: addedFiles,
+    }));
+  await renderWebAppAt(`/d/${drawing.meta.id}`);
+  await waitForDrawing(drawing.meta.id, ["original"]);
+  await waitForAutosave();
+  act(() => h.app.addFiles([file]));
+  API.updateScene({
+    elements: [
+      ...h.elements,
+      API.createElement({ type: "image", fileId, id: "image" }),
+    ],
+    captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+  });
+  await waitForAutosave();
+  expect(screen.getByRole("status")).toHaveTextContent(
+    /could not keep a recovery copy/i,
+  );
+  let left: boolean | undefined;
+  await act(async () => {
+    left = await navigate({ kind: "drawings", folderId: null });
+  });
+  expect(left).toBe(false);
+  const closing = new Event("beforeunload", { cancelable: true });
+  await act(async () => {
+    window.dispatchEvent(closing);
+  });
+  expect(closing.defaultPrevented).toBe(true);
+  let exported: Blob | undefined;
+  const createURL = vi.fn((blob: Blob) => {
+    exported = blob;
+    return "blob:recovery";
+  });
+  Object.defineProperty(window.URL, "createObjectURL", {
+    configurable: true,
+    value: createURL,
+  });
+  Object.defineProperty(window.URL, "revokeObjectURL", {
+    configurable: true,
+    value: vi.fn(),
+  });
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+  fireEvent.click(
+    within(screen.getByRole("status")).getByRole("button", { name: "Export" }),
+  );
+  expect(exported).toBeDefined();
+  const reader = new window.FileReader();
+  const text = new Promise<string>((resolve, reject) => {
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+  });
+  reader.readAsText(exported!);
+  expect(JSON.parse(await text).files[fileId].dataURL).toBe(file.dataURL);
+  upload.mockImplementation(originalUpload);
+  await act(async () => {
+    fireEvent.click(
+      within(screen.getByRole("status")).getByRole("button", { name: "Retry" }),
+    );
+  });
+  await waitFor(() =>
+    expect(screen.getByRole("status")).toHaveAttribute("data-state", "saved"),
+  );
+  expect(
+    (await store.loadDrawingContent(drawing.meta.id))?.elements.map(
+      (e) => e.id,
+    ),
+  ).toEqual(["original", "image"]);
+  expect(screen.getByRole("status")).toHaveAttribute("data-state", "saved");
+});
+
+it("keeps the legacy draft if only replaying its view fails", async () => {
+  const { store, drawing } = await setup();
+  const { content, view } = splitAppState(appState);
+  writeUnsaved({
+    id: drawing.meta.id,
+    baseRevision: 1,
+    elements: savedContent("Local recovery", "recovered").elements,
+    appState: { ...content, ...view, scrollX: 200 },
+  });
+  const saveView = vi
+    .spyOn(store, "saveDrawingView")
+    .mockRejectedValue(failed());
+  const recovered = await replayUnsaved(store, drawing);
+  expect(recovered.meta.revision).toBe(2);
+  expect(recovered.recovered?.baseRevision).toBe(2);
+  expect(journals()[0].baseRevision).toBe(2);
+  saveView.mockRestore();
+  const reopened = await replayUnsaved(
+    store,
+    (await store.openDrawing(drawing.meta.id))!,
+  );
+  expect(reopened.view?.scrollX).toBe(200);
+  expect(journals()).toEqual([]);
 });

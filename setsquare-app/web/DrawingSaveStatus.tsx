@@ -26,7 +26,7 @@ type Status = {
   detail?: string;
 };
 
-const statusFor = (state: DrawingSaveState): Status => {
+const statusFor = (state: DrawingSaveState, local: boolean): Status => {
   switch (state.kind) {
     case "saved":
       return { tone: "quiet", label: t("workspace.saveSaved") };
@@ -37,7 +37,7 @@ const statusFor = (state: DrawingSaveState): Status => {
       return {
         tone: "danger",
         label: t("workspace.saveNotSaved"),
-        detail: t("workspace.saveFailed"),
+        detail: t(local ? "workspace.saveLocalFailed" : "workspace.saveFailed"),
       };
     case "rejected":
       return {
@@ -76,8 +76,10 @@ const statusFor = (state: DrawingSaveState): Status => {
  */
 export const DrawingSaveStatus = ({
   persistence,
+  local = false,
 }: {
   persistence: DrawingPersistence;
+  local?: boolean;
 }) => {
   const app = useApp();
   const isPhone = useEditorInterface().formFactor === "phone";
@@ -127,19 +129,17 @@ export const DrawingSaveStatus = ({
     }
   };
 
-  let status = statusFor(state);
+  let status = statusFor(state, local);
+  const recoveryFailed = persistence.getRecoveryError() !== null;
   let action: { label: string; run: () => void } | null = null;
-  if (persistence.getRecoveryError() !== null) {
+  if (recoveryFailed) {
     status = {
       tone: "danger",
       label: t("workspace.saveNotSaved"),
       detail: t("workspace.recoveryFailed"),
     };
-    action = {
-      label: t("workspace.exportRecovery"),
-      run: () => persistence.exportRecovery(),
-    };
-  } else if (state.kind === "conflict" || state.kind === "missing") {
+  }
+  if (state.kind === "conflict" || state.kind === "missing") {
     if (copyFailed) {
       status = { ...status, detail: t("workspace.saveCopyFailed") };
     }
@@ -171,7 +171,9 @@ export const DrawingSaveStatus = ({
       {status.detail && (
         <span className="drawing-save-status__detail">{status.detail}</span>
       )}
-      {state.kind === "rejected" && persistence.getRecoveryError() === null && (
+      {(recoveryFailed ||
+        state.kind === "rejected" ||
+        (local && state.kind === "error")) && (
         <button
           type="button"
           className="drawing-save-status__action"

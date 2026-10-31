@@ -28,10 +28,15 @@ export type RecoveredDrawing = OpenedDrawing & {
 };
 
 const KEY = STORAGE_KEYS.LOCAL_STORAGE_UNSAVED;
+const localPrefixFor = (id: DrawingId) => `${KEY}-local:${id}:`;
 const prefixFor = (id: DrawingId, account: string) =>
   `${KEY}:${account}:${id}:`;
 const keyFor = (id: DrawingId, account?: string, draftId?: string) =>
-  account ? `${prefixFor(id, account)}${draftId}` : KEY;
+  account
+    ? `${prefixFor(id, account)}${draftId}`
+    : draftId
+    ? `${localPrefixFor(id)}${draftId}`
+    : KEY;
 
 /** Writes the synchronous fallback for edits whose IndexedDB write is pending. */
 export const writeUnsaved = (
@@ -66,6 +71,14 @@ export const clearUnsaved = (
   }
   try {
     const key = keyFor(id, account, draftId);
+    if (key === KEY) {
+      const saved = z
+        .object({ id: z.string() })
+        .safeParse(JSON.parse(storage.getItem(key) ?? "null"));
+      if (!saved.success || saved.data.id !== id) {
+        return;
+      }
+    }
     if (generation) {
       const saved = z
         .object({ generation: z.string() })
@@ -152,7 +165,10 @@ export const recoverUnavailable = async (
   };
 };
 
-const readLegacy = (drawing: OpenedDrawing): DrawingDraft | null => {
+const readLegacy = (
+  drawing: OpenedDrawing,
+  storage: Storage,
+): DrawingDraft | null => {
   try {
     const value = z
       .object({
@@ -161,7 +177,7 @@ const readLegacy = (drawing: OpenedDrawing): DrawingDraft | null => {
         elements: z.array(z.unknown()),
         appState: z.record(z.string(), z.unknown()),
       })
-      .safeParse(JSON.parse(localStorage.getItem(KEY) ?? "null"));
+      .safeParse(JSON.parse(storage.getItem(KEY) ?? "null"));
     if (!value.success || value.data.id !== drawing.meta.id) {
       return null;
     }
@@ -181,31 +197,75 @@ const readLegacy = (drawing: OpenedDrawing): DrawingDraft | null => {
   }
 };
 
+const readLocalRecovery = (
+  id: DrawingId,
+  storage: Storage,
+): AccountDraft | null => {
+  const drafts: AccountDraft[] = [];
+  try {
+    for (let index = 0; index < storage.length; index++) {
+      const key = storage.key(index);
+      if (!key?.startsWith(localPrefixFor(id))) {
+        continue;
+      }
+      try {
+        const draft = parseAccountDraft(
+          JSON.parse(storage.getItem(key) ?? "null"),
+        );
+        if (draft.id === id) {
+          drafts.push(draft);
+        }
+      } catch (error) {
+        console.warn("Could not read a local recovery draft", error);
+      }
+    }
+  } catch (error) {
+    console.warn("Could not read local recovery", error);
+  }
+  return drafts.sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null;
+};
+
 /** Restores local edits without rebasing them over a newer server revision. */
 export const replayUnsaved = async (
   store: WorkspaceStore,
   drawing: OpenedDrawing,
+  storage: Storage = localStorage,
 ): Promise<RecoveredDrawing> => {
   if (store.recoveryKey) {
     const recovered = await readAccountRecovery(store, drawing.meta.id);
     return recovered ? { ...drawing, recovered } : drawing;
   }
-  const unsaved = readLegacy(drawing);
-  if (unsaved) {
-    clearUnsaved(drawing.meta.id);
+  const localDraft = readLocalRecovery(drawing.meta.id, storage);
+  if (localDraft) {
+    return { ...drawing, recovered: localDraft };
   }
+  let unsaved = readLegacy(drawing, storage);
   if (!unsaved || unsaved.baseRevision !== drawing.meta.revision) {
     return drawing;
   }
   const { content: appState, view } = splitAppState(unsaved.appState);
   const content = { elements: unsaved.elements, appState };
-  const [saved] = await Promise.all([
-    store.saveDrawingContent(
+  let replayed = drawing;
+  try {
+    const saved = await store.saveDrawingContent(
       drawing.meta.id,
       content,
       imageFileIds(unsaved.elements),
-    ),
-    store.saveDrawingView(drawing.meta.id, view),
-  ]);
-  return saved.ok ? { meta: saved.meta, content, view } : drawing;
+    );
+    if (!saved.ok) {
+      return { ...drawing, recovered: unsaved };
+    }
+    replayed = { meta: saved.meta, content, view: drawing.view };
+    unsaved = { ...unsaved, baseRevision: saved.meta.revision };
+    writeUnsaved(unsaved, undefined, storage);
+    const savedView = await store.saveDrawingView(drawing.meta.id, view);
+    if (!savedView.ok) {
+      return { ...replayed, recovered: unsaved };
+    }
+    clearUnsaved(drawing.meta.id, undefined, storage);
+    return { ...replayed, view };
+  } catch (error) {
+    console.warn("Could not save recovered drawing", error);
+    return { ...replayed, recovered: unsaved };
+  }
 };

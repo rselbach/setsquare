@@ -26,7 +26,16 @@ const { h } = window;
 
 const journal = (): UnsavedDrawing | null =>
   JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED) ?? "null",
+    localStorage.getItem(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED) ??
+      localStorage.getItem(
+        Array.from(
+          { length: localStorage.length },
+          (_, index) => localStorage.key(index)!,
+        ).find((key) =>
+          key.startsWith(`${STORAGE_KEYS.LOCAL_STORAGE_UNSAVED}-local:`),
+        ) ?? "",
+      ) ??
+      "null",
   );
 
 // the scene a page closed on, edited from the drawing's first revision
@@ -81,7 +90,7 @@ describe("the unsaved journal", () => {
     expect((await store.getDrawingMeta(plan.id))?.revision).toBe(2);
   });
 
-  it("drops the scene once the drawing changed since", async () => {
+  it("retains an older journal without replaying over a changed drawing", async () => {
     writeUnsaved(unsavedOf(plan, ["troy", "annie"], { scrollX: 210 }));
     // another tab saved the drawing after this page closed
     await store.saveDrawingContent(
@@ -94,7 +103,7 @@ describe("the unsaved journal", () => {
 
     await waitForDrawing(plan.id, ["shirley"]);
     expect(h.state.scrollX).not.toBe(210);
-    expect(journal()).toBe(null);
+    expect(journal()?.elements.map((e) => e.id)).toEqual(["troy", "annie"]);
     expect((await store.getDrawingMeta(plan.id))?.revision).toBe(2);
   });
 

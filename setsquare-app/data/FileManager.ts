@@ -63,6 +63,9 @@ export class FileManager {
     this._onFileStatusChange = onFileStatusChange;
   }
 
+  isFileSaved = (file: BinaryFileData) =>
+    this.savedFiles.get(file.id) === this.getFileVersion(file);
+
   isFileSavedOrBeingSaved = (file: BinaryFileData) => {
     const fileVersion = this.getFileVersion(file);
     return (
