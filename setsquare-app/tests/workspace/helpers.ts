@@ -55,6 +55,21 @@ export const workspaceFixture = () => {
         db.close();
       }
     },
+    /**
+     * writes a record straight to the database, for what the stores won't
+     * make, such as a drawing in a folder that's gone; open stores see it
+     * after their next change
+     */
+    putRecord: async (name: string, key: string, value: unknown) => {
+      const db = await openDatabase(dbName, SCHEMA_VERSION, () => {});
+      try {
+        await transact(db, [name], "readwrite", (tx) =>
+          request(tx.objectStore(name).put(value, key)),
+        );
+      } finally {
+        db.close();
+      }
+    },
   };
 };
 
