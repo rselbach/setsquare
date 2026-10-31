@@ -143,6 +143,10 @@ export const canMove = (
   if (target !== null && isTrashed(snap, { kind: "folder", id: target })) {
     return { ok: false, reason: "targetTrashed" };
   }
+  // what's in the Trash comes out only through restore
+  if (isTrashed(snap, item)) {
+    return { ok: false, reason: "notFound" };
+  }
   return { ok: true };
 };
 

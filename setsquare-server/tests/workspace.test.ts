@@ -727,6 +727,58 @@ it("duplicates drawings and restores children out of a trashed parent", async ()
   ).toEqual({ ok: false, reason: "notFound" });
 });
 
+it("refuses to move an item in the trash, itself or through a folder", async () => {
+  await command(app, troy, {
+    kind: "createFolder",
+    id: "campus",
+    parentId: null,
+    name: "Campus",
+  });
+  await command(app, troy, {
+    kind: "createFolder",
+    id: "study-room",
+    parentId: null,
+    name: "Study room",
+  });
+  await createDrawing("plan", "campus");
+  await createDrawing("chang", null);
+  await command(app, troy, {
+    kind: "trash",
+    item: { kind: "folder", id: "campus" },
+  });
+  await command(app, troy, {
+    kind: "trash",
+    item: { kind: "drawing", id: "chang" },
+  });
+
+  for (const item of [
+    { kind: "folder", id: "campus" },
+    { kind: "drawing", id: "plan" },
+    { kind: "drawing", id: "chang" },
+  ]) {
+    const moved = await command(app, troy, {
+      kind: "move",
+      item,
+      target: "study-room",
+    });
+    expect(moved.json().result.result).toEqual({
+      ok: false,
+      reason: "notFound",
+    });
+  }
+  const data = (
+    await app.inject({ url: "/api/workspace", headers: troy.headers })
+  ).json();
+  expect(data.folders).toMatchObject([
+    { id: "campus", parentId: null },
+    { id: "study-room", parentId: null },
+  ]);
+  expect(data.drawings).toMatchObject([
+    { id: "chang", folderId: null },
+    { id: "plan", folderId: "campus" },
+  ]);
+});
+
 it("rejects stale thumbnails and purges expired trash with reference-aware image cleanup", async () => {
   await app.inject({
     method: "POST",

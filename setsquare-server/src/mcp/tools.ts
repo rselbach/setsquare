@@ -120,7 +120,7 @@ const descriptions: Record<McpToolName, string> = {
   create_folder: "Create a folder, optionally inside another folder.",
   rename_folder: "Rename a folder without changing its contents.",
   move_item:
-    "Move a drawing or folder to a folder ID, or null for the workspace root. Folder cycles and trashed destinations are rejected.",
+    "Move a drawing or folder to a folder ID, or null for the workspace root. Items in the Trash, folder cycles and trashed destinations are rejected; restore a trashed item instead of moving it.",
   trash_item:
     "Move a drawing or folder to the Trash. Trashing a folder also hides its contents. Items can be restored for 30 days; this does not delete them immediately.",
   restore_item:

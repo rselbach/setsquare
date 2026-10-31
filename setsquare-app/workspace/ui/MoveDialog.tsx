@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { newFolderIcon } from "../../web/icons";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
-import { findItem, parentOf, subtree, uniqueName } from "../tree";
+import { findItem, isTrashed, parentOf, subtree, uniqueName } from "../tree";
 
 import { FolderTree } from "./FolderTree";
 
@@ -28,7 +28,9 @@ export const MoveDialog = ({
 }) => {
   const { t } = useI18n();
   const snapshot = useWorkspaceSnapshot(store);
-  const found = findItem(snapshot, item);
+  const found = isTrashed(snapshot, item)
+    ? undefined
+    : findItem(snapshot, item);
   const location = found ? parentOf(snapshot, found) : null;
   const [selected, setSelected] = useState<ParentId>(location);
   const [renaming, setRenaming] = useState<FolderId | null>(null);
@@ -50,7 +52,7 @@ export const MoveDialog = ({
       ?.focus();
   }, []);
 
-  // such as when another tab deletes it
+  // such as when another tab deletes it or moves it to the Trash
   useEffect(() => {
     if (!found) {
       onClose();

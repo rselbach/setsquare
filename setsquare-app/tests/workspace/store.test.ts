@@ -243,6 +243,18 @@ describe("LocalWorkspaceStore", () => {
     );
   });
 
+  it("refuses to move a drawing in the trash", async () => {
+    const store = await workspace.open();
+    const greendale = await store.createFolder(null, "Greendale");
+    const plan = await store.createDrawing({ folderId: null, name: "Plan" });
+    await store.trash({ kind: "drawing", id: plan.id });
+
+    expect(
+      await store.move({ kind: "drawing", id: plan.id }, greendale.id),
+    ).toEqual({ ok: false, reason: "notFound" });
+    expect(store.getSnapshot().drawings.get(plan.id)?.folderId).toBeNull();
+  });
+
   it("won't let two tabs move two folders into each other", async () => {
     const troyTab = await workspace.open();
     const abedTab = await workspace.open();

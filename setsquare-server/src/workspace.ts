@@ -612,6 +612,16 @@ export class WorkspaceDatabase {
     if (trashedFolder(data.folders, target)) {
       return { kind: "move", result: { ok: false, reason: "targetTrashed" } };
     }
+    // what's in the Trash comes out only through restore, as in the app
+    if (
+      existing.trashedAt !== null ||
+      trashedFolder(
+        data.folders,
+        "folderId" in existing ? existing.folderId : existing.parentId,
+      )
+    ) {
+      return { kind: "move", result: NOT_FOUND };
+    }
     const table = item.kind === "folder" ? "folders" : "drawings";
     const column = item.kind === "folder" ? "parent_id" : "folder_id";
     await client.query(
