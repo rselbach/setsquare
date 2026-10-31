@@ -66,18 +66,13 @@ export const MoveDialog = ({
   // first button
   const focusChoice = useCallback((tree: HTMLDivElement | null) => {
     treeRef.current = tree;
-    tree
-      ?.querySelector<HTMLButtonElement>('button[aria-current="location"]')
-      ?.focus();
+    tree?.querySelector<HTMLInputElement>("input:checked")?.focus();
   }, []);
   // the folder named is the one chosen
   const closeRename = useRenameClose(
     renaming !== null,
     () => setRenaming(null),
-    () =>
-      treeRef.current?.querySelector<HTMLElement>(
-        '[aria-selected="true"] > .folder-tree__row > .folder-tree__link',
-      ),
+    () => treeRef.current?.querySelector<HTMLInputElement>("input:checked"),
   );
 
   // such as when another tab deletes it or moves it to the Trash

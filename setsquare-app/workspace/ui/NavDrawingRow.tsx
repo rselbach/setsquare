@@ -107,12 +107,7 @@ export const NavDrawingRow = ({
   };
 
   return (
-    <li
-      role="treeitem"
-      aria-label={shownName}
-      aria-selected={isCurrent}
-      className="folder-tree__item"
-    >
+    <li className="folder-tree__item">
       <div ref={rowRef} className="folder-tree__row nav-drawing">
         <span className="folder-tree__toggle" />
         {renaming ? (

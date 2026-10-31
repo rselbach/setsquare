@@ -36,7 +36,7 @@ const nav = () =>
 
 // the drawings the nav lists in a folder, and which one is open
 const drawingRows = (folderName: string) =>
-  within(within(nav()).getByRole("treeitem", { name: folderName }))
+  within(within(nav()).getByRole("link", { name: folderName }).closest("li")!)
     .getAllByRole("link")
     .filter((link) => link.getAttribute("href")?.startsWith("/d/"))
     .map((link) => ({

@@ -149,13 +149,11 @@ describe("the workspace page", () => {
     ).toEqual(["Folders", "Drawings"]);
     expect(cardNames("Folders")).toEqual(["Paintball"]);
     expect(cardNames("Drawings")).toEqual(["Seating", "Floor plan"]);
-    expect(
-      screen.getByRole("treeitem", { name: "Study group" }),
-    ).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("treeitem", { name: "Greendale" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
+    for (const name of ["Greendale", "Study group"]) {
+      expect(
+        screen.getByRole("button", { name: `Hide what's in ${name}` }),
+      ).toHaveAttribute("aria-expanded", "true");
+    }
 
     fireEvent.click(crumbs[1]);
 
@@ -193,26 +191,34 @@ describe("the workspace page", () => {
     await store.createFolder(studyGroup.id, "Paintball");
     await renderPageAt("/");
 
-    const tree = screen.getByRole("tree", { name: "Folders" });
-    expect(
-      within(tree).getByRole("treeitem", { name: "Greendale" }),
-    ).toHaveAttribute("aria-expanded", "false");
-    expect(within(tree).queryByRole("treeitem", { name: "Study group" })).toBe(
+    const tree = screen.getByRole("list", { name: "Folders" });
+    const toggle = within(tree).getByRole("button", {
+      name: "Show what's in Greendale",
+    });
+    const groupId = toggle.getAttribute("aria-controls")!;
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(document.getElementById(groupId)).toBe(null);
+    expect(within(tree).queryByRole("link", { name: "Study group" })).toBe(
       null,
     );
 
-    fireEvent.click(
-      within(tree).getByRole("button", { name: "Show what's in Greendale" }),
-    );
+    fireEvent.click(toggle);
 
-    expect(
-      within(tree).getByRole("treeitem", { name: "Greendale" }),
-    ).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(within(tree).getByRole("link", { name: "Study group" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAccessibleName("Hide what's in Greendale");
+    const group = document.getElementById(groupId)!;
+    expect(group).toHaveRole("list");
+    fireEvent.click(within(group).getByRole("link", { name: "Study group" }));
     await waitForPage(`/f/${studyGroup.id}`, "Study group");
     expect(
-      within(tree).getByRole("treeitem", { name: "Study group" }),
-    ).toHaveAttribute("aria-selected", "true");
+      within(tree).getByRole("link", { name: "Study group" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(tree.querySelector("[aria-selected]")).toBe(null);
+
+    fireEvent.click(toggle);
+
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(document.getElementById(groupId)).toBe(null);
   });
 
   it("shows thumbnails, and a blank sheet for a drawing without one", async () => {

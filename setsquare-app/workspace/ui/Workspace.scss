@@ -68,10 +68,7 @@
     transform: scaleX(-1);
   }
 
-  .folder-tree__item[aria-expanded="true"]
-    > .folder-tree__row
-    .folder-tree__toggle
-    svg {
+  .folder-tree__toggle[aria-expanded="true"] svg {
     transform: rotate(90deg);
   }
 
@@ -117,16 +114,27 @@
     white-space: nowrap;
   }
 
-  // as a picker, each folder is a choice, marked like the folder shown
-  button.folder-tree__link {
-    border: none;
-    background: none;
-    color: inherit;
-    font-family: inherit;
-    text-align: start;
+  // as a picker, each folder is a radio, hidden, its label marked like
+  // the folder shown when checked
+  label.folder-tree__link {
     cursor: pointer;
 
-    &:disabled {
+    &:has(> input:focus-visible) {
+      outline: 2px solid var(--focus-highlight-color);
+      outline-offset: -2px;
+    }
+
+    &:has(> input:checked) {
+      box-shadow: inset 2px 0 0 var(--ink);
+      background-color: var(--button-hover-bg);
+      font-weight: 700;
+
+      svg {
+        color: var(--ink);
+      }
+    }
+
+    &:has(> input:disabled) {
       background: none;
       color: var(--lead);
       opacity: 0.5;
@@ -134,22 +142,7 @@
     }
   }
 
-  .folder-tree__item[aria-selected="true"]
-    > .folder-tree__row
-    > button.folder-tree__link {
-    box-shadow: inset 2px 0 0 var(--ink);
-    background-color: var(--button-hover-bg);
-    font-weight: 700;
-
-    svg {
-      color: var(--ink);
-    }
-  }
-
-  &[dir="rtl"]
-    .folder-tree__item[aria-selected="true"]
-    > .folder-tree__row
-    > button.folder-tree__link {
+  &[dir="rtl"] label.folder-tree__link:has(> input:checked) {
     box-shadow: inset -2px 0 0 var(--ink);
   }
 

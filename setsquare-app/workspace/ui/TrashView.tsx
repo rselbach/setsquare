@@ -96,13 +96,19 @@ const TrashRow = ({
           : t("workspace.deletedAgo", { time: ago })}
       </time>
       <div className="trash-row__actions">
-        <FilledButton variant="outlined" icon={restoreIcon} onClick={onRestore}>
+        <FilledButton
+          variant="outlined"
+          icon={restoreIcon}
+          label={t("workspace.restoreItem", { name })}
+          onClick={onRestore}
+        >
           {t("workspace.restore")}
         </FilledButton>
         <FilledButton
           variant="outlined"
           color="danger"
           icon={TrashIcon}
+          label={t("workspace.deleteItemForever", { name })}
           onClick={onDelete}
         >
           {t("workspace.deleteForever")}
@@ -146,6 +152,7 @@ const RecoveredRow = ({ draft, now }: { draft: AccountDraft; now: number }) => {
         <FilledButton
           variant="outlined"
           icon={LoadIcon}
+          label={t("workspace.openItem", { name })}
           onClick={() => navigate({ kind: "drawing", id: draft.id })}
         >
           {t("workspace.open")}

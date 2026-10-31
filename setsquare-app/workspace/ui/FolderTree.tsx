@@ -1,7 +1,7 @@
 import { LoadIcon, chevronRight } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import { drawingsIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
@@ -55,19 +55,22 @@ const foldersByParent = (snapshot: WorkspaceSnapshot) => {
   return byParent;
 };
 
-// a folder to choose in a picker, or to name in place
+// a folder to choose in a picker, as a radio, or to name in place
 const Choice = ({
   id,
   name,
   icon,
+  checked,
   picker,
 }: {
   id: ParentId;
   name: string;
   icon: ReactNode;
+  checked: boolean;
   picker: FolderPicker;
 }) => {
   const { t } = useI18n();
+  const locationId = useId();
   const { renaming } = picker;
   if (renaming && renaming.id === id) {
     return (
@@ -83,23 +86,31 @@ const Choice = ({
   }
   const isLocation = id === picker.location;
   return (
-    <button
-      type="button"
-      className="folder-tree__link"
-      disabled={id !== null && picker.disabled.has(id)}
-      aria-current={isLocation ? "location" : undefined}
-      onClick={() => picker.onSelect(id)}
-    >
+    <label className="folder-tree__link">
+      <input
+        type="radio"
+        name="move-target"
+        className="visually-hidden"
+        checked={checked}
+        disabled={id !== null && picker.disabled.has(id)}
+        aria-describedby={isLocation ? locationId : undefined}
+        onChange={() => picker.onSelect(id)}
+      />
       {icon}
       <span className="folder-tree__name" title={name}>
         {name}
       </span>
       {isLocation && (
-        <span className="folder-tree__location" aria-hidden="true">
+        // out of the radio's name, which it describes instead
+        <span
+          id={locationId}
+          className="folder-tree__location"
+          aria-hidden="true"
+        >
           {t("workspace.currentLocation")}
         </span>
       )}
-    </button>
+    </label>
   );
 };
 
@@ -148,24 +159,21 @@ const TreeItem = ({
   picker?: FolderPicker;
 }) => {
   const { t } = useI18n();
+  const groupId = useId();
   const children = byParent.get(folder.id) ?? [];
   const items = contents?.folderId === folder.id ? contents.items : null;
   const hasChildren = children.length > 0 || !!items;
   const isOpen = hasChildren && expanded.has(folder.id);
 
   return (
-    <li
-      role="treeitem"
-      aria-label={folder.name}
-      aria-expanded={hasChildren ? isOpen : undefined}
-      aria-selected={folder.id === currentId}
-      className="folder-tree__item"
-    >
+    <li className="folder-tree__item">
       <div className="folder-tree__row">
         {hasChildren ? (
           <button
             type="button"
             className="folder-tree__toggle"
+            aria-expanded={isOpen}
+            aria-controls={groupId}
             aria-label={t(
               isOpen ? "workspace.collapseFolder" : "workspace.expandFolder",
               { name: folder.name },
@@ -182,6 +190,7 @@ const TreeItem = ({
             id={folder.id}
             name={folder.name}
             icon={LoadIcon}
+            checked={folder.id === currentId}
             picker={picker}
           />
         ) : (
@@ -189,7 +198,7 @@ const TreeItem = ({
         )}
       </div>
       {isOpen && (
-        <ul role="group" className="folder-tree__group">
+        <ul id={groupId} className="folder-tree__group">
           {children.map((child) => (
             <TreeItem
               key={child.id}
@@ -210,11 +219,11 @@ const TreeItem = ({
 };
 
 /**
- * The folders of the workspace as a tree, the current one marked and the
- * way to it open. In the nav, folders are links that items can be dropped
- * on, and one folder can list more in it, such as its drawings; as a
- * picker, they're choices under the root. Folders open and close with
- * their toggles; there's no arrow-key navigation yet.
+ * The folders of the workspace as nested lists, the current one marked and
+ * the way to it open. In the nav, folders are links that items can be
+ * dropped on, and one folder can list more in it, such as its drawings; as
+ * a picker, they're a group of radios under the root, the arrow keys moving
+ * between them. Folders open and close with their toggles.
  */
 export const FolderTree = ({
   snapshot,
@@ -271,33 +280,22 @@ export const FolderTree = ({
   if (picker) {
     const rootName = t("workspace.drawings");
     return (
-      <ul
-        role="tree"
-        aria-label={t("workspace.folders")}
-        className="folder-tree"
-      >
-        <li
-          role="treeitem"
-          aria-label={rootName}
-          aria-expanded={top.length ? true : undefined}
-          aria-selected={currentId === null}
-          className="folder-tree__item"
-        >
-          <div className="folder-tree__row">
-            <Choice
-              id={null}
-              name={rootName}
-              icon={drawingsIcon}
-              picker={picker}
-            />
-          </div>
-          {top.length > 0 && (
-            <ul role="group" className="folder-tree__group">
-              {items}
-            </ul>
-          )}
-        </li>
-      </ul>
+      <div role="radiogroup" aria-label={t("workspace.folders")}>
+        <ul className="folder-tree">
+          <li className="folder-tree__item">
+            <div className="folder-tree__row">
+              <Choice
+                id={null}
+                name={rootName}
+                icon={drawingsIcon}
+                checked={currentId === null}
+                picker={picker}
+              />
+            </div>
+            {top.length > 0 && <ul className="folder-tree__group">{items}</ul>}
+          </li>
+        </ul>
+      </div>
     );
   }
   const rootItems = contents?.folderId === null ? contents.items : null;
@@ -305,7 +303,7 @@ export const FolderTree = ({
     return null;
   }
   return (
-    <ul role="tree" aria-label={t("workspace.folders")} className="folder-tree">
+    <ul aria-label={t("workspace.folders")} className="folder-tree">
       {items}
       {rootItems}
     </ul>

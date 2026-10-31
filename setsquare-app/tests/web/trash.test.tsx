@@ -218,12 +218,10 @@ describe("the Trash", () => {
       within(trashRow("Paintball map")).getByText("Drawings"),
     ).toBeInTheDocument();
     fireEvent.click(
-      within(trashRow("Floor plan")).getByRole("button", { name: "Restore" }),
+      screen.getByRole("button", { name: "Restore “Floor plan”" }),
     );
     fireEvent.click(
-      within(trashRow("Paintball map")).getByRole("button", {
-        name: "Restore",
-      }),
+      screen.getByRole("button", { name: "Restore “Paintball map”" }),
     );
 
     await waitFor(() =>
@@ -251,9 +249,7 @@ describe("the Trash", () => {
     await renderPageAt("/trash");
 
     fireEvent.click(
-      within(trashRow("Floor plan")).getByRole("button", {
-        name: "Delete forever",
-      }),
+      screen.getByRole("button", { name: "Delete “Floor plan” forever" }),
     );
     let dialog = await screen.findByRole("dialog");
     expect(
@@ -268,9 +264,7 @@ describe("the Trash", () => {
     expect(await store.getDrawingMeta(plan.id)).not.toBe(null);
 
     fireEvent.click(
-      within(trashRow("Floor plan")).getByRole("button", {
-        name: "Delete forever",
-      }),
+      screen.getByRole("button", { name: "Delete “Floor plan” forever" }),
     );
     dialog = await screen.findByRole("dialog");
     fireEvent.click(
@@ -331,7 +325,7 @@ describe("the Trash", () => {
     await renderPageAt("/trash");
 
     fireEvent.click(
-      within(trashRow("Floor plan")).getByRole("button", { name: "Restore" }),
+      screen.getByRole("button", { name: "Restore “Floor plan”" }),
     );
 
     await findToast("Couldn't restore “Floor plan”.", "error");
@@ -352,29 +346,27 @@ describe("the Trash", () => {
     await chooseFromMenu("Actions for Greendale", "Move to Trash");
 
     await waitFor(() =>
-      expect(screen.queryByRole("treeitem", { name: "Greendale" })).toBe(null),
+      expect(screen.queryByRole("link", { name: "Greendale" })).toBe(null),
     );
     expect(screen.queryByRole("region", { name: "Folders" })).toBe(null);
     fireEvent.click(screen.getByRole("link", { name: "Trash" }));
     await waitForPage("/trash", "Trash");
     expect(trashedNames()).toEqual(["Greendale"]);
     expect(
-      within(trashRow("Greendale")).getByRole("button", {
-        name: "Delete forever",
-      }),
+      screen.getByRole("button", { name: "Delete “Greendale” forever" }),
     ).toBeInTheDocument();
 
     fireEvent.click(
-      within(trashRow("Greendale")).getByRole("button", { name: "Restore" }),
+      screen.getByRole("button", { name: "Restore “Greendale”" }),
     );
 
     await waitFor(() =>
       expect(
-        screen.getByRole("treeitem", { name: "Greendale" }),
+        screen.getByRole("link", { name: "Greendale" }),
       ).toBeInTheDocument(),
     );
     fireEvent.click(
-      within(screen.getByRole("tree", { name: "Folders" })).getByRole("link", {
+      within(screen.getByRole("list", { name: "Folders" })).getByRole("link", {
         name: "Greendale",
       }),
     );
@@ -426,7 +418,9 @@ describe("the Trash", () => {
     const row = within(list).getByRole("listitem", { name: "Dean's office" });
     expect(within(row).getByText("Deleted elsewhere")).toBeInTheDocument();
     expect(within(row).getByText("Edited 2 days ago")).toBeInTheDocument();
-    fireEvent.click(within(row).getByRole("button", { name: "Open" }));
+    fireEvent.click(
+      within(row).getByRole("button", { name: "Open “Dean's office”" }),
+    );
     await waitForDrawing(draft.id, ["pelton"]);
     expect(
       screen.getByRole("button", { name: "Save as a copy" }),
@@ -501,7 +495,9 @@ describe("moving to the Trash from the editor", () => {
   it("trashes another drawing from the nav, with Undo over the editor", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
-    const list = screen.getByRole("treeitem", { name: "Study group" });
+    const list = screen
+      .getByRole("link", { name: "Study group" })
+      .closest("li")!;
 
     fireEvent.click(
       within(list).getByRole("button", { name: "Actions for Seating" }),
