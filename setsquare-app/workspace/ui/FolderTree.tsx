@@ -28,7 +28,8 @@ export type FolderPicker = {
   renaming: {
     id: FolderId;
     onSave: (name: string) => void;
-    onClose: () => void;
+    /** byKey when Enter or Escape ended it */
+    onClose: (byKey: boolean) => void;
   } | null;
 };
 

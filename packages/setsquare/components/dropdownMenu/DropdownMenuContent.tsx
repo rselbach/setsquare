@@ -22,6 +22,7 @@ const MenuContent = ({
   open = true,
   align = "end",
   style,
+  returnFocus = false,
 }: {
   children?: React.ReactNode;
   onClickOutside?: () => void;
@@ -33,6 +34,11 @@ const MenuContent = ({
   open?: boolean;
   style?: React.CSSProperties;
   align?: "start" | "center" | "end";
+  /**
+   * Gives the focus back to the trigger once the menu closes, unless what
+   * was chosen moved it. The editor's menus leave it where it falls.
+   */
+  returnFocus?: boolean;
 }) => {
   const editorInterface = useEditorInterface();
   const [menuNode, setMenuNode] = useCallbackRefState<HTMLDivElement>();
@@ -97,7 +103,12 @@ const MenuContent = ({
         data-testid="dropdown-menu"
         align={align}
         sideOffset={8}
-        onCloseAutoFocus={(event: Event) => event.preventDefault()}
+        onCloseAutoFocus={(event: Event) => {
+          const { activeElement, body } = menuNode?.ownerDocument ?? document;
+          if (!returnFocus || (activeElement && activeElement !== body)) {
+            event.preventDefault();
+          }
+        }}
       >
         {/* the zIndex ensures this menu has higher stacking order */}
         {editorInterface.formFactor === "phone" ? (

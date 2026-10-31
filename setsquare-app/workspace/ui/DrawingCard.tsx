@@ -51,8 +51,9 @@ export const DrawingCard = ({
   onStopRename: () => void;
   onRename: (name: string | null) => void;
   onDuplicate: () => void;
-  onMove: () => void;
-  onTrash: () => void;
+  /** given the card, where the focus goes back to */
+  onMove: (card: HTMLElement | null) => void;
+  onTrash: (card: HTMLElement | null) => void;
 }) => {
   const { t, langCode } = useI18n();
   const { cardRef, onKeyDown, onClose } = useCardKeys({
@@ -122,8 +123,8 @@ export const DrawingCard = ({
           to={to}
           onRename={onStartRename}
           onDuplicate={onDuplicate}
-          onMove={onMove}
-          onTrash={onTrash}
+          onMove={() => onMove(cardRef.current)}
+          onTrash={() => onTrash(cardRef.current)}
         />
       </div>
     </li>

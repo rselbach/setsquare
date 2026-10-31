@@ -10,9 +10,11 @@ import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 
 import {
   cleanUpWebApp,
+  findToast,
   renderPageAt,
   savedContent,
   setUpTestWorkspace,
+  toastRegion,
   waitForPage,
 } from "./helpers";
 
@@ -179,6 +181,8 @@ describe("Move to…", () => {
       "aria-selected",
       "true",
     );
+    // still in the dialog, so Tab and Escape keep to it
+    expect(choice(dialog, "Troy and Abed").button).toHaveFocus();
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
     await waitFor(() =>
@@ -198,6 +202,76 @@ describe("Move to…", () => {
     expect(screen.queryByRole("dialog")).toBe(null);
     expect(card("Drawings", "Señor Chang's office")).toBeInTheDocument();
     expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
+  });
+
+  it("gives the focus back to the ⋯ button it was opened from", async () => {
+    await renderPageAt("/");
+    const more = () =>
+      within(screen.getByRole("main")).getByRole("button", {
+        name: "Actions for Señor Chang's office",
+      });
+
+    let dialog = await openMoveDialog("Señor Chang's office");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(more()).toHaveFocus());
+
+    dialog = await openMoveDialog("Señor Chang's office");
+    fireEvent.keyDown(dialog, { key: KEYS.ESCAPE });
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
+    await waitFor(() => expect(more()).toHaveFocus());
+
+    // or once the card's gone from the page, to a card that's left
+    dialog = await openMoveDialog("Señor Chang's office");
+    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
+
+    expect(screen.queryByRole("region", { name: "Drawings" })).toBe(null);
+    expect(document.activeElement).toBe(
+      within(screen.getByRole("region", { name: "Folders" })).getAllByRole(
+        "link",
+      )[0],
+    );
+  });
+
+  it("gives the page's heading the focus when the last card moves away", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    const dialog = await openMoveDialog("Floor plan");
+    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Study group" }),
+      ).toHaveFocus(),
+    );
+  });
+
+  it("gives the page's heading the focus when the last card is trashed", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    fireEvent.click(
+      within(screen.getByRole("main")).getByRole("button", {
+        name: "Actions for Floor plan",
+      }),
+    );
+    fireEvent.click(
+      within(await screen.findByTestId("dropdown-menu")).getByRole("menuitem", {
+        name: "Move to Trash",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { level: 1, name: "Study group" }),
+      ).toHaveFocus(),
+    );
+    await waitFor(() =>
+      expect(store.getSnapshot().drawings.get(plan.id)?.trashedAt).not.toBe(
+        null,
+      ),
+    );
   });
 
   it("closes when another tab moves the item to the trash", async () => {
@@ -234,9 +308,7 @@ describe("Move to…", () => {
     fireEvent.click(choice(dialog, "Paintball").button);
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "That folder is in the Trash now.",
-    );
+    await findToast("That folder is in the Trash now.", "error");
     expect(screen.getByRole("dialog")).toBe(dialog);
     expect(store.getSnapshot().drawings.get(plan.id)?.folderId).toBe(
       studyGroup.id,
@@ -278,9 +350,7 @@ describe("dragging cards", () => {
     });
     fireEvent.drop(target, { dataTransfer: transfer });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "That folder is in the Trash now.",
-    );
+    await findToast("That folder is in the Trash now.", "error");
     expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
   });
 
@@ -385,9 +455,7 @@ describe("dragging cards", () => {
     expect(allowsDrop(trash, transfer)).toBe(true);
     fireEvent.drop(trash, { dataTransfer: transfer });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Moved “Señor Chang's office” to Trash",
-    );
+    await findToast("Moved “Señor Chang's office” to Trash");
     expect(screen.queryByRole("region", { name: "Drawings" })).toBe(null);
     await waitFor(() =>
       expect(store.getSnapshot().drawings.get(chang.id)?.trashedAt).not.toBe(
@@ -400,6 +468,6 @@ describe("dragging cards", () => {
     await waitFor(() =>
       expect(card("Drawings", "Señor Chang's office")).toBeInTheDocument(),
     );
-    expect(screen.queryByRole("status")).toBe(null);
+    expect(toastRegion()).toBeEmptyDOMElement();
   });
 });

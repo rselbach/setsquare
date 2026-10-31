@@ -15,6 +15,7 @@ import {
 import { WorkspaceShell, useNavState } from "../workspace/ui/WorkspaceShell";
 import {
   WorkspaceToast,
+  WorkspaceToastAnnouncer,
   WorkspaceToastContext,
   useWorkspaceToast,
 } from "../workspace/ui/WorkspaceToast";
@@ -242,6 +243,7 @@ const Workspace = ({
           />
         )}
       </WorkspaceShell>
+      <WorkspaceToastAnnouncer toast={toast} />
     </WorkspaceToastContext.Provider>
   );
 };

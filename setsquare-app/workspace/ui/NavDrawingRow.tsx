@@ -6,14 +6,14 @@ import {
   pencilIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { drawingIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 import { attempt, reportFailure } from "../../web/workspaceActions";
 import { parentOf, uniqueName } from "../tree";
 
-import { InlineName } from "./InlineName";
+import { InlineName, useRenameClose } from "./InlineName";
 import { useShowMessage } from "./WorkspaceToast";
 
 import type { DrawingMeta, ItemRef } from "../types";
@@ -60,6 +60,12 @@ export const NavDrawingRow = ({
   const show = useShowMessage();
   const [renaming, setRenaming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const closeRename = useRenameClose(
+    renaming,
+    () => setRenaming(false),
+    () => rowRef.current?.querySelector("a"),
+  );
   const name = editing ? editing.name : drawing.name;
   const shownName = name || t("labels.untitled");
 
@@ -107,7 +113,7 @@ export const NavDrawingRow = ({
       aria-selected={isCurrent}
       className="folder-tree__item"
     >
-      <div className="folder-tree__row nav-drawing">
+      <div ref={rowRef} className="folder-tree__row nav-drawing">
         <span className="folder-tree__toggle" />
         {renaming ? (
           <InlineName
@@ -116,7 +122,7 @@ export const NavDrawingRow = ({
             untitled={t("labels.untitled")}
             className="folder-tree__name-field"
             onSave={rename}
-            onClose={() => setRenaming(false)}
+            onClose={closeRename}
           />
         ) : (
           <RouteLink
@@ -148,6 +154,7 @@ export const NavDrawingRow = ({
             </DropdownMenu.Trigger>
             <DropdownMenu.Content
               className="workspace-menu"
+              returnFocus
               onClickOutside={() => setMenuOpen(false)}
               onSelect={() => setMenuOpen(false)}
             >

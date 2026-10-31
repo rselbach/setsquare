@@ -75,6 +75,7 @@ const SortMenu = ({
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         className="workspace-menu"
+        returnFocus
         onClickOutside={() => setOpen(false)}
         onSelect={() => setOpen(false)}
       >
@@ -109,6 +110,7 @@ const CreateMenu = ({ actions }: { actions: CreateActions }) => {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         className="workspace-menu"
+        returnFocus
         onClickOutside={() => setOpen(false)}
         onSelect={() => setOpen(false)}
       >
@@ -238,7 +240,10 @@ export const WorkspaceHeader = ({
               {chevronRight}
             </RouteLink>
           )}
-          <h1 className="workspace-header__title">{title}</h1>
+          {/* for the focus when the last card goes */}
+          <h1 className="workspace-header__title" tabIndex={-1}>
+            {title}
+          </h1>
           {!searching && (
             <IconButton
               type="button"
@@ -297,7 +302,10 @@ export const WorkspaceHeader = ({
               </ol>
             </nav>
           )}
-          <h1 className="workspace-header__title">{title}</h1>
+          {/* for the focus when the last card goes */}
+          <h1 className="workspace-header__title" tabIndex={-1}>
+            {title}
+          </h1>
         </div>
         <SearchField search={search} />
         {account}

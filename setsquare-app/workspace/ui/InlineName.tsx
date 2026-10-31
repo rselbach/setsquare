@@ -6,6 +6,31 @@ import type { KeyboardEvent } from "react";
 const RENAME_KEY = "F2";
 
 /**
+ * Ends renaming in place, giving the focus to what `target` finds once
+ * Enter or Escape ended it, as the field had it. Leaving by a click keeps
+ * the focus where it went.
+ */
+export const useRenameClose = (
+  renaming: boolean,
+  onStop: () => void,
+  target: () => HTMLElement | null | undefined,
+) => {
+  const refocus = useRef(false);
+
+  useEffect(() => {
+    if (!renaming && refocus.current) {
+      refocus.current = false;
+      target()?.focus();
+    }
+  }, [renaming, target]);
+
+  return (byKey: boolean) => {
+    refocus.current = byKey;
+    onStop();
+  };
+};
+
+/**
  * What a card needs for its keys and renaming in place: F2 starts renaming,
  * and the card's link takes the focus back when Enter or Escape ends it, as
  * it had it before. Delete or Backspace on the link trashes the item.
@@ -19,17 +44,12 @@ export const useCardKeys = ({
   renaming: boolean;
   onStart: () => void;
   onStop: () => void;
-  onTrash: () => void;
+  onTrash: (card: HTMLLIElement | null) => void;
 }) => {
   const cardRef = useRef<HTMLLIElement>(null);
-  const refocus = useRef(false);
-
-  useEffect(() => {
-    if (!renaming && refocus.current) {
-      refocus.current = false;
-      cardRef.current?.querySelector("a")?.focus();
-    }
-  }, [renaming]);
+  const onClose = useRenameClose(renaming, onStop, () =>
+    cardRef.current?.querySelector("a"),
+  );
 
   return {
     cardRef,
@@ -45,13 +65,10 @@ export const useCardKeys = ({
         event.target === cardRef.current?.querySelector("a")
       ) {
         event.preventDefault();
-        onTrash();
+        onTrash(cardRef.current);
       }
     },
-    onClose: (byKey: boolean) => {
-      refocus.current = byKey;
-      onStop();
-    },
+    onClose,
   };
 };
 
