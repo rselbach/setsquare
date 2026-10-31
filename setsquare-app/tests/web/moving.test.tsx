@@ -36,13 +36,12 @@ const openMoveDialog = async (name: string) => {
   return screen.findByRole("dialog");
 };
 
-// a folder of the dialog's tree, and the button that chooses it, after
-// the toggle on its own row
-const choice = (dialog: HTMLElement, name: string) => {
-  const item = within(dialog).getByRole("treeitem", { name });
-  const row = item.querySelector<HTMLElement>(":scope > .folder-tree__row")!;
-  return { item, button: within(row).getAllByRole("button").at(-1)! };
-};
+// the radio that chooses a folder of the dialog's tree
+const choice = (dialog: HTMLElement, name: string) =>
+  within(within(dialog).getByRole("radiogroup", { name: "Folders" })).getByRole(
+    "radio",
+    { name },
+  );
 
 // the polyfilled DataTransfer has no clearData or setDragImage
 const dataTransfer = () => {
@@ -94,26 +93,22 @@ describe("Move to…", () => {
 
     const dialog = await openMoveDialog("Floor plan");
 
-    expect(
-      within(dialog).getByRole("heading", { name: "Move “Floor plan” to" }),
-    ).toBeInTheDocument();
-    const here = choice(dialog, "Study group");
-    expect(here.item).toHaveAttribute("aria-selected", "true");
-    expect(here.button).toHaveAttribute("aria-current", "location");
-    expect(within(here.button).getByText("Current")).toBeInTheDocument();
-    expect(choice(dialog, "Drawings").button).not.toHaveAttribute(
-      "aria-current",
+    expect(screen.getByRole("dialog", { name: "Move “Floor plan” to" })).toBe(
+      dialog,
     );
+    const here = choice(dialog, "Study group");
+    expect(here).toBeChecked();
+    expect(here).toHaveFocus();
+    expect(here).toHaveAccessibleDescription("Current");
+    expect(choice(dialog, "Drawings")).not.toHaveAccessibleDescription();
     // it's there already
     const move = within(dialog).getByRole("button", { name: "Move" });
     expect(move).toBeDisabled();
 
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
 
-    expect(choice(dialog, "Paintball").item).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    expect(choice(dialog, "Paintball")).toBeChecked();
+    expect(here).not.toBeChecked();
     fireEvent.click(move);
 
     await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
@@ -134,15 +129,12 @@ describe("Move to…", () => {
     );
 
     for (const name of ["Greendale", "Study group"]) {
-      expect(choice(dialog, name).button).toBeDisabled();
+      expect(choice(dialog, name)).toBeDisabled();
     }
-    expect(choice(dialog, "Paintball").button).toBeEnabled();
-    expect(choice(dialog, "Drawings").button).toHaveAttribute(
-      "aria-current",
-      "location",
-    );
+    expect(choice(dialog, "Paintball")).toBeEnabled();
+    expect(choice(dialog, "Drawings")).toHaveAccessibleDescription("Current");
 
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
     await waitFor(() =>
@@ -159,7 +151,7 @@ describe("Move to…", () => {
     await renderPageAt("/");
 
     const dialog = await openMoveDialog("Señor Chang's office");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "New folder" }));
 
     const field = await within(dialog).findByRole("textbox", {
@@ -177,12 +169,9 @@ describe("Move to…", () => {
       expect(folder).toMatchObject({ parentId: paintball.id });
       return folder!;
     });
-    expect(choice(dialog, "Troy and Abed").item).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    expect(choice(dialog, "Troy and Abed")).toBeChecked();
     // still in the dialog, so Tab and Escape keep to it
-    expect(choice(dialog, "Troy and Abed").button).toHaveFocus();
+    expect(choice(dialog, "Troy and Abed")).toHaveFocus();
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
     await waitFor(() =>
@@ -196,7 +185,7 @@ describe("Move to…", () => {
     await renderPageAt("/");
 
     const dialog = await openMoveDialog("Señor Chang's office");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
 
     expect(screen.queryByRole("dialog")).toBe(null);
@@ -222,7 +211,7 @@ describe("Move to…", () => {
 
     // or once the card's gone from the page, to a card that's left
     dialog = await openMoveDialog("Señor Chang's office");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
 
@@ -238,7 +227,7 @@ describe("Move to…", () => {
     await renderPageAt(`/f/${studyGroup.id}`);
 
     const dialog = await openMoveDialog("Floor plan");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
     await waitFor(() =>
@@ -305,7 +294,7 @@ describe("Move to…", () => {
     );
 
     const dialog = await openMoveDialog("Floor plan");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
 
     await findToast("That folder is in the Trash now.", "error");
@@ -319,18 +308,15 @@ describe("Move to…", () => {
     await renderPageAt(`/f/${studyGroup.id}`);
 
     const dialog = await openMoveDialog("Floor plan");
-    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(choice(dialog, "Paintball"));
     await store.trash({ kind: "folder", id: paintball.id });
 
     await waitFor(() =>
-      expect(
-        within(dialog).queryByRole("treeitem", { name: "Paintball" }),
-      ).toBe(null),
+      expect(within(dialog).queryByRole("radio", { name: "Paintball" })).toBe(
+        null,
+      ),
     );
-    expect(choice(dialog, "Study group").item).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
+    expect(choice(dialog, "Study group")).toBeChecked();
     expect(within(dialog).getByRole("button", { name: "Move" })).toBeDisabled();
   });
 });
@@ -397,7 +383,7 @@ describe("dragging cards", () => {
 
   it("refuses a folder dropped into itself or what's in it", async () => {
     await renderPageAt("/");
-    const tree = screen.getByRole("tree", { name: "Folders" });
+    const tree = screen.getByRole("list", { name: "Folders" });
     fireEvent.click(
       within(tree).getByRole("button", { name: "Show what's in Greendale" }),
     );
