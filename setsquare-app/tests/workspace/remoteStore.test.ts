@@ -707,14 +707,15 @@ describe("RemoteWorkspaceStore", () => {
     }
   });
 
-  it("evicts unreferenced views and images, keeping staged, drafted and unconfirmed ones", async () => {
+  it("evicts views of drawings the snapshot no longer has but keeps staged, drafted and pinned-request images", async () => {
     const account = session();
     const used = file("used" as FileId);
     const orphan = file("orphan" as FileId);
     const drafted = file("drafted" as FileId);
+    const requested = file("requested" as FileId);
     const staged = file("staged" as FileId);
     const unconfirmed = file("unconfirmed" as FileId);
-    const gone = { ...drawing(), fileIds: [orphan.id] };
+    const gone = { ...drawing(), fileIds: [orphan.id, requested.id] };
     const meta = { ...drawing(), fileIds: [used.id] };
     let data: WorkspaceData = { folders: [], drawings: [gone, meta] };
     const fetch: typeof globalThis.fetch = async (input) => {
@@ -741,6 +742,16 @@ describe("RemoteWorkspaceStore", () => {
           ...emptyDrawingContent(meta.name).appState,
           ...splitAppState(getDefaultAppState()).view,
         },
+        request: {
+          requestId: "pinned-request",
+          baseRevision: 1,
+          content: {
+            elements: [
+              API.createElement({ type: "image", fileId: requested.id }),
+            ],
+            appState: emptyDrawingContent(meta.name).appState,
+          },
+        },
       };
       await transact(
         db,
@@ -752,6 +763,7 @@ describe("RemoteWorkspaceStore", () => {
           await request(tx.objectStore("files").put(used, used.id));
           await request(tx.objectStore("files").put(orphan, orphan.id));
           await request(tx.objectStore("files").put(drafted, drafted.id));
+          await request(tx.objectStore("files").put(requested, requested.id));
           await request(
             tx.objectStore("files").put(unconfirmed, unconfirmed.id),
           );
@@ -776,21 +788,18 @@ describe("RemoteWorkspaceStore", () => {
           expect(
             await request(tx.objectStore("views").get(gone.id)),
           ).toBeUndefined();
-          expect(await request(tx.objectStore("files").get(used.id))).toEqual(
+          for (const image of [
             used,
-          );
-          expect(
-            await request(tx.objectStore("files").get(orphan.id)),
-          ).toBeUndefined();
-          expect(
-            await request(tx.objectStore("files").get(drafted.id)),
-          ).toEqual(drafted);
-          expect(await request(tx.objectStore("files").get(staged.id))).toEqual(
+            orphan,
+            drafted,
+            requested,
             staged,
-          );
-          expect(
-            await request(tx.objectStore("files").get(unconfirmed.id)),
-          ).toEqual(unconfirmed);
+            unconfirmed,
+          ]) {
+            expect(
+              await request(tx.objectStore("files").get(image.id)),
+            ).toEqual(image);
+          }
           expect(
             await request(tx.objectStore("drafts").get("recovery")),
           ).toEqual(draft);
@@ -798,6 +807,161 @@ describe("RemoteWorkspaceStore", () => {
       );
     } finally {
       db.close();
+    }
+  });
+
+  it("keeps another store's staged image bytes through a refresh", async () => {
+    const account = session();
+    const image = file("staged-elsewhere" as FileId);
+    const meta = { ...drawing(), fileIds: [image.id] };
+    let data: WorkspaceData = { folders: [], drawings: [meta] };
+    const fetch: typeof globalThis.fetch = async (input) => {
+      if (String(input) === "/api/workspace") {
+        return response(data);
+      }
+      throw new Error(`Unexpected request: ${String(input)}`);
+    };
+    const first = await open(fetch, account);
+    const second = await open(fetch, account);
+    await second.stageFiles({ [image.id]: image });
+    // the drawing that referenced the image is gone by the time the other
+    // store refreshes, but the image is still staged for recovery
+    data = { folders: [], drawings: [] };
+    await first.refresh();
+    await expect(
+      second.stageFiles({ [image.id]: image }),
+    ).resolves.toBeUndefined();
+    const db = await openDatabase(
+      `setsquare-account-${account.user.id}`,
+      2,
+      () => {},
+    );
+    try {
+      await transact(db, ["files"], "readonly", async (tx) => {
+        expect(await request(tx.objectStore("files").get(image.id))).toEqual(
+          image,
+        );
+      });
+    } finally {
+      db.close();
+    }
+  });
+
+  it("still runs content commands when the device cache cannot be read", async () => {
+    const meta = drawing();
+    const image = file();
+    const events: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input, init) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      if (path.startsWith("/api/files?")) {
+        events.push("read");
+        const ids = decodeURIComponent(
+          path.slice(path.indexOf("ids=") + 4),
+        ).split(",");
+        return response({ files: ids.map((id) => ({ ...image, id })) });
+      }
+      if (path === "/api/files") {
+        events.push("upload");
+        return response(JSON.parse(String(init?.body)));
+      }
+      if (path === "/api/commands") {
+        events.push("command");
+        return response({
+          result: {
+            kind: "save",
+            result: { ok: true, meta: { ...meta, revision: 2 } },
+          },
+          snapshot: workspace({ ...meta, revision: 2 }),
+        });
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    const store = await open(fetch);
+    const getFiles = vi
+      .spyOn(AccountCache.prototype, "getFiles")
+      .mockRejectedValue(
+        new DOMException("Connection lost", "InvalidStateError"),
+      );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [],
+        { baseRevision: 1, requestId: "no-images" },
+      );
+      expect(events).toEqual(["command"]);
+
+      events.length = 0;
+      await store.files.save({ addedFiles: new Map([[image.id, image]]) });
+      expect(events).toEqual(["upload"]);
+      events.length = 0;
+      await store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [image.id],
+        { baseRevision: 1, requestId: "confirmed-image" },
+      );
+      expect(events).toEqual(["command"]);
+
+      const serverImage = file("server-image" as FileId);
+      events.length = 0;
+      await store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [serverImage.id],
+        { baseRevision: 1, requestId: "server-image" },
+      );
+      expect(events).toEqual(["read", "command"]);
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      getFiles.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("still reports images missing from both the device and the server when the cache cannot be read", async () => {
+    const meta = drawing();
+    const missing = file("missing" as FileId);
+    const events: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      if (path.startsWith("/api/files?")) {
+        events.push("read");
+        return response({ error: "Not found" }, 404);
+      }
+      if (path === "/api/commands") {
+        events.push("command");
+        return response({});
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    const store = await open(fetch);
+    const getFiles = vi
+      .spyOn(AccountCache.prototype, "getFiles")
+      .mockRejectedValue(
+        new DOMException("Connection lost", "InvalidStateError"),
+      );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await expect(
+        store.saveDrawingContent(
+          meta.id,
+          emptyDrawingContent(meta.name),
+          [missing.id],
+          { baseRevision: 1, requestId: "missing-image" },
+        ),
+      ).rejects.toThrow("The drawing has images that have not been saved");
+      expect(events).toEqual(["read"]);
+    } finally {
+      getFiles.mockRestore();
+      warn.mockRestore();
     }
   });
 

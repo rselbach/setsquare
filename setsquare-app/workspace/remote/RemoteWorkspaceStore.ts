@@ -90,8 +90,6 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private readonly listeners = new Set<() => void>();
   private readonly confirmedFiles = new Map<FileId, BinaryFileData>();
   private readonly savingFiles = new Set<FileId>();
-  /** every image a snapshot this session showed, so eviction spares the rest */
-  private readonly referencedFiles = new Set<FileId>();
   private readonly stagedFiles = new Map<
     FileId,
     { dataURL: string; version: number; saved: Promise<void> }
@@ -588,8 +586,16 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   }
 
   private async ensureFiles(ids: readonly FileId[]) {
+    if (!ids.length) {
+      return;
+    }
     try {
-      const cached = await this.cache.getFiles(ids);
+      const cached = await this.cache.getFiles(ids).catch((error) => {
+        // an unreadable device cache is a miss, not a reason to refuse the
+        // server the images it already has
+        console.warn("Could not read the device's cached images", error);
+        return [];
+      });
       const found = new Set(cached.map((file) => file.id));
       const uncached = ids.filter(
         (id) => !found.has(id) && !this.confirmedFiles.has(id),
@@ -622,36 +628,12 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     }
   }
 
-  /** Drops device cache entries the snapshot and in-flight saves don't need. */
+  /** Drops cached views of drawings the snapshot no longer has. */
   private async maintainCache() {
     try {
-      const drawings = new Set(this.snapshot.drawings.keys());
-      const files = new Set<FileId>();
-      for (const drawing of this.snapshot.drawings.values()) {
-        for (const id of drawing.fileIds) {
-          files.add(id);
-        }
-      }
-      for (const id of this.stagedFiles.keys()) {
-        files.add(id);
-      }
-      for (const id of this.confirmedFiles.keys()) {
-        files.add(id);
-      }
-      for (const id of this.savingFiles) {
-        files.add(id);
-      }
-      await this.cache.maintain(drawings, files, this.referencedFiles);
+      await this.cache.maintain(new Set(this.snapshot.drawings.keys()));
     } catch (error) {
       console.warn("Could not clean up the device cache", error);
-    }
-  }
-
-  private rememberFiles(drawings: Iterable<DrawingMeta>) {
-    for (const drawing of drawings) {
-      for (const id of drawing.fileIds) {
-        this.referencedFiles.add(id);
-      }
     }
   }
 
@@ -787,7 +769,6 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       folders: new Map(data.folders.map((folder) => [folder.id, folder])),
       drawings: new Map(data.drawings.map((drawing) => [drawing.id, drawing])),
     };
-    this.rememberFiles(data.drawings);
     for (const listener of this.listeners) {
       listener();
     }
@@ -802,7 +783,6 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       folders: this.snapshot.folders,
       drawings: new Map(this.snapshot.drawings).set(meta.id, meta),
     };
-    this.rememberFiles([meta]);
     for (const listener of this.listeners) {
       listener();
     }
