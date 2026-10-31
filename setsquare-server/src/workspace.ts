@@ -1,6 +1,6 @@
-import { createHash } from "node:crypto";
-
 import { z } from "zod";
+
+import { canonical, legacyPayloadHash, payloadHash } from "./canonical";
 
 import { transaction } from "./database";
 
@@ -52,19 +52,6 @@ const drawingSchema = z.object({
   meta: drawingMetaSchema,
   content: contentSchema,
 });
-
-const canonical = (value: unknown): string => {
-  if (Array.isArray(value)) {
-    return `[${value.map(canonical).join(",")}]`;
-  }
-  if (value && typeof value === "object") {
-    return `{${Object.entries(value)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, item]) => `${JSON.stringify(key)}:${canonical(item)}`)
-      .join(",")}}`;
-  }
-  return JSON.stringify(value);
-};
 
 const namedContent = (
   content: DrawingContent,
@@ -360,7 +347,7 @@ export class WorkspaceDatabase {
     requestId: string,
     command: WorkspaceCommand,
   ): Promise<CommandResult> {
-    const hash = createHash("sha256").update(canonical(command)).digest("hex");
+    const hash = payloadHash(command);
     return transaction(this.pool, async (client) => {
       // A workspace tree and its mutation receipts have one writer per account.
       await client.query("SELECT id FROM users WHERE id = $1 FOR UPDATE", [
@@ -371,7 +358,8 @@ export class WorkspaceDatabase {
         [owner, requestId],
       );
       if (receipt.rows.length) {
-        if (receipt.rows[0].payload_hash !== hash) {
+        const stored = receipt.rows[0].payload_hash;
+        if (stored !== hash && stored !== legacyPayloadHash(command)) {
           throw new ApiError(
             409,
             "request_reused",
