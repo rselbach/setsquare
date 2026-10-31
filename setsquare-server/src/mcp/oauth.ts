@@ -146,7 +146,7 @@ export const registerMcpOAuth = async (
           );
         }
       });
-      routes.setErrorHandler((error, _request, reply) => {
+      routes.setErrorHandler((error, request, reply) => {
         if (error instanceof OAuthError) {
           if (error.status === 401) {
             reply.header("WWW-Authenticate", 'Basic realm="Setsquare OAuth"');
@@ -161,7 +161,30 @@ export const registerMcpOAuth = async (
             error_description: "Missing or invalid OAuth parameters",
           });
         }
-        throw error;
+        if (
+          error instanceof Error &&
+          "statusCode" in error &&
+          typeof error.statusCode === "number" &&
+          error.statusCode >= 400 &&
+          error.statusCode < 500
+        ) {
+          return reply.status(error.statusCode).send({
+            error: "invalid_request",
+            error_description:
+              error.statusCode === 413
+                ? "The request is too large"
+                : "The request could not be read",
+          });
+        }
+        // OAuth URLs carry codes, so errors log a request id, not the URL.
+        request.log.error(
+          { requestId: request.id, err: error },
+          "Request failed",
+        );
+        return reply.status(500).send({
+          error: "server_error",
+          error_description: "The server could not finish this request",
+        });
       });
 
       const session = async (request: FastifyRequest, reply: FastifyReply) => {
