@@ -14,6 +14,7 @@ import { SnapshotState } from "./snapshot";
 import { AccountClient, withIds } from "./transport";
 
 import type { SaveOptions, SessionInfo, WorkspaceCommand } from "../api";
+import type { UpgradeEvents } from "../local/idb";
 import type { LocalWorkspaceStore } from "../local/LocalWorkspaceStore";
 import type {
   ChangeResult,
@@ -36,7 +37,7 @@ import type {
 type SignedIn = Extract<SessionInfo, { kind: "signedIn" }>;
 
 /** The account and browser used to open a remote workspace. */
-export type RemoteWorkspaceOptions = {
+export type RemoteWorkspaceOptions = UpgradeEvents & {
   session: SignedIn;
   ownerWindow: Window;
   onSessionExpired: () => void;
@@ -52,6 +53,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     const cache = await AccountCache.open(
       options.ownerWindow,
       options.session.user.id,
+      options,
     );
     const store = new RemoteWorkspaceStore(options, cache);
     try {

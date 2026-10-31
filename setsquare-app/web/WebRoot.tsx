@@ -26,7 +26,11 @@ import { useLaunchedFiles } from "./importFiles";
 import { openSceneUrl, useSceneUrlLinks } from "./importScene";
 import { initRouter, navigate, parseRoute, useRoute } from "./router";
 import { trashWithUndo, useDrawingActions } from "./workspaceActions";
-import { openWorkspaceStore, readAccountSession } from "./workspaceStore";
+import {
+  isVersionError,
+  openWorkspaceStore,
+  readAccountSession,
+} from "./workspaceStore";
 
 import type { DrawingId, ItemRef } from "../workspace/types";
 import type { OpenDrawing } from "../workspace/ui/NavDrawingRow";
@@ -65,6 +69,26 @@ const boot = async (options: OpenWorkspaceOptions): Promise<Booted> => {
     tasks.push({ kind: "hint", message: () => t("workspace.allDrawingsHint") });
   }
   return { store, tasks };
+};
+
+// a newer build's service worker waits until every tab of the older one
+// closes, and reloading this tab doesn't count, so it takes over first
+const reloadToUpdate = async (ownerWindow: Window) => {
+  const { serviceWorker } = ownerWindow.navigator;
+  const waiting = await serviceWorker
+    ?.getRegistration()
+    .then((registration) => registration?.waiting)
+    .catch(() => undefined);
+  if (!waiting) {
+    ownerWindow.location.reload();
+    return;
+  }
+  serviceWorker.addEventListener(
+    "controllerchange",
+    () => ownerWindow.location.reload(),
+    { once: true },
+  );
+  waiting.postMessage({ type: "SKIP_WAITING" });
 };
 
 const whenIdle = (ownerWindow: Window, callback: () => void) => {
@@ -226,6 +250,10 @@ export const WebRoot = () => {
   const [error, setError] = useState<unknown>(null);
   const [account, setAccount] = useState<AccountState>({ kind: "local" });
   const [attempt, setAttempt] = useState(0);
+  // this tab's open waits for older tabs to close
+  const [blocked, setBlocked] = useState(false);
+  // a newer tab's open closed this one's database
+  const [updatedElsewhere, setUpdatedElsewhere] = useState(false);
   const host = useRef<HTMLDivElement>(null);
   const ownerWindow = host.current?.ownerDocument.defaultView ?? null;
   // a ref outlives StrictMode's second effect run, so the store opens once
@@ -256,6 +284,8 @@ export const WebRoot = () => {
         setAccount(session);
       },
       onSessionExpired: expire,
+      onBlocked: () => setBlocked(true),
+      onVersionChange: () => setUpdatedElsewhere(true),
     });
     let active = true;
     booting.current.then(
@@ -306,17 +336,42 @@ export const WebRoot = () => {
   const retry = () => {
     booting.current = null;
     setError(null);
+    setBlocked(false);
     setAttempt((current) => current + 1);
+  };
+
+  const reload = () => {
+    if (ownerWindow) {
+      reloadToUpdate(ownerWindow).catch((failure) => console.error(failure));
+    }
   };
 
   return (
     <div className="setsquare-web-root" ref={host}>
-      {error ? (
+      {isVersionError(error) ? (
+        <div className="account-boot-error" role="alert">
+          <h1>{t("workspace.outdatedTab")}</h1>
+          <p>{t("workspace.outdatedTabHint")}</p>
+          <button type="button" onClick={reload}>
+            {t("workspace.accountReload")}
+          </button>
+        </div>
+      ) : error ? (
         <div className="account-boot-error" role="alert">
           <h1>{t("workspace.accountLoadFailed")}</h1>
           <p>{t("workspace.accountLoadFailedHint")}</p>
           <button type="button" onClick={retry}>
             {t("workspace.accountRetry")}
+          </button>
+        </div>
+      ) : updatedElsewhere ? (
+        // the workspace closes, and its editor's unmount keeps a recovery
+        // copy of what it hadn't saved, which the reload finds
+        <div className="account-boot-error" role="alert">
+          <h1>{t("workspace.updatedElsewhere")}</h1>
+          <p>{t("workspace.updatedElsewhereHint")}</p>
+          <button type="button" onClick={reload}>
+            {t("workspace.accountReload")}
           </button>
         </div>
       ) : booted && ownerWindow ? (
@@ -325,6 +380,11 @@ export const WebRoot = () => {
         >
           <Workspace booted={booted} ownerWindow={ownerWindow} {...theme} />
         </AccountContext.Provider>
+      ) : blocked ? (
+        <div className="account-boot-error" role="status">
+          <h1>{t("workspace.updateBlocked")}</h1>
+          <p>{t("workspace.updateBlockedHint")}</p>
+        </div>
       ) : (
         <LoadingMessage theme={theme.editorTheme} delay={LOADING_DELAY_MS} />
       )}

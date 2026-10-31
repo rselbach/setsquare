@@ -7,6 +7,8 @@ import type { FileId } from "@setsquare/element/types";
 import type { DataURL } from "@setsquare/setsquare/types";
 
 import { splitAppState } from "../../workspace/drawingAppState";
+import { DatabaseClosedError, openDatabase } from "../../workspace/local/idb";
+import { SCHEMA_VERSION } from "../../workspace/local/LocalWorkspaceStore";
 import {
   childrenOf,
   isTrashed,
@@ -35,6 +37,23 @@ afterEach(() => {
 });
 
 describe("LocalWorkspaceStore", () => {
+  it("closes for a newer build's upgrade, saying so, and refuses later changes", async () => {
+    const onVersionChange = vi.fn();
+    const store = await workspace.open({ onVersionChange });
+
+    const db = await openDatabase(
+      workspace.dbName,
+      SCHEMA_VERSION + 1,
+      () => {},
+    );
+    db.close();
+
+    expect(onVersionChange).toHaveBeenCalledTimes(1);
+    await expect(
+      store.createDrawing({ folderId: null, name: "Pillow fort" }),
+    ).rejects.toBeInstanceOf(DatabaseClosedError);
+  });
+
   it("stores a JSON-safe view when given a live linear element editor", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({ folderId: null, name: "Arrow" });
