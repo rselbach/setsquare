@@ -2,7 +2,8 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import { ApiError } from "../errors";
-import { imageFileIds, trashedFolder } from "../workspace";
+import { imageFileIds } from "../images";
+import { trashedFolder } from "../workspace";
 import {
   commandSchema,
   contentSchema,
