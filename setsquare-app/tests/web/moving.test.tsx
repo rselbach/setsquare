@@ -1,4 +1,5 @@
 import { KEYS } from "@setsquare/common";
+import * as filesystem from "@setsquare/setsquare/data/filesystem";
 import {
   fireEvent,
   screen,
@@ -261,6 +262,35 @@ describe("Move to…", () => {
         null,
       ),
     );
+  });
+
+  it("keeps the page's shortcuts from acting behind it", async () => {
+    const fileOpen = vi.spyOn(filesystem, "fileOpen");
+    await renderPageAt("/");
+    fireEvent.keyDown(card("Drawings", "Señor Chang's office"), {
+      key: KEYS.DELETE,
+    });
+    await findToast("Moved “Señor Chang's office” to Trash");
+
+    const dialog = await openMoveDialog("Paintball");
+    const here = choice(dialog, "Drawings");
+    expect(here).toHaveFocus();
+
+    expect(fireEvent.keyDown(here, { key: "/" })).toBe(true);
+    expect(here).toHaveFocus();
+    expect(
+      fireEvent.keyDown(here, { key: "z", [KEYS.CTRL_OR_CMD]: true }),
+    ).toBe(true);
+    expect(
+      fireEvent.keyDown(here, { key: KEYS.O, [KEYS.CTRL_OR_CMD]: true }),
+    ).toBe(true);
+
+    expect(toastRegion()).not.toBeEmptyDOMElement();
+    expect(store.getSnapshot().drawings.get(chang.id)?.trashedAt).not.toBe(
+      null,
+    );
+    expect(fileOpen).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBe(dialog);
   });
 
   it("closes when another tab moves the item to the trash", async () => {

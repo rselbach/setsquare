@@ -1,6 +1,7 @@
 import { KEYS } from "@setsquare/common";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { getDefaultAppState } from "@setsquare/setsquare/appState";
+import * as filesystem from "@setsquare/setsquare/data/filesystem";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 import {
   act,
@@ -312,6 +313,37 @@ describe("the Trash", () => {
         contents: 0,
       }),
     );
+  });
+
+  it("keeps the page's shortcuts from acting behind the confirmation", async () => {
+    const fileOpen = vi.spyOn(filesystem, "fileOpen");
+    await store.trash({ kind: "drawing", id: plan.id });
+    await renderPageAt("/");
+    fireEvent.keyDown(card("Drawings", "Señor Chang's office"), {
+      key: KEYS.DELETE,
+    });
+    await findToast("Moved “Señor Chang's office” to Trash");
+    fireEvent.click(screen.getByRole("link", { name: "Trash" }));
+    await waitFor(() =>
+      expect(trashRow("Señor Chang's office")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Empty trash" }));
+    const dialog = await screen.findByRole("dialog");
+    const target = document.activeElement!;
+    expect(dialog).toContainElement(target as HTMLElement);
+
+    expect(
+      fireEvent.keyDown(target, { key: "z", [KEYS.CTRL_OR_CMD]: true }),
+    ).toBe(true);
+    expect(
+      fireEvent.keyDown(target, { key: KEYS.O, [KEYS.CTRL_OR_CMD]: true }),
+    ).toBe(true);
+
+    expect(toastRegion()).not.toBeEmptyDOMElement();
+    expect(isTrashed(store, chang)).toBe(true);
+    expect(fileOpen).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBe(dialog);
   });
 
   it("says so when it can't restore or empty", async () => {
