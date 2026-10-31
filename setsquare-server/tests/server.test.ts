@@ -2,6 +2,8 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { vi } from "vitest";
+
 import { migrate } from "../src/database";
 import { buildServer } from "../src/server";
 
@@ -157,6 +159,40 @@ it("validates input before storage and hides internal database errors", async ()
     expect((await command(app, troy, create)).statusCode).toBe(200);
   } finally {
     await app.close();
+  }
+});
+
+it("logs stored rows that fail their schema and returns 500, not 400", async () => {
+  const app = await testServer(db.pool, Date.now);
+  try {
+    const abed = await account(db.pool, Date.now, "502", "abed-nadir");
+    const created = await command(app, abed, {
+      kind: "createDrawing",
+      id: "dreamatorium",
+      folderId: null,
+      name: "Dreamatorium",
+      content: content(),
+      fileIds: [],
+    });
+    expect(created.statusCode).toBe(200);
+    await db.pool.query(
+      "UPDATE drawings SET name = repeat('x', 300) WHERE owner_id = $1",
+      [abed.user.id],
+    );
+    const log = vi.spyOn(app.log, "error");
+    const response = await app.inject({
+      url: "/api/workspace",
+      headers: abed.headers,
+    });
+    expect(response.statusCode).toBe(500);
+    expect(response.json().error).toBe("server_error");
+    expect(log).toHaveBeenCalledOnce();
+    expect(log.mock.calls[0][0]).toMatchObject({
+      err: { name: "StoredDataError" },
+    });
+  } finally {
+    await app.close();
+    vi.restoreAllMocks();
   }
 });
 

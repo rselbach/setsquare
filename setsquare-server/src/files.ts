@@ -1,7 +1,7 @@
 import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { transaction } from "./database";
-import { ApiError } from "./errors";
+import { ApiError, parseStored } from "./errors";
 import { filesSchema } from "./validation";
 
 import type { Pool } from "pg";
@@ -125,7 +125,7 @@ export class FileDatabase {
         version: row.version,
       }));
       return {
-        ...filesSchema.parse({ files }),
+        ...parseStored(filesSchema, { files }),
         remaining: requested.slice(count),
       };
     });
