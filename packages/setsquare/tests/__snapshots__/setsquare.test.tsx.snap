@@ -474,7 +474,7 @@ exports[`<Setsquare/> > Test UIOptions prop > Test canvasActions > should render
       </div>
     </button>
     <div
-      style="height: 1px; margin: 6px 0px; flex: 0 0 auto;"
+      style="height: 1px; background-color: var(--default-border-color); margin: 6px 0px; flex: 0 0 auto;"
     />
     <button
       aria-label="Dark mode"
@@ -604,7 +604,7 @@ exports[`<Setsquare/> > Test UIOptions prop > Test canvasActions > should render
             </button>
           </div>
           <div
-            style="width: 1px; height: 1rem; margin: 0px auto;"
+            style="width: 1px; height: 1rem; background-color: var(--default-border-color); margin: 0px auto;"
           />
           <button
             aria-controls="radix-:r13:"
