@@ -557,6 +557,7 @@ export const createDrawingPersistence = ({
         return null;
       }
       await saveImages(scene);
+      const elements = getNonDeletedElements(scene.elements);
       const { content } = splitAppState(scene.appState);
       const name = t("workspace.saveCopyName", {
         name: content.name || t("labels.untitled"),
@@ -565,10 +566,10 @@ export const createDrawingPersistence = ({
         folderId: visibleFolder(store.getSnapshot(), drawing.meta.folderId),
         name,
         content: {
-          elements: getNonDeletedElements(scene.elements),
+          elements,
           appState: { ...content, name },
         },
-        fileIds: imageFileIds(scene.elements),
+        fileIds: imageFileIds(elements),
       });
       let revision = copy.revision;
       let copiedSignature = contentSignature(scene.elements, content);
@@ -582,14 +583,15 @@ export const createDrawingPersistence = ({
         scene = pending;
         await imageStaging;
         await saveImages(scene);
+        const nextElements = getNonDeletedElements(scene.elements);
         const { content: nextContent } = splitAppState(scene.appState);
         const saved = await store.saveDrawingContent(
           copy.id,
           {
-            elements: getNonDeletedElements(scene.elements),
+            elements: nextElements,
             appState: { ...nextContent, name },
           },
-          imageFileIds(scene.elements),
+          imageFileIds(nextElements),
           {
             baseRevision: revision,
             requestId: ownerWindow.crypto.randomUUID(),
