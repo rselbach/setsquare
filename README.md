@@ -72,7 +72,10 @@ To run the production bundle without Docker, run `yarn build:app` and `yarn buil
 - `setsquare-server/` owns authentication, PostgreSQL persistence, and static hosting.
 - `packages/setsquare/` is the editor component that the app embeds.
 - `packages/common/`, `packages/element/`, `packages/math/`, and `packages/utils/` hold the code the editor builds on.
+- `packages/fractional-indexing/` and `packages/laser-pointer/` are small libraries the editor uses.
 - `packages/mermaid-to-setsquare/` converts Mermaid diagrams into Setsquare elements.
+- `examples/` holds Next.js and browser-script integration examples.
+- `setsquare-app/desktop/` and `setsquare-app/src-tauri/` are the legacy Tauri desktop app, which is due for removal.
 
 ## Remote MCP with OAuth
 
