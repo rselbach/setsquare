@@ -31,8 +31,8 @@ import type {
 
 /**
  * What a request meets before the server sees it: a dropped connection, a
- * request that never settles, a response lost after the server applied it,
- * or an error status from a proxy.
+ * request that settles only when aborted, a response lost after the server
+ * applied it, or an error status from a proxy.
  */
 export type Fault =
   | "offline"
@@ -450,7 +450,11 @@ export const fakeAccountServer = ({
       throw new TypeError("Failed to fetch");
     }
     if (fault === "stall") {
-      return new Promise<Response>(() => {});
+      return new Promise<Response>((_, reject) =>
+        init?.signal?.addEventListener("abort", () =>
+          reject(init.signal?.reason),
+        ),
+      );
     }
     if (typeof fault === "object" && fault) {
       return json({ error: fault.error }, fault.status);

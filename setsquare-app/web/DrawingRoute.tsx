@@ -63,6 +63,9 @@ const openDrawing = async (
 const nextFrame = () =>
   new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
+// how long leaving waits on the network before a recovery draft will do
+const LEAVE_SAVE_WAIT = 2000;
+
 // tells the nav, from inside the editor, what it has open and its name,
 // ahead of the save, until it closes
 const ReportOpenDrawing = ({
@@ -228,7 +231,15 @@ export const DrawingRoute = ({
     const { persistence } = editor;
     setLeaveGuard(async () => {
       leaving.current = editor;
-      await save(editor);
+      const saving = save(editor);
+      await Promise.race([
+        saving,
+        new Promise((resolve) => setTimeout(resolve, LEAVE_SAVE_WAIT)),
+      ]);
+      // past the wait, the save goes on after the editor closes
+      if (!persistence.hasDurableDraft()) {
+        await saving;
+      }
       if (persistence.unsaved() && !persistence.hasDurableDraft()) {
         leaving.current = null;
         return false;
