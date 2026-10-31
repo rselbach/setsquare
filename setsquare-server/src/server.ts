@@ -19,6 +19,7 @@ import {
 import { WorkspaceDatabase } from "./workspace";
 
 import type { ServerConfig } from "./config";
+import type { CommandResponse } from "../../setsquare-app/workspace/api";
 import type { OAuthProvider } from "./auth";
 import type { Pool } from "pg";
 
@@ -165,7 +166,16 @@ export const buildServer = async ({
     async (request) => {
       const session = auth.session(request);
       const { requestId, command } = commandSchema.parse(request.body);
-      return workspace.command(session.user.id, requestId, command);
+      const result = await workspace.command(
+        session.user.id,
+        requestId,
+        command,
+      );
+      const response: CommandResponse = {
+        result,
+        snapshot: await workspace.getSnapshot(session.user.id),
+      };
+      return response;
     },
   );
   app.get("/api/thumbnails", async (request) => {

@@ -262,6 +262,70 @@ it("retries a save after later changes without bumping its revision again", asyn
   expect(replay.json().snapshot.drawings[0].revision).toBe(3);
 });
 
+it("returns save and rename metadata that matches the committed snapshot", async () => {
+  await createDrawing();
+  // en_US collation sorts these the other way round
+  const fileIds = ["Troy", "abed"];
+  const [image] = imageContent().elements;
+  const images = {
+    ...imageContent(),
+    elements: fileIds.map((fileId) => ({ ...image, id: fileId, fileId })),
+  };
+  expect(
+    (
+      await app.inject({
+        method: "POST",
+        url: "/api/files",
+        headers: troy.headers,
+        payload: { files: fileIds.map((id) => ({ ...pixel, id })) },
+      })
+    ).statusCode,
+  ).toBe(200);
+  now += 1000;
+  const saved = (
+    await command(app, troy, {
+      kind: "saveDrawing",
+      id: "plan",
+      content: images,
+      fileIds,
+      baseRevision: 1,
+    })
+  ).json();
+  expect(saved.result.result.meta).toEqual(saved.snapshot.drawings[0]);
+  expect(saved.result.result.meta.fileIds).toEqual(fileIds);
+  now += 1000;
+  const rename = async (name: string | null, baseRevision: number) => {
+    const response = (
+      await command(app, troy, {
+        kind: "renameDrawing",
+        id: "plan",
+        name,
+        baseRevision,
+      })
+    ).json();
+    expect(response.result.result.meta).toEqual(response.snapshot.drawings[0]);
+    const stored = await app.inject({
+      url: "/api/drawings/plan/content",
+      headers: troy.headers,
+    });
+    expect(stored.json().content).toEqual({
+      ...images,
+      appState: {
+        ...images.appState,
+        name: response.result.result.meta.name,
+      },
+    });
+    return response.result.result.meta;
+  };
+  expect(await rename("Study room", 2)).toMatchObject({
+    name: "Study room",
+    revision: 3,
+    updatedAt: now,
+    fileIds,
+  });
+  expect((await rename("", 3)).name).toBeNull();
+});
+
 it("removes U+0000 from saved text and keys so retries return the stored receipt", async () => {
   await createDrawing();
   const requestId = randomUUID();
@@ -441,14 +505,19 @@ it("keeps cleaning other accounts, sessions and sign-in attempts after one accou
     "INSERT INTO auth_attempts(state_hash, verifier, return_to, expires_at) VALUES('greendale', 'verifier', '/', $1)",
     [now + 10 * 60 * 1000],
   );
-  await db.pool.query("UPDATE folders SET name = ' ' WHERE owner_id = $1", [
-    troy.user.id,
-  ]);
+  await db.pool.query(
+    "CREATE FUNCTION closed() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Greendale is closed'; END $$",
+  );
+  await db.pool.query(
+    `CREATE TRIGGER closed BEFORE DELETE ON folders FOR EACH ROW
+    WHEN (OLD.owner_id = '${troy.user.id}') EXECUTE FUNCTION closed()`,
+  );
   now += 31 * DAY;
   const onFailure = vi.fn();
   await new WorkspaceDatabase(db.pool, clock).collect(onFailure);
+  await db.pool.query("DROP FUNCTION closed CASCADE");
   expect(onFailure.mock.calls).toEqual([
-    [expect.objectContaining({ name: "ZodError" }), troy.user.id],
+    [expect.objectContaining({ message: "Greendale is closed" }), troy.user.id],
   ]);
   expect((await db.pool.query("SELECT owner_id FROM folders")).rows).toEqual([
     { owner_id: troy.user.id },
@@ -491,6 +560,60 @@ it("cannot create a folder cycle through concurrent moves", async () => {
     results.find((result) => !result.json().result.result.ok)?.json().result
       .result.reason,
   ).toBe("intoDescendant");
+});
+
+it("rejects writes under a folder cycle instead of walking it forever", async () => {
+  for (const id of ["troy", "abed", "pierce"]) {
+    await command(app, troy, {
+      kind: "createFolder",
+      id,
+      parentId: null,
+      name: id,
+    });
+  }
+  await createDrawing("plan", "troy");
+  await command(app, troy, {
+    kind: "trash",
+    item: { kind: "drawing", id: "plan" },
+  });
+  await db.pool.query(
+    "UPDATE folders SET parent_id = CASE id WHEN 'troy' THEN 'abed' ELSE 'troy' END WHERE owner_id = $1 AND id IN ('troy', 'abed')",
+    [troy.user.id],
+  );
+  const reason = async (value: unknown) => {
+    const response = await command(app, troy, value);
+    return response.statusCode === 200
+      ? response.json().result.result.reason
+      : response.json().error;
+  };
+  expect(
+    await reason({
+      kind: "createFolder",
+      id: "annie",
+      parentId: "troy",
+      name: "Annie",
+    }),
+  ).toBe("invalid_tree");
+  expect(
+    await reason({
+      kind: "move",
+      item: { kind: "folder", id: "pierce" },
+      target: "abed",
+    }),
+  ).toBe("invalid_tree");
+  expect(
+    await reason({
+      kind: "move",
+      item: { kind: "folder", id: "troy" },
+      target: "abed",
+    }),
+  ).toBe("intoDescendant");
+  expect(
+    await reason({
+      kind: "restore",
+      item: { kind: "drawing", id: "plan" },
+    }),
+  ).toBe("invalid_tree");
 });
 
 it("commits images before references and keeps each version private and immutable", async () => {

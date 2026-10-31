@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 
+import pg from "pg";
+
 import { migrate } from "../src/database";
 import { McpOAuthStore, registrationSource } from "../src/mcp/oauth-store";
 import { buildServer } from "../src/server";
@@ -183,6 +185,7 @@ const mcp = async (
 };
 
 it("completes OAuth and persists isolated, retryable, revision-checked MCP edits", async () => {
+  const queries = vi.spyOn(pg.Client.prototype, "query");
   const { tokens } = await connect();
   const args = { requestId: "create-plan", drawingId: "plan", name: "Plan" };
   const create = () =>
@@ -232,6 +235,11 @@ it("completes OAuth and persists isolated, retryable, revision-checked MCP edits
       })
     ).body.result.structuredContent.error,
   ).toBe("conflict");
+  expect(
+    queries.mock.calls.filter(([sql]) =>
+      String(sql).includes("'drawings', COALESCE"),
+    ),
+  ).toEqual([]);
   const otherClient = await register();
   const otherTokens = (
     await exchange(

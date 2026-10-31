@@ -16,7 +16,6 @@ import {
 import type { Pool, PoolClient } from "pg";
 
 import type {
-  CommandResponse,
   CommandResult,
   DrawingData,
   WorkspaceCommand,
@@ -42,7 +41,7 @@ const drawingMeta = `jsonb_build_object(
   'id', d.id, 'name', d.name, 'folderId', d.folder_id,
   'createdAt', d.created_at, 'updatedAt', d.updated_at, 'openedAt', d.opened_at,
   'trashedAt', d.trashed_at, 'revision', d.revision,
-  'fileIds', COALESCE((SELECT jsonb_agg(a.file_id ORDER BY a.file_id)
+  'fileIds', COALESCE((SELECT jsonb_agg(a.file_id ORDER BY a.file_id COLLATE "C")
     FROM drawing_assets a WHERE a.owner_id = d.owner_id AND a.drawing_id = d.id), '[]'::jsonb)
 )`;
 const dataSchema = z.object({
@@ -116,6 +115,16 @@ const drawingById = async (
   return result.rows.length ? drawingSchema.parse(result.rows[0].data) : null;
 };
 
+const drawingMetaById = async (db: Queryable, owner: string, id: string) => {
+  const result = await db.query(
+    `SELECT ${drawingMeta} AS data FROM drawings d WHERE d.owner_id = $1 AND d.id = $2`,
+    [owner, id],
+  );
+  return result.rows.length
+    ? drawingMetaSchema.parse(result.rows[0].data)
+    : null;
+};
+
 const snapshot = async (
   db: Queryable,
   owner: string,
@@ -130,48 +139,75 @@ const snapshot = async (
   return dataSchema.parse(result.rows[0].data);
 };
 
-const trashedFolder = (folders: readonly Folder[], id: ParentId): boolean => {
-  const byId = new Map(folders.map((folder) => [folder.id, folder]));
-  const seen = new Set<string>();
-  while (id !== null) {
-    if (seen.has(id)) {
+// the folder and its ancestors, nearest first; a repeated folder closes a cycle
+const ancestors = async (db: Queryable, owner: string, id: ParentId) => {
+  if (id === null) {
+    return [];
+  }
+  const result = await db.query(
+    `WITH RECURSIVE up(id, parent_id, trashed, depth, path, cycle) AS (
+      SELECT id, parent_id, trashed_at IS NOT NULL, 0, ARRAY[id], false
+      FROM folders WHERE owner_id = $1 AND id = $2
+      UNION ALL
+      SELECT f.id, f.parent_id, f.trashed_at IS NOT NULL, up.depth + 1, up.path || f.id, f.id = ANY(up.path)
+      FROM up JOIN folders f ON f.owner_id = $1 AND f.id = up.parent_id
+      WHERE NOT up.cycle
+    ) SELECT id, trashed, cycle FROM up ORDER BY depth`,
+    [owner, id],
+  );
+  return result.rows as Array<{ id: string; trashed: boolean; cycle: boolean }>;
+};
+
+const trashedFolder = (
+  chain: Awaited<ReturnType<typeof ancestors>>,
+): boolean => {
+  for (const folder of chain) {
+    if (folder.cycle) {
       throw new ApiError(
         409,
         "invalid_tree",
         "The folder tree contains a cycle",
       );
     }
-    seen.add(id);
-    const folder = byId.get(id);
-    if (!folder) {
-      return false;
-    }
-    if (folder.trashedAt !== null) {
+    if (folder.trashed) {
       return true;
     }
-    id = folder.parentId;
   }
   return false;
 };
 
-const checkParent = async (db: Queryable, owner: string, id: ParentId) => {
-  if (id === null) {
-    return;
-  }
-  if (!(await folderById(db, owner, id))) {
+const checkParent = async (
+  db: Queryable,
+  owner: string,
+  id: ParentId,
+  importing: boolean,
+) => {
+  const chain = await ancestors(db, owner, id);
+  if (id !== null && !chain.length) {
     throw new ApiError(
       404,
       "not_found",
       "The destination folder does not exist",
     );
   }
-  if (trashedFolder((await snapshot(db, owner)).folders, id)) {
+  if (!importing && trashedFolder(chain)) {
     throw new ApiError(
       409,
       "target_trashed",
       "The destination folder is in the Trash",
     );
   }
+};
+
+// an item's containing folder and whether it is itself in the Trash
+const placement = async (db: Queryable, owner: string, item: ItemRef) => {
+  const result = await db.query(
+    item.kind === "folder"
+      ? "SELECT parent_id AS parent, trashed_at IS NOT NULL AS trashed FROM folders WHERE owner_id = $1 AND id = $2"
+      : "SELECT folder_id AS parent, trashed_at IS NOT NULL AS trashed FROM drawings WHERE owner_id = $1 AND id = $2",
+    [owner, item.id],
+  );
+  return result.rows[0] as { parent: ParentId; trashed: boolean } | undefined;
 };
 
 const setFiles = async (
@@ -209,19 +245,7 @@ const insertFolder = async (
   folder: Folder,
   importing = false,
 ) => {
-  if (folder.parentId !== null) {
-    const parent = await folderById(db, owner, folder.parentId);
-    if (!parent || parent.id === folder.id) {
-      throw new ApiError(
-        404,
-        "not_found",
-        "The destination folder does not exist",
-      );
-    }
-    if (!importing) {
-      await checkParent(db, owner, folder.parentId);
-    }
-  }
+  await checkParent(db, owner, folder.parentId, importing);
   await db.query(
     `INSERT INTO folders(owner_id, id, parent_id, name, created_at, updated_at, trashed_at)
     VALUES($1,$2,$3,$4,$5,$6,$7)`,
@@ -244,20 +268,7 @@ const insertDrawing = async (
   content: DrawingContent,
   importing = false,
 ) => {
-  if (importing) {
-    if (
-      meta.folderId !== null &&
-      !(await folderById(db, owner, meta.folderId))
-    ) {
-      throw new ApiError(
-        404,
-        "not_found",
-        "The destination folder does not exist",
-      );
-    }
-  } else {
-    await checkParent(db, owner, meta.folderId);
-  }
+  await checkParent(db, owner, meta.folderId, importing);
   const fileIds = checkFiles(content, meta.fileIds);
   await db.query(
     `INSERT INTO drawings(owner_id, id, folder_id, name, created_at, updated_at, opened_at, trashed_at, revision, content)
@@ -334,11 +345,15 @@ export class WorkspaceDatabase {
     );
   }
 
+  /**
+   * Applies a command once per request id and returns its result. Callers that
+   * need the tree read a snapshot after this commits, outside the account lock.
+   */
   async command(
     owner: string,
     requestId: string,
     command: WorkspaceCommand,
-  ): Promise<CommandResponse> {
+  ): Promise<CommandResult> {
     const hash = createHash("sha256").update(canonical(command)).digest("hex");
     return transaction(this.pool, async (client) => {
       // A workspace tree and its mutation receipts have one writer per account.
@@ -357,17 +372,14 @@ export class WorkspaceDatabase {
             "That request id was used with different arguments",
           );
         }
-        return {
-          result: receipt.rows[0].result,
-          snapshot: await snapshot(client, owner),
-        };
+        return receipt.rows[0].result;
       }
       const result = await this.apply(client, owner, command);
       await client.query(
         "INSERT INTO mutation_receipts(owner_id, request_id, payload_hash, result, created_at) VALUES($1,$2,$3,$4,$5)",
         [owner, requestId, hash, JSON.stringify(result), this.now()],
       );
-      return { result, snapshot: await snapshot(client, owner) };
+      return result;
     });
   }
 
@@ -443,36 +455,33 @@ export class WorkspaceDatabase {
       }
       case "saveDrawing":
       case "renameDrawing": {
-        const existing = await drawingById(client, owner, command.id);
+        const existing = await drawingMetaById(client, owner, command.id);
         if (!existing) {
           return { kind: "save", result: NOT_FOUND };
         }
-        if (existing.meta.revision !== command.baseRevision) {
+        if (existing.revision !== command.baseRevision) {
           return {
             kind: "save",
-            result: { ok: false, reason: "conflict", meta: existing.meta },
+            result: { ok: false, reason: "conflict", meta: existing },
           };
         }
-        const content =
-          command.kind === "saveDrawing"
-            ? command.content
-            : namedContent(existing.content, command.name);
-        const fileIds = checkFiles(
-          content,
-          command.kind === "saveDrawing"
-            ? command.fileIds
-            : existing.meta.fileIds,
-        );
-        const name = content.appState.name || null;
+        const saving = command.kind === "saveDrawing";
+        const name =
+          (saving ? command.content.appState.name : command.name) || null;
+        const fileIds = saving
+          ? checkFiles(command.content, command.fileIds)
+          : existing.fileIds;
+        // a rename rewrites only the stored scene's name
         const updated = await client.query(
-          `UPDATE drawings SET name = $4, content = $5, revision = revision + 1, updated_at = $6
-          WHERE owner_id = $1 AND id = $2 AND revision = $3 RETURNING id`,
+          `UPDATE drawings SET name = $4, revision = revision + 1, updated_at = $6,
+            content = COALESCE($5::jsonb, jsonb_set(content, '{appState,name}', COALESCE(to_jsonb($4::text), 'null')))
+          WHERE owner_id = $1 AND id = $2 AND revision = $3`,
           [
             owner,
             command.id,
             command.baseRevision,
             name,
-            JSON.stringify(namedContent(content, name)),
+            saving ? JSON.stringify(namedContent(command.content, name)) : null,
             now,
           ],
         );
@@ -483,12 +492,17 @@ export class WorkspaceDatabase {
             "The drawing changed while it was saved",
           );
         }
-        await setFiles(client, owner, command.id, fileIds);
-        const saved = await drawingById(client, owner, command.id);
-        if (!saved) {
-          throw new Error("A saved drawing disappeared in its transaction");
+        if (saving) {
+          await setFiles(client, owner, command.id, fileIds);
         }
-        return { kind: "save", result: { ok: true, meta: saved.meta } };
+        const meta = {
+          ...existing,
+          name,
+          updatedAt: now,
+          revision: existing.revision + 1,
+          fileIds,
+        };
+        return { kind: "save", result: { ok: true, meta } };
       }
       case "saveThumbnail": {
         const saved = await client.query(
@@ -518,20 +532,9 @@ export class WorkspaceDatabase {
       case "restore":
       case "deleteForever":
         return this.changeItem(client, owner, command.kind, command.item);
-      case "emptyTrash": {
-        const data = await snapshot(client, owner);
-        await this.deleteRoots(
-          client,
-          owner,
-          data.folders
-            .filter((folder) => folder.trashedAt !== null)
-            .map((folder) => folder.id),
-          data.drawings
-            .filter((drawing) => drawing.trashedAt !== null)
-            .map((drawing) => drawing.id),
-        );
+      case "emptyTrash":
+        await this.deleteTrash(client, owner, Number.MAX_SAFE_INTEGER);
         return { kind: "done" };
-      }
       case "importFolder": {
         const existing = await folderById(client, owner, command.folder.id);
         if (existing) {
@@ -580,45 +583,29 @@ export class WorkspaceDatabase {
     item: ItemRef,
     target: ParentId,
   ): Promise<CommandResult> {
-    const data = await snapshot(client, owner);
-    const existing =
-      item.kind === "folder"
-        ? data.folders.find((folder) => folder.id === item.id)
-        : data.drawings.find((drawing) => drawing.id === item.id);
-    if (
-      !existing ||
-      (target !== null && !data.folders.some((folder) => folder.id === target))
-    ) {
+    const existing = await placement(client, owner, item);
+    const chain = await ancestors(client, owner, target);
+    if (!existing || (target !== null && !chain.length)) {
       return { kind: "move", result: NOT_FOUND };
     }
     if (item.kind === "folder") {
       if (item.id === target) {
         return { kind: "move", result: { ok: false, reason: "intoItself" } };
       }
-      const parents = new Map(
-        data.folders.map((folder) => [folder.id, folder.parentId]),
-      );
-      let parent = target;
-      while (parent !== null) {
-        if (parent === item.id) {
-          return {
-            kind: "move",
-            result: { ok: false, reason: "intoDescendant" },
-          };
-        }
-        parent = parents.get(parent) ?? null;
+      if (chain.some((folder) => folder.id === item.id)) {
+        return {
+          kind: "move",
+          result: { ok: false, reason: "intoDescendant" },
+        };
       }
     }
-    if (trashedFolder(data.folders, target)) {
+    if (trashedFolder(chain)) {
       return { kind: "move", result: { ok: false, reason: "targetTrashed" } };
     }
     // what's in the Trash comes out only through restore, as in the app
     if (
-      existing.trashedAt !== null ||
-      trashedFolder(
-        data.folders,
-        "folderId" in existing ? existing.folderId : existing.parentId,
-      )
+      existing.trashed ||
+      trashedFolder(await ancestors(client, owner, existing.parent))
     ) {
       return { kind: "move", result: NOT_FOUND };
     }
@@ -652,20 +639,15 @@ export class WorkspaceDatabase {
       );
       return { kind: "change", result: result.rowCount ? OK : NOT_FOUND };
     }
-    const record =
-      item.kind === "folder"
-        ? await folderById(client, owner, item.id)
-        : (await drawingById(client, owner, item.id))?.meta;
+    const record = await placement(client, owner, item);
     if (!record) {
       return { kind: "change", result: NOT_FOUND };
     }
-    const parent = "parentId" in record ? record.parentId : record.folderId;
     const destination = trashedFolder(
-      (await snapshot(client, owner)).folders,
-      parent,
+      await ancestors(client, owner, record.parent),
     )
       ? null
-      : parent;
+      : record.parent;
     const column = item.kind === "folder" ? "parent_id" : "folder_id";
     await client.query(
       `UPDATE ${table} SET trashed_at = NULL, ${column} = $3 WHERE owner_id = $1 AND id = $2`,
@@ -674,19 +656,18 @@ export class WorkspaceDatabase {
     return { kind: "change", result: OK };
   }
 
-  private async deleteRoots(
+  private async deleteTrash(
     client: PoolClient,
     owner: string,
-    folders: readonly string[],
-    drawings: readonly string[],
+    trashedBy: number,
   ) {
     await client.query(
-      "DELETE FROM folders WHERE owner_id = $1 AND id = ANY($2::text[])",
-      [owner, folders],
+      "DELETE FROM folders WHERE owner_id = $1 AND trashed_at <= $2",
+      [owner, trashedBy],
     );
     await client.query(
-      "DELETE FROM drawings WHERE owner_id = $1 AND id = ANY($2::text[])",
-      [owner, drawings],
+      "DELETE FROM drawings WHERE owner_id = $1 AND trashed_at <= $2",
+      [owner, trashedBy],
     );
   }
 
@@ -710,19 +691,7 @@ export class WorkspaceDatabase {
         await client.query("SELECT id FROM users WHERE id = $1 FOR UPDATE", [
           owner,
         ]);
-        const data = await snapshot(client, owner);
-        const expired = (at: number | null) =>
-          at !== null && now - at >= 30 * DAY;
-        await this.deleteRoots(
-          client,
-          owner,
-          data.folders
-            .filter((folder) => expired(folder.trashedAt))
-            .map((folder) => folder.id),
-          data.drawings
-            .filter((drawing) => expired(drawing.trashedAt))
-            .map((drawing) => drawing.id),
-        );
+        await this.deleteTrash(client, owner, now - 30 * DAY);
         await client.query(
           `DELETE FROM assets a WHERE owner_id = $1 AND GREATEST(uploaded_at, last_retrieved) < $2
           AND NOT EXISTS (SELECT 1 FROM drawing_assets r WHERE r.owner_id = a.owner_id AND r.file_id = a.file_id)`,
