@@ -110,7 +110,6 @@ export class API {
     });
   };
 
-  // prettier-ignore
   static updateElement = <T extends SetsquareElement>(
     ...args: Parameters<typeof h.app.scene.mutateElement<T>>
   ) => {

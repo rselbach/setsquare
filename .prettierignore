@@ -10,3 +10,4 @@ dev-dist
 coverage
 setsquare-app/src-tauri/target
 setsquare-app/src-tauri/gen
+packages/setsquare/subset/*/*-wasm.ts
