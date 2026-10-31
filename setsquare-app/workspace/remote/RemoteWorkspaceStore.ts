@@ -6,7 +6,7 @@ import { emptyDrawingContent } from "../drawingAppState";
 import { newDrawingId, newFolderId } from "../types";
 
 import { AccountCache } from "./AccountCache";
-import { ApiError } from "./ApiError";
+import { ApiError, apiFailureKind } from "./ApiError";
 import {
   parseCommand,
   parseDrawing,
@@ -402,6 +402,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       await this.cache.saveFiles(files);
       const savedFiles = new Map<FileId, BinaryFileData>();
       const erroredFiles = new Map<FileId, BinaryFileData>();
+      const errors = new Map<FileId, unknown>();
       for (const file of files) {
         try {
           await this.upload([file]);
@@ -411,13 +412,11 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
           }
           savedFiles.set(file.id, { ...saved });
         } catch (error) {
-          if (error instanceof ApiError && error.status === 401) {
-            throw error;
-          }
           erroredFiles.set(file.id, file);
+          errors.set(file.id, error);
         }
       }
-      return { savedFiles, erroredFiles };
+      return { savedFiles, erroredFiles, errors };
     },
   };
 
@@ -783,10 +782,6 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       }
       throw error;
     }
-    if (response.status === 401 && !this.expired) {
-      this.expired = true;
-      this.options.onSessionExpired();
-    }
     if (!response.ok) {
       if (retry && response.status >= 500 && !this.closed) {
         return this.request(path, init);
@@ -805,7 +800,12 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       } catch {
         // a proxy can return an error page rather than the API's JSON
       }
-      throw new ApiError(response.status, message);
+      const error = new ApiError(response.status, message);
+      if (apiFailureKind(error) === "expired" && !this.expired) {
+        this.expired = true;
+        this.options.onSessionExpired();
+      }
+      throw error;
     }
     return response.json();
   }

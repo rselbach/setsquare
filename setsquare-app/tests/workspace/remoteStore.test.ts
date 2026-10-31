@@ -92,6 +92,31 @@ afterEach(() => {
 });
 
 describe("RemoteWorkspaceStore", () => {
+  it.each([
+    [400, "invalid_image"],
+    [403, "csrf_failed"],
+    [503, "unavailable"],
+  ] as const)(
+    "preserves each image's refusal (%s %s)",
+    async (status, message) => {
+      const expired = vi.fn();
+      const fetch: typeof globalThis.fetch = async (input) =>
+        String(input) === "/api/workspace"
+          ? response(workspace(drawing()))
+          : response({ error: message }, status);
+      const store = await open(fetch, session(), expired);
+      const image = file();
+      const result = await store.files.save({
+        addedFiles: new Map([[image.id, image]]),
+      });
+      expect(result.errors?.get(image.id)).toEqual(
+        new ApiError(status, message),
+      );
+      expect(result.erroredFiles.get(image.id)).toEqual(image);
+      expect(expired).toHaveBeenCalledTimes(status === 403 ? 1 : 0);
+    },
+  );
+
   it("uses a newer server image when importing an older local format", async () => {
     const original = file();
     const migrated = {

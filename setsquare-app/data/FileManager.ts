@@ -16,6 +16,13 @@ import type {
 
 type FileVersion = Required<BinaryFileData>["version"];
 
+export class FileSaveError extends Error {
+  constructor(readonly errors: ReadonlyMap<FileId, unknown>) {
+    super("The drawing's images could not be saved");
+    this.name = "FileSaveError";
+  }
+}
+
 export class FileManager {
   /** files being fetched */
   private fetchingFiles = new Map<SetsquareImageElement["fileId"], true>();
@@ -45,6 +52,7 @@ export class FileManager {
     saveFiles: (data: { addedFiles: Map<FileId, BinaryFileData> }) => Promise<{
       savedFiles: Map<FileId, BinaryFileData>;
       erroredFiles: Map<FileId, BinaryFileData>;
+      errors?: ReadonlyMap<FileId, unknown>;
     }>;
     onFileStatusChange?: (
       updates: Array<[FileId, "loading" | "loaded" | "error"]>,
@@ -91,7 +99,7 @@ export class FileManager {
     }
 
     try {
-      const { savedFiles, erroredFiles } = await this._saveFiles({
+      const { savedFiles, erroredFiles, errors } = await this._saveFiles({
         addedFiles,
       });
 
@@ -107,6 +115,7 @@ export class FileManager {
       return {
         savedFiles,
         erroredFiles,
+        ...(errors && { errors }),
       };
     } finally {
       for (const [fileId] of addedFiles) {

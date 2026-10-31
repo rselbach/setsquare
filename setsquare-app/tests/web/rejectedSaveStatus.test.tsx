@@ -1,6 +1,11 @@
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
-import { act, fireEvent, screen } from "@setsquare/setsquare/tests/test-utils";
+import {
+  act,
+  fireEvent,
+  screen,
+  within,
+} from "@setsquare/setsquare/tests/test-utils";
 
 import * as workspaceStore from "../../web/workspaceStore";
 import { ApiError } from "../../workspace/remote/ApiError";
@@ -50,7 +55,9 @@ it("offers Export and manual Retry for rejection without retrying automatically"
   });
   await waitForAutosave();
   expect(screen.getByRole("status")).toHaveAttribute("data-state", "rejected");
-  expect(screen.getByRole("button", { name: "Export drawing" })).toBeVisible();
+  expect(
+    within(screen.getByRole("status")).getByRole("button", { name: "Export" }),
+  ).toBeVisible();
   expect(screen.getByRole("status")).toHaveTextContent(/too large/i);
   vi.useFakeTimers();
   await act(async () => {

@@ -1,8 +1,12 @@
 import { useEditorInterface } from "@setsquare/setsquare";
+import { useApp } from "@setsquare/setsquare/components/App";
 import { t } from "@setsquare/setsquare/i18n";
 import { Footer } from "@setsquare/setsquare/index";
 import clsx from "clsx";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+
+import { FileSaveError } from "../data/FileManager";
+import { ApiError } from "../workspace/remote/ApiError";
 
 import { navigate } from "./router";
 
@@ -35,6 +39,19 @@ const statusFor = (state: DrawingSaveState): Status => {
         label: t("workspace.saveNotSaved"),
         detail: t("workspace.saveFailed"),
       };
+    case "rejected":
+      return {
+        tone: "danger",
+        label: t("workspace.saveNotSaved"),
+        detail:
+          state.error instanceof FileSaveError
+            ? t("workspace.saveImageRejected", {
+                files: [...state.error.errors.keys()].join(", "),
+              })
+            : state.error instanceof ApiError && state.error.status === 413
+            ? t("workspace.saveTooLarge")
+            : t("workspace.saveRejected"),
+      };
     // the account notice says why, and signs in again
     case "expired":
       return { tone: "danger", label: t("workspace.saveNotSaved") };
@@ -62,6 +79,7 @@ export const DrawingSaveStatus = ({
 }: {
   persistence: DrawingPersistence;
 }) => {
+  const app = useApp();
   const isPhone = useEditorInterface().formFactor === "phone";
   const state = useSyncExternalStore(
     persistence.subscribeSaveState,
@@ -81,17 +99,17 @@ export const DrawingSaveStatus = ({
     const retry = () => {
       persistence.retry().catch((error) => console.error(error));
     };
-    const timer = window.setTimeout(
+    const timer = app.ownerWindow.setTimeout(
       retry,
       RETRY_DELAYS_MS[Math.min(failures.current, RETRY_DELAYS_MS.length - 1)],
     );
     failures.current++;
-    window.addEventListener("online", retry);
+    app.ownerWindow.addEventListener("online", retry);
     return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("online", retry);
+      app.ownerWindow.clearTimeout(timer);
+      app.ownerWindow.removeEventListener("online", retry);
     };
-  }, [state.kind, persistence]);
+  }, [state.kind, persistence, app]);
 
   const copy = async () => {
     setCopying(true);
@@ -126,7 +144,7 @@ export const DrawingSaveStatus = ({
       status = { ...status, detail: t("workspace.saveCopyFailed") };
     }
     action = { label: t("workspace.saveCopy"), run: copy };
-  } else if (state.kind === "error") {
+  } else if (state.kind === "error" || state.kind === "rejected") {
     action = {
       label: t("workspace.saveRetry"),
       run: () => {
@@ -152,6 +170,15 @@ export const DrawingSaveStatus = ({
       <span className="drawing-save-status__label">{status.label}</span>
       {status.detail && (
         <span className="drawing-save-status__detail">{status.detail}</span>
+      )}
+      {state.kind === "rejected" && persistence.getRecoveryError() === null && (
+        <button
+          type="button"
+          className="drawing-save-status__action"
+          onClick={() => persistence.exportRecovery()}
+        >
+          {t("workspace.exportRecovery")}
+        </button>
       )}
       {action && (
         <button

@@ -14,7 +14,7 @@ import type { AppState, BinaryFiles } from "@setsquare/setsquare/types";
 
 import { appJotaiStore } from "../app-jotai";
 import { SAVE_TO_LOCAL_STORAGE_TIMEOUT } from "../app_constants";
-import { FileManager } from "../data/FileManager";
+import { FileManager, FileSaveError } from "../data/FileManager";
 import { FileStatusStore } from "../data/fileStatusStore";
 import {
   imageSaveFailedAtom,
@@ -26,7 +26,7 @@ import {
   splitAppState,
 } from "../workspace/drawingAppState";
 import { loadPrefs, savePrefs } from "../workspace/prefs";
-import { ApiError } from "../workspace/remote/ApiError";
+import { apiFailureKind } from "../workspace/remote/ApiError";
 import { visibleFolder } from "../workspace/tree";
 
 import { createThumbnailer } from "./thumbnail";
@@ -71,7 +71,7 @@ const NOTHING_CHANGED = { scene: null, files: false } as const;
 /** Whether this session's latest edit has reached persistent storage. */
 export type DrawingSaveState =
   | { kind: "saved" | "unsaved" | "saving" | "expired" | "missing" }
-  | { kind: "error"; error: unknown }
+  | { kind: "error" | "rejected"; error: unknown }
   | { kind: "conflict"; meta: DrawingMeta };
 
 /** One drawing's editor session and any changes it still needs to save. */
@@ -99,6 +99,7 @@ export type DrawingPersistence = Merge<
 type PendingScene = ThumbnailScene & { onFilesSaved: () => void };
 type ContentWrite = {
   phase: "content" | "view";
+  uncertain: boolean;
   scene: PendingScene;
   content: DrawingContent;
   signature: string;
@@ -169,6 +170,7 @@ export const createDrawingPersistence = ({
     recovered?.request && pending
       ? {
           phase: "content",
+          uncertain: true,
           scene: {
             ...pending,
             elements: recovered.request.content.elements,
@@ -294,10 +296,15 @@ export const createDrawingPersistence = ({
   };
 
   const saveImages = async (scene: PendingScene) => {
-    const { erroredFiles } = await fileStorage.saveFiles(scene);
+    const { erroredFiles, errors } = await fileStorage.saveFiles({
+      ...scene,
+      elements: getNonDeletedElements(scene.elements),
+    });
     appJotaiStore.set(imageSaveFailedAtom, erroredFiles.size > 0);
     if (erroredFiles.size) {
-      throw new Error("The drawing's images could not be saved");
+      throw new FileSaveError(
+        new Map([...erroredFiles.keys()].map((id) => [id, errors?.get(id)])),
+      );
     }
     scene.onFilesSaved();
   };
@@ -332,7 +339,13 @@ export const createDrawingPersistence = ({
       const scene = request?.scene ?? pending;
       const { content, view, prefs } = splitAppState(scene.appState);
       savePrefs(prefs);
+      publish({ kind: "saving" });
+      if (!request) {
+        await imageStaging;
+        await saveImages(scene);
+      }
       request ??= {
+        uncertain: false,
         phase:
           contentSignature(getNonDeletedElements(scene.elements), content) !==
           storedContent
@@ -350,11 +363,8 @@ export const createDrawingPersistence = ({
         baseRevision: lastRevision,
         requestId: ownerWindow.crypto.randomUUID(),
       };
-      publish({ kind: "saving" });
       keepRecovery();
       await recoveryWriting;
-      await imageStaging;
-      await saveImages(scene);
       if (request.phase === "content") {
         const saved = await store.saveDrawingContent(
           id,
@@ -380,6 +390,7 @@ export const createDrawingPersistence = ({
         lastRevision = saved.meta.revision;
         storedContent = request.signature;
         request.phase = "view";
+        request.uncertain = false;
         thumbnailer.schedule(lastRevision);
       }
       const nextView = viewSignature(view);
@@ -411,10 +422,28 @@ export const createDrawingPersistence = ({
       ) {
         appJotaiStore.set(localStorageQuotaExceededAtom, true);
       }
+      const kinds =
+        error instanceof FileSaveError
+          ? [...error.errors.values()].map(apiFailureKind)
+          : [apiFailureKind(error)];
+      const kind = kinds.includes("expired")
+        ? "expired"
+        : kinds.includes("rejected")
+        ? "rejected"
+        : "unknown";
+      // A refusal of a retry cannot disprove an earlier unacknowledged commit.
+      if (request && !request.uncertain && kind !== "unknown") {
+        request = null;
+      } else if (request?.phase === "content" && kind === "unknown") {
+        request.uncertain = true;
+      }
       publish(
-        error instanceof ApiError && error.status === 401
-          ? { kind: "expired" }
-          : { kind: "error", error },
+        kind === "expired"
+          ? { kind }
+          : {
+              kind: kind === "rejected" ? "rejected" : "error",
+              error,
+            },
       );
       keepRecovery();
     });

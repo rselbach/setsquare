@@ -5,3 +5,25 @@ export class ApiError extends Error {
     this.name = "ApiError";
   }
 }
+
+export const apiFailureKind = (
+  error: unknown,
+): "expired" | "rejected" | "unknown" => {
+  if (!(error instanceof ApiError)) {
+    return "unknown";
+  }
+  if (
+    error.status === 401 ||
+    (error.status === 403 && error.message === "csrf_failed")
+  ) {
+    return "expired";
+  }
+  if (
+    error.status === 408 ||
+    error.status === 429 ||
+    (error.status === 409 && error.message === "concurrent_write")
+  ) {
+    return "unknown";
+  }
+  return error.status >= 400 && error.status < 500 ? "rejected" : "unknown";
+};

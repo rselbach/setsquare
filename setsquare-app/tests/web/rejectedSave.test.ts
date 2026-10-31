@@ -176,12 +176,10 @@ it("does not pin an upload failure and can save after the image is removed", asy
     mimeType: "image/png",
     created: 1,
   };
-  const upload = vi
-    .spyOn(store.files, "save")
-    .mockResolvedValueOnce({
-      savedFiles: new Map(),
-      erroredFiles: new Map([[fileId, file]]),
-    });
+  const upload = vi.spyOn(store.files, "save").mockResolvedValueOnce({
+    savedFiles: new Map(),
+    erroredFiles: new Map([[fileId, file]]),
+  });
   const save = vi.spyOn(store, "saveDrawingContent");
   // The file manager captures the save function when the session opens.
   const editor = createDrawingPersistence({
@@ -213,4 +211,108 @@ it("does not pin an upload failure and can save after the image is removed", asy
   expect(save.mock.calls[0][1].elements[0].id).toBe("corrected");
   expect(editor.getSaveState().kind).toBe("saved");
   expect(persistence.unsaved()).toBeNull();
+});
+
+it("keeps a previously uncertain request through an expired retry", async () => {
+  const { store, persistence } = await session();
+  const save = vi
+    .spyOn(store, "saveDrawingContent")
+    .mockRejectedValueOnce(new TypeError("Lost acknowledgement"))
+    .mockRejectedValueOnce(new ApiError(403, "csrf_failed"));
+  persistence.save(
+    savedContent("Rejection", "first").elements,
+    appState,
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  const request = persistence.unsaved()?.request;
+  persistence.save(
+    savedContent("Rejection", "latest").elements,
+    appState,
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  expect(persistence.getSaveState().kind).toBe("expired");
+  expect(persistence.unsaved()?.request).toEqual(request);
+  await persistence.retry();
+  expect(save.mock.calls[2]).toEqual(save.mock.calls[0]);
+  expect(save.mock.calls[3][1].elements[0].id).toBe("latest");
+});
+
+it("keeps image rejection reasons and stops retrying a deleted image", async () => {
+  const { store, drawing } = await session();
+  const fileId = "invalid-svg" as FileId;
+  const file: BinaryFileData = {
+    id: fileId,
+    dataURL: "data:image/svg+xml;base64,AAAA" as BinaryFileData["dataURL"],
+    mimeType: "image/svg+xml",
+    created: 1,
+  };
+  const error = new ApiError(400, "invalid_image");
+  const upload = vi
+    .spyOn(store.files, "save")
+    .mockImplementation(async ({ addedFiles }) => ({
+      savedFiles: new Map(),
+      erroredFiles: addedFiles,
+      errors: new Map([[fileId, error]]),
+    }));
+  const editor = createDrawingPersistence({
+    store,
+    drawing,
+    ownerWindow: window,
+    onNotFound: vi.fn(),
+  });
+  const image = API.createElement({ type: "image", fileId });
+  editor.save([image], appState, { [fileId]: file }, vi.fn());
+  await editor.flush();
+  expect(editor.getSaveState()).toMatchObject({
+    kind: "rejected",
+    error: { errors: new Map([[fileId, error]]) },
+  });
+  expect(editor.unsaved()?.request).toBeUndefined();
+  editor.save(
+    [{ ...image, isDeleted: true }],
+    appState,
+    { [fileId]: file },
+    vi.fn(),
+  );
+  await editor.flush();
+  expect(upload.mock.calls[1][0].addedFiles.size).toBe(0);
+  expect(editor.getSaveState().kind).toBe("saved");
+});
+
+it("does not pin content when image staging fails", async () => {
+  const { store, drawing } = await session();
+  const staged = Object.assign(store, {
+    stageFiles: vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Cache unavailable"))
+      .mockResolvedValue(undefined),
+  });
+  const save = vi.spyOn(store, "saveDrawingContent");
+  const editor = createDrawingPersistence({
+    store: staged,
+    drawing,
+    ownerWindow: window,
+    onNotFound: vi.fn(),
+  });
+  editor.save(
+    savedContent("Rejection", "first").elements,
+    appState,
+    {},
+    vi.fn(),
+  );
+  await editor.flush();
+  expect(save).not.toHaveBeenCalled();
+  expect(editor.unsaved()?.request).toBeUndefined();
+  editor.save(
+    savedContent("Rejection", "corrected").elements,
+    appState,
+    {},
+    vi.fn(),
+  );
+  await editor.flush();
+  expect(save.mock.calls[0][1].elements[0].id).toBe("corrected");
 });
