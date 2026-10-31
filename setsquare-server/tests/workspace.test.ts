@@ -21,6 +21,10 @@ let troy: TestAccount;
 let abed: TestAccount;
 let now = 1_700_000_000_000;
 const clock = () => now;
+const DAY = 24 * 60 * 60 * 1000;
+const rethrow = (error: unknown) => {
+  throw error;
+};
 
 beforeAll(async () => {
   db = await testDatabase();
@@ -406,15 +410,50 @@ it("collects mutation receipts after 30 days but keeps import receipts", async (
   now += 29 * 24 * 60 * 60 * 1000;
   await createDrawing("study-room");
   expect(await receipts()).toHaveLength(3);
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect(await receipts()).toHaveLength(3);
   now += 2 * 24 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect(await receipts()).toHaveLength(2);
   expect(await receipts()).toContain("import-campus");
   now += 30 * 24 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect(await receipts()).toEqual(["import-campus"]);
+});
+
+it("keeps cleaning other accounts, sessions and sign-in attempts after one account fails", async () => {
+  for (const who of [troy, abed]) {
+    await command(app, who, {
+      kind: "createFolder",
+      id: "campus",
+      parentId: null,
+      name: "Campus",
+    });
+    await command(app, who, {
+      kind: "trash",
+      item: { kind: "folder", id: "campus" },
+    });
+  }
+  await db.pool.query(
+    "INSERT INTO auth_attempts(state_hash, verifier, return_to, expires_at) VALUES('greendale', 'verifier', '/', $1)",
+    [now + 10 * 60 * 1000],
+  );
+  await db.pool.query("UPDATE folders SET name = ' ' WHERE owner_id = $1", [
+    troy.user.id,
+  ]);
+  now += 31 * DAY;
+  const onFailure = vi.fn();
+  await new WorkspaceDatabase(db.pool, clock).collect(onFailure);
+  expect(onFailure.mock.calls).toEqual([
+    [expect.objectContaining({ name: "ZodError" }), troy.user.id],
+  ]);
+  expect((await db.pool.query("SELECT owner_id FROM folders")).rows).toEqual([
+    { owner_id: troy.user.id },
+  ]);
+  expect((await db.pool.query("SELECT 1 FROM sessions")).rows).toHaveLength(0);
+  expect(
+    (await db.pool.query("SELECT 1 FROM auth_attempts")).rows,
+  ).toHaveLength(0);
 });
 
 it("cannot create a folder cycle through concurrent moves", async () => {
@@ -568,10 +607,10 @@ it("retains staged uploads for a day before collecting unreferenced images", asy
   ).toBe(200);
   const workspace = new WorkspaceDatabase(db.pool, clock);
   now += 20 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect((await db.pool.query("SELECT 1 FROM assets")).rows).toHaveLength(1);
   now += 5 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect((await db.pool.query("SELECT 1 FROM assets")).rows).toHaveLength(0);
 });
 
@@ -832,10 +871,10 @@ it("rejects stale thumbnails and purges expired trash with reference-aware image
   });
   const workspace = new WorkspaceDatabase(db.pool, clock);
   now += 29 * 24 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect((await db.pool.query("SELECT 1 FROM assets")).rows).toHaveLength(1);
   now += 2 * 24 * 60 * 60 * 1000;
-  await workspace.collect();
+  await workspace.collect(rethrow);
   expect((await db.pool.query("SELECT 1 FROM drawings")).rows).toHaveLength(0);
   expect((await db.pool.query("SELECT 1 FROM assets")).rows).toHaveLength(0);
 });

@@ -225,3 +225,29 @@ it("uses local mode only when development has no OAuth provider", async () => {
     await app.close();
   }
 });
+
+it("serves before the first cleanup pass finishes", async () => {
+  const pending = new Promise<never>(() => {});
+  const blocked: string[] = [];
+  const pool = Object.create(db.pool, {
+    query: {
+      value: (text: string) => {
+        if (text === "SELECT 1") {
+          return db.pool.query(text);
+        }
+        blocked.push(text);
+        return pending;
+      },
+    },
+    connect: { value: () => pending },
+  });
+  const app = await buildServer({ config, pool, cleanup: true });
+  try {
+    await vi.waitFor(() => expect(blocked).not.toHaveLength(0));
+    expect((await app.inject({ url: "/api/health" })).json()).toEqual({
+      ok: true,
+    });
+  } finally {
+    await app.close();
+  }
+});

@@ -2,8 +2,16 @@ import { createHash } from "node:crypto";
 
 import { migrate } from "../src/database";
 import { McpOAuthStore, registrationSource } from "../src/mcp/oauth-store";
+import { buildServer } from "../src/server";
+import { WorkspaceDatabase } from "../src/workspace";
 
-import { account, config, testDatabase, testServer } from "./helpers";
+import {
+  account,
+  config,
+  fakeProvider,
+  testDatabase,
+  testServer,
+} from "./helpers";
 
 import type { FastifyInstance } from "fastify";
 import type { TestAccount } from "./helpers";
@@ -839,4 +847,56 @@ it("purges never-authorized clients after a day and keeps authorized ones", asyn
     (await app.inject({ url: authorization(authorized.client_id) })).headers
       .location,
   ).toMatch(/^\/api\/auth\/github\?/);
+});
+
+it("deletes expired consents and grants and logs failures when workspace cleanup throws", async () => {
+  const { client } = await connect();
+  await consent(client.client_id);
+  const count = async (table: string) =>
+    (await db.pool.query(`SELECT count(*)::int AS count FROM ${table}`)).rows[0]
+      .count;
+  expect(await count("mcp_consents")).toBeGreaterThan(0);
+  expect(await count("mcp_grants")).toBeGreaterThan(0);
+  now += 31 * 24 * 60 * 60_000;
+  const collect = vi
+    .spyOn(WorkspaceDatabase.prototype, "collect")
+    .mockImplementation(async (onFailure) => {
+      onFailure(new Error("Pierce corrupted a folder"), troy.user.id);
+      throw Object.assign(new Error("Greendale is closed"), { code: "57P01" });
+    });
+  const server = await buildServer({
+    config,
+    pool: db.pool,
+    provider: fakeProvider,
+    now: clock,
+  });
+  const log = vi.spyOn(server.log, "error");
+  try {
+    await vi.waitFor(async () => {
+      expect(await count("mcp_consents")).toBe(0);
+      expect(await count("mcp_grants")).toBe(0);
+    });
+    expect(log.mock.calls).toEqual([
+      [
+        expect.objectContaining({
+          job: "workspace",
+          ownerId: troy.user.id,
+          errorMessage: "Pierce corrupted a folder",
+        }),
+        "Cleanup failed",
+      ],
+      [
+        expect.objectContaining({
+          job: "workspace",
+          errorMessage: "Greendale is closed",
+          errorCode: "57P01",
+        }),
+        "Cleanup failed",
+      ],
+    ]);
+  } finally {
+    log.mockRestore();
+    collect.mockRestore();
+    await server.close();
+  }
 });
