@@ -54,7 +54,7 @@ export const buildServer = async ({
         }
       : false,
     logController: new LogController({ disableRequestLogging: true }),
-    bodyLimit: 12 * 1024 * 1024,
+    bodyLimit: 1024 * 1024,
     requestTimeout: 30_000,
     routerOptions: { maxParamLength: 1024 },
     // Fastify ignores numeric hop counts, so trust the nearest hops explicitly
@@ -156,11 +156,15 @@ export const buildServer = async ({
     };
   app.get("/api/drawings/:id", getDrawing(true));
   app.get("/api/drawings/:id/content", getDrawing(false));
-  app.post("/api/commands", async (request) => {
-    const session = await auth.require(request, { mutation: true });
-    const { requestId, command } = commandSchema.parse(request.body);
-    return workspace.command(session.user.id, requestId, command);
-  });
+  app.post(
+    "/api/commands",
+    { bodyLimit: 12 * 1024 * 1024, onRequest: auth.guard({ mutation: true }) },
+    async (request) => {
+      const session = auth.session(request);
+      const { requestId, command } = commandSchema.parse(request.body);
+      return workspace.command(session.user.id, requestId, command);
+    },
+  );
   app.get("/api/thumbnails", async (request) => {
     const session = await auth.require(request);
     const { ids } = z.object({ ids: idsSchema }).parse(request.query);
@@ -171,11 +175,15 @@ export const buildServer = async ({
     const { ids } = z.object({ ids: idsSchema }).parse(request.query);
     return files.get(session.user.id, ids);
   });
-  app.post("/api/files", async (request) => {
-    const session = await auth.require(request, { mutation: true });
-    const { files: added } = filesSchema.parse(request.body);
-    return files.save(session.user.id, added);
-  });
+  app.post(
+    "/api/files",
+    { bodyLimit: 12 * 1024 * 1024, onRequest: auth.guard({ mutation: true }) },
+    async (request) => {
+      const session = auth.session(request);
+      const { files: added } = filesSchema.parse(request.body);
+      return files.save(session.user.id, added);
+    },
+  );
 
   const staticAvailable = await stat(`${config.staticDir}/index.html`).then(
     () => true,

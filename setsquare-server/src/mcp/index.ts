@@ -4,8 +4,9 @@ import { challenge, registerMcpOAuth } from "./oauth";
 import { McpOAuthStore, READ_SCOPE, WRITE_SCOPE } from "./oauth-store";
 import { createWorkspaceMcp, isWriteTool } from "./tools";
 
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Pool } from "pg";
+import type { AccessGrant } from "./oauth-store";
 import type { Authentication } from "../auth";
 import type { ServerConfig } from "../config";
 import type { FileDatabase } from "../files";
@@ -45,7 +46,12 @@ export const registerMcp = async (
     { maxRequestBodySize: 12 * 1024 * 1024 },
   );
   app.addHook("onClose", async () => handler.close());
-  app.all("/mcp", async (request, reply) => {
+  const verified = new WeakMap<
+    FastifyRequest,
+    { token: string; grant: AccessGrant }
+  >();
+  // Checks run in onRequest, so unauthenticated bodies are never read.
+  const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
     reply.header("Cache-Control", "no-store");
     const allowedOrigins = [config.origin, ...(config.mcpAllowedOrigins ?? [])];
     if (
@@ -95,40 +101,51 @@ export const registerMcp = async (
     if (!grant) {
       return challenge(reply, config.origin, "invalid_token");
     }
-    const body = request.body as {
-      method?: string;
-      params?: { name?: string };
-    } | null;
-    if (
-      !grant.scopes.includes(READ_SCOPE) ||
-      (body?.method === "tools/call" &&
-        typeof body.params?.name === "string" &&
-        isWriteTool(body.params.name) &&
-        !grant.scopes.includes(WRITE_SCOPE))
-    ) {
-      return challenge(reply, config.origin, "insufficient_scope");
-    }
-    const headers = new Headers();
-    for (const [name, value] of Object.entries(request.headers)) {
-      if (value !== undefined) {
-        headers.set(name, Array.isArray(value) ? value.join(", ") : value);
+    verified.set(request, { token: bearer[1], grant });
+  };
+  app.all(
+    "/mcp",
+    { bodyLimit: 12 * 1024 * 1024, onRequest: authenticate },
+    async (request, reply) => {
+      const { token, grant } = verified.get(request)!;
+      const body = request.body as {
+        method?: string;
+        params?: { name?: string };
+      } | null;
+      if (
+        !grant.scopes.includes(READ_SCOPE) ||
+        (body?.method === "tools/call" &&
+          typeof body.params?.name === "string" &&
+          isWriteTool(body.params.name) &&
+          !grant.scopes.includes(WRITE_SCOPE))
+      ) {
+        return challenge(reply, config.origin, "insufficient_scope");
       }
-    }
-    const response = await handler.fetch(
-      new Request(`${config.origin}/mcp`, { method: request.method, headers }),
-      {
-        parsedBody: request.body,
-        authInfo: {
-          token: bearer[1],
-          clientId: grant.client_id,
-          scopes: grant.scopes,
-          resource: new URL(grant.resource),
-          expiresAt: Math.floor(Number(grant.access_expires_at) / 1000),
-          extra: { userId: grant.user_id },
+      const headers = new Headers();
+      for (const [name, value] of Object.entries(request.headers)) {
+        if (value !== undefined) {
+          headers.set(name, Array.isArray(value) ? value.join(", ") : value);
+        }
+      }
+      const response = await handler.fetch(
+        new Request(`${config.origin}/mcp`, {
+          method: request.method,
+          headers,
+        }),
+        {
+          parsedBody: request.body,
+          authInfo: {
+            token,
+            clientId: grant.client_id,
+            scopes: grant.scopes,
+            resource: new URL(grant.resource),
+            expiresAt: Math.floor(Number(grant.access_expires_at) / 1000),
+            extra: { userId: grant.user_id },
+          },
         },
-      },
-    );
-    return reply.send(response);
-  });
+      );
+      return reply.send(response);
+    },
+  );
   return oauth;
 };

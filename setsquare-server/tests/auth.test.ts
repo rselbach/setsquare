@@ -298,6 +298,37 @@ it("returns to a path on this origin when the return path starts with two slashe
   ).toBe(400);
 });
 
+it("bounds sign-in attempts by return length, source address, and total", async () => {
+  const start = (returnTo = "/", remoteAddress = "203.0.113.5") =>
+    app.inject({
+      url: `/api/auth/github?returnTo=${encodeURIComponent(returnTo)}`,
+      remoteAddress,
+    });
+  expect((await start(`/${"a".repeat(2047)}`)).statusCode).toBe(302);
+  expect((await start(`/${"a".repeat(2048)}`)).statusCode).toBe(400);
+  for (let attempt = 1; attempt < 30; attempt++) {
+    expect((await start()).statusCode).toBe(302);
+  }
+  const limited = await start();
+  expect(limited.statusCode).toBe(429);
+  expect(limited.json().error).toBe("too_many_attempts");
+  expect((await start("/", "198.51.100.7")).statusCode).toBe(302);
+  now += 11 * 60 * 1000;
+  expect((await start()).statusCode).toBe(302);
+  expect(
+    (await db.pool.query("SELECT count(*)::int AS count FROM auth_attempts"))
+      .rows[0].count,
+  ).toBe(1);
+  await db.pool.query(
+    `INSERT INTO auth_attempts(state_hash, verifier, return_to, source_hash, expires_at)
+    SELECT 'greendale-' || i, 'verifier', '/', 'source-' || i, $1 FROM generate_series(1, 9999) i`,
+    [now + 60_000],
+  );
+  const busy = await start("/", "198.51.100.8");
+  expect(busy.statusCode).toBe(503);
+  expect(busy.json().error).toBe("sign_in_busy");
+});
+
 it("uses the OAuth library to verify state and exchange the PKCE verifier with GitHub", async () => {
   const github = new GitHubOAuth(config.origin, {
     clientId: "test-client",
