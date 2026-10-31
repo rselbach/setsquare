@@ -1,10 +1,10 @@
 *
 !.env.development
 !.env.production
-!.eslintrc.base.json
-!.eslintrc.json
 !.npmrc
+!.prettierignore
 !.prettierrc
+!eslint.config.mjs
 !setsquare-app/
 !setsquare-server/
 !package.json
