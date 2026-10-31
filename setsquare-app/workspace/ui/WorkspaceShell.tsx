@@ -1,5 +1,6 @@
 import { KEYS } from "@setsquare/common";
 import { StandaloneUIProvider } from "@setsquare/setsquare";
+import { t } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
 import {
   useCallback,
@@ -15,10 +16,12 @@ import type { Theme } from "@setsquare/element/types";
 import { useAppLangCode } from "../../app-language/language-state";
 import { STORAGE_KEYS } from "../../app_constants";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
-import { visibleFolder } from "../tree";
+import { attempt } from "../../web/workspaceActions";
+import { findItem, visibleFolder } from "../tree";
 
 import { WorkspaceDragProvider } from "./useWorkspaceDrag";
 import { WorkspaceNav } from "./WorkspaceNav";
+import { useShowMessage } from "./WorkspaceToast";
 
 import type { ReactNode } from "react";
 
@@ -158,15 +161,18 @@ export const WorkspaceShell = ({
 }) => {
   const [langCode] = useAppLangCode();
   const snapshot = useWorkspaceSnapshot(store);
+  const show = useShowMessage();
   const onMove = useCallback(
     (item: ItemRef, target: ParentId) => {
-      store.move(item, target).then(
-        (result) =>
-          result.ok || console.error("Couldn't move", item, result.reason),
-        (error) => console.error(error),
+      const name = findItem(store.getSnapshot(), item)?.name;
+      void attempt(
+        show,
+        store.move(item, target),
+        "move",
+        name || t("labels.untitled"),
       );
     },
-    [store],
+    [store, show],
   );
 
   return (

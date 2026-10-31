@@ -19,7 +19,11 @@ import { useBrowserImport } from "../../web/browserImport";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
-import { useWorkspaceActions } from "../../web/workspaceActions";
+import {
+  attempt,
+  reportFailure,
+  useWorkspaceActions,
+} from "../../web/workspaceActions";
 import {
   ancestors,
   childrenOf,
@@ -214,7 +218,7 @@ const WorkspaceView = ({
         }
       }
     } catch (error) {
-      console.error(error);
+      reportFailure(toast.show, { error }, "newFolder");
     }
   };
 
@@ -222,25 +226,37 @@ const WorkspaceView = ({
     startRename: (item) => setRenaming({ item, path }),
     stopRename: () => setRenaming(null),
     renameFolder: (id, name) => {
-      store.renameFolder(id, name).catch((error) => console.error(error));
+      void attempt(toast.show, store.renameFolder(id, name), "rename", name);
     },
     renameDrawing: (id, name) => {
-      store.renameDrawing(id, name).catch((error) => console.error(error));
+      void attempt(
+        toast.show,
+        store.renameDrawing(id, name),
+        "rename",
+        name || t("labels.untitled"),
+      );
     },
     move: setMoving,
     trash,
     duplicate: async (drawing: DrawingMeta) => {
+      const shownName = drawing.name || t("labels.untitled");
       try {
         const snap = store.getSnapshot();
-        const name = t("workspace.copyName", {
-          name: drawing.name || t("labels.untitled"),
-        });
-        await store.duplicateDrawing(
+        const name = t("workspace.copyName", { name: shownName });
+        const copy = await store.duplicateDrawing(
           drawing.id,
           uniqueName(snap, parentOf(snap, drawing), name),
         );
+        if (!copy) {
+          reportFailure(
+            toast.show,
+            { reason: "notFound" },
+            "duplicate",
+            shownName,
+          );
+        }
       } catch (error) {
-        console.error(error);
+        reportFailure(toast.show, { error }, "duplicate", shownName);
       }
     },
   };

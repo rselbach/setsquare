@@ -15,6 +15,7 @@ import {
 import { WorkspaceShell, useNavState } from "../workspace/ui/WorkspaceShell";
 import {
   WorkspaceToast,
+  WorkspaceToastContext,
   useWorkspaceToast,
 } from "../workspace/ui/WorkspaceToast";
 
@@ -172,7 +173,7 @@ const Workspace = ({
   const { show } = toast;
   const trash = useCallback(
     (item: ItemRef) => {
-      trashWithUndo(store, item, show).catch((error) => console.error(error));
+      void trashWithUndo(store, item, show);
     },
     [store, show],
   );
@@ -204,42 +205,44 @@ const Workspace = ({
   }, [route]);
 
   return (
-    <WorkspaceShell
-      store={store}
-      route={route}
-      searching={isSearching(route, search)}
-      editing={editing}
-      trash={trash}
-      theme={theme.editorTheme}
-      appTheme={theme.appTheme}
-      onThemeChange={theme.setAppTheme}
-      nav={nav}
-    >
-      {route.kind === "drawing" ? (
-        <DrawingView
-          store={store}
-          id={route.id}
-          nav={nav.toggle}
-          onOpen={setEditing}
-          tasks={tasks}
-          toast={toast}
-          trash={trash}
-          {...theme}
-        />
-      ) : (
-        <WorkspacePage
-          store={store}
-          route={route.kind === "notFound" ? ROOT : route}
-          theme={theme.editorTheme}
-          nav={nav.toggle}
-          search={search}
-          setSearch={setSearch}
-          tasks={tasks}
-          toast={toast}
-          trash={trash}
-        />
-      )}
-    </WorkspaceShell>
+    <WorkspaceToastContext.Provider value={show}>
+      <WorkspaceShell
+        store={store}
+        route={route}
+        searching={isSearching(route, search)}
+        editing={editing}
+        trash={trash}
+        theme={theme.editorTheme}
+        appTheme={theme.appTheme}
+        onThemeChange={theme.setAppTheme}
+        nav={nav}
+      >
+        {route.kind === "drawing" ? (
+          <DrawingView
+            store={store}
+            id={route.id}
+            nav={nav.toggle}
+            onOpen={setEditing}
+            tasks={tasks}
+            toast={toast}
+            trash={trash}
+            {...theme}
+          />
+        ) : (
+          <WorkspacePage
+            store={store}
+            route={route.kind === "notFound" ? ROOT : route}
+            theme={theme.editorTheme}
+            nav={nav.toggle}
+            search={search}
+            setSearch={setSearch}
+            tasks={tasks}
+            toast={toast}
+            trash={trash}
+          />
+        )}
+      </WorkspaceShell>
+    </WorkspaceToastContext.Provider>
   );
 };
 

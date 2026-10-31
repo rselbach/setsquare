@@ -10,9 +10,11 @@ import { useState } from "react";
 
 import { drawingIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
+import { attempt, reportFailure } from "../../web/workspaceActions";
 import { parentOf, uniqueName } from "../tree";
 
 import { InlineName } from "./InlineName";
+import { useShowMessage } from "./WorkspaceToast";
 
 import type { DrawingMeta, ItemRef } from "../types";
 import type { WorkspaceStore } from "../WorkspaceStore";
@@ -55,6 +57,7 @@ export const NavDrawingRow = ({
   trash: (item: ItemRef) => void;
 }) => {
   const { t } = useI18n();
+  const show = useShowMessage();
   const [renaming, setRenaming] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const name = editing ? editing.name : drawing.name;
@@ -65,9 +68,12 @@ export const NavDrawingRow = ({
       editing.rename(name);
       return;
     }
-    store.renameDrawing(drawing.id, name).catch((error) => {
-      console.error(error);
-    });
+    void attempt(
+      show,
+      store.renameDrawing(drawing.id, name),
+      "rename",
+      name || t("labels.untitled"),
+    );
   };
 
   const duplicate = async () => {
@@ -82,12 +88,15 @@ export const NavDrawingRow = ({
       const copyName = t("workspace.copyName", {
         name: source.name || t("labels.untitled"),
       });
-      await store.duplicateDrawing(
+      const copy = await store.duplicateDrawing(
         source.id,
         uniqueName(snap, parentOf(snap, source), copyName),
       );
+      if (!copy) {
+        reportFailure(show, { reason: "notFound" }, "duplicate", shownName);
+      }
     } catch (error) {
-      console.error(error);
+      reportFailure(show, { error }, "duplicate", shownName);
     }
   };
 

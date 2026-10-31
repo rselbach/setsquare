@@ -1,12 +1,25 @@
 import { t } from "@setsquare/setsquare/i18n";
 import { useCallback, useMemo } from "react";
 
+import {
+  ApiError,
+  apiFailureCause,
+  apiFailureKind,
+} from "../workspace/remote/ApiError";
 import { findItem, parentOf, visibleFolder } from "../workspace/tree";
+import { useShowMessage } from "../workspace/ui/WorkspaceToast";
 
 import { useOpenFile } from "./importFiles";
 import { navigate } from "./router";
 
-import type { DrawingId, ItemRef, ParentId } from "../workspace/types";
+import type {
+  ChangeResult,
+  DrawingId,
+  ItemRef,
+  MoveResult,
+  ParentId,
+  SaveResult,
+} from "../workspace/types";
 import type { PageMessage } from "../workspace/ui/WorkspaceToast";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
 
@@ -67,9 +80,105 @@ export const discardIfUnused = async (
   return (await store.deleteForever({ kind: "drawing", id })).ok;
 };
 
+// what each action says when it fails for a reason there's no better
+// message for
+const FAILED = {
+  move: "workspace.failedMove",
+  rename: "workspace.failedRename",
+  duplicate: "workspace.failedDuplicate",
+  newFolder: "workspace.failedNewFolder",
+  newDrawing: "workspace.failedNewDrawing",
+  trash: "workspace.failedTrash",
+  restore: "workspace.failedRestore",
+  deleteForever: "workspace.failedDeleteForever",
+  emptyTrash: "workspace.failedEmptyTrash",
+} as const;
+
+/** A workspace action that can fail, as its failure message names it. */
+export type FailedAction = keyof typeof FAILED;
+
+/** What the store refused an action with, or what it threw. */
+export type StoreFailure =
+  | { reason: Exclude<MoveResult | SaveResult, { ok: true }>["reason"] }
+  | { error: unknown };
+
+const failureText = (
+  failure: StoreFailure,
+  action: FailedAction,
+  name: string,
+) => {
+  const cause = "error" in failure ? apiFailureCause(failure.error) : null;
+  const reason =
+    "reason" in failure
+      ? failure.reason
+      : cause instanceof ApiError &&
+        cause.status === 409 &&
+        cause.message === "target_trashed"
+      ? "targetTrashed"
+      : null;
+  switch (reason) {
+    case "targetTrashed":
+      return t("workspace.failedTargetTrashed");
+    case "notFound":
+      return t("workspace.failedNotFound", { name });
+    case "conflict":
+      return t("workspace.failedConflict", { name });
+  }
+  // fetch rejects with a TypeError when the network does
+  if (
+    cause instanceof TypeError ||
+    (cause instanceof ApiError && (cause.status === 0 || cause.status >= 500))
+  ) {
+    return t("workspace.failedUnreachable");
+  }
+  return t(FAILED[action], { name });
+};
+
+/**
+ * Tells the user that the store refused or failed `action` on the item it
+ * shows as `name`. An expired session says nothing, since the account
+ * notice already does.
+ */
+export const reportFailure = (
+  show: (message: PageMessage) => void,
+  failure: StoreFailure,
+  action: FailedAction,
+  name = "",
+) => {
+  if ("error" in failure) {
+    console.error(failure.error);
+    if (apiFailureKind(failure.error) === "expired") {
+      return;
+    }
+  }
+  show({ text: failureText(failure, action, name), error: true });
+};
+
+/**
+ * Waits for a change to the store, reporting it with {@link reportFailure}
+ * if the store refuses or fails it. Resolves with whether it went through.
+ */
+export const attempt = async (
+  show: (message: PageMessage) => void,
+  change: Promise<ChangeResult | MoveResult | SaveResult>,
+  action: FailedAction,
+  name?: string,
+) => {
+  try {
+    const result = await change;
+    if (!result.ok) {
+      reportFailure(show, result, action, name);
+    }
+    return result.ok;
+  } catch (error) {
+    reportFailure(show, { error }, action, name);
+    return false;
+  }
+};
+
 /**
  * Moves the item to the Trash and says so, by the name it had, with Undo to
- * take it back out.
+ * take it back out. It says so too when the store refuses or fails it.
  */
 export const trashWithUndo = async (
   store: WorkspaceStore,
@@ -77,17 +186,19 @@ export const trashWithUndo = async (
   show: (message: PageMessage) => void,
 ) => {
   const trashed = findItem(store.getSnapshot(), item);
-  const result = await store.trash(item);
-  if (!trashed || !result.ok) {
+  const name = trashed?.name || t("labels.untitled");
+  if (!(await attempt(show, store.trash(item), "trash", name)) || !trashed) {
     return;
   }
   show({
-    text: t("workspace.movedToTrash", {
-      name: trashed.name || t("labels.untitled"),
-    }),
+    text: t("workspace.movedToTrash", { name }),
     error: false,
     undo: () => {
-      store.restore(item).catch((error) => console.error(error));
+      // one deleted for good meanwhile has nothing to restore, and the
+      // page shows it's gone
+      store
+        .restore(item)
+        .catch((error) => reportFailure(show, { error }, "restore", name));
     },
   });
 };
@@ -103,6 +214,7 @@ export const useWorkspaceActions = (
   queueTask: (task: EditorTask) => void,
 ): WorkspaceActions => {
   const openFile = useOpenFile(store, folderId, queueTask);
+  const show = useShowMessage();
 
   const newDrawing = useCallback(() => {
     store.createDrawing({ folderId: folderId(), name: null }).then(
@@ -110,9 +222,9 @@ export const useWorkspaceActions = (
         newDrawings.set(drawing.id, drawing.revision);
         return navigate({ kind: "drawing", id: drawing.id });
       },
-      (error) => console.error(error),
+      (error) => reportFailure(show, { error }, "newDrawing"),
     );
-  }, [store, folderId]);
+  }, [store, folderId, show]);
 
   return useMemo(() => ({ newDrawing, openFile }), [newDrawing, openFile]);
 };

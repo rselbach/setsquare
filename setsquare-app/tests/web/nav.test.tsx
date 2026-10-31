@@ -11,6 +11,8 @@ import { KEYS } from "@setsquare/common";
 
 import { STORAGE_KEYS } from "../../app_constants";
 
+import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
+
 import {
   cleanUpWebApp,
   elementIds,
@@ -24,7 +26,6 @@ import {
   waitForPage,
 } from "./helpers";
 
-import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import type { DrawingMeta, Folder } from "../../workspace/types";
 
 const { h } = window;
@@ -216,6 +217,24 @@ describe("the nav beside the editor", () => {
       ),
     );
     expect(h.state.name).toBe("Floor plan");
+    expect(window.location.pathname).toBe(`/d/${plan.id}`);
+  });
+
+  it("says so over the editor when it can't duplicate a drawing", async () => {
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    vi.spyOn(
+      LocalWorkspaceStore.prototype,
+      "duplicateDrawing",
+    ).mockRejectedValue(
+      new DOMException("The disk is full", "QuotaExceededError"),
+    );
+
+    await chooseFromRowMenu("Seating", "Duplicate");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't duplicate “Seating”.",
+    );
     expect(window.location.pathname).toBe(`/d/${plan.id}`);
   });
 

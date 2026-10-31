@@ -17,6 +17,8 @@ import type { DataURL } from "@setsquare/setsquare/types";
 import { STORAGE_KEYS } from "../../app_constants";
 import { LibraryIndexedDBAdapter } from "../../data/LocalData";
 
+import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
+
 import {
   cleanUpWebApp,
   renderPageAt,
@@ -27,7 +29,6 @@ import {
   waitForPage,
 } from "./helpers";
 
-import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import type { DrawingMeta, Folder } from "../../workspace/types";
 
 const PIXEL =
@@ -355,6 +356,40 @@ describe("the workspace page", () => {
       folderId: studyGroup.id,
     });
     expect(window.location.pathname).toBe(`/f/${studyGroup.id}`);
+  });
+
+  it("says so when a rename meets a change from elsewhere", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+    vi.spyOn(LocalWorkspaceStore.prototype, "renameDrawing").mockResolvedValue({
+      ok: false,
+      reason: "conflict",
+      meta: plan,
+    });
+
+    fireEvent.keyDown(card("Drawings", "Floor plan"), { key: "F2" });
+    const field = screen.getByRole("textbox", { name: "Drawing name" });
+    fireEvent.change(field, { target: { value: "Paintball map" } });
+    fireEvent.keyDown(field, { key: KEYS.ENTER });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "“Paintball map” changed elsewhere. Try again.",
+    );
+  });
+
+  it("says so when it can't duplicate a drawing", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+    vi.spyOn(
+      LocalWorkspaceStore.prototype,
+      "duplicateDrawing",
+    ).mockRejectedValue(
+      new DOMException("The disk is full", "QuotaExceededError"),
+    );
+
+    await chooseFromMenu("Actions for Seating", "Duplicate");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't duplicate “Seating”.",
+    );
   });
 
   it("searches the whole workspace, showing where each item is", async () => {

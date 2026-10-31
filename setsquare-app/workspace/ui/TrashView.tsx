@@ -8,12 +8,14 @@ import { useEffect, useMemo, useState } from "react";
 import { restoreIcon } from "../../web/icons";
 import { navigate } from "../../web/router";
 import { collectOrphanDrafts } from "../../web/unsavedJournal";
+import { reportFailure } from "../../web/workspaceActions";
 import { formatTimeAgo } from "../formatRelativeTime";
 import { ancestors, parentOf, trashRoots } from "../tree";
 
 import { EmptyState } from "./EmptyState";
 import { useThumbnails } from "./useThumbnails";
 import { NavButton } from "./WorkspaceNav";
+import { useShowMessage } from "./WorkspaceToast";
 
 import type {
   AccountDraft,
@@ -176,6 +178,7 @@ export const TrashView = ({
   account: ReactNode;
 }) => {
   const { t } = useI18n();
+  const show = useShowMessage();
   const [confirming, setConfirming] = useState<Confirming | null>(null);
 
   const { folders, drawings } = useMemo(() => trashRoots(snapshot), [snapshot]);
@@ -210,12 +213,19 @@ export const TrashView = ({
       ),
     ].join(" › ");
 
+  // what's gone already, such as from another tab, needs no word
   const deleteForever = (confirmed: Confirming) => {
-    const deleting =
-      confirmed.kind === "empty"
-        ? store.emptyTrash()
-        : store.deleteForever(confirmed.item);
-    deleting.catch((error) => console.error(error));
+    if (confirmed.kind === "empty") {
+      store
+        .emptyTrash()
+        .catch((error) => reportFailure(show, { error }, "emptyTrash"));
+      return;
+    }
+    store
+      .deleteForever(confirmed.item)
+      .catch((error) =>
+        reportFailure(show, { error }, "deleteForever", confirmed.name),
+      );
   };
 
   return (
@@ -259,7 +269,16 @@ export const TrashView = ({
                   location={locationOf(item)}
                   now={now}
                   onRestore={() => {
-                    store.restore(ref).catch((error) => console.error(error));
+                    store
+                      .restore(ref)
+                      .catch((error) =>
+                        reportFailure(
+                          show,
+                          { error },
+                          "restore",
+                          item.name || t("labels.untitled"),
+                        ),
+                      );
                   }}
                   onDelete={() =>
                     setConfirming({
