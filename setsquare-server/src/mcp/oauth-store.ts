@@ -152,7 +152,7 @@ type Grant = {
   expires_at: string;
   revoked_at: string | null;
 };
-type AccessGrant = Grant & { access_expires_at: string };
+export type AccessGrant = Grant & { access_expires_at: string };
 
 export const parseScopes = (value: string) => {
   const scopes = [...new Set(value.split(" ").filter(Boolean))];

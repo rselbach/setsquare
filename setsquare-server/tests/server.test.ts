@@ -32,7 +32,7 @@ it("applies migrations safely when servers start concurrently", async () => {
         "SELECT version FROM schema_migrations ORDER BY version",
       )
     ).rows,
-  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }]);
+  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }, { version: 4 }]);
 });
 
 it("serves static navigation while keeping API and missing asset requests out of the SPA", async () => {
@@ -155,6 +155,53 @@ it("validates input before storage and hides internal database errors", async ()
     });
     expect(unsupported.statusCode).toBe(400);
     expect((await command(app, troy, create)).statusCode).toBe(200);
+  } finally {
+    await app.close();
+  }
+});
+
+it("authenticates before reading bodies and limits them to 1 MiB outside drawing uploads", async () => {
+  const app = await testServer(db.pool, Date.now);
+  try {
+    for (const url of ["/api/commands", "/api/files", "/api/auth/logout"]) {
+      const response = await app.inject({
+        method: "POST",
+        url,
+        headers: { "content-type": "application/json" },
+        payload: "{",
+      });
+      expect(response.statusCode, url).toBe(401);
+    }
+    const troy = await account(db.pool, Date.now, "502", "troy-barnes");
+    const padded = { greendale: "A".repeat(2 * 1024 * 1024) };
+    for (const url of ["/api/auth/logout", "/greendale"]) {
+      const response = await app.inject({
+        method: "POST",
+        url,
+        headers: troy.headers,
+        payload: padded,
+      });
+      expect(response.statusCode, url).toBe(413);
+    }
+    const image = Buffer.concat([
+      Buffer.from(pixel.dataURL.split(",")[1], "base64"),
+      Buffer.alloc(2 * 1024 * 1024),
+    ]);
+    const upload = await app.inject({
+      method: "POST",
+      url: "/api/files",
+      headers: troy.headers,
+      payload: {
+        files: [
+          {
+            ...pixel,
+            id: "greendale-large",
+            dataURL: `data:image/png;base64,${image.toString("base64")}`,
+          },
+        ],
+      },
+    });
+    expect(upload.statusCode).toBe(200);
   } finally {
     await app.close();
   }

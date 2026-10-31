@@ -11,6 +11,7 @@ import { z } from "zod";
 import { transaction } from "./database";
 
 import { ApiError } from "./errors";
+import { registrationSource } from "./mcp/oauth-store";
 
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { Pool } from "pg";
@@ -24,6 +25,8 @@ import type { ServerConfig } from "./config";
 
 const SESSION_MS = 30 * 24 * 60 * 60 * 1000;
 const OAUTH_MS = 10 * 60 * 1000;
+const ATTEMPT_LIMIT = 10_000;
+const SOURCE_ATTEMPT_LIMIT = 30;
 const profileSchema = z
   .object({
     id: z.number().int().positive().safe().transform(String),
@@ -272,6 +275,10 @@ export class Authentication {
   readonly sessions: SessionDatabase;
   readonly cookieName: string;
   private readonly attemptCookie: string;
+  private readonly guarded = new WeakMap<
+    FastifyRequest,
+    AuthenticatedSession
+  >();
 
   constructor(
     private readonly pool: Pool,
@@ -333,6 +340,22 @@ export class Authentication {
     return session;
   }
 
+  /** An onRequest hook that authenticates before Fastify reads the body. */
+  guard(options: { pin?: boolean; mutation?: boolean } = {}) {
+    return async (request: FastifyRequest) => {
+      this.guarded.set(request, await this.require(request, options));
+    };
+  }
+
+  /** The session that the route's guard authenticated. */
+  session(request: FastifyRequest) {
+    const session = this.guarded.get(request);
+    if (!session) {
+      throw new Error("The route has no authentication guard");
+    }
+    return session;
+  }
+
   private cookie(
     reply: FastifyReply,
     name: string,
@@ -378,7 +401,7 @@ export class Authentication {
         );
       }
       const query = z
-        .object({ returnTo: z.string().max(8192).optional() })
+        .object({ returnTo: z.string().max(2048).optional() })
         .parse(request.query);
       const destination = new URL(query.returnTo ?? "/", this.config.origin);
       // A redirect to a path starting with "//" would leave this origin.
@@ -396,14 +419,46 @@ export class Authentication {
       const state = oauth.generateRandomState();
       const verifier = oauth.generateRandomCodeVerifier();
       await this.pool.query(
-        "INSERT INTO auth_attempts(state_hash, verifier, return_to, expires_at) VALUES($1,$2,$3,$4)",
+        "DELETE FROM auth_attempts WHERE expires_at <= $1",
+        [this.now()],
+      );
+      // One statement, so concurrent sign-ins overshoot the limits by at most
+      // the pool size
+      const live = await this.pool.query(
+        `WITH live AS (SELECT
+          (SELECT count(*) FROM (SELECT FROM auth_attempts WHERE expires_at > $5 LIMIT $7) a)::int AS total,
+          (SELECT count(*) FROM (SELECT FROM auth_attempts WHERE source_hash = $4 AND expires_at > $5 LIMIT $8) s)::int AS source
+        ), added AS (
+          INSERT INTO auth_attempts(state_hash, verifier, return_to, source_hash, expires_at)
+          SELECT $1,$2,$3,$4,$6 FROM live WHERE total < $7 AND source < $8
+        )
+        SELECT total, source FROM live`,
         [
           hash(state),
           verifier,
           pathname + destination.search + destination.hash,
+          hash(registrationSource(request.ip)),
+          this.now(),
           this.now() + OAUTH_MS,
+          ATTEMPT_LIMIT,
+          SOURCE_ATTEMPT_LIMIT,
         ],
       );
+      const { total, source } = live.rows[0];
+      if (source >= SOURCE_ATTEMPT_LIMIT) {
+        throw new ApiError(
+          429,
+          "too_many_attempts",
+          "Too many sign-in attempts. Try again in a few minutes",
+        );
+      }
+      if (total >= ATTEMPT_LIMIT) {
+        throw new ApiError(
+          503,
+          "sign_in_busy",
+          "Sign-in is busy. Try again in a few minutes",
+        );
+      }
       this.cookie(reply, this.attemptCookie, state, OAUTH_MS / 1000);
       return reply.redirect(
         (await this.provider.authorizationUrl(state, verifier)).href,
@@ -479,14 +534,15 @@ export class Authentication {
       this.cookie(reply, this.cookieName, session.token, SESSION_MS / 1000);
       return reply.redirect(attempt.return_to);
     });
-    app.post("/api/auth/logout", async (request, reply) => {
-      const session = await this.require(request, {
-        pin: true,
-        mutation: true,
-      });
-      await this.sessions.revoke(session.tokenHash);
-      this.clearCookie(reply, this.cookieName);
-      return { kind: "signedOut" };
-    });
+    app.post(
+      "/api/auth/logout",
+      { onRequest: this.guard({ pin: true, mutation: true }) },
+      async (request, reply) => {
+        const session = this.session(request);
+        await this.sessions.revoke(session.tokenHash);
+        this.clearCookie(reply, this.cookieName);
+        return { kind: "signedOut" };
+      },
+    );
   }
 }

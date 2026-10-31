@@ -40,6 +40,7 @@ export const migrate = async (pool: Pool) => {
     "001-initial.sql",
     "002-mcp-oauth.sql",
     "003-mcp-client-authorized.sql",
+    "004-auth-attempt-limits.sql",
   ];
   await transaction(pool, async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(731894127493::bigint)");

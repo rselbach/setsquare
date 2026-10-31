@@ -108,6 +108,14 @@ it("challenges missing and invalid tokens without accepting browser cookies", as
       `scope="${READ_SCOPE} ${WRITE_SCOPE}"`,
     );
   }
+  const unparsed = await app.inject({
+    method: "POST",
+    url: "/mcp",
+    headers: { host: headers.host, "content-type": "application/json" },
+    payload: "{",
+  });
+  expect(unparsed.statusCode).toBe(401);
+  expect(unparsed.headers["www-authenticate"]).toContain("Bearer");
   vi.mocked(McpOAuthStore.prototype.verify).mockResolvedValue(null);
   expect(
     (await app.inject({ method: "GET", url: "/mcp", headers })).statusCode,
