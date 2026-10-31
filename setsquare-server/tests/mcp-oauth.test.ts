@@ -229,6 +229,55 @@ it("completes OAuth and persists isolated, retryable, revision-checked MCP edits
   ).toBe("not_found");
 });
 
+it("stores lone surrogates from client names and MCP edits as U+FFFD", async () => {
+  const registration = await app.inject({
+    method: "POST",
+    url: "/oauth/register",
+    payload: { client_name: "\ud800", redirect_uris: [redirect] },
+  });
+  expect(registration.statusCode).toBe(201);
+  expect(registration.json().client_name).toBe("\ufffd");
+  expect(
+    (
+      await app.inject({
+        method: "POST",
+        url: "/oauth/register",
+        payload: { redirect_uris: [`${redirect}\ud83d`] },
+      })
+    ).statusCode,
+  ).toBe(400);
+  const { tokens } = await connect();
+  await mcp(tokens.access_token, "tools/call", {
+    name: "create_drawing",
+    arguments: { requestId: "create-plan", drawingId: "plan", name: "Plan" },
+  });
+  const read = (
+    await mcp(tokens.access_token, "tools/call", {
+      name: "get_drawing",
+      arguments: { drawingId: "plan" },
+    })
+  ).body.result.structuredContent;
+  const update = () =>
+    mcp(tokens.access_token, "tools/call", {
+      name: "update_drawing",
+      arguments: {
+        requestId: "save-plan",
+        drawingId: "plan",
+        baseRevision: 1,
+        content: {
+          ...read.content,
+          appState: { ...read.content.appState, name: "Launch \ud83d" },
+        },
+      },
+    });
+  const saved = (await update()).body.result;
+  expect(saved.isError).toBeUndefined();
+  expect(saved.structuredContent.result.meta.name).toBe("Launch \ufffd");
+  expect((await update()).body.result.structuredContent).toEqual(
+    saved.structuredContent,
+  );
+});
+
 it("returns to consent after sign-in and rejects unregistered redirects and audiences", async () => {
   const client = await register();
   const login = await app.inject(authorization(client.client_id));

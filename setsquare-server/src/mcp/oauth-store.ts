@@ -40,6 +40,7 @@ export const redirectUriSchema = z
       // Reject control characters before URL parsing can silently normalize them.
       // eslint-disable-next-line no-control-regex
       !/[\u0000-\u0020\u007f]/.test(value) &&
+      value.isWellFormed() &&
       !url.hash &&
       !url.username &&
       !url.password &&
@@ -57,6 +58,7 @@ export const clientMetadataSchema = z
       .min(1)
       .max(200)
       .refine((value) => !value.includes("\0"))
+      .transform((value) => value.toWellFormed())
       .default("MCP client"),
     redirect_uris: z.array(redirectUriSchema).min(1).max(10),
     token_endpoint_auth_method: z

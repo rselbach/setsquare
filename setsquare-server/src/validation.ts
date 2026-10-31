@@ -309,29 +309,30 @@ const command = z.discriminatedUnion("kind", [
   }),
 ]);
 
-// PostgreSQL text and jsonb cannot store U+0000. Values nested deeper than any
-// valid command are left for validation to reject.
-const withoutNul = (value: unknown, depth = 0): unknown => {
+// PostgreSQL text and jsonb cannot store U+0000 or unpaired UTF-16 surrogates.
+// Cleaning them before validation keeps a retry's hash equal to its receipt.
+// Values nested deeper than any valid command are left for validation to reject.
+const storableStrings = (value: unknown, depth = 0): unknown => {
   if (typeof value === "string") {
-    return value.replaceAll("\0", "");
+    return value.replaceAll("\0", "").toWellFormed();
   }
   if (typeof value !== "object" || !value || depth > 128) {
     return value;
   }
   if (Array.isArray(value)) {
-    return value.map((child) => withoutNul(child, depth + 1));
+    return value.map((child) => storableStrings(child, depth + 1));
   }
   return Object.fromEntries(
     Object.entries(value).map(([key, child]) => [
-      key.replaceAll("\0", ""),
-      withoutNul(child, depth + 1),
+      key.replaceAll("\0", "").toWellFormed(),
+      storableStrings(child, depth + 1),
     ]),
   );
 };
 
 /** Validates one workspace command before it reaches storage. */
 export const commandSchema = z.preprocess(
-  (value) => withoutNul(value),
+  (value) => storableStrings(value),
   z.strictObject({
     requestId: id,
     command: command.transform((value): WorkspaceCommand => value),

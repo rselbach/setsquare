@@ -47,6 +47,55 @@ const createDrawing = (id = "plan", folderId: string | null = null) =>
     fileIds: [],
   });
 
+const textContent = (text: string, key: string, name?: string) => ({
+  ...content(name),
+  elements: [
+    {
+      id: "annie",
+      type: "text",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 25,
+      angle: 0,
+      strokeColor: "#000000",
+      backgroundColor: "transparent",
+      fillStyle: "solid",
+      strokeWidth: 1,
+      strokeStyle: "solid",
+      roundness: null,
+      roughness: 1,
+      opacity: 100,
+      seed: 1,
+      version: 1,
+      versionNonce: 1,
+      index: "a0",
+      isDeleted: false,
+      groupIds: [],
+      frameId: null,
+      boundElements: null,
+      updated: 1,
+      created: 1,
+      link: null,
+      locked: false,
+      fontSize: 20,
+      fontFamily: 1,
+      baseFontSize: null,
+      text,
+      textAlign: "left",
+      verticalAlign: "top",
+      containerId: null,
+      originalText: text,
+      autoResize: true,
+      lineHeight: 1.25,
+    },
+  ],
+  appState: {
+    ...content(name).appState,
+    lockedMultiSelections: { [key]: true },
+  },
+});
+
 it("isolates every read and mutation, including parents and image ids", async () => {
   expect((await createDrawing()).statusCode).toBe(200);
   expect(
@@ -212,54 +261,7 @@ it("removes U+0000 from saved text and keys so retries return the stored receipt
   const edit = {
     kind: "saveDrawing",
     id: "plan",
-    content: {
-      ...content(),
-      elements: [
-        {
-          id: "annie",
-          type: "text",
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 25,
-          angle: 0,
-          strokeColor: "#000000",
-          backgroundColor: "transparent",
-          fillStyle: "solid",
-          strokeWidth: 1,
-          strokeStyle: "solid",
-          roundness: null,
-          roughness: 1,
-          opacity: 100,
-          seed: 1,
-          version: 1,
-          versionNonce: 1,
-          index: "a0",
-          isDeleted: false,
-          groupIds: [],
-          frameId: null,
-          boundElements: null,
-          updated: 1,
-          created: 1,
-          link: null,
-          locked: false,
-          fontSize: 20,
-          fontFamily: 1,
-          baseFontSize: null,
-          text: "a\u0000b",
-          textAlign: "left",
-          verticalAlign: "top",
-          containerId: null,
-          originalText: "a\u0000b",
-          autoResize: true,
-          lineHeight: 1.25,
-        },
-      ],
-      appState: {
-        ...content().appState,
-        lockedMultiSelections: { "study\u0000group": true },
-      },
-    },
+    content: textContent("a\u0000b", "study\u0000group"),
     fileIds: [],
     baseRevision: 1,
   };
@@ -280,6 +282,100 @@ it("removes U+0000 from saved text and keys so retries return the stored receipt
   const retry = await command(app, troy, edit, requestId);
   expect(retry.statusCode).toBe(200);
   expect(retry.json().result).toEqual(saved.json().result);
+});
+
+it("replaces lone surrogates in names, text and keys so saves store and retries return the stored receipt", async () => {
+  const high = "\ud83d";
+  const low = "\ude00";
+  const importedFolder = {
+    id: "library",
+    name: `Library ${low}`,
+    parentId: null,
+    createdAt: 100,
+    updatedAt: 200,
+    trashedAt: null,
+  };
+  const commands = [
+    {
+      kind: "createFolder",
+      id: "campus",
+      parentId: null,
+      name: `Campus ${high}`,
+    },
+    { kind: "importFolder", folder: importedFolder },
+    {
+      kind: "createDrawing",
+      id: "plan",
+      folderId: null,
+      name: `Plan ${low}`,
+      content: textContent(`a${high}b`, `study${low}group`),
+      fileIds: [],
+    },
+    {
+      kind: "saveDrawing",
+      id: "plan",
+      content: textContent(
+        `Launch ${high}`,
+        `study${high}group`,
+        `Plan ${low}`,
+      ),
+      fileIds: [],
+      baseRevision: 1,
+    },
+    {
+      kind: "importDrawing",
+      drawing: {
+        meta: {
+          id: "imported",
+          folderId: null,
+          name: `Imported ${high}`,
+          createdAt: 100,
+          updatedAt: 200,
+          openedAt: null,
+          trashedAt: null,
+          revision: 1,
+          fileIds: [],
+        },
+        content: textContent(`${low}c`, low),
+      },
+    },
+  ];
+  for (const value of commands) {
+    const requestId = randomUUID();
+    const first = await command(app, troy, value, requestId);
+    expect(first.statusCode, value.kind).toBe(200);
+    const retry = await command(app, troy, value, requestId);
+    expect(retry.statusCode, value.kind).toBe(200);
+    expect(retry.json().result).toEqual(first.json().result);
+  }
+  expect(
+    (await command(app, troy, { kind: "importFolder", folder: importedFolder }))
+      .statusCode,
+  ).toBe(200);
+  const workspace = (
+    await app.inject({ url: "/api/workspace", headers: troy.headers })
+  ).json();
+  expect(
+    workspace.folders.map((folder: { name: string }) => folder.name).sort(),
+  ).toEqual(["Campus \ufffd", "Library \ufffd"]);
+  expect(
+    workspace.drawings.map((drawing: { name: string }) => drawing.name).sort(),
+  ).toEqual(["Imported \ufffd", "Plan \ufffd"]);
+  const load = async (id: string) =>
+    (
+      await app.inject({
+        url: `/api/drawings/${id}/content`,
+        headers: troy.headers,
+      })
+    ).json().content;
+  const plan = await load("plan");
+  expect(plan.elements[0].text).toBe("Launch \ufffd");
+  expect(plan.appState.lockedMultiSelections).toEqual({
+    "study\ufffdgroup": true,
+  });
+  const imported = await load("imported");
+  expect(imported.elements[0].originalText).toBe("\ufffdc");
+  expect(imported.appState.lockedMultiSelections).toEqual({ "\ufffd": true });
 });
 
 it("collects mutation receipts after 30 days but keeps import receipts", async () => {
