@@ -2,7 +2,11 @@ import { getNonDeletedElements } from "@setsquare/element";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
 import { restoreElements } from "@setsquare/setsquare/data/restore";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
-import { act, waitFor } from "@setsquare/setsquare/tests/test-utils";
+import {
+  act,
+  unmountComponent,
+  waitFor,
+} from "@setsquare/setsquare/tests/test-utils";
 import { set } from "idb-keyval";
 
 import type { FileId } from "@setsquare/element/types";
@@ -14,6 +18,7 @@ import * as workspaceStore from "../../web/workspaceStore";
 import {
   cleanUpWebApp,
   elementIds,
+  navigateTo,
   renderWebAppAt,
   savedContent,
   setUpTestWorkspace,
@@ -165,5 +170,78 @@ describe("a drawing open in two tabs", () => {
 
     expect(updateScene).not.toHaveBeenCalled();
     expect(elementIds()).toEqual(["troy", "abed"]);
+  });
+
+  it("doesn't sync a drawing it closed before the sync ran", async () => {
+    let appStore!: LocalWorkspaceStore;
+    vi.mocked(workspaceStore.openWorkspaceStore).mockImplementation(
+      async () => {
+        appStore = await workspace.open();
+        return appStore;
+      },
+    );
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    const getDrawingMeta = vi.spyOn(appStore, "getDrawingMeta");
+
+    testEnv.enabled = false;
+    try {
+      act(() => {
+        window.dispatchEvent(new Event("focus"));
+        unmountComponent();
+      });
+      // past the sync's debounce
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    } finally {
+      testEnv.enabled = true;
+    }
+
+    expect(getDrawingMeta).not.toHaveBeenCalled();
+  });
+
+  it("leaves the next drawing alone when the last one's sync finishes", async () => {
+    const seating = await otherTab.createDrawing({
+      folderId: null,
+      name: "Seating",
+      content: savedContent("Seating", "abed"),
+    });
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let appStore!: LocalWorkspaceStore;
+    vi.mocked(workspaceStore.openWorkspaceStore).mockImplementation(
+      async () => {
+        appStore = await workspace.open();
+        return appStore;
+      },
+    );
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    const getDrawingMeta = appStore.getDrawingMeta.bind(appStore);
+    let syncing!: Promise<unknown>;
+    // the sync's check is still on its way when the drawing closes
+    vi.spyOn(appStore, "getDrawingMeta").mockImplementationOnce((id) => {
+      syncing = held.then(() => getDrawingMeta(id));
+      return syncing as ReturnType<typeof getDrawingMeta>;
+    });
+    await otherTab.saveDrawingContent(
+      plan.id,
+      savedContent("Study group", "troy", "britta"),
+      [],
+    );
+    const lastUpdateScene = vi.spyOn(h.app.api, "updateScene");
+
+    await focusWithSync(() => expect(syncing).toBeDefined());
+    await navigateTo({ kind: "drawing", id: seating.id });
+    await waitForDrawing(seating.id, ["abed"]);
+    const nextUpdateScene = vi.spyOn(h.app.api, "updateScene");
+    release();
+    await syncing;
+    await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
+    expect(lastUpdateScene).not.toHaveBeenCalled();
+    expect(nextUpdateScene).not.toHaveBeenCalled();
+    expect(elementIds()).toEqual(["abed"]);
   });
 });
