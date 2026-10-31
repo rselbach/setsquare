@@ -2,7 +2,14 @@ import { IconButton } from "@setsquare/setsquare/components/IconButton";
 import { CloseIcon } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { addToStoredLibrary } from "../../web/importFiles";
 
@@ -57,6 +64,23 @@ export const useWorkspaceToast = () => {
 
 /** The toast the app shows, and how to change it. */
 export type WorkspaceToastState = ReturnType<typeof useWorkspaceToast>;
+
+/**
+ * Shows a message in the app's toast. The workspace provides it around the
+ * page, the editor and the nav, so that what's in them can say what failed.
+ */
+export const WorkspaceToastContext = createContext<
+  WorkspaceToastState["show"] | null
+>(null);
+
+/** Shows a message in the app's toast, from inside the workspace. */
+export const useShowMessage = () => {
+  const show = useContext(WorkspaceToastContext);
+  if (!show) {
+    throw new Error("useShowMessage needs a WorkspaceToastContext");
+  }
+  return show;
+};
 
 /**
  * Takes over the tasks there's no editor for while a page shows: errors

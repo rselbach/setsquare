@@ -5,9 +5,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { newFolderIcon } from "../../web/icons";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
-import { findItem, isTrashed, parentOf, subtree, uniqueName } from "../tree";
+import { attempt, reportFailure } from "../../web/workspaceActions";
+import {
+  findItem,
+  isTrashed,
+  parentOf,
+  subtree,
+  uniqueName,
+  visibleFolder,
+} from "../tree";
 
 import { FolderTree } from "./FolderTree";
+import { useShowMessage } from "./WorkspaceToast";
 
 import type { FolderId, ItemRef, ParentId } from "../types";
 import type { WorkspaceStore } from "../WorkspaceStore";
@@ -16,6 +25,7 @@ import type { WorkspaceStore } from "../WorkspaceStore";
  * Moves an item to the folder chosen from the tree, the root included. The
  * folder it's in is marked, and it can't go into itself or what's inside
  * it, which the store refuses too. A new folder is made in the one chosen.
+ * A move that fails says why and leaves the dialog open.
  */
 export const MoveDialog = ({
   store,
@@ -27,12 +37,18 @@ export const MoveDialog = ({
   onClose: () => void;
 }) => {
   const { t } = useI18n();
+  const show = useShowMessage();
   const snapshot = useWorkspaceSnapshot(store);
   const found = isTrashed(snapshot, item)
     ? undefined
     : findItem(snapshot, item);
   const location = found ? parentOf(snapshot, found) : null;
   const [selected, setSelected] = useState<ParentId>(location);
+  if (visibleFolder(snapshot, selected) !== selected) {
+    // the folder chosen went, such as to the Trash from another tab, and
+    // the picker no longer shows it
+    setSelected(location);
+  }
   const [renaming, setRenaming] = useState<FolderId | null>(null);
   const disabled = useMemo(
     () =>
@@ -62,6 +78,8 @@ export const MoveDialog = ({
     return null;
   }
 
+  const name = found.name || t("labels.untitled");
+
   const newFolder = async () => {
     try {
       const folder = await store.createFolder(
@@ -71,27 +89,19 @@ export const MoveDialog = ({
       setSelected(folder.id);
       setRenaming(folder.id);
     } catch (error) {
-      console.error(error);
+      reportFailure(show, { error }, "newFolder");
     }
   };
 
   const move = async () => {
-    try {
-      const result = await store.move(item, selected);
-      if (!result.ok) {
-        console.error("Couldn't move", item, result.reason);
-      }
-    } catch (error) {
-      console.error(error);
+    if (await attempt(show, store.move(item, selected), "move", name)) {
+      onClose();
     }
-    onClose();
   };
 
   return (
     <Dialog
-      title={t("workspace.moveTitle", {
-        name: found.name || t("labels.untitled"),
-      })}
+      title={t("workspace.moveTitle", { name })}
       size="small"
       className="move-dialog"
       autofocus={false}
@@ -107,10 +117,13 @@ export const MoveDialog = ({
             disabled,
             renaming: renaming && {
               id: renaming,
-              onSave: (name) => {
-                store
-                  .renameFolder(renaming, name)
-                  .catch((error) => console.error(error));
+              onSave: (folderName) => {
+                void attempt(
+                  show,
+                  store.renameFolder(renaming, folderName),
+                  "rename",
+                  folderName,
+                );
               },
               onClose: () => setRenaming(null),
             },

@@ -24,7 +24,7 @@ import { drawingsIcon, newDrawingIcon } from "./icons";
 import { navigate, parseRoute, setLeaveGuard } from "./router";
 import { recoverUnavailable, replayUnsaved } from "./unsavedJournal";
 import { useWorkspaceSnapshot } from "./useWorkspaceSnapshot";
-import { discardIfUnused } from "./workspaceActions";
+import { discardIfUnused, reportFailure } from "./workspaceActions";
 
 import type { DrawingId } from "../workspace/types";
 import type { NoticeKind } from "../workspace/ui/DrawingNotice";
@@ -360,7 +360,13 @@ export const DrawingRoute = ({
           onRestore={() => {
             store.restore(drawingRef(id)).then(
               () => setAttempt((attempt) => attempt + 1),
-              (error) => console.error(error),
+              (error) =>
+                reportFailure(
+                  toast.show,
+                  { error },
+                  "restore",
+                  snapshot.drawings.get(id)?.name || t("labels.untitled"),
+                ),
             );
           }}
         />

@@ -13,6 +13,8 @@ import {
 import * as workspaceStore from "../../web/workspaceStore";
 import { splitAppState } from "../../workspace/drawingAppState";
 
+import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
+
 import {
   cleanUpWebApp,
   elementIds,
@@ -24,7 +26,6 @@ import {
   waitForPage,
 } from "./helpers";
 
-import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import type {
   AccountDraft,
   DrawingId,
@@ -314,6 +315,38 @@ describe("the Trash", () => {
         contents: 0,
       }),
     );
+  });
+
+  it("says so when it can't restore or empty", async () => {
+    vi.spyOn(LocalWorkspaceStore.prototype, "restore").mockRejectedValue(
+      new DOMException("The disk is full", "QuotaExceededError"),
+    );
+    vi.spyOn(LocalWorkspaceStore.prototype, "emptyTrash").mockRejectedValue(
+      new DOMException("The disk is full", "QuotaExceededError"),
+    );
+    await store.trash({ kind: "drawing", id: plan.id });
+    await renderPageAt("/trash");
+
+    fireEvent.click(
+      within(trashRow("Floor plan")).getByRole("button", { name: "Restore" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Couldn't restore “Floor plan”.",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Empty trash" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Empty trash" }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Couldn't empty the Trash.",
+      ),
+    );
+    expect(trashedNames()).toEqual(["Floor plan"]);
   });
 
   it("holds what a trashed folder had, until it's restored", async () => {

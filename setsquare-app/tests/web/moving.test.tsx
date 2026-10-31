@@ -6,6 +6,8 @@ import {
   within,
 } from "@setsquare/setsquare/tests/test-utils";
 
+import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
+
 import {
   cleanUpWebApp,
   renderPageAt,
@@ -14,7 +16,6 @@ import {
   waitForPage,
 } from "./helpers";
 
-import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import type { DrawingMeta, Folder } from "../../workspace/types";
 
 const card = (section: "Folders" | "Drawings", name: string) =>
@@ -216,9 +217,73 @@ describe("Move to…", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).toBe(null));
     expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
   });
+
+  it("stays open and says why when the folder chosen went to the Trash", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+    const move = LocalWorkspaceStore.prototype.move;
+    // another tab trashes it just before this one's move reaches the
+    // database, which this tab hasn't heard of yet
+    vi.spyOn(LocalWorkspaceStore.prototype, "move").mockImplementationOnce(
+      async function (this: LocalWorkspaceStore, ...args) {
+        await store.trash({ kind: "folder", id: paintball.id });
+        return move.apply(this, args);
+      },
+    );
+
+    const dialog = await openMoveDialog("Floor plan");
+    fireEvent.click(choice(dialog, "Paintball").button);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Move" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "That folder is in the Trash now.",
+    );
+    expect(screen.getByRole("dialog")).toBe(dialog);
+    expect(store.getSnapshot().drawings.get(plan.id)?.folderId).toBe(
+      studyGroup.id,
+    );
+  });
+
+  it("goes back to the item's folder when the one chosen goes", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+
+    const dialog = await openMoveDialog("Floor plan");
+    fireEvent.click(choice(dialog, "Paintball").button);
+    await store.trash({ kind: "folder", id: paintball.id });
+
+    await waitFor(() =>
+      expect(
+        within(dialog).queryByRole("treeitem", { name: "Paintball" }),
+      ).toBe(null),
+    );
+    expect(choice(dialog, "Study group").item).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(within(dialog).getByRole("button", { name: "Move" })).toBeDisabled();
+  });
 });
 
 describe("dragging cards", () => {
+  it("says why when a dropped card can't move", async () => {
+    await renderPageAt("/");
+    vi.spyOn(LocalWorkspaceStore.prototype, "move").mockResolvedValueOnce({
+      ok: false,
+      reason: "targetTrashed",
+    });
+    const transfer = dataTransfer();
+    const target = card("Folders", "Paintball").closest("li")!;
+
+    fireEvent.dragStart(card("Drawings", "Señor Chang's office"), {
+      dataTransfer: transfer,
+    });
+    fireEvent.drop(target, { dataTransfer: transfer });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "That folder is in the Trash now.",
+    );
+    expect(store.getSnapshot().drawings.get(chang.id)?.folderId).toBe(null);
+  });
+
   it("moves a card dropped on a folder card or a breadcrumb", async () => {
     await renderPageAt("/");
     const transfer = dataTransfer();
