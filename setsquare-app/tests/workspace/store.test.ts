@@ -408,4 +408,40 @@ describe("LocalWorkspaceStore", () => {
 
     expect(abedTab.getSnapshot().folders.get(greendale.id)).toEqual(greendale);
   });
+
+  it("reports a committed write when the refresh after it fails", async () => {
+    const troyTab = await workspace.open();
+    const abedTab = await workspace.open();
+    const changed = new Promise<void>((resolve) => abedTab.subscribe(resolve));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const transaction = IDBDatabase.prototype.transaction;
+    let failed = false;
+    const spy = vi
+      .spyOn(IDBDatabase.prototype, "transaction")
+      .mockImplementation(function (this: IDBDatabase, storeNames, mode) {
+        // the first read is troyTab's refresh, right after its write commits
+        if (!failed && mode !== "readwrite") {
+          failed = true;
+          throw new DOMException("closing", "InvalidStateError");
+        }
+        return transaction.call(this, storeNames, mode);
+      });
+
+    try {
+      const greendale = await troyTab.createFolder(null, "Greendale");
+      await changed;
+
+      expect(failed).toBe(true);
+      expect(abedTab.getSnapshot().folders.get(greendale.id)).toEqual(
+        greendale,
+      );
+      expect(error).toHaveBeenCalledWith(
+        "Couldn't refresh after a committed change",
+        expect.any(DOMException),
+      );
+    } finally {
+      spy.mockRestore();
+      error.mockRestore();
+    }
+  });
 });
