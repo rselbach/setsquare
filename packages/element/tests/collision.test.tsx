@@ -691,7 +691,7 @@ describe("freedraw loop fill containment", () => {
 
 describe("binding hit tests", () => {
   type SceneElement = Ordered<NonDeletedSetsquareElement>;
-  const zoom = (value: number) => ({ value } as Zoom);
+  const zoom = (value: number) => ({ value }) as Zoom;
 
   const hitTest = (
     elements: SceneElement[],

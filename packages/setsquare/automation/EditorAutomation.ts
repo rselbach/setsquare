@@ -267,9 +267,8 @@ export class EditorAutomation {
       case "import_mermaid": {
         const request = toolSchemas.import_mermaid.parse(args);
         return this.mutate(name, request, assertActive, async () => {
-          const { parseMermaidToSetsquare } = await import(
-            "@setsquare/mermaid-to-setsquare"
-          );
+          const { parseMermaidToSetsquare } =
+            await import("@setsquare/mermaid-to-setsquare");
           const converted = await parseMermaidToSetsquare(request.source);
           const elements = convertToSetsquareElements(converted.elements);
           const [left, top] = getCommonBounds(elements);

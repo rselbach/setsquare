@@ -107,7 +107,7 @@ export const createDrawingPersistence = ({
   });
 
   const recoveryProblem = () =>
-    loop.pending() ? images.error() ?? journal.error() : null;
+    loop.pending() ? (images.error() ?? journal.error()) : null;
 
   return {
     load: async () => ({

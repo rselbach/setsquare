@@ -677,10 +677,10 @@ export class LinearElementEditor {
       updates?.suggestedBinding?.element.id !== startBindingElement.id // The end point is not hovering the start bindable + it's binding gap
         ? startBindingElement
         : startIsSelected && // The "other" end (i.e. "start") is dragged
-          endBindingElement &&
-          updates?.suggestedBinding?.element.id !== endBindingElement.id // The start point is not hovering the end bindable + it's binding gap
-        ? endBindingElement
-        : null;
+            endBindingElement &&
+            updates?.suggestedBinding?.element.id !== endBindingElement.id // The start point is not hovering the end bindable + it's binding gap
+          ? endBindingElement
+          : null;
 
     const newLinearElementEditor: LinearElementEditor = {
       ...linearElementEditor,
@@ -796,8 +796,8 @@ export class LinearElementEditor {
               )
             : selectedPointsIndices
           : selectedPointsIndices?.includes(pointerDownState.lastClickedPoint)
-          ? [pointerDownState.lastClickedPoint]
-          : selectedPointsIndices,
+            ? [pointerDownState.lastClickedPoint]
+            : selectedPointsIndices,
       isDragging: false,
       customLineAngle: null,
       initialState: {
@@ -1063,7 +1063,7 @@ export class LinearElementEditor {
     const appState = app.state;
     const elementsMap = scene.getNonDeletedElementsMap();
 
-    const ret: ReturnType<typeof LinearElementEditor["handlePointerDown"]> = {
+    const ret: ReturnType<(typeof LinearElementEditor)["handlePointerDown"]> = {
       didAddPoint: false,
       hitElement: null,
       hitBoundText: false,
@@ -1237,7 +1237,7 @@ export class LinearElementEditor {
             x: scenePointer.x - targetPoint[0],
             y: scenePointer.y - targetPoint[1],
           }
-        : boundTextGrabOffset ?? { x: 0, y: 0 },
+        : (boundTextGrabOffset ?? { x: 0, y: 0 }),
     };
 
     return ret;
@@ -2440,8 +2440,8 @@ const pointDraggingUpdates = (
     const suggestedBindingElement = startIsDragged
       ? start.element
       : endIsDragged
-      ? end.element
-      : null;
+        ? end.element
+        : null;
 
     return {
       positions: naiveDraggingPoints,
@@ -2481,8 +2481,7 @@ const pointDraggingUpdates = (
 
     if (element.startBinding) {
       const startBindable = elementsMap.get(element.startBinding.elementId) as
-        | SetsquareBindableElement
-        | undefined;
+        SetsquareBindableElement | undefined;
       if (startBindable) {
         const startPoint =
           updateBoundPoint(
@@ -2500,8 +2499,7 @@ const pointDraggingUpdates = (
 
     if (element.endBinding) {
       const endBindable = elementsMap.get(element.endBinding.elementId) as
-        | SetsquareBindableElement
-        | undefined;
+        SetsquareBindableElement | undefined;
       if (endBindable) {
         const endPoint =
           updateBoundPoint(
@@ -2639,14 +2637,14 @@ const pointDraggingUpdates = (
       updates.startBinding === undefined
         ? element.startBinding
         : updates.startBinding === null
-        ? null
-        : updates.startBinding,
+          ? null
+          : updates.startBinding,
     endBinding:
       updates.endBinding === undefined
         ? element.endBinding
         : updates.endBinding === null
-        ? null
-        : updates.endBinding,
+          ? null
+          : updates.endBinding,
   };
 
   if (element.cardinal) {
@@ -2671,10 +2669,10 @@ const pointDraggingUpdates = (
   // We need to update the non-dragged point too if bound,
   // so we look up the old binding to trigger updateBoundPoint
   const endBindable = nextArrow.endBinding
-    ? end.element ??
+    ? (end.element ??
       (elementsMap.get(
         nextArrow.endBinding.elementId,
-      )! as SetsquareBindableElement)
+      )! as SetsquareBindableElement))
     : null;
 
   const endLocalPoint =
@@ -2683,15 +2681,15 @@ const pointDraggingUpdates = (
     getFeatureFlag("COMPLEX_BINDINGS")
       ? nextArrow.points[0]
       : endBindable
-      ? updateBoundPoint(
-          nextArrow,
-          "endBinding",
-          nextArrow.endBinding,
-          endBindable,
-          elementsMap,
-          endIsDragged,
-        ) || nextArrow.points[nextArrow.points.length - 1]
-      : nextArrow.points[nextArrow.points.length - 1];
+        ? updateBoundPoint(
+            nextArrow,
+            "endBinding",
+            nextArrow.endBinding,
+            endBindable,
+            elementsMap,
+            endIsDragged,
+          ) || nextArrow.points[nextArrow.points.length - 1]
+        : nextArrow.points[nextArrow.points.length - 1];
 
   // We need to keep the simulated next arrow up-to-date, because
   // updateBoundPoint looks at the opposite point
@@ -2700,29 +2698,29 @@ const pointDraggingUpdates = (
   // We need to update the non-dragged point too if bound,
   // so we look up the old binding to trigger updateBoundPoint
   const startBindable = nextArrow.startBinding
-    ? start.element ??
+    ? (start.element ??
       (elementsMap.get(
         nextArrow.startBinding.elementId,
-      )! as SetsquareBindableElement)
+      )! as SetsquareBindableElement))
     : null;
 
   const startLocalPoint =
     endIsDraggingOverStartElement && getFeatureFlag("COMPLEX_BINDINGS")
       ? nextArrow.points[0]
       : startIsDraggingOverEndElement &&
-        app.state.bindMode !== "inside" &&
-        getFeatureFlag("COMPLEX_BINDINGS")
-      ? endLocalPoint
-      : startBindable
-      ? updateBoundPoint(
-          nextArrow,
-          "startBinding",
-          nextArrow.startBinding,
-          startBindable,
-          elementsMap,
-          startIsDragged,
-        ) || nextArrow.points[0]
-      : nextArrow.points[0];
+          app.state.bindMode !== "inside" &&
+          getFeatureFlag("COMPLEX_BINDINGS")
+        ? endLocalPoint
+        : startBindable
+          ? updateBoundPoint(
+              nextArrow,
+              "startBinding",
+              nextArrow.startBinding,
+              startBindable,
+              elementsMap,
+              startIsDragged,
+            ) || nextArrow.points[0]
+          : nextArrow.points[0];
 
   const endChanged =
     !(
@@ -2754,11 +2752,11 @@ const pointDraggingUpdates = (
                 isDragging: true,
               }
             : idx === element.points.length - 1
-            ? {
-                point: endLocalPoint,
-                isDragging: true,
-              }
-            : naiveDraggingPoints.get(idx)!,
+              ? {
+                  point: endLocalPoint,
+                  isDragging: true,
+                }
+              : naiveDraggingPoints.get(idx)!,
         ];
       }),
     ),

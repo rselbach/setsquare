@@ -40,7 +40,7 @@ const storeWith = (
   ({
     getDrawingMeta: vi.fn(async () => meta),
     loadDrawingContent: vi.fn(loadDrawingContent),
-  } as Partial<WorkspaceStore> as WorkspaceStore);
+  }) as Partial<WorkspaceStore> as WorkspaceStore;
 
 describe("checkRemoteChanges", () => {
   it("loads a newer revision into a session with nothing to save", async () => {

@@ -19,9 +19,10 @@ import type { DrawingMeta, Folder } from "../../workspace/types";
 // each card calls useDragSource once as it renders, and each place to drop
 // calls useDropTarget once, so their calls count renders
 vi.mock("../../workspace/ui/useWorkspaceDrag", async (importOriginal) => {
-  const actual = await importOriginal<
-    typeof import("../../workspace/ui/useWorkspaceDrag")
-  >();
+  const actual =
+    await importOriginal<
+      typeof import("../../workspace/ui/useWorkspaceDrag")
+    >();
   return {
     ...actual,
     useDragSource: vi.fn(actual.useDragSource),

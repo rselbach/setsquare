@@ -21,7 +21,9 @@
     border: 1px solid var(--color-primary-light-darker);
     border-radius: 1.5rem;
     background: var(--island-bg-color);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 16px 48px rgba(0, 0, 0, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.04);
     text-align: center;
   }
 

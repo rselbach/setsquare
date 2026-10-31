@@ -224,7 +224,7 @@ describe("flow chart creation", () => {
     );
     expect(children.length).toBe(5);
 
-    const overlaps = (a: typeof children[0], b: typeof children[0]) =>
+    const overlaps = (a: (typeof children)[0], b: (typeof children)[0]) =>
       a.x < b.x + b.width &&
       a.x + a.width > b.x &&
       a.y < b.y + b.height &&

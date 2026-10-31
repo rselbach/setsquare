@@ -642,8 +642,7 @@ describe("restoreElements", () => {
     });
 
     const restoredArrow = restoredElements[0] as
-      | SetsquareArrowElement
-      | undefined;
+      SetsquareArrowElement | undefined;
 
     expect(restoredArrow).not.toBeUndefined();
     expect(restoredArrow?.isDeleted).toBe(true);
@@ -710,11 +709,9 @@ describe("restoreElements", () => {
     );
 
     const restoredLinear = restoredElements[0] as
-      | SetsquareLinearElement
-      | undefined;
+      SetsquareLinearElement | undefined;
     const restoredArrow = restoredElements[1] as
-      | SetsquareArrowElement
-      | undefined;
+      SetsquareArrowElement | undefined;
 
     expect(restoredLinear?.type).toBe("line");
     expect(restoredLinear?.points).toEqual([

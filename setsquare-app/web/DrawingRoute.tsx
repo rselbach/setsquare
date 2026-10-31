@@ -38,7 +38,7 @@ import type { QueuedTasks } from "./editorTasks";
 import type { RecoveredDrawing } from "./unsavedJournal";
 import type { DrawingActions } from "./workspaceActions";
 
-const drawingRef = (id: DrawingId) => ({ kind: "drawing", id } as const);
+const drawingRef = (id: DrawingId) => ({ kind: "drawing", id }) as const;
 
 // a drawing in the Trash isn't opened, so it isn't marked as opened either
 const openDrawing = async (
@@ -100,8 +100,7 @@ const ReportOpenDrawing = ({
  * it's in the Trash or isn't there. Restoring it opens it again.
  */
 type Session = { id: DrawingId; attempt: number } & (
-  | { kind: "editor"; persistence: DrawingPersistence }
-  | { kind: NoticeKind }
+  { kind: "editor"; persistence: DrawingPersistence } | { kind: NoticeKind }
 );
 
 type EditorSession = Extract<Session, { kind: "editor" }>;
@@ -295,8 +294,8 @@ export const DrawingRoute = ({
   const gone: NoticeKind | null = !snapshot.drawings.has(id)
     ? "missing"
     : isTrashed(snapshot, drawingRef(id))
-    ? "trashed"
-    : null;
+      ? "trashed"
+      : null;
   useEffect(() => {
     if (!editor || !gone || leaving.current === editor) {
       return;

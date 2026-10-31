@@ -35,9 +35,8 @@ const testEnv = vi.hoisted(() => ({ enabled: true }));
 // tab sync is off in tests, so turn it on while the test syncs
 vi.mock("@setsquare/common", async (importOriginal) => {
   const module = await importOriginal<typeof import("@setsquare/common")>();
-  const { mockThrottleRAF } = await import(
-    "@setsquare/setsquare/tests/helpers/mocks"
-  );
+  const { mockThrottleRAF } =
+    await import("@setsquare/setsquare/tests/helpers/mocks");
   return {
     ...module,
     throttleRAF: mockThrottleRAF,
@@ -217,9 +216,9 @@ describe("a drawing open in two tabs", () => {
     const copyId = window.location.pathname.slice("/d/".length) as DrawingId;
     await waitFor(async () =>
       expect(
-        (
-          await otherTab.loadDrawingContent(copyId)
-        )?.elements.map(({ id }) => id),
+        (await otherTab.loadDrawingContent(copyId))?.elements.map(
+          ({ id }) => id,
+        ),
       ).toEqual(["troy", "abed"]),
     );
   });

@@ -1103,8 +1103,8 @@ const getNextMultipleWidthAndHeightFromPointer = (
     shouldMaintainAspectRatio?: boolean;
   } = {},
 ) => {
-  const originalElementsArray = selectedElements.map(
-    (el) => originalElementsMap.get(el.id)!,
+  const originalElementsArray = selectedElements.map((el) =>
+    originalElementsMap.get(el.id)!,
   );
 
   // getCommonBoundingBox() uses getBoundTextElement() which returns null for
@@ -1271,8 +1271,7 @@ export const resizeMultipleElements = (
     ) => {
       // originalElementsMap holds snapshots of the (non-deleted) selection
       const origElement = originalElementsMap!.get(element.id) as
-        | NonDeletedSetsquareElement
-        | undefined;
+        NonDeletedSetsquareElement | undefined;
       if (origElement) {
         acc.push({ orig: origElement, latest: element });
       }
@@ -1443,7 +1442,7 @@ export const resizeMultipleElements = (
         false,
       );
 
-      const update: typeof elementsAndUpdates[0]["update"] = {
+      const update: (typeof elementsAndUpdates)[0]["update"] = {
         x,
         y,
         width,

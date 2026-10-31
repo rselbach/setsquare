@@ -259,8 +259,8 @@ const createContainerElement = (node: StateNode): ValidContainer => {
     node.shape === "choice"
       ? "diamond"
       : node.shape === "stateStart" || node.shape === "stateEnd"
-      ? "ellipse"
-      : "rectangle";
+        ? "ellipse"
+        : "rectangle";
   const hasRoundedCorners =
     node.shape === "rect" ||
     node.shape === "rectWithTitle" ||

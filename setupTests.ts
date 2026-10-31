@@ -102,9 +102,10 @@ Object.defineProperty(window, "SETSQUARE_ASSET_PATH", {
 vi.mock(
   "./packages/setsquare/fonts/SetsquareFontFace",
   async (importOriginal) => {
-    const mod = await importOriginal<
-      typeof import("./packages/setsquare/fonts/SetsquareFontFace")
-    >();
+    const mod =
+      await importOriginal<
+        typeof import("./packages/setsquare/fonts/SetsquareFontFace")
+      >();
     const SetsquareFontFaceImpl = mod.SetsquareFontFace;
 
     return {

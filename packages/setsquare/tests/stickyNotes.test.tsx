@@ -61,9 +61,7 @@ const RED = COLOR_PALETTE.red[4];
 
 const getElement = <
   T extends
-    | SetsquareStickyNoteElement
-    | SetsquareTextElement
-    | SetsquareArrowElement,
+    SetsquareStickyNoteElement | SetsquareTextElement | SetsquareArrowElement,
 >(
   id: string,
 ) => h.elements.find((element) => element.id === id) as NonDeleted<T>;

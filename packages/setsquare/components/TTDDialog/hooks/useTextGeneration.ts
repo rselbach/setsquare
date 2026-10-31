@@ -187,9 +187,8 @@ export const useTextGeneration = ({
       }
 
       try {
-        const { parseMermaidToSetsquare } = await import(
-          "@setsquare/mermaid-to-setsquare"
-        );
+        const { parseMermaidToSetsquare } =
+          await import("@setsquare/mermaid-to-setsquare");
         await parseMermaidToSetsquare(generatedResponse ?? "");
       } catch (error: any) {
         const _error = new Error(

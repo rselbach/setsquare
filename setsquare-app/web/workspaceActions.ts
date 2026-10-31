@@ -117,10 +117,10 @@ const failureText = (
     "reason" in failure
       ? failure.reason
       : cause instanceof ApiError &&
-        cause.status === 409 &&
-        cause.message === "target_trashed"
-      ? "targetTrashed"
-      : null;
+          cause.status === 409 &&
+          cause.message === "target_trashed"
+        ? "targetTrashed"
+        : null;
   switch (reason) {
     case "targetTrashed":
       return t("workspace.failedTargetTrashed");

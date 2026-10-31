@@ -67,9 +67,9 @@ const snapshot = (
 });
 
 const folderRef = (id: string) =>
-  ({ kind: "folder", id: id as FolderId } as const);
+  ({ kind: "folder", id: id as FolderId }) as const;
 const drawingRef = (id: string) =>
-  ({ kind: "drawing", id: id as DrawingId } as const);
+  ({ kind: "drawing", id: id as DrawingId }) as const;
 
 const ids = ({ folders, drawings }: WorkspaceItems) => ({
   folders: folders.map((each) => each.id),

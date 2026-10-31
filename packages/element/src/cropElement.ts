@@ -66,14 +66,14 @@ export const cropElement = (
     shouldResizeFromCenter || !/[ew]/.test(transformHandle)
       ? 0.5
       : transformHandle.includes("w")
-      ? 1
-      : 0;
+        ? 1
+        : 0;
   const anchorY =
     shouldResizeFromCenter || !/[ns]/.test(transformHandle)
       ? 0.5
       : transformHandle.includes("n")
-      ? 1
-      : 0;
+        ? 1
+        : 0;
   // as far as the image reaches from what stays put
   const getMaxSize = (
     anchor: number,
@@ -86,8 +86,8 @@ export const cropElement = (
     return anchor === 0
       ? after
       : anchor === 1
-      ? before
-      : Math.min(before, after) * 2;
+        ? before
+        : Math.min(before, after) * 2;
   };
   const maxWidth = getMaxSize(anchorX, left, width, uncroppedWidth);
   const maxHeight = getMaxSize(anchorY, top, height, uncroppedHeight);
@@ -103,8 +103,8 @@ export const cropElement = (
       transformHandle === "n" || transformHandle === "s"
         ? nextHeight * ratio
         : transformHandle === "e" || transformHandle === "w"
-        ? nextWidth
-        : Math.max(nextWidth, nextHeight * ratio),
+          ? nextWidth
+          : Math.max(nextWidth, nextHeight * ratio),
       Math.max(minWidth, minHeight * ratio),
       Math.min(maxWidth, maxHeight * ratio),
     );

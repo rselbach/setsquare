@@ -34,8 +34,8 @@ export class SetsquareFontFace {
       return;
     }
 
-    const codepoints = Array.from(characters).map(
-      (char) => char.codePointAt(0)!,
+    const codepoints = Array.from(characters).map((char) =>
+      char.codePointAt(0)!,
     );
 
     return this.getContent(codepoints).then(

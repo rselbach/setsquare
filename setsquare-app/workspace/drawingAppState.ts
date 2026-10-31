@@ -38,8 +38,8 @@ export const DRAWING_VIEW_KEYS = appStateKeys([
   "selectedLinearElement",
 ]);
 
-export type DrawingContentKey = typeof DRAWING_CONTENT_KEYS[number];
-export type DrawingViewKey = typeof DRAWING_VIEW_KEYS[number];
+export type DrawingContentKey = (typeof DRAWING_CONTENT_KEYS)[number];
+export type DrawingViewKey = (typeof DRAWING_VIEW_KEYS)[number];
 
 /**
  * The editor settings that carry across drawings, such as the current tool

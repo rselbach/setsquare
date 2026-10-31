@@ -7,9 +7,7 @@ import type { AccountSession } from "./workspaceStore";
 
 /** Account changes never replace an editor that may still have unsaved work. */
 export type AccountState =
-  | AccountSession
-  | { kind: "expired"; user: AccountUser }
-  | { kind: "changed" };
+  AccountSession | { kind: "expired"; user: AccountUser } | { kind: "changed" };
 
 /** The account that owns the mounted workspace and its browser host. */
 export type WorkspaceAccount = {

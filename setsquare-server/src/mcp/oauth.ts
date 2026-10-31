@@ -22,9 +22,9 @@ const escape = (value: string) =>
   value.replace(
     /[&<>"']/g,
     (character) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
         character
-      ]!),
+      ]!,
   );
 const field = (name: string, value: string) =>
   `<input type="hidden" name="${name}" value="${escape(value)}">`;

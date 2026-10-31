@@ -167,8 +167,8 @@ export const WorkspaceNav = ({
     place?.kind === "drawings"
       ? place.folderId
       : open
-      ? parentOf(snapshot, open)
-      : undefined;
+        ? parentOf(snapshot, open)
+        : undefined;
   const drawings =
     listed === undefined
       ? []

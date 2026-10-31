@@ -80,13 +80,11 @@ describe("the empty workspace's import prompt", () => {
   it("imports and says how it went", async () => {
     const { run, show } = renderRoot(
       { kind: "ready", pending: 1 },
-      vi.fn(
-        async (): Promise<BrowserImportState> => ({
-          kind: "imported",
-          pending: 0,
-          result: { imported: 1, skipped: [] },
-        }),
-      ),
+      vi.fn(async (): Promise<BrowserImportState> => ({
+        kind: "imported",
+        pending: 0,
+        result: { imported: 1, skipped: [] },
+      })),
     );
 
     fireEvent.click(importButton()!);

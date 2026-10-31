@@ -33,12 +33,12 @@ const sideOf = (binding: FixedPointBinding | null) => {
   return y < 0
     ? "up"
     : y > 1
-    ? "down"
-    : x < 0
-    ? "left"
-    : x > 1
-    ? "right"
-    : "inside";
+      ? "down"
+      : x < 0
+        ? "left"
+        : x > 1
+          ? "right"
+          : "inside";
 };
 
 const arrow = () =>
@@ -327,9 +327,12 @@ describe.each(["elbow", "sharp", "round"] as const)(
     it("faces the sides of rotated elements", () => {
       setupBoxes();
       // turned a quarter clockwise, the bottom box's left side faces up
-      API.updateElement(h.elements.find(({ id }) => id === "bottom")!, {
-        angle: (Math.PI / 2) as Radians,
-      });
+      API.updateElement(
+        h.elements.find(({ id }) => id === "bottom")!,
+        {
+          angle: (Math.PI / 2) as Radians,
+        },
+      );
       drawArrow([50, 30], [50, 230]);
 
       expect(sides()).toEqual(["down", "left"]);

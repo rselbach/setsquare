@@ -139,8 +139,8 @@ export const resolveColorTarget = (
       stickyCount === 0
         ? "regular"
         : stickyCount === targets.length
-        ? "sticky"
-        : "mixed";
+          ? "sticky"
+          : "mixed";
   }
 
   const keys = DEFAULT_KEYS[property];
@@ -160,16 +160,16 @@ export const resolveColorTarget = (
           ? STICKY_NOTE_STROKE_PICKS
           : STICKY_NOTE_BACKGROUND_PICKS
         : isStroke
-        ? DEFAULT_ELEMENT_STROKE_PICKS
-        : DEFAULT_ELEMENT_BACKGROUND_PICKS,
+          ? DEFAULT_ELEMENT_STROKE_PICKS
+          : DEFAULT_ELEMENT_BACKGROUND_PICKS,
     customizableTopPicks:
       kind === "sticky"
         ? isStroke
           ? "stickyNoteStroke"
           : "stickyNoteBackground"
         : isStroke
-        ? "elementStroke"
-        : "elementBackground",
+          ? "elementStroke"
+          : "elementBackground",
     excludedColors: kind === "sticky" ? STICKY_NOTE_EXCLUDED_COLORS : undefined,
   };
 };
@@ -185,8 +185,8 @@ export const getColorTargetAppStateUpdates = (
       key === "currentItemStickynoteStrokeColor"
         ? normalizeStickyNoteStrokeColor(color)
         : key === "currentItemStickynoteBackgroundColor"
-        ? normalizeStickyNoteBackgroundColor(color)
-        : color;
+          ? normalizeStickyNoteBackgroundColor(color)
+          : color;
   }
   return updates;
 };

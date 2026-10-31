@@ -101,104 +101,101 @@ export type ValidLinearElement = {
     textAlign?: TextAlign;
     verticalAlign?: VerticalAlign;
   } & FragmentConstructorOpts;
-  end?:
+  end?: (
     | (
-        | (
-            | {
-                type: Exclude<
-                  SetsquareBindableElement["type"],
-                  | "image"
-                  | "text"
-                  | "frame"
-                  | "magicframe"
-                  | "embeddable"
-                  | "iframe"
-                >;
-                id?: SetsquareGenericElement["id"];
-              }
-            | {
-                id: SetsquareGenericElement["id"];
-                type?: Exclude<
-                  SetsquareBindableElement["type"],
-                  | "image"
-                  | "text"
-                  | "frame"
-                  | "magicframe"
-                  | "embeddable"
-                  | "iframe"
-                >;
-              }
-          )
-        | ((
-            | {
-                type: "text";
-                text: string;
-              }
-            | {
-                type?: "text";
-                id: SetsquareTextElement["id"];
-                text: string;
-              }
-          ) &
-            Partial<Omit<SetsquareTextElement, "created">>)
+        | {
+            type: Exclude<
+              SetsquareBindableElement["type"],
+              | "image"
+              | "text"
+              | "frame"
+              | "magicframe"
+              | "embeddable"
+              | "iframe"
+            >;
+            id?: SetsquareGenericElement["id"];
+          }
+        | {
+            id: SetsquareGenericElement["id"];
+            type?: Exclude<
+              SetsquareBindableElement["type"],
+              | "image"
+              | "text"
+              | "frame"
+              | "magicframe"
+              | "embeddable"
+              | "iframe"
+            >;
+          }
+      )
+    | ((
+        | {
+            type: "text";
+            text: string;
+          }
+        | {
+            type?: "text";
+            id: SetsquareTextElement["id"];
+            text: string;
+          }
       ) &
-        FragmentConstructorOpts;
-  start?:
+        Partial<Omit<SetsquareTextElement, "created">>)
+  ) &
+    FragmentConstructorOpts;
+  start?: (
     | (
-        | (
-            | {
-                type: Exclude<
-                  SetsquareBindableElement["type"],
-                  | "image"
-                  | "text"
-                  | "frame"
-                  | "magicframe"
-                  | "embeddable"
-                  | "iframe"
-                >;
-                id?: SetsquareGenericElement["id"];
-              }
-            | {
-                id: SetsquareGenericElement["id"];
-                type?: Exclude<
-                  SetsquareBindableElement["type"],
-                  | "image"
-                  | "text"
-                  | "frame"
-                  | "magicframe"
-                  | "embeddable"
-                  | "iframe"
-                >;
-              }
-          )
-        | ((
-            | {
-                type: "text";
-                text: string;
-              }
-            | {
-                type?: "text";
-                id: SetsquareTextElement["id"];
-                text: string;
-              }
-          ) &
-            Partial<Omit<SetsquareTextElement, "created">>)
+        | {
+            type: Exclude<
+              SetsquareBindableElement["type"],
+              | "image"
+              | "text"
+              | "frame"
+              | "magicframe"
+              | "embeddable"
+              | "iframe"
+            >;
+            id?: SetsquareGenericElement["id"];
+          }
+        | {
+            id: SetsquareGenericElement["id"];
+            type?: Exclude<
+              SetsquareBindableElement["type"],
+              | "image"
+              | "text"
+              | "frame"
+              | "magicframe"
+              | "embeddable"
+              | "iframe"
+            >;
+          }
+      )
+    | ((
+        | {
+            type: "text";
+            text: string;
+          }
+        | {
+            type?: "text";
+            id: SetsquareTextElement["id"];
+            text: string;
+          }
       ) &
-        FragmentConstructorOpts;
+        Partial<Omit<SetsquareTextElement, "created">>)
+  ) &
+    FragmentConstructorOpts;
 } & Partial<SetsquareLinearElement>;
 
-export type ValidContainer =
-  | {
-      type: Exclude<SetsquareGenericElement["type"], "selection">;
-      id?: SetsquareGenericElement["id"];
-      label?: {
-        text: string;
-        fontSize?: number;
-        fontFamily?: FontFamilyValues;
-        textAlign?: TextAlign;
-        verticalAlign?: VerticalAlign;
-      } & FragmentConstructorOpts;
-    } & ElementConstructorOpts;
+export type ValidContainer = {
+  type: Exclude<SetsquareGenericElement["type"], "selection">;
+  id?: SetsquareGenericElement["id"];
+  label?: {
+    text: string;
+    fontSize?: number;
+    fontFamily?: FontFamilyValues;
+    textAlign?: TextAlign;
+    verticalAlign?: VerticalAlign;
+  } & FragmentConstructorOpts;
+} & ElementConstructorOpts;
 
 /**
  * A sticky note: an always-filled note whose label auto-fits. `label.fontSize`

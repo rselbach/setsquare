@@ -543,9 +543,7 @@ export function useSetsquareStateValue<T>(
 ): T | undefined;
 export function useSetsquareStateValue(
   selector:
-    | keyof AppState
-    | (keyof AppState)[]
-    | ((appState: AppState) => unknown),
+    keyof AppState | (keyof AppState)[] | ((appState: AppState) => unknown),
 ) {
   return _useAppStateValue(selector as any, false);
 }

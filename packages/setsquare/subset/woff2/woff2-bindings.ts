@@ -2724,14 +2724,12 @@ const Module = (function () {
           }
           let getLength;
           const valueIsOfTypeString = typeof value === "string";
-          if (
-            !(
-              valueIsOfTypeString ||
-              value instanceof Uint8Array ||
-              value instanceof Uint8ClampedArray ||
-              value instanceof Int8Array
-            )
-          ) {
+          if (!(
+            valueIsOfTypeString ||
+            value instanceof Uint8Array ||
+            value instanceof Uint8ClampedArray ||
+            value instanceof Int8Array
+          )) {
             throwBindingError("Cannot pass non-string to std::string");
           }
           if (stdStringIsUTF8 && valueIsOfTypeString) {

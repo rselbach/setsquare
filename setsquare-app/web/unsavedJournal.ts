@@ -35,8 +35,8 @@ const keyFor = (id: DrawingId, account?: string, draftId?: string) =>
   account
     ? `${prefixFor(id, account)}${draftId}`
     : draftId
-    ? `${localPrefixFor(id)}${draftId}`
-    : KEY;
+      ? `${localPrefixFor(id)}${draftId}`
+      : KEY;
 
 /**
  * The account's localStorage drafts as stored, without restoring them; a

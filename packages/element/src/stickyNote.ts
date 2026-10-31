@@ -297,12 +297,10 @@ export const getStickyNotePathCommands = (
   if (!radius && liftedCorner === -1) {
     return [
       { type: "move", point: points[0] },
-      ...points.slice(1).map(
-        (point): StickyNotePathCommand => ({
-          type: "line",
-          point,
-        }),
-      ),
+      ...points.slice(1).map((point): StickyNotePathCommand => ({
+        type: "line",
+        point,
+      })),
     ];
   }
 
@@ -407,7 +405,7 @@ export const getBaseFontSize = (
   elementsMap: ElementsMap,
 ) => {
   return isStickyNoteBoundText(textElement, elementsMap)
-    ? textElement.baseFontSize ?? textElement.fontSize
+    ? (textElement.baseFontSize ?? textElement.fontSize)
     : textElement.fontSize;
 };
 
@@ -791,7 +789,7 @@ export const getStickyNoteResizeIntent = (
     : container;
   const origText = getBoundTextElement(origSticky, originalElementsMap);
   const ceiling = origText
-    ? origText.baseFontSize ?? origText.fontSize
+    ? (origText.baseFontSize ?? origText.fontSize)
     : undefined;
 
   if (flip) {
@@ -812,13 +810,13 @@ export const getStickyNoteResizeIntent = (
     anchor: fromCenter
       ? "center"
       : handleDirection.includes("n")
-      ? "bottom"
-      : proportional &&
-        isSideHandle &&
-        (handleDirection === "e" || handleDirection === "w")
-      ? // Shift+E/W holds the opposite side's midpoint, i.e. the vertical center
-        "center"
-      : "top",
+        ? "bottom"
+        : proportional &&
+            isSideHandle &&
+            (handleDirection === "e" || handleDirection === "w")
+          ? // Shift+E/W holds the opposite side's midpoint, i.e. the vertical center
+            "center"
+          : "top",
   };
 };
 
@@ -840,8 +838,7 @@ export const updateStickyNoteLayout = (
     /** the label to lay out when it is an uncommitted clone (font actions clone before install) */
     text?: SetsquareTextElement | null;
     bindings?:
-      | { simultaneouslyUpdated?: readonly NonDeletedSetsquareElement[] }
-      | false;
+      { simultaneouslyUpdated?: readonly NonDeletedSetsquareElement[] } | false;
   } = {},
 ): StickyNoteLayout => {
   const elementsMap = scene.getNonDeletedElementsMap();

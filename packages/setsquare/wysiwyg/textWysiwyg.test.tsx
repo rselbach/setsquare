@@ -782,7 +782,7 @@ describe("textWysiwyg", () => {
         right: left + width,
         bottom: 400,
         toJSON: () => {},
-      } as DOMRect);
+      }) as DOMRect;
     const dockSidebar = (left: number, width: number) => {
       const root = textarea.closest<HTMLElement>(".setsquare")!;
       root.getBoundingClientRect = domRect(0, 800);
@@ -1139,7 +1139,7 @@ describe("textWysiwyg", () => {
             ...domRect(500, 204)(),
             height: statsHeight,
             bottom: statsHeight,
-          } as DOMRect);
+          }) as DOMRect;
         updateTextEditor(textarea, text);
         // the canvas follows the caret once the update's in the app's state
         await act(() => new Promise((resolve) => setTimeout(resolve)));
@@ -3452,7 +3452,7 @@ describe("textWysiwyg", () => {
         originalText: "this is it my friends ald aksdl askdlasdk",
         autoResize: false,
         ...overrides,
-      } as SetsquareTextElement);
+      }) as SetsquareTextElement;
 
     // unwrapping resizes the box, so whichever edge the alignment pins has to
     // stay put — otherwise the text slides out from under itself

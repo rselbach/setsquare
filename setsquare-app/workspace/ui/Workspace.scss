@@ -622,7 +622,8 @@
     overflow-y: auto;
     // the table's own faint grid, as on a cutting mat
     background-color: var(--vellum-2);
-    background-image: linear-gradient(
+    background-image:
+      linear-gradient(
         color-mix(in srgb, var(--rule) 55%, transparent) 1px,
         transparent 1px
       ),
@@ -680,7 +681,9 @@
   .workspace-card {
     position: relative;
     min-width: 0;
-    transition: box-shadow 0.15s ease-out, opacity 0.15s ease-out;
+    transition:
+      box-shadow 0.15s ease-out,
+      opacity 0.15s ease-out;
 
     &:hover {
       box-shadow: 0.25rem 0.25rem 0 var(--rule-strong);
@@ -1166,7 +1169,8 @@
     padding: var(--workspace-gutter);
     overflow-y: auto;
     background-color: var(--vellum-2);
-    background-image: linear-gradient(
+    background-image:
+      linear-gradient(
         color-mix(in srgb, var(--rule) 55%, transparent) 1px,
         transparent 1px
       ),
@@ -1307,7 +1311,9 @@
       box-shadow: var(--shadow-island-stronger);
       transform: translateX(-100%);
       visibility: hidden;
-      transition: transform 0.2s ease-out, visibility 0.2s;
+      transition:
+        transform 0.2s ease-out,
+        visibility 0.2s;
     }
 
     &[dir="rtl"] .workspace-nav {

@@ -35,10 +35,7 @@ import type {
  * applied it, or an error status from a proxy.
  */
 export type Fault =
-  | "offline"
-  | "stall"
-  | "lost-response"
-  | { status: number; error: string };
+  "offline" | "stall" | "lost-response" | { status: number; error: string };
 
 type StoredDrawing = {
   meta: DrawingMeta;
@@ -161,7 +158,7 @@ export const fakeAccountServer = ({
     }
     stored.meta = {
       ...stored.meta,
-      trashedAt: kind === "trash" ? stored.meta.trashedAt ?? now() : null,
+      trashedAt: kind === "trash" ? (stored.meta.trashedAt ?? now()) : null,
     };
     return { kind: "change", result: OK };
   };

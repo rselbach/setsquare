@@ -28,7 +28,6 @@ import {
 
 import { isUsingAdaptiveRadius, getSelectedElements } from "@setsquare/element";
 
-
 import { FONT_SIZES } from "@setsquare/common";
 
 import type {
@@ -63,7 +62,6 @@ import type { Action } from "../../actions/types";
 import type App from "../../components/App";
 import type { AppState } from "../../types";
 
-
 const readFile = util.promisify(fs.readFile);
 // so that window.h is available when App.tsx is not imported as well.
 createTestHook();
@@ -91,21 +89,27 @@ export class API {
     });
   };
 
-  static setSelectedElements = (elements: NonDeletedSetsquareElement[], editingGroupId?: string | null) => {
+  static setSelectedElements = (
+    elements: NonDeletedSetsquareElement[],
+    editingGroupId?: string | null,
+  ) => {
     act(() => {
       h.setState({
         ...selectGroupsForSelectedElements(
-        {
-          editingGroupId: editingGroupId ?? null,
-          selectedElementIds: elements.reduce((acc, element) => {
-            acc[element.id] = true;
-            return acc;
-          }, {} as Record<SetsquareElement["id"], true>),
-        },
-        elements,
-        h.state,
-        h.app,
-        )
+          {
+            editingGroupId: editingGroupId ?? null,
+            selectedElementIds: elements.reduce(
+              (acc, element) => {
+                acc[element.id] = true;
+                return acc;
+              },
+              {} as Record<SetsquareElement["id"], true>,
+            ),
+          },
+          elements,
+          h.state,
+          h.app,
+        ),
       });
     });
   };
@@ -160,8 +164,11 @@ export class API {
   };
 
   static getElement = <T extends SetsquareElement>(element: T): T => {
-    return h.app.scene.getElementsMapIncludingDeleted().get(element.id) as T || element;
-  }
+    return (
+      (h.app.scene.getElementsMapIncludingDeleted().get(element.id) as T) ||
+      element
+    );
+  };
 
   static createElement = <
     T extends Exclude<SetsquareElementType, "selection"> = "rectangle",
@@ -213,7 +220,9 @@ export class API {
     containerId?: T extends "text"
       ? SetsquareTextElement["containerId"]
       : never;
-    points?: T extends "arrow" | "line" | "freedraw" ? readonly LocalPoint[] : never;
+    points?: T extends "arrow" | "line" | "freedraw"
+      ? readonly LocalPoint[]
+      : never;
     polygon?: T extends "line" ? boolean : never;
     strokeOptions?: T extends "freedraw"
       ? SetsquareFreeDrawElement["strokeOptions"]
@@ -223,16 +232,20 @@ export class API {
     scale?: T extends "image" ? SetsquareImageElement["scale"] : never;
     status?: T extends "image" ? SetsquareImageElement["status"] : never;
     startBinding?: T extends "arrow"
-      ? SetsquareArrowElement["startBinding"] | SetsquareElbowArrowElement["startBinding"]
+      ? | SetsquareArrowElement["startBinding"]
+        | SetsquareElbowArrowElement["startBinding"]
       : never;
     endBinding?: T extends "arrow"
-      ? SetsquareArrowElement["endBinding"] | SetsquareElbowArrowElement["endBinding"]
+      ? | SetsquareArrowElement["endBinding"]
+        | SetsquareElbowArrowElement["endBinding"]
       : never;
     startArrowhead?: T extends "arrow"
-      ? SetsquareArrowElement["startArrowhead"] | SetsquareElbowArrowElement["startArrowhead"]
+      ? | SetsquareArrowElement["startArrowhead"]
+        | SetsquareElbowArrowElement["startArrowhead"]
       : never;
     endArrowhead?: T extends "arrow"
-      ? SetsquareArrowElement["endArrowhead"] | SetsquareElbowArrowElement["endArrowhead"]
+      ? | SetsquareArrowElement["endArrowhead"]
+        | SetsquareElbowArrowElement["endArrowhead"]
       : never;
     elbowed?: boolean;
     cardinal?: boolean;
@@ -241,18 +254,18 @@ export class API {
     T extends "arrow" | "line"
       ? SetsquareLinearElement
       : T extends "freedraw"
-      ? SetsquareFreeDrawElement
-      : T extends "text"
-      ? SetsquareTextElement
-      : T extends "image"
-      ? SetsquareImageElement
-      : T extends "frame"
-      ? SetsquareFrameElement
-      : T extends "magicframe"
-      ? SetsquareMagicFrameElement
-      : T extends "stickynote"
-      ? SetsquareStickyNoteElement
-      : SetsquareGenericElement
+        ? SetsquareFreeDrawElement
+        : T extends "text"
+          ? SetsquareTextElement
+          : T extends "image"
+            ? SetsquareImageElement
+            : T extends "frame"
+              ? SetsquareFrameElement
+              : T extends "magicframe"
+                ? SetsquareMagicFrameElement
+                : T extends "stickynote"
+                  ? SetsquareStickyNoteElement
+                  : SetsquareGenericElement
   > => {
     let element: Mutable<SetsquareElement> = null!;
 
@@ -299,15 +312,16 @@ export class API {
       )
         ? {
             type: isUsingAdaptiveRadius(type)
-                    ? ROUNDNESS.ADAPTIVE_RADIUS
-                    : ROUNDNESS.PROPORTIONAL_RADIUS,
+              ? ROUNDNESS.ADAPTIVE_RADIUS
+              : ROUNDNESS.PROPORTIONAL_RADIUS,
           }
         : null,
       roughness: rest.roughness ?? appState.currentItemRoughness,
       opacity: rest.opacity ?? appState.currentItemOpacity,
       boundElements: rest.boundElements ?? null,
       locked: rest.locked ?? false,
-      created: rest.created === undefined ? getUpdatedTimestamp() : rest.created,
+      created:
+        rest.created === undefined ? getUpdatedTimestamp() : rest.created,
     };
     switch (type) {
       case "rectangle":
@@ -456,20 +470,17 @@ export class API {
       containerId: rectangle.id,
       frameId:
         opts?.label?.frameId === undefined
-          ? opts?.frameId ?? null
-          : opts?.label?.frameId ?? null,
-      groupIds: opts?.label?.groupIds === undefined
-      ? opts?.groupIds
-      : opts?.label?.groupIds ,
-
+          ? (opts?.frameId ?? null)
+          : (opts?.label?.frameId ?? null),
+      groupIds:
+        opts?.label?.groupIds === undefined
+          ? opts?.groupIds
+          : opts?.label?.groupIds,
     });
 
-    h.app.scene.mutateElement(
-      rectangle,
-      {
-        boundElements: [{ type: "text", id: text.id }],
-      },
-    );
+    h.app.scene.mutateElement(rectangle, {
+      boundElements: [{ type: "text", id: text.id }],
+    });
 
     return [rectangle, text];
   };
@@ -493,16 +504,13 @@ export class API {
       containerId: arrow.id,
       frameId:
         opts?.label?.frameId === undefined
-          ? opts?.frameId ?? null
-          : opts?.label?.frameId ?? null,
+          ? (opts?.frameId ?? null)
+          : (opts?.label?.frameId ?? null),
     });
 
-    h.app.scene.mutateElement(
-      arrow,
-      {
-        boundElements: [{ type: "text", id: text.id }],
-      },
-    );
+    h.app.scene.mutateElement(arrow, {
+      boundElements: [{ type: "text", id: text.id }],
+    });
 
     return [arrow, text];
   };
@@ -524,13 +532,23 @@ export class API {
     });
   };
 
-  static drop = async (items: ({kind: "string", value: string, type: string} | {kind: "file", file: File | Blob, type?: string })[]) => {
-
+  static drop = async (
+    items: (
+      | { kind: "string"; value: string; type: string }
+      | { kind: "file"; file: File | Blob; type?: string }
+    )[],
+  ) => {
     const fileDropEvent = createEvent.drop(GlobalTestState.interactiveCanvas);
 
-    const dataTransferFileItems = items.filter(i => i.kind === "file") as {kind: "file", file: File | Blob, type: string }[];
+    const dataTransferFileItems = items.filter((i) => i.kind === "file") as {
+      kind: "file";
+      file: File | Blob;
+      type: string;
+    }[];
 
-    const files = dataTransferFileItems.map(item => item.file) as File[] & { item: (index: number) => File };
+    const files = dataTransferFileItems.map((item) => item.file) as File[] & {
+      item: (index: number) => File;
+    };
     // https://developer.mozilla.org/en-US/docs/Web/API/FileList/item
     files.item = (index: number) => files[index];
 
@@ -540,7 +558,7 @@ export class API {
         files,
         // https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/items
         items: items.map((item, idx) => {
-          if (item.kind === "string")  {
+          if (item.kind === "string") {
             return {
               kind: "string",
               type: item.type,
@@ -557,10 +575,18 @@ export class API {
         }),
         // https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/getData
         getData: (type: string) => {
-          return items.find((item) => item.type === "string" && item.type === type) || "";
+          return (
+            items.find(
+              (item) => item.type === "string" && item.type === type,
+            ) || ""
+          );
         },
         // https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/types
-        types: Array.from(new Set(items.map((item) => item.kind === "file" ? "Files" : item.type))),
+        types: Array.from(
+          new Set(
+            items.map((item) => (item.kind === "file" ? "Files" : item.type)),
+          ),
+        ),
       },
     });
     Object.defineProperty(fileDropEvent, "clientX", {

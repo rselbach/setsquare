@@ -58,7 +58,10 @@ export interface OAuthProvider {
 
 /** GitHub's token endpoint refused the authorization code. */
 class GitHubTokenError extends Error {
-  constructor(readonly error: string, readonly error_description?: string) {
+  constructor(
+    readonly error: string,
+    readonly error_description?: string,
+  ) {
     super(`GitHub refused the authorization code: ${error}`);
     this.name = "GitHubTokenError";
   }

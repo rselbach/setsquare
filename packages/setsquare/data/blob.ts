@@ -361,7 +361,7 @@ export const resizeImageFile = async (
   file: File,
   opts: {
     /** undefined indicates auto */
-    outputType?: typeof MIME_TYPES["jpg"];
+    outputType?: (typeof MIME_TYPES)["jpg"];
     maxWidthOrHeight: number;
   },
 ): Promise<File> => {

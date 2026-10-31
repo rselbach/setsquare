@@ -84,7 +84,7 @@ describe("findShapeByKey()", () => {
           type: preferredSelectionTool,
         },
       },
-    } as AppClassProperties);
+    }) as AppClassProperties;
 
   it("selection shortcuts activate selection when it's preferred", () => {
     const app = appWithPreferredTool("selection");

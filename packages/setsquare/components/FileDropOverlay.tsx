@@ -53,8 +53,8 @@ export const FileDropOverlay = () => {
         type === MIME_TYPES.setsquarelib
           ? "library"
           : type
-          ? "scene"
-          : "unknown";
+            ? "scene"
+            : "unknown";
 
       setDragState((previous) =>
         previous?.shiftKey === event.shiftKey && previous.kind === kind
@@ -136,8 +136,8 @@ export const FileDropOverlay = () => {
               dragState.kind === "library"
                 ? "fileDrop.importLibrary"
                 : dragState.shiftKey
-                ? "fileDrop.add"
-                : "fileDrop.replace",
+                  ? "fileDrop.add"
+                  : "fileDrop.replace",
             )}
           </div>
           <div className="file-drop-overlay__hint">

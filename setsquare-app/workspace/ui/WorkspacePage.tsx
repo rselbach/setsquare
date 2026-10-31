@@ -140,10 +140,10 @@ const usePageView = (
     route.kind === "trash"
       ? "trash"
       : isSearching(route, search)
-      ? "search"
-      : route.kind === "recent"
-      ? "recent"
-      : "folder";
+        ? "search"
+        : route.kind === "recent"
+          ? "recent"
+          : "folder";
   const items = useMemo((): WorkspaceItems => {
     const sorted = ({ folders, drawings }: WorkspaceItems) => ({
       folders: sortItems(folders, sortOrder),
@@ -178,10 +178,10 @@ const usePageView = (
     view === "search"
       ? t("workspace.searchResults")
       : view === "recent"
-      ? t("workspace.recent")
-      : view === "trash"
-      ? t("workspace.trash")
-      : trail[trail.length - 1]?.name ?? drawingsName;
+        ? t("workspace.recent")
+        : view === "trash"
+          ? t("workspace.trash")
+          : (trail[trail.length - 1]?.name ?? drawingsName);
   const isRoot = view === "folder" && folderId === null;
   const locationOf =
     view === "folder"

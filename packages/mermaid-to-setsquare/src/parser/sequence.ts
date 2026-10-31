@@ -47,7 +47,7 @@ export interface Sequence {
 }
 
 type Message = {
-  type: ARROW_KEYS & typeof MESSAGE_TYPE[keyof typeof MESSAGE_TYPE];
+  type: ARROW_KEYS & (typeof MESSAGE_TYPE)[keyof typeof MESSAGE_TYPE];
   to: string;
   from: string;
   message: string;

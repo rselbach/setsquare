@@ -207,8 +207,8 @@ export class AppDuplicate {
     const textToEditId = !editText
       ? null
       : listItem
-      ? listItem.elementId
-      : hit.editedTextId;
+        ? listItem.elementId
+        : hit.editedTextId;
 
     const editTextOnceCommitted = () => {
       if (textToEditId) {

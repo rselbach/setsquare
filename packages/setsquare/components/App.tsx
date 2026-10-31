@@ -1389,13 +1389,13 @@ class App extends React.Component<AppProps, AppState> {
     const currentBinding = startDragged
       ? "startBinding"
       : endDragged
-      ? "endBinding"
-      : null;
+        ? "endBinding"
+        : null;
     const otherBinding = startDragged
       ? "endBinding"
       : endDragged
-      ? "startBinding"
-      : null;
+        ? "startBinding"
+        : null;
     const isAlreadyInsideBindingToSameElement =
       (otherBinding &&
         arrow[otherBinding]?.mode === "inside" &&
@@ -1703,10 +1703,7 @@ class App extends React.Component<AppProps, AppState> {
 
   private isDoubleClick = (
     lastPointerEvent:
-      | PointerEvent
-      | React.PointerEvent<HTMLElement>
-      | undefined
-      | null,
+      PointerEvent | React.PointerEvent<HTMLElement> | undefined | null,
     currentPointerEvent: PointerEvent | React.PointerEvent<HTMLElement>,
   ) => {
     return (
@@ -2038,7 +2035,9 @@ class App extends React.Component<AppProps, AppState> {
                             : undefined
                         }
                         src={
-                          src?.type !== "document" ? src?.link ?? "" : undefined
+                          src?.type !== "document"
+                            ? (src?.link ?? "")
+                            : undefined
                         }
                         // https://stackoverflow.com/q/18470015
                         scrolling="no"
@@ -2586,20 +2585,21 @@ class App extends React.Component<AppProps, AppState> {
                               </ElementCanvasButtons>
                             )}
 
-                          {this.isDefaultUIEnabled() && this.state.contextMenu && (
-                            <ContextMenu
-                              items={this.state.contextMenu.items}
-                              top={this.state.contextMenu.top}
-                              left={this.state.contextMenu.left}
-                              actionManager={this.actionManager}
-                              onClose={(callback) => {
-                                this.setState({ contextMenu: null }, () => {
-                                  this.focusContainer();
-                                  callback?.();
-                                });
-                              }}
-                            />
-                          )}
+                          {this.isDefaultUIEnabled() &&
+                            this.state.contextMenu && (
+                              <ContextMenu
+                                items={this.state.contextMenu.items}
+                                top={this.state.contextMenu.top}
+                                left={this.state.contextMenu.left}
+                                actionManager={this.actionManager}
+                                onClose={(callback) => {
+                                  this.setState({ contextMenu: null }, () => {
+                                    this.focusContainer();
+                                    callback?.();
+                                  });
+                                }}
+                              />
+                            )}
                           <StaticCanvas
                             canvas={this.canvas}
                             rc={this.rc}
@@ -3470,8 +3470,8 @@ class App extends React.Component<AppProps, AppState> {
     b: { type: string; customType?: string | null } | null | undefined,
   ) =>
     a?.type === b?.type &&
-    (a?.type === "custom" ? a.customType ?? null : null) ===
-      (b?.type === "custom" ? b.customType ?? null : null);
+    (a?.type === "custom" ? (a.customType ?? null) : null) ===
+      (b?.type === "custom" ? (b.customType ?? null) : null);
 
   /**
    * Keeps `state.activeTool` synced to the host-controlled
@@ -4619,14 +4619,14 @@ class App extends React.Component<AppProps, AppState> {
       typeof opts.position === "object"
         ? opts.position.clientX
         : opts.position === "cursor"
-        ? this.viewport.lastPosition.x
-        : this.state.width / 2 + this.state.offsetLeft;
+          ? this.viewport.lastPosition.x
+          : this.state.width / 2 + this.state.offsetLeft;
     const clientY =
       typeof opts.position === "object"
         ? opts.position.clientY
         : opts.position === "cursor"
-        ? this.viewport.lastPosition.y
-        : this.state.height / 2 + this.state.offsetTop;
+          ? this.viewport.lastPosition.y
+          : this.state.height / 2 + this.state.offsetTop;
 
     const duplication = this.duplicate.duplicateAtSceneCoords(
       elements,
@@ -5296,8 +5296,8 @@ class App extends React.Component<AppProps, AppState> {
               this.state.currentItemArrowType === ARROW_TYPE.sharp
                 ? ARROW_TYPE.round
                 : this.state.currentItemArrowType === ARROW_TYPE.round
-                ? ARROW_TYPE.elbow
-                : ARROW_TYPE.sharp;
+                  ? ARROW_TYPE.elbow
+                  : ARROW_TYPE.sharp;
             this.setState({ currentItemArrowType: nextArrowType });
             this.cursorHints.onArrowTypeCycled(nextArrowType);
           } else if (shape === "arrow" || shape === "line") {
@@ -5748,13 +5748,13 @@ class App extends React.Component<AppProps, AppState> {
             lastActiveTool: null,
           })
         : isToggleTool && this.state.activeTool.type !== tool.type
-        ? // activating a toggle tool records the currently active tool so
-          // ESC and the next `toggle` activation can switch back to it
-          updateActiveTool(this.state, {
-            ...tool,
-            lastActiveTool: this.state.activeTool,
-          })
-        : updateActiveTool(this.state, tool);
+          ? // activating a toggle tool records the currently active tool so
+            // ESC and the next `toggle` activation can switch back to it
+            updateActiveTool(this.state, {
+              ...tool,
+              lastActiveTool: this.state.activeTool,
+            })
+          : updateActiveTool(this.state, tool);
     if (nextActiveTool.type === "hand") {
       this.cursor.set(CURSOR_TYPE.GRAB);
     } else if (!this.pan.isSpaceHeld()) {
@@ -6731,8 +6731,9 @@ class App extends React.Component<AppProps, AppState> {
       // to support a case of dragging a pre-existing frame child underneath
       // a non-frame element covering the cursor
       const currentFrame = opts?.currentFrameId
-        ? framesUnderCursor.find((frame) => frame.id === opts.currentFrameId) ??
-          null
+        ? (framesUnderCursor.find(
+            (frame) => frame.id === opts.currentFrameId,
+          ) ?? null)
         : null;
 
       if (currentFrame) {
@@ -6740,8 +6741,8 @@ class App extends React.Component<AppProps, AppState> {
       }
 
       return hitElement.frameId
-        ? framesUnderCursor.find((frame) => frame.id === hitElement.frameId) ??
-            null
+        ? (framesUnderCursor.find((frame) => frame.id === hitElement.frameId) ??
+            null)
         : null;
     }
 
@@ -8170,12 +8171,13 @@ class App extends React.Component<AppProps, AppState> {
       ),
       // we need to duplicate because we'll be updating this state
       lastCoords: { ...origin },
-      originalElements: this.scene
-        .getNonDeletedElements()
-        .reduce((acc, element) => {
+      originalElements: this.scene.getNonDeletedElements().reduce(
+        (acc, element) => {
           acc.set(element.id, deepCopyElement(element));
           return acc;
-        }, new Map() as PointerDownState["originalElements"]),
+        },
+        new Map() as PointerDownState["originalElements"],
+      ),
       resize: {
         handleType: false,
         isResizing: false,
@@ -8223,9 +8225,9 @@ class App extends React.Component<AppProps, AppState> {
     event: React.PointerEvent<HTMLElement>,
     pointerDownState: PointerDownState,
   ): boolean {
-    if (
-      !(pointerDownState.scrollbars.isOverEither && !this.state.multiElement)
-    ) {
+    if (!(
+      pointerDownState.scrollbars.isOverEither && !this.state.multiElement
+    )) {
       return false;
     }
     isDraggingScrollBar = true;

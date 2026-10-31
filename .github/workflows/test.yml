@@ -25,7 +25,6 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U setsquare -d setsquare_backend_test" --health-interval 5s --health-timeout 5s --health-retries 10
 
-
     env:
       TEST_DATABASE_URL: postgresql://setsquare:setsquare_test@localhost:5432/setsquare_backend_test
     steps:

@@ -332,7 +332,7 @@ export const assertElements = <T extends AllPossibleKeys<SetsquareElement>>(
 ) => {
   const h = window.h;
 
-  const expectedElementsWithIds: (typeof expectedElements[number] & {
+  const expectedElementsWithIds: ((typeof expectedElements)[number] & {
     id: SetsquareElement["id"];
   })[] = expectedElements.map((el) => {
     if ("id" in el) {
@@ -437,22 +437,25 @@ const stripProps = (
   deltas: Record<string, { deleted: any; inserted: any }>,
   props: string[],
 ) =>
-  Object.entries(deltas).reduce((acc, curr) => {
-    const { inserted, deleted, ...rest } = curr[1];
+  Object.entries(deltas).reduce(
+    (acc, curr) => {
+      const { inserted, deleted, ...rest } = curr[1];
 
-    for (const prop of props) {
-      delete inserted[prop];
-      delete deleted[prop];
-    }
+      for (const prop of props) {
+        delete inserted[prop];
+        delete deleted[prop];
+      }
 
-    acc[curr[0]] = {
-      inserted,
-      deleted,
-      ...rest,
-    };
+      acc[curr[0]] = {
+        inserted,
+        deleted,
+        ...rest,
+      };
 
-    return acc;
-  }, {} as Record<string, any>);
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
 
 export const checkpointHistory = (history: History, name: string) => {
   expect(
