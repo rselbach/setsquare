@@ -9,6 +9,7 @@ import {
   account,
   config,
   fakeProvider,
+  pixel,
   testDatabase,
   testServer,
 } from "./helpers";
@@ -246,6 +247,39 @@ it("completes OAuth and persists isolated, retryable, revision-checked MCP edits
       })
     ).body.result.structuredContent.error,
   ).toBe("not_found");
+});
+
+it("limits each get_images call to the image byte budget", async () => {
+  const { tokens } = await connect();
+  const bytes = Buffer.from(pixel.dataURL.split(",")[1], "base64");
+  const budgeted = await buildServer({
+    config,
+    pool: db.pool,
+    provider: fakeProvider,
+    now: clock,
+    cleanup: false,
+    fileBudget: bytes.length,
+  });
+  const call = (name: string, args: unknown) =>
+    mcp(tokens.access_token, "tools/call", { name, arguments: args }, budgeted);
+  try {
+    const uploaded = await call("upload_images", {
+      files: ["pierce", "britta"].map((id) => ({ ...pixel, id })),
+    });
+    expect(uploaded.body.result.isError).toBeUndefined();
+    const { result } = (
+      await call("get_images", {
+        fileIds: ["pierce", "britta"],
+      })
+    ).body;
+    expect(result.structuredContent).toMatchObject({
+      files: [{ id: "pierce" }],
+      remaining: ["britta"],
+    });
+    expect(result.content).toHaveLength(2);
+  } finally {
+    await budgeted.close();
+  }
 });
 
 it("stores lone surrogates from client names and MCP edits as U+FFFD", async () => {

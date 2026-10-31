@@ -251,6 +251,15 @@ export const parseCommand = (value: unknown): CommandResponse =>
 export const parseFiles = (value: unknown): FilesData =>
   z.object({ files: z.array(fileSchema) }).parse(value);
 
+/** Parses one response of images and the requested ids it left for later. */
+export const parseFilePage = (value: unknown) =>
+  z
+    .object({
+      files: z.array(fileSchema),
+      remaining: z.array(fileId).default([]),
+    })
+    .parse(value);
+
 /** Parses cached thumbnail entries. */
 export const parseThumbnails = (value: unknown) =>
   z

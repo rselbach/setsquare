@@ -7,6 +7,7 @@ import { filesSchema } from "./validation";
 import type { Pool } from "pg";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const RESPONSE_BYTES = 16 * 1024 * 1024;
 
 const imageMatches = (bytes: Buffer, mime: string) => {
   switch (mime) {
@@ -80,18 +81,41 @@ export class FileDatabase {
   constructor(
     private readonly pool: Pool,
     private readonly now: () => number = Date.now,
+    private readonly budget = RESPONSE_BYTES,
   ) {}
 
+  /**
+   * Reads images in request order until their raw bytes would exceed the
+   * budget, always including the first, and lists the rest as remaining.
+   */
   async get(owner: string, ids: readonly string[]) {
     return transaction(this.pool, async (client) => {
-      const result = await client.query(
+      const requested = [...new Set(ids)];
+      const found = await client.query(
         `UPDATE assets SET last_retrieved = $3 WHERE owner_id = $1 AND file_id = ANY($2::text[])
-        RETURNING file_id, mime_type, bytes, created_at, last_retrieved, version`,
-        [owner, ids, this.now()],
+        RETURNING file_id, octet_length(bytes) AS size`,
+        [owner, requested, this.now()],
       );
-      if (result.rows.length !== new Set(ids).size) {
+      if (found.rows.length !== requested.length) {
         throw new ApiError(404, "not_found", "An image does not exist");
       }
+      const sizes = new Map<string, number>(
+        found.rows.map((row) => [row.file_id, Number(row.size)]),
+      );
+      let total = 0;
+      let count = 0;
+      for (const id of requested) {
+        total += sizes.get(id) ?? 0;
+        if (count && total > this.budget) {
+          break;
+        }
+        count++;
+      }
+      const result = await client.query(
+        `SELECT file_id, mime_type, bytes, created_at, last_retrieved, version
+        FROM assets WHERE owner_id = $1 AND file_id = ANY($2::text[])`,
+        [owner, requested.slice(0, count)],
+      );
       const files = result.rows.map((row) => ({
         id: row.file_id,
         mimeType: row.mime_type,
@@ -100,7 +124,10 @@ export class FileDatabase {
         lastRetrieved: Number(row.last_retrieved),
         version: row.version,
       }));
-      return filesSchema.parse({ files });
+      return {
+        ...filesSchema.parse({ files }),
+        remaining: requested.slice(count),
+      };
     });
   }
 

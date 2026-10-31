@@ -157,6 +157,44 @@ describe("RemoteWorkspaceStore", () => {
     expect(saved.savedFiles.get(original.id)).toEqual(migrated);
     expect(saved.erroredFiles.size).toBe(0);
   });
+  it("requests the remaining images until the server has sent them all", async () => {
+    const images = ["pierce", "britta", "shirley"].map((id) =>
+      file(id as FileId),
+    );
+    const fetch = vi.fn<typeof globalThis.fetch>(async (input) => {
+      const url = new URL(String(input), "http://localhost");
+      if (url.pathname === "/api/workspace") {
+        return response(workspace(drawing()));
+      }
+      const [first, ...remaining] = url.searchParams.get("ids")!.split(",");
+      return response({
+        files: images.filter((image) => image.id === first),
+        remaining,
+      });
+    });
+    const store = await open(fetch);
+    const loaded = await store.files.get(images.map((image) => image.id));
+    expect(loaded.loadedFiles).toEqual(images);
+    expect(loaded.erroredFiles.size).toBe(0);
+    expect(fetch.mock.calls.slice(1).map(([input]) => String(input))).toEqual([
+      "/api/files?ids=pierce,britta,shirley",
+      "/api/files?ids=britta,shirley",
+      "/api/files?ids=shirley",
+    ]);
+  });
+
+  it("stops when the server returns none of the requested images", async () => {
+    const image = file();
+    const fetch: typeof globalThis.fetch = async (input) =>
+      String(input) === "/api/workspace"
+        ? response(workspace(drawing()))
+        : response({ files: [], remaining: [image.id] });
+    const store = await open(fetch);
+    expect((await store.files.get([image.id])).erroredFiles).toEqual(
+      new Map([[image.id, true]]),
+    );
+  });
+
   it("uploads a newer image format version while refusing stale bytes", async () => {
     const meta = drawing();
     let stored = file();

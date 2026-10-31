@@ -128,7 +128,7 @@ const descriptions: Record<McpToolName, string> = {
   get_drawing_preview:
     "Read the saved image thumbnail only if it matches the drawing's current revision. Does not render a new image. Returns preview_unavailable if the browser has not saved a current thumbnail.",
   get_images:
-    "Read account-owned image assets referenced by a drawing, as image content (or embedded binary resources for other formats) with ID and version metadata. Use fileIds from get_drawing. IDs never grant access to another account's files.",
+    "Read account-owned image assets referenced by a drawing, as image content (or embedded binary resources for other formats) with ID and version metadata. Use fileIds from get_drawing. IDs never grant access to another account's files. When the images exceed one response's size limit, remaining lists the fileIds to request in another call.",
   upload_images:
     "Upload image assets before creating or updating drawings that reference their IDs. Maximum 5 MiB per image. Repeating the same bytes and version is safe; replacing bytes requires a higher version.",
 };
@@ -402,13 +402,14 @@ export const createWorkspaceMcp = (
           owner,
           mcpToolSchemas.get_images.parse(raw).fileIds,
         );
-        const metadata = assets.files.map(
-          ({ dataURL: _dataURL, ...file }) => file,
-        );
+        const metadata = {
+          files: assets.files.map(({ dataURL: _dataURL, ...file }) => file),
+          remaining: assets.remaining,
+        };
         return {
-          structuredContent: { files: metadata },
+          structuredContent: metadata,
           content: [
-            { type: "text", text: JSON.stringify({ files: metadata }) },
+            { type: "text", text: JSON.stringify(metadata) },
             ...assets.files.map((file): CallToolResult["content"][number] => {
               const data = file.dataURL.slice(file.dataURL.indexOf(",") + 1);
               return [

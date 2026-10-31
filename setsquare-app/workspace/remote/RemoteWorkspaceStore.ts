@@ -15,6 +15,7 @@ import {
 import {
   parseCommand,
   parseDrawing,
+  parseFilePage,
   parseFiles,
   parseThumbnails,
   parseWorkspace,
@@ -625,28 +626,36 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private async download(ids: readonly FileId[]) {
     const files: BinaryFileData[] = [];
     for (let offset = 0; offset < ids.length; offset += 100) {
-      const batch = ids.slice(offset, offset + 100);
-      try {
-        const loaded = parseFiles(
-          await this.get(this.withIds("/api/files", batch)),
-        ).files;
-        // the server's bytes are the account's copy of each image version
-        await this.cacheFiles(loaded, { replace: true });
-        for (const file of loaded) {
-          const confirmed = this.confirmedFiles.get(file.id);
-          if (!confirmed || (file.version ?? 1) >= (confirmed.version ?? 1)) {
-            this.confirmedFiles.set(file.id, { ...file });
+      let batch = ids.slice(offset, offset + 100);
+      while (batch.length) {
+        try {
+          const { files: loaded, remaining } = parseFilePage(
+            await this.get(this.withIds("/api/files", batch)),
+          );
+          if (remaining.length >= batch.length) {
+            throw new Error("The server returned none of the requested images");
           }
-        }
-        files.push(...loaded);
-      } catch (error) {
-        if (!(error instanceof ApiError) || error.status !== 404) {
-          throw error;
-        }
-        if (batch.length > 1) {
-          for (const id of batch) {
-            files.push(...(await this.download([id])));
+          // the server's bytes are the account's copy of each image version
+          await this.cacheFiles(loaded, { replace: true });
+          for (const file of loaded) {
+            const confirmed = this.confirmedFiles.get(file.id);
+            if (!confirmed || (file.version ?? 1) >= (confirmed.version ?? 1)) {
+              this.confirmedFiles.set(file.id, { ...file });
+            }
           }
+          files.push(...loaded);
+          // the server stops each response at its size budget
+          batch = remaining;
+        } catch (error) {
+          if (!(error instanceof ApiError) || error.status !== 404) {
+            throw error;
+          }
+          if (batch.length > 1) {
+            for (const id of batch) {
+              files.push(...(await this.download([id])));
+            }
+          }
+          batch = [];
         }
       }
     }

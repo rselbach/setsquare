@@ -280,14 +280,16 @@ it("reads only the token's account through tools and drawing resources", async (
 });
 
 it("returns account-owned image content without putting base64 in the text response", async () => {
-  const read = vi
-    .spyOn(FileDatabase.prototype, "get")
-    .mockResolvedValue(filesSchema.parse({ files: [pixel] }));
+  const read = vi.spyOn(FileDatabase.prototype, "get").mockResolvedValue({
+    ...filesSchema.parse({ files: [pixel] }),
+    remaining: ["britta"],
+  });
   const { body } = await rpc("tools/call", {
     name: "get_images",
-    arguments: { fileIds: [pixel.id] },
+    arguments: { fileIds: [pixel.id, "britta"] },
   });
-  expect(read).toHaveBeenCalledWith(userId, [pixel.id]);
+  expect(read).toHaveBeenCalledWith(userId, [pixel.id, "britta"]);
+  expect(body.result.structuredContent.remaining).toEqual(["britta"]);
   expect(body.result.content[1]).toMatchObject({
     type: "image",
     mimeType: "image/png",
