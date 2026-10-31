@@ -283,7 +283,7 @@ it("keeps image rejection reasons and stops retrying a deleted image", async () 
   expect(editor.getSaveState().kind).toBe("saved");
 });
 
-it("does not pin content when image staging fails", async () => {
+it("saves content without pinning it when image staging fails", async () => {
   const { store, drawing } = await session();
   const staged = Object.assign(store, {
     stageFiles: vi
@@ -305,7 +305,8 @@ it("does not pin content when image staging fails", async () => {
     vi.fn(),
   );
   await editor.flush();
-  expect(save).not.toHaveBeenCalled();
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(save.mock.calls[0][1].elements[0].id).toBe("first");
   expect(editor.unsaved()?.request).toBeUndefined();
   editor.save(
     savedContent("Rejection", "corrected").elements,
@@ -314,5 +315,6 @@ it("does not pin content when image staging fails", async () => {
     vi.fn(),
   );
   await editor.flush();
-  expect(save.mock.calls[0][1].elements[0].id).toBe("corrected");
+  expect(save.mock.calls[1][1].elements[0].id).toBe("corrected");
+  expect(editor.getSaveState().kind).toBe("saved");
 });

@@ -16,6 +16,7 @@ import {
   replayUnsaved,
 } from "../../web/unsavedJournal";
 import { AccountCache } from "../../workspace/remote/AccountCache";
+import { ImageVersionCollision } from "../../workspace/remote/ApiError";
 import { workspaceFixture } from "../workspace/helpers";
 
 import { savedContent } from "./helpers";
@@ -471,6 +472,92 @@ it("reports failed local recovery and detects image bytes still being staged", a
   await saving;
   expect(persistence.hasDurableDraft()).toBe(false);
   expect(persistence.getRecoveryError()).not.toBe(null);
+});
+
+it("keeps saving newer content when the view write fails", async () => {
+  const { store, drawing } = await session();
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const save = vi.spyOn(store, "saveDrawingContent");
+  vi.spyOn(store, "saveDrawingView").mockRejectedValue(
+    new DOMException("Full", "QuotaExceededError"),
+  );
+  const persistence = persistenceFor(store, drawing);
+  persistence.save(
+    savedContent("Greendale", "troy", "annie").elements,
+    appState(),
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  expect(persistence.getSaveState().kind).toBe("saved");
+  expect(persistence.unsaved()).toBe(null);
+  expect(warn).toHaveBeenCalled();
+
+  persistence.save(
+    savedContent("Greendale", "troy", "abed").elements,
+    appState(),
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  expect(save).toHaveBeenCalledTimes(2);
+  expect(save.mock.calls[1][1].elements.map(({ id }) => id)).toEqual([
+    "troy",
+    "abed",
+  ]);
+  expect(persistence.getSaveState().kind).toBe("saved");
+  expect(
+    (await store.loadDrawingContent(drawing.meta.id))?.elements.map(
+      ({ id }) => id,
+    ),
+  ).toEqual(["troy", "abed"]);
+});
+
+it("still saves when staging images for recovery fails", async () => {
+  const { store, drawing } = await session();
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const staging = vi
+    .spyOn(store, "stageFiles")
+    .mockRejectedValue(new DOMException("Full", "QuotaExceededError"));
+  const save = vi
+    .spyOn(store, "saveDrawingContent")
+    .mockRejectedValueOnce(new Error("Offline"));
+  const persistence = persistenceFor(store, drawing);
+  persistence.save(
+    savedContent("Greendale", "troy").elements,
+    appState(),
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  expect(staging).toHaveBeenCalled();
+  expect(save).toHaveBeenCalledTimes(1);
+  expect(persistence.getSaveState().kind).toBe("error");
+  expect(persistence.getRecoveryError()).not.toBe(null);
+  expect(persistence.hasDurableDraft()).toBe(false);
+  expect(warn).toHaveBeenCalled();
+
+  await persistence.retry();
+  expect(persistence.getSaveState().kind).toBe("saved");
+  expect(persistence.getRecoveryError()).toBe(null);
+  expect(persistence.unsaved()).toBe(null);
+});
+
+it("still reports an image version collision from staging", async () => {
+  const { store, drawing } = await session();
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(store, "stageFiles").mockRejectedValue(new ImageVersionCollision());
+  const save = vi.spyOn(store, "saveDrawingContent");
+  const persistence = persistenceFor(store, drawing);
+  persistence.save(
+    savedContent("Greendale", "troy").elements,
+    appState(),
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  expect(save).not.toHaveBeenCalled();
+  expect(persistence.getSaveState().kind).toBe("error");
 });
 
 it("never pairs old content with the revision of a newer metadata refresh", async () => {

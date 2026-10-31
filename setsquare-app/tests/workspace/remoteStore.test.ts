@@ -26,7 +26,7 @@ import type {
   WorkspaceCommand,
   WorkspaceData,
 } from "../../workspace/api";
-import type { DrawingMeta } from "../../workspace/types";
+import type { DrawingMeta, DrawingId } from "../../workspace/types";
 
 const stores: RemoteWorkspaceStore[] = [];
 let accounts = 0;
@@ -626,6 +626,85 @@ describe("RemoteWorkspaceStore", () => {
       }),
     ).rejects.toThrow("different image data");
     expect((await store.files.get([image.id])).loadedFiles).toEqual([image]);
+  });
+
+  it("uploads images when the device cache cannot keep them", async () => {
+    const meta = drawing();
+    const image = file();
+    const uploads: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input, init) => {
+      const path = String(input);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      if (path === "/api/files") {
+        uploads.push(path);
+        return response(JSON.parse(String(init?.body)));
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    const store = await open(fetch);
+    const cacheSave = vi
+      .spyOn(AccountCache.prototype, "saveFiles")
+      .mockRejectedValue(new DOMException("Full", "QuotaExceededError"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await store.files.save({
+        addedFiles: new Map([[image.id, image]]),
+      });
+      expect(uploads).toEqual(["/api/files"]);
+      expect(result.savedFiles.get(image.id)).toEqual(image);
+      expect(result.erroredFiles.size).toBe(0);
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      cacheSave.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("confirms downloaded images when the device cache cannot keep them", async () => {
+    const meta = drawing();
+    const image = file();
+    const requests: string[] = [];
+    const fetch: typeof globalThis.fetch = async (input) => {
+      const path = String(input);
+      requests.push(path);
+      if (path === "/api/workspace") {
+        return response(workspace(meta));
+      }
+      if (path.startsWith("/api/files?")) {
+        return response({ files: [image] });
+      }
+      if (path === "/api/commands") {
+        return response({
+          result: {
+            kind: "save",
+            result: { ok: true, meta: { ...meta, revision: 2 } },
+          },
+          snapshot: workspace({ ...meta, revision: 2 }),
+        });
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    const store = await open(fetch);
+    const cacheSave = vi
+      .spyOn(AccountCache.prototype, "saveFiles")
+      .mockRejectedValue(new DOMException("Full", "QuotaExceededError"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect((await store.files.get([image.id])).loadedFiles).toEqual([image]);
+      requests.length = 0;
+      await store.saveDrawingContent(
+        meta.id,
+        emptyDrawingContent(meta.name),
+        [image.id],
+        { baseRevision: 1, requestId: "troy-download" },
+      );
+      expect(requests).toEqual(["/api/commands"]);
+    } finally {
+      cacheSave.mockRestore();
+      warn.mockRestore();
+    }
   });
 
   it("treats a missing drawing as gone and ignores stale thumbnail conflicts", async () => {

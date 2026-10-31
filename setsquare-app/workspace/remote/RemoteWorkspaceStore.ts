@@ -10,6 +10,7 @@ import {
   ApiError,
   apiFailureCause,
   apiFailureKind,
+  ImageVersionCollision,
   RequestFailure,
 } from "./ApiError";
 import {
@@ -88,6 +89,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private readonly fetch: typeof fetch;
   private readonly listeners = new Set<() => void>();
   private readonly confirmedFiles = new Map<FileId, BinaryFileData>();
+  private readonly savingFiles = new Set<FileId>();
   private readonly stagedFiles = new Map<
     FileId,
     { dataURL: string; version: number; saved: Promise<void> }
@@ -131,9 +133,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
             staged.dataURL !== file.dataURL &&
             (file.version ?? 1) === staged.version
           ) {
-            throw new Error(
-              "An image version cannot be reused for different image data",
-            );
+            throw new ImageVersionCollision();
           }
           if ((file.version ?? 1) <= staged.version) {
             return staged.saved;
@@ -404,24 +404,33 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     },
     save: async ({ addedFiles }) => {
       const files = [...addedFiles.values()];
-      await this.cache.saveFiles(files);
-      const savedFiles = new Map<FileId, BinaryFileData>();
-      const erroredFiles = new Map<FileId, BinaryFileData>();
-      const errors = new Map<FileId, unknown>();
       for (const file of files) {
-        try {
-          await this.upload([file]);
-          const saved = this.confirmedFiles.get(file.id);
-          if (!saved) {
-            throw new Error("The server did not confirm the saved image");
+        this.savingFiles.add(file.id);
+      }
+      try {
+        await this.cacheFiles(files);
+        const savedFiles = new Map<FileId, BinaryFileData>();
+        const erroredFiles = new Map<FileId, BinaryFileData>();
+        const errors = new Map<FileId, unknown>();
+        for (const file of files) {
+          try {
+            await this.upload([file]);
+            const saved = this.confirmedFiles.get(file.id);
+            if (!saved) {
+              throw new Error("The server did not confirm the saved image");
+            }
+            savedFiles.set(file.id, { ...saved });
+          } catch (error) {
+            erroredFiles.set(file.id, file);
+            errors.set(file.id, error);
           }
-          savedFiles.set(file.id, { ...saved });
-        } catch (error) {
-          erroredFiles.set(file.id, file);
-          errors.set(file.id, error);
+        }
+        return { savedFiles, erroredFiles, errors };
+      } finally {
+        for (const file of files) {
+          this.savingFiles.delete(file.id);
         }
       }
-      return { savedFiles, erroredFiles, errors };
     },
   };
 
@@ -595,6 +604,21 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     }
   }
 
+  /**
+   * Keeps a device copy of images the server already holds. A version
+   * collision is the caller's, not the device's, so it still fails.
+   */
+  private async cacheFiles(files: readonly BinaryFileData[]) {
+    try {
+      await this.cache.saveFiles(files);
+    } catch (error) {
+      if (error instanceof ImageVersionCollision) {
+        throw error;
+      }
+      console.warn("Could not keep a device copy of the images", error);
+    }
+  }
+
   private async download(ids: readonly FileId[]) {
     const files: BinaryFileData[] = [];
     for (let offset = 0; offset < ids.length; offset += 100) {
@@ -603,7 +627,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
         const loaded = parseFiles(
           await this.get(this.withIds("/api/files", batch)),
         ).files;
-        await this.cache.saveFiles(loaded);
+        await this.cacheFiles(loaded);
         for (const file of loaded) {
           const confirmed = this.confirmedFiles.get(file.id);
           if (!confirmed || (file.version ?? 1) >= (confirmed.version ?? 1)) {
@@ -636,9 +660,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
         confirmed.dataURL !== file.dataURL &&
         (file.version ?? 1) <= (confirmed.version ?? 1)
       ) {
-        throw new Error(
-          "An image version cannot be reused for different image data",
-        );
+        throw new ImageVersionCollision();
       }
       if (
         confirmed &&

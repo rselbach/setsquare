@@ -4,6 +4,7 @@ import type { BinaryFileData } from "@setsquare/setsquare/types";
 
 import { request, transact } from "../local/idb";
 
+import { ImageVersionCollision } from "./ApiError";
 import { parseAccountDraft, parseFiles, parseView } from "./parse";
 
 import type { AccountDraft, DrawingId, DrawingView } from "../types";
@@ -58,9 +59,7 @@ export class AccountCache {
             saved.dataURL !== file.dataURL &&
             (file.version ?? 1) === (saved.version ?? 1)
           ) {
-            throw new Error(
-              "An image version cannot be reused for different image data",
-            );
+            throw new ImageVersionCollision();
           }
         }
         await request(store.put(file, file.id));

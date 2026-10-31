@@ -29,6 +29,7 @@ import { loadPrefs, savePrefs } from "../workspace/prefs";
 import {
   apiFailureCause,
   apiFailureKind,
+  ImageVersionCollision,
   RequestFailure,
 } from "../workspace/remote/ApiError";
 import { visibleFolder } from "../workspace/tree";
@@ -356,6 +357,21 @@ export const createDrawingPersistence = ({
     imageStaging.catch(() => {});
   };
 
+  /** Waits for image staging without letting a device-copy failure stop a save. */
+  const settleImageStaging = async () => {
+    try {
+      await imageStaging;
+    } catch (error) {
+      if (error instanceof ImageVersionCollision) {
+        throw error;
+      }
+      console.warn(
+        "Could not stage the drawing's images on this device",
+        error,
+      );
+    }
+  };
+
   const drain = async () => {
     while (
       pending &&
@@ -368,7 +384,7 @@ export const createDrawingPersistence = ({
       savePrefs(prefs);
       publish({ kind: "saving" });
       if (!request) {
-        await imageStaging;
+        await settleImageStaging();
         await saveImages(scene);
       }
       request ??= {
@@ -422,12 +438,18 @@ export const createDrawingPersistence = ({
       }
       const nextView = viewSignature(view);
       if (nextView !== storedView) {
-        const saved = await store.saveDrawingView(id, view);
-        if (!saved.ok) {
-          notFound();
-          return;
+        try {
+          const saved = await store.saveDrawingView(id, view);
+          if (!saved.ok) {
+            notFound();
+            return;
+          }
+          storedView = nextView;
+        } catch (error) {
+          // where this browser left the drawing is a convenience; its
+          // content is already saved
+          console.warn("Could not save the drawing's view", id, error);
         }
-        storedView = nextView;
       }
       request = null;
       if (pending === scene) {
@@ -644,7 +666,7 @@ export const createDrawingPersistence = ({
         ) !== copiedSignature
       ) {
         scene = pending;
-        await imageStaging;
+        await settleImageStaging();
         await saveImages(scene);
         const nextElements = getNonDeletedElements(scene.elements);
         const { content: nextContent } = splitAppState(scene.appState);
