@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { legacyPayloadHash } from "../src/canonical";
+
 import { buildServer } from "../src/server";
 import { WorkspaceDatabase } from "../src/workspace";
 
@@ -231,6 +233,36 @@ it("deduplicates concurrent request retries and refuses changed arguments", asyn
     headers: troy.headers,
   });
   expect(after.json().drawings).toHaveLength(1);
+});
+
+it("honours a receipt stored with the legacy unversioned hash", async () => {
+  const requestId = randomUUID();
+  const args = {
+    kind: "createDrawing",
+    id: "plan",
+    folderId: null,
+    name: "Greendale",
+    content: {
+      ...content(),
+      appState: {
+        ...content().appState,
+        lockedMultiSelections: { Z: true, a: true },
+      },
+    },
+    fileIds: [],
+  };
+  const result = { kind: "done" };
+  await db.pool.query(
+    "INSERT INTO mutation_receipts(owner_id, request_id, payload_hash, result, created_at) VALUES($1,$2,$3,$4,$5)",
+    [troy.user.id, requestId, legacyPayloadHash(args), result, now],
+  );
+  const retry = await command(app, troy, args, requestId);
+  expect(retry.statusCode).toBe(200);
+  expect(retry.json().result).toEqual(result);
+  expect(
+    (await command(app, troy, { ...args, name: "Different" }, requestId))
+      .statusCode,
+  ).toBe(409);
 });
 
 it("retries a save after later changes without bumping its revision again", async () => {
@@ -908,6 +940,22 @@ it("preserves imported ids and metadata without overwriting an existing drawing"
       })
     ).statusCode,
   ).toBe(409);
+  const equivalent = {
+    meta: { ...drawing.meta, id: "cafe" },
+    content: {
+      ...content(),
+      appState: {
+        ...content().appState,
+        lockedMultiSelections: { "cafe\u0301": true, "caf\u00e9": true },
+      },
+    },
+  } as const;
+  const imports = [
+    await command(app, troy, { kind: "importDrawing", drawing: equivalent }),
+    await command(app, troy, { kind: "importDrawing", drawing: equivalent }),
+  ];
+  expect(imports.map((response) => response.statusCode)).toEqual([200, 200]);
+  expect(imports[1].json().result).toEqual(imports[0].json().result);
 });
 
 it("duplicates drawings and restores children out of a trashed parent", async () => {
