@@ -6,7 +6,12 @@ import {
   apiFailureCause,
   apiFailureKind,
 } from "../workspace/remote/ApiError";
-import { findItem, parentOf, visibleFolder } from "../workspace/tree";
+import {
+  findItem,
+  parentOf,
+  uniqueName,
+  visibleFolder,
+} from "../workspace/tree";
 import { useShowMessage } from "../workspace/ui/WorkspaceToast";
 
 import { useOpenFile } from "./importFiles";
@@ -201,6 +206,41 @@ export const trashWithUndo = async (
         .catch((error) => reportFailure(show, { error }, "restore", name));
     },
   });
+};
+
+/**
+ * Copies the drawing next to it, as "Copy of" the name the store has for it
+ * once `beforeCopy` resolves, made unique in its folder. A failure is said
+ * with `name`, what the user knows the drawing by.
+ */
+export const duplicateDrawing = async (
+  store: WorkspaceStore,
+  id: DrawingId,
+  show: (message: PageMessage) => void,
+  { name, beforeCopy }: { name: string; beforeCopy?: () => Promise<unknown> },
+) => {
+  try {
+    await beforeCopy?.();
+    const snap = store.getSnapshot();
+    const source = snap.drawings.get(id);
+    const copy =
+      source &&
+      (await store.duplicateDrawing(
+        id,
+        uniqueName(
+          snap,
+          parentOf(snap, source),
+          t("workspace.copyName", {
+            name: source.name || t("labels.untitled"),
+          }),
+        ),
+      ));
+    if (!copy) {
+      reportFailure(show, { reason: "notFound" }, "duplicate", name);
+    }
+  } catch (error) {
+    reportFailure(show, { error }, "duplicate", name);
+  }
 };
 
 /**

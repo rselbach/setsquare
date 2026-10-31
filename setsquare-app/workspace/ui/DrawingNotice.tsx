@@ -10,6 +10,7 @@ import { drawingsIcon, restoreIcon } from "../../web/icons";
 import { navigate } from "../../web/router";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
 
+import { BlankSheet } from "./BlankSheet";
 import { useThumbnails } from "./useThumbnails";
 import { WorkspaceToast, useTasksOnPage } from "./WorkspaceToast";
 
@@ -57,14 +58,7 @@ const NoticeView = ({
           {kind === "trashed" && thumbnail ? (
             <img src={thumbnail.src} alt="" draggable={false} />
           ) : (
-            <svg
-              className="drawing-notice__blank"
-              viewBox="0 0 48 48"
-              focusable="false"
-            >
-              <circle cx="24" cy="24" r="9" />
-              <path d="M24 8v32M8 24h32" />
-            </svg>
+            <BlankSheet className="drawing-notice__blank" />
           )}
           <span className="drawing-notice__stamp">
             {kind === "trashed"

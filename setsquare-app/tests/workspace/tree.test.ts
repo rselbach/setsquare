@@ -4,11 +4,14 @@ import {
   canMove,
   childrenOf,
   expiredTrash,
+  isFolder,
   isTrashed,
+  locationLabel,
   recentDrawings,
   searchItems,
   sortItems,
   subtree,
+  refOf,
   trashRoots,
   uniqueName,
   visibleFolder,
@@ -19,6 +22,7 @@ import type {
   DrawingMeta,
   Folder,
   FolderId,
+  WorkspaceItem,
   WorkspaceItems,
   WorkspaceSnapshot,
 } from "../../workspace/types";
@@ -96,6 +100,50 @@ const greendale = () =>
       drawing("chang", null, { name: "Señor Chang's office" }),
     ],
   );
+
+describe("isFolder and refOf", () => {
+  it("tell a folder from a drawing", () => {
+    const greendale = folder("greendale", null);
+    const plan = drawing("floor-plan", "greendale");
+
+    expect(isFolder(greendale)).toBe(true);
+    expect(isFolder(plan)).toBe(false);
+    expect(refOf(greendale)).toEqual(folderRef("greendale"));
+    expect(refOf(plan)).toEqual(drawingRef("floor-plan"));
+  });
+});
+
+describe("locationLabel", () => {
+  it("names the root, then each folder down to the item's own", () => {
+    const snap = greendale();
+    const at = (item: WorkspaceItem) => locationLabel(snap, item, "Drawings");
+
+    expect(at(snap.drawings.get("floor-plan" as DrawingId)!)).toBe(
+      "Drawings › Greendale › Study group",
+    );
+    expect(at(snap.folders.get("study-group" as FolderId)!)).toBe(
+      "Drawings › Greendale",
+    );
+    expect(at(snap.drawings.get("chang" as DrawingId)!)).toBe("Drawings");
+  });
+
+  it("stops at a missing parent and at a corrupt cycle", () => {
+    const snap = snapshot(
+      [folder("troy", "abed"), folder("abed", "troy"), folder("annie", "gone")],
+      [
+        drawing("chicken", "troy"),
+        drawing("pen", "annie"),
+        drawing("lost", "gone"),
+      ],
+    );
+    const at = (id: string) =>
+      locationLabel(snap, snap.drawings.get(id as DrawingId)!, "Drawings");
+
+    expect(at("chicken")).toBe("Drawings › abed › troy");
+    expect(at("pen")).toBe("Drawings › annie");
+    expect(at("lost")).toBe("Drawings");
+  });
+});
 
 describe("childrenOf", () => {
   it("lists what's directly in a folder, leaving out the trash", () => {

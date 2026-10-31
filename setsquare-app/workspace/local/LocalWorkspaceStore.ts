@@ -9,6 +9,7 @@ import {
   canMove,
   expiredTrash,
   findItem,
+  isFolder,
   isTrashed,
   parentOf,
   subtree,
@@ -200,7 +201,7 @@ const itemStore = (item: ItemRef) =>
   item.kind === "folder" ? "folders" : "drawings";
 
 const withParent = (item: WorkspaceItem, parentId: ParentId): WorkspaceItem =>
-  "parentId" in item ? { ...item, parentId } : { ...item, folderId: parentId };
+  isFolder(item) ? { ...item, parentId } : { ...item, folderId: parentId };
 
 const withName = (
   content: DrawingContent,

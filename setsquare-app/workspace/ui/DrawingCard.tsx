@@ -5,6 +5,7 @@ import { memo } from "react";
 import { RouteLink } from "../../web/RouteLink";
 import { formatRelativeTime } from "../formatRelativeTime";
 
+import { BlankSheet } from "./BlankSheet";
 import { InlineName, useCardKeys } from "./InlineName";
 import { ItemMenu } from "./ItemMenu";
 import { useDragSource } from "./useWorkspaceDrag";
@@ -12,19 +13,6 @@ import { useDragSource } from "./useWorkspaceDrag";
 import type { DrawingMeta, Thumbnail } from "../types";
 
 import type { ItemActions } from "./ItemGrid";
-
-// a registration mark on blank paper, for a drawing with nothing to show
-const blankSheet = (
-  <svg
-    className="drawing-card__blank"
-    viewBox="0 0 48 48"
-    aria-hidden="true"
-    focusable="false"
-  >
-    <circle cx="24" cy="24" r="9" />
-    <path d="M24 8v32M8 24h32" />
-  </svg>
-);
 
 /**
  * A drawing of the grid: its thumbnail on a sheet of paper, with the name
@@ -75,7 +63,7 @@ export const DrawingCard = memo(
           {thumbnail ? (
             <img src={thumbnail.src} alt="" draggable={false} />
           ) : (
-            blankSheet
+            <BlankSheet className="drawing-card__blank" />
           )}
         </div>
         <div className="workspace-card__strip">
