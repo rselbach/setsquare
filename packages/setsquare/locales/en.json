@@ -298,6 +298,7 @@
     "cannotResolveCollabServer": "Couldn't connect to the collab server. Please reload the page and try again.",
     "importLibraryError": "Couldn't load library",
     "openFileError": "Couldn't open \"{{name}}\".",
+    "openFileMissingImages": "Opened \"{{name}}\", but {{count}} of its images couldn't be imported.",
     "saveFileError": "Couldn't save the file: {{error}}",
     "saveLibraryError": "Couldn't save library to storage. Please save your library to a file locally to make sure you don't lose changes.",
     "collabSaveFailed": "Couldn't save to the backend database. If problems persist, you should save your file locally to ensure you don't lose your work.",

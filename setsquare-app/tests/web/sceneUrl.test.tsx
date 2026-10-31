@@ -116,6 +116,35 @@ describe("#url= links on the web", () => {
     await waitFor(() => expect(h.app.files[fileId]?.dataURL).toBe(PIXEL));
   });
 
+  it("leave out the images the linked scene lacks, and say so", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    serveScene(
+      serializeAsJSON(
+        [
+          API.createElement({ type: "rectangle", id: "annie" }),
+          API.createElement({ type: "image", fileId: "pierce", id: "pierce" }),
+        ],
+        {},
+        {},
+        "local",
+      ),
+    );
+
+    await renderWebAppAt(`/#url=${SCENE_URL}`);
+
+    const drawing = await importedDrawing(store, plan.id);
+    expect(drawing.fileIds).toEqual([]);
+    await waitForDrawing(drawing.id, ["annie"]);
+    await waitFor(() =>
+      expect(h.state.errorMessage).toBe(
+        t("errors.openFileMissingImages", {
+          name: t("labels.untitled"),
+          count: 1,
+        }),
+      ),
+    );
+  });
+
   it("open a link followed while a drawing is open, saving that one", async () => {
     serveScene(
       serializeAsJSON(
