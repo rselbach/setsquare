@@ -117,6 +117,8 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: "build",
+      // Vite 5's default; Vite 7 raised it to Safari 16 and Chrome 107
+      target: ["es2020", "edge88", "firefox78", "chrome87", "safari14"],
       rollupOptions: {
         output: {
           assetFileNames(chunkInfo) {
