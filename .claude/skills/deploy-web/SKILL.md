@@ -69,5 +69,3 @@ If the VM no longer exists, recreate it before you run the deploy script:
 6. On `pg-rselbach`, replace the address in the `setsquare` line of `/etc/postgres/pg_hba.conf` with the VM's new address from `tailscale ip -4`. Then reload PostgreSQL: `sudo docker exec shared-postgres-postgres-1 psql -U postgres -c 'select pg_reload_conf()'`.
 7. Recreate `/home/exedev/setsquare.env` with mode 600 and the variables in the table above.
 8. Run the deploy script. It enables `docker.service`, which the exeuntu image ships disabled. Without it, the container would not start again after a reboot.
-
-Do not use `docker-compose.yml` for production. It is a development setup.
