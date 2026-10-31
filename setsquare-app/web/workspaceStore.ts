@@ -44,6 +44,11 @@ export const readAccountSession = async (
   return session;
 };
 
+/** Whether opening a database failed because a newer build upgraded it. */
+export const isVersionError = (error: unknown) =>
+  (error instanceof DOMException || error instanceof Error) &&
+  error.name === "VersionError";
+
 /** The browser host and session notifications used by web startup. */
 export type OpenWorkspaceOptions = LocalWorkspaceOptions & {
   ownerWindow?: Window;
@@ -74,6 +79,8 @@ export const openWorkspaceStore = async ({
       session,
       ownerWindow,
       onSessionExpired,
+      onBlocked: localOptions.onBlocked,
+      onVersionChange: localOptions.onVersionChange,
     });
     onSession?.(session);
     // drafts of drawings deleted elsewhere expire while the Trash lists them
@@ -82,6 +89,11 @@ export const openWorkspaceStore = async ({
     );
     return store;
   } catch (error) {
+    // a newer build upgraded the account's cache; the browser's drawings
+    // would hide that this tab needs reloading
+    if (isVersionError(error)) {
+      throw error;
+    }
     // the browser's own drawings stay usable while the account can't load
     console.error(error);
     onSession?.({ kind: "unreachable" });

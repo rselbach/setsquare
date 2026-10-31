@@ -20,6 +20,7 @@ import { deleteUnusedFiles } from "./fileGC";
 import { openDatabase, request, transact } from "./idb";
 import { readLegacyScene } from "./migrateLegacy";
 
+import type { UpgradeEvents } from "./idb";
 import type { WorkspaceBroadcast } from "../broadcast";
 import type { SaveOptions } from "../api";
 import type {
@@ -46,7 +47,8 @@ import type {
   WorkspaceStore,
 } from "../WorkspaceStore";
 
-const SCHEMA_VERSION = 1;
+/** The version of the workspace database this build opens. */
+export const SCHEMA_VERSION = 1;
 const CHANNEL_NAME = "setsquare-workspace";
 
 // what each store holds; every store keys its values by the item's id
@@ -188,8 +190,11 @@ const edited = (drawing: DrawingMeta, at: number): DrawingMeta => ({
   revision: drawing.revision + 1,
 });
 
-/** Where {@link LocalWorkspaceStore.open} keeps the workspace. */
-export interface LocalWorkspaceOptions {
+/**
+ * Where {@link LocalWorkspaceStore.open} keeps the workspace, and what it
+ * tells the app when another tab upgrades it.
+ */
+export interface LocalWorkspaceOptions extends UpgradeEvents {
   dbName?: string;
   /** the BroadcastChannel this browser's tabs tell each other changes on */
   channelName?: string;
@@ -206,8 +211,13 @@ export class LocalWorkspaceStore implements WorkspaceStore {
     dbName = STORAGE_KEYS.IDB_WORKSPACE,
     channelName = CHANNEL_NAME,
     now = Date.now,
+    onBlocked,
+    onVersionChange,
   }: LocalWorkspaceOptions = {}) {
-    const db = await openDatabase(dbName, SCHEMA_VERSION, upgrade);
+    const db = await openDatabase(dbName, SCHEMA_VERSION, upgrade, {
+      onBlocked,
+      onVersionChange,
+    });
     const store = new LocalWorkspaceStore(db, channelName, now);
     try {
       await store.refresh();

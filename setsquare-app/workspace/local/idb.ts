@@ -8,20 +8,55 @@
  * TransactionInactiveError.
  */
 
-/** Opens a database, running upgrade when it's new or its version rises. */
+/** How a tab hears about another tab opening its database at a newer version. */
+export interface UpgradeEvents {
+  /** an older connection is still open, so the open waits until it closes */
+  onBlocked?: () => void;
+  /** a newer version is opening, so this connection has closed */
+  onVersionChange?: () => void;
+}
+
+/** A transaction was asked of a connection that has closed. */
+export class DatabaseClosedError extends Error {
+  constructor(name: string) {
+    super(`The ${name} database is closed; reload the page to open it again`);
+    this.name = "DatabaseClosedError";
+  }
+}
+
+/**
+ * Opens a database, running upgrade when it's new or its version rises. The
+ * connection closes as soon as another tab opens a newer version, so that
+ * open isn't left waiting on this tab.
+ */
 export const openDatabase = (
   name: string,
   version: number,
   upgrade: (db: IDBDatabase, oldVersion: number, tx: IDBTransaction) => void,
+  {
+    factory = indexedDB,
+    onBlocked,
+    onVersionChange,
+  }: UpgradeEvents & { factory?: IDBFactory } = {},
 ) =>
   new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open(name, version);
+    const req = factory.open(name, version);
     req.onupgradeneeded = (event) => {
       // set while the database upgrades
       const tx = req.transaction as IDBTransaction;
       upgrade(req.result, event.oldVersion, tx);
     };
-    req.onsuccess = () => resolve(req.result);
+    // the request stays pending, and succeeds once the other tabs close
+    req.onblocked = () => onBlocked?.();
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onversionchange = () => {
+        // transactions already running still finish
+        db.close();
+        onVersionChange?.();
+      };
+      resolve(db);
+    };
     req.onerror = () => reject(req.error);
   });
 
@@ -51,7 +86,16 @@ export const transact = async <T>(
   mode: IDBTransactionMode,
   fn: (tx: IDBTransaction) => Promise<T>,
 ): Promise<T> => {
-  const tx = db.transaction([...storeNames], mode);
+  let tx: IDBTransaction;
+  try {
+    tx = db.transaction([...storeNames], mode);
+  } catch (error) {
+    // what a closed or closing connection throws
+    if (error instanceof Error && error.name === "InvalidStateError") {
+      throw new DatabaseClosedError(db.name);
+    }
+    throw error;
+  }
   const committed = new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
     tx.onabort = () =>

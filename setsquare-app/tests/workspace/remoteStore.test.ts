@@ -12,7 +12,12 @@ import {
   emptyDrawingContent,
   splitAppState,
 } from "../../workspace/drawingAppState";
-import { openDatabase, request, transact } from "../../workspace/local/idb";
+import {
+  DatabaseClosedError,
+  openDatabase,
+  request,
+  transact,
+} from "../../workspace/local/idb";
 import { AccountCache } from "../../workspace/remote/AccountCache";
 import { ApiError } from "../../workspace/remote/ApiError";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
@@ -117,6 +122,41 @@ afterEach(() => {
 });
 
 describe("RemoteWorkspaceStore", () => {
+  it("closes the account cache for a newer build's upgrade, saying so", async () => {
+    const account = session();
+    const onVersionChange = vi.fn();
+    const cache = await AccountCache.open(window, account.user.id, {
+      onVersionChange,
+    });
+
+    const db = await openDatabase(
+      `setsquare-account-${account.user.id}`,
+      3,
+      () => {},
+    );
+    db.close();
+
+    expect(onVersionChange).toHaveBeenCalledTimes(1);
+    await expect(cache.listDrafts()).rejects.toBeInstanceOf(
+      DatabaseClosedError,
+    );
+  });
+
+  it("reports an account cache upgrade blocked by an older tab", async () => {
+    const account = session();
+    // a connection without the handshake, as an older build holds it
+    const older = await request(
+      indexedDB.open(`setsquare-account-${account.user.id}`, 1),
+    );
+    const onBlocked = vi.fn();
+
+    const opening = AccountCache.open(window, account.user.id, { onBlocked });
+
+    await vi.waitFor(() => expect(onBlocked).toHaveBeenCalledTimes(1));
+    older.close();
+    (await opening).close();
+  });
+
   it.each([
     [400, "invalid_image"],
     [403, "csrf_failed"],

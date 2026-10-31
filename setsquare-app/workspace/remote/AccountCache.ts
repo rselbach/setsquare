@@ -4,10 +4,11 @@ import type { FileId } from "@setsquare/element/types";
 
 import type { BinaryFileData } from "@setsquare/setsquare/types";
 
-import { request, transact } from "../local/idb";
+import { openDatabase, request, transact } from "../local/idb";
 
 import { parseAccountDraft, parseFiles, parseView } from "./parse";
 
+import type { UpgradeEvents } from "../local/idb";
 import type { AccountDraft, DrawingId, DrawingView } from "../types";
 
 const parseDrafts = (values: unknown[]) =>
@@ -23,27 +24,26 @@ const parseDrafts = (values: unknown[]) =>
 
 /** Recovery images and views belonging to one account on this device. */
 export class AccountCache {
-  static async open(ownerWindow: Window, accountId: string) {
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const opening = ownerWindow.indexedDB.open(
-        `setsquare-account-${accountId}`,
-        2,
-      );
-      opening.onupgradeneeded = (event) => {
-        if (event.oldVersion < 1) {
-          opening.result.createObjectStore("files");
-          opening.result.createObjectStore("views");
-          opening.result.createObjectStore("imports");
+  static async open(
+    ownerWindow: Window,
+    accountId: string,
+    { onBlocked, onVersionChange }: UpgradeEvents = {},
+  ) {
+    const db = await openDatabase(
+      `setsquare-account-${accountId}`,
+      2,
+      (db, oldVersion) => {
+        if (oldVersion < 1) {
+          db.createObjectStore("files");
+          db.createObjectStore("views");
+          db.createObjectStore("imports");
         }
-        if (event.oldVersion < 2) {
-          opening.result
-            .createObjectStore("drafts")
-            .createIndex("drawing", "id");
+        if (oldVersion < 2) {
+          db.createObjectStore("drafts").createIndex("drawing", "id");
         }
-      };
-      opening.onsuccess = () => resolve(opening.result);
-      opening.onerror = () => reject(opening.error);
-    });
+      },
+      { factory: ownerWindow.indexedDB, onBlocked, onVersionChange },
+    );
     return new AccountCache(db);
   }
 

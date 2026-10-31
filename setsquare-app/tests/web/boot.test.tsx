@@ -17,6 +17,8 @@ import type { BinaryFileData, DataURL } from "@setsquare/setsquare/types";
 import SetsquareApp from "../../App";
 import { STORAGE_KEYS } from "../../app_constants";
 import { filesStore } from "../../data/localFiles";
+import { openDatabase } from "../../workspace/local/idb";
+import { SCHEMA_VERSION } from "../../workspace/local/LocalWorkspaceStore";
 import * as workspaceStore from "../../web/workspaceStore";
 import { contentWith } from "../workspace/helpers";
 
@@ -207,6 +209,82 @@ describe("web app boot", () => {
     expect(screen.queryByRole("button", { name: "clearing the canvas" })).toBe(
       null,
     );
+  });
+
+  it("asks to close other tabs while an older one blocks the upgrade", async () => {
+    vi.mocked(workspaceStore.openWorkspaceStore).mockImplementation(
+      (options) => {
+        options?.onBlocked?.();
+        return new Promise(() => {});
+      },
+    );
+    window.history.replaceState(null, "", "/");
+
+    renderPlain(<SetsquareApp />);
+
+    expect(
+      await screen.findByText("Close other Setsquare tabs to finish updating"),
+    ).toBeInTheDocument();
+  });
+
+  it("asks an older build's tab to reload instead of blaming the connection", async () => {
+    vi.mocked(workspaceStore.openWorkspaceStore).mockRejectedValue(
+      new DOMException("newer version", "VersionError"),
+    );
+    window.history.replaceState(null, "", "/");
+
+    renderPlain(<SetsquareApp />);
+
+    expect(
+      await screen.findByRole("button", { name: "Reload" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This tab is running an older version of Setsquare"),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBe(null);
+  });
+
+  it("closes the drawing for another tab's upgrade, keeping its unsaved edits", async () => {
+    const store = await workspace.open();
+    const plan = await store.createDrawing({
+      folderId: null,
+      name: "Floor plan",
+      content: contentWith("Floor plan", "troy"),
+    });
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+
+    API.updateScene({
+      elements: [
+        ...h.elements,
+        API.createElement({ type: "ellipse", id: "abed" }),
+      ],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    const upgraded = await act(() =>
+      openDatabase(workspace.dbName, SCHEMA_VERSION + 1, () => {}),
+    );
+    upgraded.close();
+
+    expect(
+      await screen.findByText("Setsquare was updated in another tab"),
+    ).toBeInTheDocument();
+    expect(document.querySelector(".setsquare")).toBe(null);
+    const drafts = Array.from(
+      { length: localStorage.length },
+      (_, index) => localStorage.key(index)!,
+    )
+      .filter((key) => key.startsWith(STORAGE_KEYS.LOCAL_STORAGE_UNSAVED))
+      .map((key) => JSON.parse(localStorage.getItem(key)!));
+    expect(drafts).toEqual([
+      expect.objectContaining({
+        id: plan.id,
+        elements: [
+          expect.objectContaining({ id: "troy" }),
+          expect.objectContaining({ id: "abed" }),
+        ],
+      }),
+    ]);
   });
 });
 

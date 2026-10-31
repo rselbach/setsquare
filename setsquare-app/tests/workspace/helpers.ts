@@ -2,9 +2,13 @@ import { getNonDeletedElements } from "@setsquare/element";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 
 import { emptyDrawingContent } from "../../workspace/drawingAppState";
-import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
+import {
+  LocalWorkspaceStore,
+  SCHEMA_VERSION,
+} from "../../workspace/local/LocalWorkspaceStore";
 import { openDatabase, request, transact } from "../../workspace/local/idb";
 
+import type { UpgradeEvents } from "../../workspace/local/idb";
 import type { DrawingContent } from "../../workspace/types";
 
 let databases = 0;
@@ -20,11 +24,13 @@ export const workspaceFixture = () => {
   return {
     dbName,
     clock,
-    open: async () => {
+    open: async ({ onBlocked, onVersionChange }: UpgradeEvents = {}) => {
       const store = await LocalWorkspaceStore.open({
         dbName,
         channelName: dbName,
         now: () => clock.now,
+        onBlocked,
+        onVersionChange,
       });
       stores.push(store);
       return store;
@@ -37,7 +43,7 @@ export const workspaceFixture = () => {
     /** how many records each store holds, read straight from the database */
     countRecords: async () => {
       const names = ["folders", "drawings", "contents", "views", "thumbnails"];
-      const db = await openDatabase(dbName, 1, () => {});
+      const db = await openDatabase(dbName, SCHEMA_VERSION, () => {});
       try {
         const counts = await transact(db, names, "readonly", (tx) =>
           Promise.all(
