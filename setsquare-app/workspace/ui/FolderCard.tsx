@@ -31,8 +31,9 @@ export const FolderCard = ({
   onStartRename: () => void;
   onStopRename: () => void;
   onRename: (name: string) => void;
-  onMove: () => void;
-  onTrash: () => void;
+  /** given the card, where the focus goes back to */
+  onMove: (card: HTMLElement | null) => void;
+  onTrash: (card: HTMLElement | null) => void;
 }) => {
   const { t } = useI18n();
   const { cardRef, onKeyDown, onClose } = useCardKeys({
@@ -91,8 +92,8 @@ export const FolderCard = ({
           label={t("workspace.folderActions", { name: folder.name })}
           to={to}
           onRename={onStartRename}
-          onMove={onMove}
-          onTrash={onTrash}
+          onMove={() => onMove(cardRef.current)}
+          onTrash={() => onTrash(cardRef.current)}
         />
       </div>
     </li>

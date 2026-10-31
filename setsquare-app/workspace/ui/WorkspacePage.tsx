@@ -3,7 +3,14 @@ import { StandaloneUIProvider, useEditorInterface } from "@setsquare/setsquare";
 import { FilledButton } from "@setsquare/setsquare/components/FilledButton";
 import { PlusIcon } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import type { Theme } from "@setsquare/element/types";
 
@@ -126,6 +133,37 @@ const useSortOrder = () => {
   return [order, change] as const;
 };
 
+/** A card the focus left for Move to… or the Trash, and where it was. */
+type CardPlace = { card: HTMLElement; list: HTMLElement | null; index: number };
+
+const placeOf = (card: HTMLElement | null): CardPlace | null => {
+  if (!card) {
+    return null;
+  }
+  const list = card.parentElement;
+  return { card, list, index: list ? [...list.children].indexOf(card) : 0 };
+};
+
+// whether the focus fell to the page, as when what had it went
+const isFocusLost = () =>
+  !document.activeElement || document.activeElement === document.body;
+
+// back to the card's ⋯ button, or once the card's gone, to the link of the
+// card that took its place, or the one before it, or the first one left
+const focusBack = (
+  { card, list, index }: CardPlace,
+  content: HTMLElement | null,
+) => {
+  if (card.isConnected) {
+    card.querySelector<HTMLElement>(".workspace-card__more")?.focus();
+    return;
+  }
+  const cards = list?.isConnected ? [...list.children] : [];
+  const near =
+    cards[Math.min(index, cards.length - 1)] ?? content?.querySelector("li");
+  near?.querySelector("a")?.focus();
+};
+
 const WorkspaceView = ({
   store,
   route,
@@ -145,8 +183,14 @@ const WorkspaceView = ({
   const searchRef = useRef<HTMLInputElement>(null);
   const path = routeToPath(route);
   const [sortOrder, setSortOrder] = useSortOrder();
-  // what Move to… is moving
-  const [moving, setMoving] = useState<ItemRef | null>(null);
+  // what Move to… is moving, and the card it was chosen on
+  const [moving, setMoving] = useState<{
+    item: ItemRef;
+    from: CardPlace | null;
+  } | null>(null);
+  const movedFrom = useRef<CardPlace | null>(null);
+  const trashedFrom = useRef<CardPlace | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   // what's being renamed, on the page it shows on
   const [renaming, setRenaming] = useState<{
     item: ItemRef;
@@ -190,6 +234,28 @@ const WorkspaceView = ({
     }
   }, [snapshot, view, query, folderId, sortOrder]);
   const thumbnails = useThumbnails(store, items.drawings);
+
+  useLayoutEffect(() => {
+    const from = movedFrom.current;
+    if (!moving && from) {
+      movedFrom.current = null;
+      if (isFocusLost()) {
+        focusBack(from, contentRef.current);
+      }
+    }
+  }, [moving]);
+
+  // once the trashed card goes, which is after its menu gave its ⋯ button
+  // the focus back
+  useLayoutEffect(() => {
+    const from = trashedFrom.current;
+    if (from && !from.card.isConnected) {
+      trashedFrom.current = null;
+      if (isFocusLost()) {
+        focusBack(from, contentRef.current);
+      }
+    }
+  }, [items]);
 
   // the folder shown, or the root for lists across folders
   const createIn: ParentId = view === "folder" ? folderId : null;
@@ -236,8 +302,11 @@ const WorkspaceView = ({
         name || t("labels.untitled"),
       );
     },
-    move: setMoving,
-    trash,
+    move: (item, card) => setMoving({ item, from: placeOf(card) }),
+    trash: (item, card) => {
+      trashedFrom.current = placeOf(card);
+      trash(item);
+    },
     duplicate: async (drawing: DrawingMeta) => {
       const shownName = drawing.name || t("labels.untitled");
       try {
@@ -442,7 +511,7 @@ const WorkspaceView = ({
               actions={{ newDrawing, newFolder, openFile }}
               account={accountMenu}
             />
-            <div className="workspace__content">
+            <div className="workspace__content" ref={contentRef}>
               {empty ?? (
                 <ItemGrid
                   folders={items.folders}
@@ -461,8 +530,11 @@ const WorkspaceView = ({
       {moving && (
         <MoveDialog
           store={store}
-          item={moving}
-          onClose={() => setMoving(null)}
+          item={moving.item}
+          onClose={() => {
+            movedFrom.current = moving.from;
+            setMoving(null);
+          }}
         />
       )}
       <WorkspaceToast toast={toast} />

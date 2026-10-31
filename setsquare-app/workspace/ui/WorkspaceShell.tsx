@@ -1,4 +1,4 @@
-import { KEYS } from "@setsquare/common";
+import { KEYS, queryFocusableElements } from "@setsquare/common";
 import { StandaloneUIProvider } from "@setsquare/setsquare";
 import { t } from "@setsquare/setsquare/i18n";
 import clsx from "clsx";
@@ -7,6 +7,7 @@ import {
   useEffect,
   useId,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -59,13 +60,15 @@ export type NavState = {
 /**
  * The nav's state: on a wide window it shows beside the page unless it was
  * hidden, which this browser remembers; on a narrow one it's a drawer, which
- * Escape closes.
+ * Escape closes. The drawer takes the focus as it opens, and gives it back
+ * to the button that shows it as it closes.
  */
 export const useNavState = (): NavState => {
   const id = useId();
   const narrow = useSyncExternalStore(subscribeToResize, isNarrow);
   const [hidden, setHidden] = useState(loadHidden);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const wasOpen = useRef(false);
   if (drawerOpen && !narrow) {
     // a window widened past the drawer shows the nav as chosen instead
     setDrawerOpen(false);
@@ -83,6 +86,31 @@ export const useNavState = (): NavState => {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [drawerOpen]);
+
+  useEffect(() => {
+    if (drawerOpen === wasOpen.current) {
+      return;
+    }
+    wasOpen.current = drawerOpen;
+    const nav = document.getElementById(id);
+    if (drawerOpen) {
+      queryFocusableElements(nav)[0]?.focus();
+      return;
+    }
+    // a drawer that closes hides what has the focus, and one that gives way
+    // to the nav beside the page doesn't
+    const { activeElement } = document;
+    if (
+      narrow &&
+      (!activeElement ||
+        activeElement === document.body ||
+        nav?.contains(activeElement))
+    ) {
+      [...document.querySelectorAll<HTMLElement>("[aria-controls]")]
+        .find((button) => button.getAttribute("aria-controls") === id)
+        ?.focus();
+    }
+  }, [drawerOpen, narrow, id]);
 
   const onToggle = useCallback(() => {
     if (isNarrow()) {
@@ -207,7 +235,10 @@ export const WorkspaceShell = ({
             />
           )}
         </StandaloneUIProvider>
-        <div className="workspace-shell__main">{children}</div>
+        {/* the open drawer has the page under its scrim */}
+        <div className="workspace-shell__main" inert={nav.drawerOpen}>
+          {children}
+        </div>
       </div>
     </WorkspaceDragProvider>
   );

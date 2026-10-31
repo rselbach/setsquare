@@ -15,6 +15,7 @@ import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 
 import {
   cleanUpWebApp,
+  findToast,
   elementIds,
   navigateTo,
   renderPageAt,
@@ -220,6 +221,29 @@ describe("the nav beside the editor", () => {
     expect(window.location.pathname).toBe(`/d/${plan.id}`);
   });
 
+  it("gives the drawing's link the focus once Enter or Escape ends a rename", async () => {
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    const link = () => within(nav()).getByRole("link", { name: /^Seating/ });
+
+    await chooseFromRowMenu("Seating", "Rename");
+    let field = await screen.findByRole("textbox", { name: "Drawing name" });
+    fireEvent.keyDown(field, { key: KEYS.ESCAPE });
+
+    expect(link()).toHaveFocus();
+
+    await chooseFromRowMenu("Seating", "Rename");
+    field = await screen.findByRole("textbox", { name: "Drawing name" });
+    fireEvent.change(field, { target: { value: "Study room" } });
+    fireEvent.keyDown(field, { key: KEYS.ENTER });
+
+    await waitFor(() =>
+      expect(
+        within(nav()).getByRole("link", { name: /^Study room/ }),
+      ).toHaveFocus(),
+    );
+  });
+
   it("says so over the editor when it can't duplicate a drawing", async () => {
     await renderWebAppAt(`/d/${plan.id}`);
     await waitForDrawing(plan.id, ["troy"]);
@@ -232,9 +256,7 @@ describe("the nav beside the editor", () => {
 
     await chooseFromRowMenu("Seating", "Duplicate");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Couldn't duplicate “Seating”.",
-    );
+    await findToast("Couldn't duplicate “Seating”.", "error");
     expect(window.location.pathname).toBe(`/d/${plan.id}`);
   });
 
@@ -281,9 +303,7 @@ describe("the nav beside the editor", () => {
     await chooseFromRowMenu("Floor plan", "Move to Trash");
 
     await waitForPage(`/f/${greendale.id}`, "Greendale");
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Moved “Floor plan” to Trash",
-    );
+    await findToast("Moved “Floor plan” to Trash");
     await waitFor(() =>
       expect(drawingRows("Greendale")).toEqual([
         { name: "Seating", current: false },

@@ -105,3 +105,23 @@ export const waitForDrawing = (id: DrawingId, ids: string[]) =>
 /** Waits out the autosave's debounce. */
 export const waitForAutosave = () =>
   act(() => new Promise((resolve) => setTimeout(resolve, 400)));
+
+/**
+ * Where screen readers hear the toast: the polite live region for news, the
+ * alert for errors. Both are there before any message is.
+ */
+export const toastRegion = (kind: "news" | "error" = "news") =>
+  document.querySelector<HTMLElement>(
+    `.workspace-toast-announcer ${
+      kind === "error" ? '[role="alert"]' : '[aria-live="polite"]'
+    }`,
+  )!;
+
+/** Waits until the toast says `text`, returning the toast, with its buttons. */
+export const findToast = async (
+  text: string,
+  kind: "news" | "error" = "news",
+) => {
+  await waitFor(() => expect(toastRegion(kind)).toHaveTextContent(text));
+  return document.querySelector<HTMLElement>(".workspace-toast")!;
+};

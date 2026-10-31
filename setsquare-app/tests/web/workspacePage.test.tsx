@@ -21,6 +21,8 @@ import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 
 import {
   cleanUpWebApp,
+  findToast,
+  toastRegion,
   renderPageAt,
   renderWebAppAt,
   savedContent,
@@ -371,8 +373,27 @@ describe("the workspace page", () => {
     fireEvent.change(field, { target: { value: "Paintball map" } });
     fireEvent.keyDown(field, { key: KEYS.ENTER });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "“Paintball map” changed elsewhere. Try again.",
+    await findToast("“Paintball map” changed elsewhere. Try again.", "error");
+  });
+
+  it("gives the focus back to the button of a menu once it closes", async () => {
+    await renderPageAt(`/f/${studyGroup.id}`);
+    const more = within(screen.getByRole("main")).getByRole("button", {
+      name: "Actions for Seating",
+    });
+
+    fireEvent.click(more);
+    fireEvent.keyDown(await screen.findByTestId("dropdown-menu"), {
+      key: KEYS.ESCAPE,
+    });
+    await waitFor(() => expect(more).toHaveFocus());
+
+    await chooseFromMenu("Actions for Seating", "Duplicate");
+    await waitFor(() => expect(more).toHaveFocus());
+
+    await chooseFromMenu("Sort Last edited", "Name");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Sort Name" })).toHaveFocus(),
     );
   });
 
@@ -387,9 +408,7 @@ describe("the workspace page", () => {
 
     await chooseFromMenu("Actions for Seating", "Duplicate");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Couldn't duplicate “Seating”.",
-    );
+    await findToast("Couldn't duplicate “Seating”.", "error");
   });
 
   it("searches the whole workspace, showing where each item is", async () => {
@@ -548,12 +567,26 @@ describe("the workspace page", () => {
     });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
 
+    const main = document.querySelector(".workspace-shell__main");
+
     fireEvent.click(toggle);
 
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(nav).toHaveClass("workspace-nav--open");
-    fireEvent.keyDown(document.body, { key: KEYS.ESCAPE });
+    // like a modal dialog, over a page that can't be reached
+    expect(
+      within(nav).getByRole("button", { name: "Hide sidebar" }),
+    ).toHaveFocus();
+    expect(main).toHaveAttribute("inert");
+    fireEvent.keyDown(document.activeElement!, { key: KEYS.ESCAPE });
     expect(nav).not.toHaveClass("workspace-nav--open");
+    expect(toggle).toHaveFocus();
+    expect(main).not.toHaveAttribute("inert");
+
+    fireEvent.click(toggle);
+    fireEvent.click(within(nav).getByRole("button", { name: "Hide sidebar" }));
+    expect(nav).not.toHaveClass("workspace-nav--open");
+    expect(toggle).toHaveFocus();
 
     fireEvent.click(toggle);
     fireEvent.click(within(nav).getByRole("link", { name: "Recent" }));
@@ -681,16 +714,12 @@ describe("opening files from the workspace page", () => {
 
     expect(pressOpen()).toBe(false);
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      t("alerts.couldNotLoadInvalidFile"),
-    );
+    const toast = await findToast(t("alerts.couldNotLoadInvalidFile"), "error");
     expect(window.location.pathname).toBe("/");
     expect(store.getSnapshot().drawings.size).toBe(3);
 
-    fireEvent.click(
-      within(screen.getByRole("alert")).getByRole("button", { name: "Close" }),
-    );
-    expect(screen.queryByRole("alert")).toBe(null);
+    fireEvent.click(within(toast).getByRole("button", { name: "Close" }));
+    expect(toastRegion("error")).toBeEmptyDOMElement();
   });
 
   it("says on the page which launched file couldn't be read", async () => {
@@ -712,8 +741,9 @@ describe("opening files from the workspace page", () => {
 
     await renderPageAt("/");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    await findToast(
       t("errors.openFileError", { name: "abed.setsquare" }),
+      "error",
     );
     expect(window.location.pathname).toBe("/");
   });
@@ -740,8 +770,9 @@ describe("opening files from the workspace page", () => {
     expect(
       screen.getByRole("heading", { name: "This drawing isn't here" }),
     ).toBeInTheDocument();
-    expect(await screen.findByRole("alert")).toHaveTextContent(
+    await findToast(
       t("errors.openFileError", { name: "abed.setsquare" }),
+      "error",
     );
   });
 
@@ -753,9 +784,7 @@ describe("opening files from the workspace page", () => {
 
     pressOpen();
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Added to your library",
-    );
+    await findToast("Added to your library");
     expect((await LibraryIndexedDBAdapter.load())?.libraryItems).toHaveLength(
       1,
     );

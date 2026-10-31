@@ -49,6 +49,7 @@ export const ItemMenu = ({
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         className="workspace-menu"
+        returnFocus
         onClickOutside={() => setOpen(false)}
         onSelect={() => setOpen(false)}
       >

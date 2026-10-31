@@ -1,7 +1,7 @@
 import { Dialog } from "@setsquare/setsquare/components/Dialog";
 import { FilledButton } from "@setsquare/setsquare/components/FilledButton";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { newFolderIcon } from "../../web/icons";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
@@ -16,6 +16,7 @@ import {
 } from "../tree";
 
 import { FolderTree } from "./FolderTree";
+import { useRenameClose } from "./InlineName";
 import { useShowMessage } from "./WorkspaceToast";
 
 import type { FolderId, ItemRef, ParentId } from "../types";
@@ -60,13 +61,24 @@ export const MoveDialog = ({
     [snapshot, item],
   );
 
+  const treeRef = useRef<HTMLDivElement | null>(null);
   // the choice it starts on, where the item is, rather than the dialog's
   // first button
   const focusChoice = useCallback((tree: HTMLDivElement | null) => {
+    treeRef.current = tree;
     tree
       ?.querySelector<HTMLButtonElement>('button[aria-current="location"]')
       ?.focus();
   }, []);
+  // the folder named is the one chosen
+  const closeRename = useRenameClose(
+    renaming !== null,
+    () => setRenaming(null),
+    () =>
+      treeRef.current?.querySelector<HTMLElement>(
+        '[aria-selected="true"] > .folder-tree__row > .folder-tree__link',
+      ),
+  );
 
   // such as when another tab deletes it or moves it to the Trash
   useEffect(() => {
@@ -125,7 +137,7 @@ export const MoveDialog = ({
                   folderName,
                 );
               },
-              onClose: () => setRenaming(null),
+              onClose: closeRename,
             },
           }}
         />

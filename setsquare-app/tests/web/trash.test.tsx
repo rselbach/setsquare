@@ -17,6 +17,8 @@ import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 
 import {
   cleanUpWebApp,
+  findToast,
+  toastRegion,
   elementIds,
   renderPageAt,
   renderWebAppAt,
@@ -101,11 +103,16 @@ afterEach(() => cleanUpWebApp(workspace));
 describe("moving to the Trash from the page", () => {
   it("trashes a card from its menu, and Undo takes it back", async () => {
     await renderPageAt(`/f/${studyGroup.id}`);
+    // there before the message, so that screen readers hear it come
+    const region = toastRegion();
+    expect(region).toBeEmptyDOMElement();
 
     await chooseFromMenu("Actions for Floor plan", "Move to Trash");
 
-    const toast = await screen.findByRole("status");
-    expect(toast).toHaveTextContent("Moved “Floor plan” to Trash");
+    const toast = await findToast("Moved “Floor plan” to Trash");
+    expect(toastRegion()).toBe(region);
+    // the card that's left
+    await waitFor(() => expect(card("Drawings", "Seating")).toHaveFocus());
     expect(
       within(screen.getByRole("region", { name: "Drawings" })).queryByRole(
         "link",
@@ -119,7 +126,7 @@ describe("moving to the Trash from the page", () => {
     await waitFor(() =>
       expect(card("Drawings", "Floor plan")).toBeInTheDocument(),
     );
-    expect(screen.queryByRole("status")).toBe(null);
+    expect(toastRegion()).toBeEmptyDOMElement();
     await waitFor(() => expect(isTrashed(store, plan)).toBe(false));
   });
 
@@ -133,29 +140,25 @@ describe("moving to the Trash from the page", () => {
       key: KEYS.DELETE,
     });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Moved “Señor Chang's office” to Trash",
-    );
+    await findToast("Moved “Señor Chang's office” to Trash");
     expect(screen.queryByRole("region", { name: "Drawings" })).toBe(null);
     // nor while typing, where it undoes the typing
     fireEvent.keyDown(screen.getByRole("searchbox"), {
       key: "z",
       [KEYS.CTRL_OR_CMD]: true,
     });
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(toastRegion()).not.toBeEmptyDOMElement();
 
     fireEvent.keyDown(document.body, { key: "z", [KEYS.CTRL_OR_CMD]: true });
 
     await waitFor(() =>
       expect(card("Drawings", "Señor Chang's office")).toBeInTheDocument(),
     );
-    expect(screen.queryByRole("status")).toBe(null);
+    expect(toastRegion()).toBeEmptyDOMElement();
 
     fireEvent.keyDown(card("Folders", "Greendale"), { key: KEYS.BACKSPACE });
 
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Moved “Greendale” to Trash",
-    );
+    await findToast("Moved “Greendale” to Trash");
     await waitFor(() =>
       expect(store.getSnapshot().folders.get(greendale.id)?.trashedAt).not.toBe(
         null,
@@ -331,9 +334,7 @@ describe("the Trash", () => {
       within(trashRow("Floor plan")).getByRole("button", { name: "Restore" }),
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Couldn't restore “Floor plan”.",
-    );
+    await findToast("Couldn't restore “Floor plan”.", "error");
 
     fireEvent.click(screen.getByRole("button", { name: "Empty trash" }));
     const dialog = await screen.findByRole("dialog");
@@ -341,11 +342,7 @@ describe("the Trash", () => {
       within(dialog).getByRole("button", { name: "Empty trash" }),
     );
 
-    await waitFor(() =>
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "Couldn't empty the Trash.",
-      ),
-    );
+    await findToast("Couldn't empty the Trash.", "error");
     expect(trashedNames()).toEqual(["Floor plan"]);
   });
 
@@ -465,8 +462,7 @@ describe("moving to the Trash from the editor", () => {
     );
 
     await waitForPage(`/f/${studyGroup.id}`, "Study group");
-    const toast = await screen.findByRole("status");
-    expect(toast).toHaveTextContent("Moved “Floor plan” to Trash");
+    const toast = await findToast("Moved “Floor plan” to Trash");
     await waitFor(() =>
       expect(
         within(screen.getByRole("region", { name: "Drawings" })).queryByRole(
@@ -499,9 +495,7 @@ describe("moving to the Trash from the editor", () => {
     );
 
     await waitForPage("/", "Drawings");
-    expect(await screen.findByRole("status")).toHaveTextContent(
-      "Moved “Señor Chang's office” to Trash",
-    );
+    await findToast("Moved “Señor Chang's office” to Trash");
   });
 
   it("trashes another drawing from the nav, with Undo over the editor", async () => {
@@ -518,7 +512,7 @@ describe("moving to the Trash from the editor", () => {
       }),
     );
 
-    const toast = await screen.findByText("Moved “Seating” to Trash");
+    const toast = await findToast("Moved “Seating” to Trash");
     // over the editor, which stays
     expect(toast.closest(".setsquare-container")).not.toBe(null);
     expect(window.location.pathname).toBe(`/d/${plan.id}`);

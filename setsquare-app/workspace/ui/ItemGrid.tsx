@@ -21,10 +21,10 @@ export type ItemActions = {
   renameFolder: (id: FolderId, name: string) => void;
   renameDrawing: (id: DrawingId, name: string | null) => void;
   duplicate: (drawing: DrawingMeta) => void;
-  /** asks where to move the item */
-  move: (item: ItemRef) => void;
-  /** moves the item to the Trash, offering Undo */
-  trash: (item: ItemRef) => void;
+  /** asks where to move the item, from its card */
+  move: (item: ItemRef, card: HTMLElement | null) => void;
+  /** moves the item to the Trash, offering Undo, from its card */
+  trash: (item: ItemRef, card: HTMLElement | null) => void;
 };
 
 const isRenaming = (renaming: ItemRef | null, item: ItemRef) =>
@@ -71,8 +71,8 @@ export const ItemGrid = ({
                   onStartRename={() => actions.startRename(ref)}
                   onStopRename={actions.stopRename}
                   onRename={(name) => actions.renameFolder(folder.id, name)}
-                  onMove={() => actions.move(ref)}
-                  onTrash={() => actions.trash(ref)}
+                  onMove={(card) => actions.move(ref, card)}
+                  onTrash={(card) => actions.trash(ref, card)}
                 />
               );
             })}
@@ -99,8 +99,8 @@ export const ItemGrid = ({
                   onStopRename={actions.stopRename}
                   onRename={(name) => actions.renameDrawing(drawing.id, name)}
                   onDuplicate={() => actions.duplicate(drawing)}
-                  onMove={() => actions.move(ref)}
-                  onTrash={() => actions.trash(ref)}
+                  onMove={(card) => actions.move(ref, card)}
+                  onTrash={(card) => actions.trash(ref, card)}
                 />
               );
             })}

@@ -36,30 +36,39 @@ export type PageMessage = {
  * it can be undone.
  */
 export const useWorkspaceToast = () => {
-  const [message, setMessage] = useState<PageMessage | null>(null);
+  // counted, so that the same text shown again is read again
+  const [shown, setShown] = useState<{
+    message: PageMessage;
+    count: number;
+  } | null>(null);
+  const message = shown?.message ?? null;
 
   useEffect(() => {
     if (!message || message.error) {
       return;
     }
     const timer = window.setTimeout(
-      () => setMessage(null),
+      () => setShown(null),
       message.undo ? UNDO_DURATION_MS : INFO_DURATION_MS,
     );
     return () => window.clearTimeout(timer);
   }, [message]);
 
-  const show = useCallback((message: PageMessage) => setMessage(message), []);
-  const dismiss = useCallback(() => setMessage(null), []);
+  const show = useCallback(
+    (message: PageMessage) =>
+      setShown((shown) => ({ message, count: (shown?.count ?? 0) + 1 })),
+    [],
+  );
+  const dismiss = useCallback(() => setShown(null), []);
   // once, so a second press can't undo what came after
   const undo = useCallback(() => {
     if (message?.undo) {
-      setMessage(null);
+      setShown(null);
       message.undo();
     }
   }, [message]);
 
-  return { message, show, dismiss, undo };
+  return { message, count: shown?.count ?? 0, show, dismiss, undo };
 };
 
 /** The toast the app shows, and how to change it. */
@@ -124,8 +133,30 @@ export const useTasksOnPage = (
 };
 
 /**
+ * What screen readers hear of the app's toast: live regions there from the
+ * start, as one that comes with its text is often not read, which take only
+ * the text, while the toast's buttons stay out of them. The app has one,
+ * which stays as the page and the editor give way to each other.
+ */
+export const WorkspaceToastAnnouncer = ({
+  toast: { message, count },
+}: {
+  toast: WorkspaceToastState;
+}) => (
+  <div className="workspace-toast-announcer visually-hidden">
+    {/* not a status, which the editor's save status is */}
+    <div aria-live="polite" aria-atomic="true">
+      {message && !message.error && <p key={count}>{message.text}</p>}
+    </div>
+    <div role="alert">
+      {message?.error && <p key={count}>{message.text}</p>}
+    </div>
+  </div>
+);
+
+/**
  * The app's toast, on the page or over the editor, with Undo for what can
- * be undone.
+ * be undone. Its text is read from the announcer instead.
  */
 export const WorkspaceToast = ({
   toast: { message, dismiss, undo },
@@ -144,11 +175,12 @@ export const WorkspaceToast = ({
       className={clsx("workspace-toast", className, {
         "workspace-toast--error": message.error,
       })}
-      role={message.error ? "alert" : "status"}
       // undoing from the sidebar's overlay mustn't close it
       data-prevent-outside-click
     >
-      <p className="workspace-toast__message">{message.text}</p>
+      <p className="workspace-toast__message" aria-hidden="true">
+        {message.text}
+      </p>
       {message.undo && (
         <button type="button" className="workspace-toast__undo" onClick={undo}>
           {t("buttons.undo")}

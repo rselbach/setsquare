@@ -75,6 +75,7 @@ const SortMenu = ({
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         className="workspace-menu"
+        returnFocus
         onClickOutside={() => setOpen(false)}
         onSelect={() => setOpen(false)}
       >
@@ -109,6 +110,7 @@ const CreateMenu = ({ actions }: { actions: CreateActions }) => {
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         className="workspace-menu"
+        returnFocus
         onClickOutside={() => setOpen(false)}
         onSelect={() => setOpen(false)}
       >
