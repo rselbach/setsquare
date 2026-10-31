@@ -49,6 +49,12 @@ const response = (value: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
+// a request whose connection went quiet: it settles only when aborted
+const stalled: typeof globalThis.fetch = (_, init) =>
+  new Promise((_, reject) =>
+    init?.signal?.addEventListener("abort", () => reject(init.signal?.reason)),
+  );
+
 const drawing = () =>
   newDrawingMeta({ name: "Dreamatorium", folderId: null, fileIds: [] }, 1000);
 
@@ -104,6 +110,7 @@ beforeAll(() => {
 afterAll(() => vi.restoreAllMocks());
 
 afterEach(() => {
+  vi.useRealTimers();
   for (const store of stores.splice(0)) {
     store.close();
   }
@@ -635,6 +642,56 @@ describe("RemoteWorkspaceStore", () => {
     );
     await Promise.all([saving, refreshing]);
     expect(store.getSnapshot().drawings.get(meta.id)?.revision).toBe(2);
+  });
+
+  it("resends a stalled save once, then gives up without holding reads", async () => {
+    const meta = drawing();
+    const fetch = vi.fn<typeof globalThis.fetch>((path, init) =>
+      init?.method === "POST"
+        ? stalled(path, init)
+        : Promise.resolve(response(workspace(meta))),
+    );
+    const store = await open(fetch);
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const saving = store.saveDrawingContent(
+      meta.id,
+      emptyDrawingContent(meta.name),
+      [],
+      { baseRevision: 1, requestId: "troy-stalled-save" },
+    );
+    const failed = expect(saving).rejects.toMatchObject({
+      outcome: "unknown",
+      cause: new ApiError(0, "timeout"),
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const refreshing = store.refresh();
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(fetch.mock.calls[2][1]?.body).toBe(fetch.mock.calls[1][1]?.body);
+    expect(JSON.parse(String(fetch.mock.calls[2][1]?.body))).toMatchObject({
+      requestId: "troy-stalled-save",
+    });
+    await vi.advanceTimersByTimeAsync(20_000);
+    await failed;
+    vi.useRealTimers();
+    await refreshing;
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(fetch.mock.calls[3][0]).toBe("/api/workspace");
+  });
+
+  it("aborts its requests when it closes", async () => {
+    const meta = drawing();
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(response(workspace(meta)))
+      .mockImplementationOnce(stalled);
+    const store = await open(fetch);
+    const reading = store.loadDrawingContent(meta.id);
+    await vi.waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    store.close();
+    await expect(reading).rejects.toThrow("This workspace is closed");
+    expect(fetch.mock.calls[1][1]?.signal?.aborted).toBe(true);
   });
 
   it("loads available images when one file in a batch is missing", async () => {

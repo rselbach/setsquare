@@ -64,6 +64,10 @@ export type ImportResult = { imported: number; skipped: DrawingMeta[] };
 
 const NOT_FOUND = { ok: false, reason: "notFound" } as const;
 const OK = { ok: true } as const;
+// a request that outlasts these has stalled; image bytes can take minutes
+// on a slow link, everything else is small
+const REQUEST_TIMEOUT = 20_000;
+const IMAGE_TIMEOUT = 120_000;
 
 /** An account's server workspace, with device-local recovery images and views. */
 export class RemoteWorkspaceStore implements WorkspaceStore {
@@ -104,6 +108,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private expired = false;
   private importing: Promise<ImportResult> | null = null;
   private mutations: Promise<void> = Promise.resolve();
+  private readonly requests = new Set<AbortController>();
 
   private constructor(
     private readonly options: RemoteWorkspaceOptions,
@@ -159,6 +164,9 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
 
   close() {
     this.closed = true;
+    for (const controller of this.requests) {
+      controller.abort(new ApiError(0, "This workspace is closed"));
+    }
     this.listeners.clear();
     this.cache.close();
   }
@@ -799,51 +807,68 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     if (this.closed) {
       throw new ApiError(0, "This workspace is closed");
     }
-    const options: RequestInit = {
-      ...init,
-      credentials: "same-origin",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": this.options.session.csrfToken,
-        "X-Setsquare-Account": this.user.id,
-      },
-    };
-    let response: Response;
     try {
-      response = await this.fetch(path, options);
+      return await this.send(path, init);
     } catch (error) {
-      if (retry && !this.closed) {
+      // the server may have applied a request it never answered
+      const uncertain =
+        !(error instanceof ApiError) ||
+        error.status === 0 ||
+        error.status >= 500;
+      if (retry && uncertain && !this.closed) {
         return this.retryUncertainRequest(path, init);
       }
       throw error;
     }
-    if (!response.ok) {
-      if (retry && response.status >= 500 && !this.closed) {
-        return this.retryUncertainRequest(path, init);
-      }
-      let message = `The request failed (${response.status})`;
-      try {
-        const body: unknown = await response.json();
-        if (
-          typeof body === "object" &&
-          body !== null &&
-          "error" in body &&
-          typeof body.error === "string"
-        ) {
-          message = body.error;
+  }
+
+  // one attempt, which stops when it stalls or the store closes
+  private async send(path: string, init: RequestInit): Promise<unknown> {
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(new ApiError(0, "timeout")),
+      path.startsWith("/api/files") ? IMAGE_TIMEOUT : REQUEST_TIMEOUT,
+    );
+    this.requests.add(controller);
+    try {
+      const response = await this.fetch(path, {
+        ...init,
+        signal: controller.signal,
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": this.options.session.csrfToken,
+          "X-Setsquare-Account": this.user.id,
+        },
+      });
+      if (!response.ok) {
+        let message = `The request failed (${response.status})`;
+        try {
+          const body: unknown = await response.json();
+          if (
+            typeof body === "object" &&
+            body !== null &&
+            "error" in body &&
+            typeof body.error === "string"
+          ) {
+            message = body.error;
+          }
+        } catch {
+          // a proxy can return an error page rather than the API's JSON
         }
-      } catch {
-        // a proxy can return an error page rather than the API's JSON
+        const error = new ApiError(response.status, message);
+        if (apiFailureKind(error) === "expired" && !this.expired) {
+          this.expired = true;
+          this.options.onSessionExpired();
+        }
+        throw error;
       }
-      const error = new ApiError(response.status, message);
-      if (apiFailureKind(error) === "expired" && !this.expired) {
-        this.expired = true;
-        this.options.onSessionExpired();
-      }
-      throw error;
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+      this.requests.delete(controller);
     }
-    return response.json();
   }
 
   private async retryUncertainRequest(path: string, init: RequestInit) {

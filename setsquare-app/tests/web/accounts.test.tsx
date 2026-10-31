@@ -1,5 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { CaptureUpdateAction } from "@setsquare/setsquare";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+
 import SetsquareApp from "../../App";
 import { AccountContext } from "../../web/accountContext";
 import {
@@ -12,6 +15,14 @@ import * as workspaceStore from "../../web/workspaceStore";
 import { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
 import { workspaceFixture } from "../workspace/helpers";
+
+import {
+  cleanUpWebApp,
+  renderWebAppAt,
+  savedContent,
+  waitForAutosave,
+  waitForDrawing,
+} from "./helpers";
 
 import type { ReactNode } from "react";
 
@@ -203,6 +214,66 @@ describe("web accounts", () => {
         "X-Setsquare-Account": signedIn.user.id,
       },
     });
+  });
+
+  it("signs out past a stalled save once the recovery draft holds the edit", async () => {
+    const store = Object.assign(await workspace.open(), {
+      recoveryKey: signedIn.user.id,
+      recoveryStorage: window.localStorage,
+      recoveryDrafts: {
+        save: vi.fn().mockResolvedValue(undefined),
+        load: vi.fn().mockResolvedValue([]),
+        remove: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+    const drawing = await store.createDrawing({
+      folderId: null,
+      name: "Greendale",
+      content: savedContent("Greendale", "troy"),
+    });
+    vi.spyOn(workspaceStore, "openWorkspaceStore").mockImplementation(
+      async (options) => {
+        options?.onSession?.(signedIn);
+        return store;
+      },
+    );
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetch);
+    // jsdom reports the page load sign out ends with as not implemented
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await renderWebAppAt(`/d/${drawing.id}`);
+    await waitForDrawing(drawing.id, ["troy"]);
+    vi.spyOn(store, "saveDrawingContent").mockReturnValue(
+      new Promise(() => {}),
+    );
+    API.updateScene({
+      elements: [
+        ...window.h.elements,
+        API.createElement({ type: "ellipse", id: "annie" }),
+      ],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    await waitForAutosave();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Account menu for Troy Barnes" }),
+    );
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Sign out" }));
+
+    await waitFor(
+      () =>
+        expect(fetch).toHaveBeenCalledWith(
+          "/api/auth/logout",
+          expect.objectContaining({ method: "POST" }),
+        ),
+      { timeout: 3000 },
+    );
+    expect(store.recoveryDrafts.save).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: drawing.id }),
+    );
+    await cleanUpWebApp(workspace);
   });
 
   it("keeps the mounted drawing beside the expired-session notice", async () => {
