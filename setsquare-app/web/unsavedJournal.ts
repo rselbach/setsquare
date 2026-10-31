@@ -8,7 +8,7 @@ import {
   parseView,
 } from "../workspace/remote/parse";
 
-import { imageFileIds } from "./drawingPersistence";
+import { imageFileIds } from "./persistence/saveContent";
 
 import type {
   AccountDraft,

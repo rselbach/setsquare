@@ -14,7 +14,7 @@ import type { BinaryFileData } from "@setsquare/setsquare/types";
 import { getSceneUrl } from "../desktop/sceneUrl";
 import { splitAppState } from "../workspace/drawingAppState";
 
-import { imageFileIds } from "./drawingPersistence";
+import { imageFileIds } from "./persistence/saveContent";
 import { navigate } from "./router";
 
 import type { ParentId } from "../workspace/types";
