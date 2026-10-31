@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readdir } from "node:fs/promises";
 
 import pg from "pg";
 
@@ -16,6 +17,16 @@ import type { AccountUser } from "../../setsquare-app/workspace/api";
 
 import type { OAuthProvider } from "../src/auth";
 import type { ServerConfig } from "../src/config";
+
+/** The migration directory shipped with the server. */
+export const migrationsDirectory = new URL("../migrations/", import.meta.url);
+
+/** The schema_migrations rows a fully migrated database should hold. */
+export const migrationVersions = async () =>
+  (await readdir(migrationsDirectory))
+    .filter((filename) => filename.endsWith(".sql"))
+    .map((filename) => ({ version: Number(filename.slice(0, 3)) }))
+    .sort((left, right) => left.version - right.version);
 
 /** A temporary schema containing only this test run's data. */
 export const testDatabase = async () => {

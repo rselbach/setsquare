@@ -11,6 +11,7 @@ import {
   account,
   config,
   fakeProvider,
+  migrationVersions,
   pixel,
   testDatabase,
   testServer,
@@ -708,7 +709,7 @@ it("shares grants across instances and applies migrations idempotently", async (
         "SELECT version FROM schema_migrations ORDER BY version",
       )
     ).rows,
-  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }, { version: 4 }]);
+  ).toEqual(await migrationVersions());
   const second = await testServer(db.pool, clock);
   try {
     expect(

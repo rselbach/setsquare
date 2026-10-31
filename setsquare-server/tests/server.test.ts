@@ -1,6 +1,8 @@
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { vi } from "vitest";
 
@@ -12,6 +14,8 @@ import {
   command,
   config,
   content,
+  migrationVersions,
+  migrationsDirectory,
   pixel,
   testDatabase,
   testServer,
@@ -34,7 +38,108 @@ it("applies migrations safely when servers start concurrently", async () => {
         "SELECT version FROM schema_migrations ORDER BY version",
       )
     ).rows,
-  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }, { version: 4 }]);
+  ).toEqual(await migrationVersions());
+});
+
+const migrationsCopy = async () => {
+  const directory = await mkdtemp(
+    path.join(os.tmpdir(), "setsquare-migrations-test-"),
+  );
+  await cp(migrationsDirectory, directory, { recursive: true });
+  return directory;
+};
+
+it("applies migration files that no code lists", async () => {
+  const fresh = await testDatabase();
+  const directory = await migrationsCopy();
+  try {
+    await writeFile(
+      path.join(directory, "900-study-groups.sql"),
+      "CREATE TABLE study_groups (name text PRIMARY KEY);",
+    );
+    await migrate(fresh.pool, pathToFileURL(`${directory}/`));
+    expect(
+      (await fresh.pool.query("SELECT name FROM study_groups")).rows,
+    ).toEqual([]);
+    expect(
+      (
+        await fresh.pool.query(
+          "SELECT version FROM schema_migrations ORDER BY version",
+        )
+      ).rows,
+    ).toEqual([...(await migrationVersions()), { version: 900 }]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+    await fresh.close();
+  }
+});
+
+it("records checksums for databases migrated before checksums existed", async () => {
+  const fresh = await testDatabase();
+  try {
+    await fresh.pool.query(
+      "ALTER TABLE schema_migrations DROP COLUMN checksum",
+    );
+    await migrate(fresh.pool);
+    const initial = await readFile(
+      new URL("001-initial.sql", migrationsDirectory),
+    );
+    expect(
+      (
+        await fresh.pool.query(
+          "SELECT version, checksum FROM schema_migrations ORDER BY version",
+        )
+      ).rows[0],
+    ).toEqual({
+      version: 1,
+      checksum: createHash("sha256").update(initial).digest("hex"),
+    });
+    expect(
+      (
+        await fresh.pool.query(
+          "SELECT count(*)::int AS missing FROM schema_migrations WHERE checksum IS NULL",
+        )
+      ).rows,
+    ).toEqual([{ missing: 0 }]);
+  } finally {
+    await fresh.close();
+  }
+});
+
+it.each([
+  [
+    "an applied migration changed",
+    async (directory: string) =>
+      writeFile(path.join(directory, "001-initial.sql"), "SELECT 1;"),
+    "Migration 001-initial.sql changed after it was applied",
+  ],
+  [
+    "an applied migration is missing",
+    async (directory: string) => rm(path.join(directory, "001-initial.sql")),
+    "Migration version 1 was applied, but no migration file has that version",
+  ],
+  [
+    "two migrations share a version",
+    async (directory: string) =>
+      writeFile(path.join(directory, "001-duplicate.sql"), "SELECT 1;"),
+    "Migrations 001-duplicate.sql and 001-initial.sql share version 1",
+  ],
+  [
+    "a migration is misnamed",
+    async (directory: string) =>
+      writeFile(path.join(directory, "5-greendale.sql"), "SELECT 1;"),
+    "Migration 5-greendale.sql must be named like 001-description.sql",
+  ],
+])("refuses to migrate when %s", async (_, change, want) => {
+  const directory = await migrationsCopy();
+  try {
+    await change(directory);
+    await expect(
+      migrate(db.pool, pathToFileURL(`${directory}/`)),
+    ).rejects.toThrow(want);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 it("serves static navigation while keeping API and missing asset requests out of the SPA", async () => {
