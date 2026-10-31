@@ -290,47 +290,46 @@ const WorkspaceView = ({
     }
   };
 
-  const itemActions: ItemActions = {
-    startRename: (item) => setRenaming({ item, path }),
-    stopRename: () => setRenaming(null),
-    renameFolder: (id, name) => {
-      void attempt(toast.show, store.renameFolder(id, name), "rename", name);
-    },
-    renameDrawing: (id, name) => {
-      void attempt(
-        toast.show,
-        store.renameDrawing(id, name),
-        "rename",
-        name || t("labels.untitled"),
-      );
-    },
-    move: (item, card) => setMoving({ item, from: placeOf(card) }),
-    trash: (item, card) => {
-      trashedFrom.current = placeOf(card);
-      trash(item);
-    },
-    duplicate: async (drawing: DrawingMeta) => {
-      const shownName = drawing.name || t("labels.untitled");
-      try {
-        const snap = store.getSnapshot();
-        const name = t("workspace.copyName", { name: shownName });
-        const copy = await store.duplicateDrawing(
-          drawing.id,
-          uniqueName(snap, parentOf(snap, drawing), name),
+  const { show } = toast;
+  const itemActions = useMemo(
+    (): ItemActions => ({
+      startRename: (item) => setRenaming({ item, path }),
+      stopRename: () => setRenaming(null),
+      renameFolder: (id, name) => {
+        void attempt(show, store.renameFolder(id, name), "rename", name);
+      },
+      renameDrawing: (id, name) => {
+        void attempt(
+          show,
+          store.renameDrawing(id, name),
+          "rename",
+          name || t("labels.untitled"),
         );
-        if (!copy) {
-          reportFailure(
-            toast.show,
-            { reason: "notFound" },
-            "duplicate",
-            shownName,
+      },
+      move: (item, card) => setMoving({ item, from: placeOf(card) }),
+      trash: (item, card) => {
+        trashedFrom.current = placeOf(card);
+        trash(item);
+      },
+      duplicate: async (drawing: DrawingMeta) => {
+        const shownName = drawing.name || t("labels.untitled");
+        try {
+          const snap = store.getSnapshot();
+          const name = t("workspace.copyName", { name: shownName });
+          const copy = await store.duplicateDrawing(
+            drawing.id,
+            uniqueName(snap, parentOf(snap, drawing), name),
           );
+          if (!copy) {
+            reportFailure(show, { reason: "notFound" }, "duplicate", shownName);
+          }
+        } catch (error) {
+          reportFailure(show, { error }, "duplicate", shownName);
         }
-      } catch (error) {
-        reportFailure(toast.show, { error }, "duplicate", shownName);
-      }
-    },
-  };
+      },
+    }),
+    [path, store, show, trash, t],
+  );
 
   const { undo } = toast;
   const canUndo = !!toast.message?.undo;

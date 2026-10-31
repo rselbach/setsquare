@@ -67,10 +67,15 @@ export interface WorkspaceStore {
   /** every folder and drawing, as of the last change this store saw */
   getSnapshot(): WorkspaceSnapshot;
   /**
-   * Calls listener after each change this tab or another commits, view saves
-   * aside. Returns a function that stops it.
+   * Calls listener after each change to the snapshot this tab or another
+   * commits. Returns a function that stops it.
    */
   subscribe(listener: () => void): () => void;
+  /**
+   * Calls listener when thumbnails may have changed, as when this tab or
+   * another saves or deletes one. Returns a function that stops it.
+   */
+  subscribeThumbnails(listener: () => void): () => void;
 
   createFolder(parentId: ParentId, name: string): Promise<Folder>;
   renameFolder(id: FolderId, name: string): Promise<ChangeResult>;

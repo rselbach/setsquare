@@ -75,6 +75,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   private readonly state: SnapshotState;
   private readonly fileSync: FileSync;
   private readonly localImport: LocalImport;
+  private readonly thumbnailListeners = new Set<() => void>();
 
   private constructor(
     options: RemoteWorkspaceOptions,
@@ -117,19 +118,32 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
 
   subscribe = (listener: () => void) => this.state.subscribe(listener);
 
+  subscribeThumbnails = (listener: () => void) => {
+    this.thumbnailListeners.add(listener);
+    return () => {
+      this.thumbnailListeners.delete(listener);
+    };
+  };
+
   /** Makes image recovery durable before a queued save reaches the network. */
   stageFiles(files: BinaryFiles) {
     return this.fileSync.stage(files);
   }
 
+  /**
+   * Reads the workspace again, as when the window regains focus; other tabs
+   * and devices may have saved thumbnails too.
+   */
   async refresh() {
     await this.state.refresh();
+    this.notifyThumbnails();
     await this.maintainCache();
   }
 
   close() {
     this.client.close();
     this.state.close();
+    this.thumbnailListeners.clear();
     this.cache.close();
   }
 
@@ -289,6 +303,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
       if (result.kind !== "change") {
         throw new Error("The server returned an invalid thumbnail result");
       }
+      this.notifyThumbnails();
       return result.result;
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
@@ -300,6 +315,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
 
   async deleteThumbnail(id: DrawingId) {
     await this.state.command({ kind: "deleteThumbnail", id });
+    this.notifyThumbnails();
   }
 
   async getThumbnails(ids: readonly DrawingId[]) {
@@ -355,6 +371,12 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
   }
 
   /** Drops cached views of drawings the snapshot no longer has. */
+  private notifyThumbnails() {
+    for (const listener of this.thumbnailListeners) {
+      listener();
+    }
+  }
+
   private async maintainCache() {
     try {
       await this.cache.maintain(

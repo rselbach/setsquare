@@ -204,7 +204,7 @@ export const WorkspaceShell = ({
   );
 
   return (
-    <WorkspaceDragProvider snapshot={snapshot} onMove={onMove} onTrash={trash}>
+    <WorkspaceDragProvider store={store} onMove={onMove} onTrash={trash}>
       <div
         className={clsx("workspace-shell", {
           "workspace-shell--nav-hidden": nav.hidden,

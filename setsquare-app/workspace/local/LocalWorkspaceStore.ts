@@ -14,7 +14,7 @@ import {
   subtree,
   trashRoots,
 } from "../tree";
-import { newDrawingMeta, newFolderId } from "../types";
+import { newDrawingMeta, newFolderId, nextSnapshot } from "../types";
 
 import { deleteUnusedFiles } from "./fileGC";
 import { openDatabase, request, transact } from "./idb";
@@ -46,6 +46,19 @@ import type {
   WorkspaceFiles,
   WorkspaceStore,
 } from "../WorkspaceStore";
+
+const subscribe = (listeners: Set<() => void>, listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+const notify = (listeners: ReadonlySet<() => void>) => {
+  for (const listener of listeners) {
+    listener();
+  }
+};
 
 /** The version of the workspace database this build opens. */
 export const SCHEMA_VERSION = 1;
@@ -121,16 +134,13 @@ const update = async <S extends RecordStore>(
   return next;
 };
 
-const readSnapshot = async (tx: IDBTransaction): Promise<WorkspaceSnapshot> => {
-  const [folders, drawings] = await Promise.all([
-    getAll(tx, "folders"),
-    getAll(tx, "drawings"),
-  ]);
-  return {
-    folders: new Map(folders.map((folder) => [folder.id, folder])),
-    drawings: new Map(drawings.map((drawing) => [drawing.id, drawing])),
-  };
-};
+const EMPTY: WorkspaceSnapshot = { folders: new Map(), drawings: new Map() };
+
+const readTree = (tx: IDBTransaction) =>
+  Promise.all([getAll(tx, "folders"), getAll(tx, "drawings")]);
+
+const readSnapshot = async (tx: IDBTransaction) =>
+  nextSnapshot(EMPTY, ...(await readTree(tx)));
 
 const putDrawing = (
   tx: IDBTransaction,
@@ -237,10 +247,8 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   private readonly now: () => number;
   private readonly broadcast: WorkspaceBroadcast;
   private readonly listeners = new Set<() => void>();
-  private snapshot: WorkspaceSnapshot = {
-    folders: new Map(),
-    drawings: new Map(),
-  };
+  private readonly thumbnailListeners = new Set<() => void>();
+  private snapshot = EMPTY;
   // refreshes can finish out of order, so only the latest started one counts
   private refreshesStarted = 0;
   private refreshShown = 0;
@@ -248,9 +256,13 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   private constructor(db: IDBDatabase, channelName: string, now: () => number) {
     this.db = db;
     this.now = now;
-    this.broadcast = openBroadcast(channelName, () => {
+    this.broadcast = openBroadcast(channelName, (change) => {
+      if (change === "thumbnails") {
+        notify(this.thumbnailListeners);
+        return;
+      }
       this.refresh().then(
-        () => this.notify(),
+        (changed) => changed && notify(this.listeners),
         (error) => console.error(error),
       );
     });
@@ -259,12 +271,10 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   // arrow functions, so they can go to useSyncExternalStore as they are
   getSnapshot = () => this.snapshot;
 
-  subscribe = (listener: () => void) => {
-    this.listeners.add(listener);
-    return () => {
-      this.listeners.delete(listener);
-    };
-  };
+  subscribe = (listener: () => void) => subscribe(this.listeners, listener);
+
+  subscribeThumbnails = (listener: () => void) =>
+    subscribe(this.thumbnailListeners, listener);
 
   async createFolder(parentId: ParentId, name: string) {
     const at = this.now();
@@ -444,7 +454,7 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   }
 
   saveThumbnail(id: DrawingId, thumbnail: Thumbnail): Promise<ChangeResult> {
-    return this.write(["drawings", "thumbnails"], async (tx) => {
+    return this.writeThumbnails(["drawings", "thumbnails"], async (tx) => {
       if (!(await get(tx, "drawings", id))) {
         return NOT_FOUND;
       }
@@ -454,7 +464,7 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   }
 
   async deleteThumbnail(id: DrawingId) {
-    await this.write(["thumbnails"], (tx) =>
+    await this.writeThumbnails(["thumbnails"], (tx) =>
       request(tx.objectStore("thumbnails").delete(id)),
     );
   }
@@ -619,28 +629,39 @@ export class LocalWorkspaceStore implements WorkspaceStore {
   ) {
     const result = await transact(this.db, storeNames, "readwrite", fn);
     // committed, so a failed refresh mustn't fail the write or silence it
-    this.broadcast.post();
+    this.broadcast.post("changed");
     try {
-      await this.refresh();
+      if (!(await this.refresh())) {
+        return result;
+      }
     } catch (error) {
       console.error("Couldn't refresh after a committed change", error);
     }
-    this.notify();
+    notify(this.listeners);
     return result;
   }
 
-  private async refresh() {
-    const started = ++this.refreshesStarted;
-    const snapshot = await this.read(TREE_STORES, readSnapshot);
-    if (started > this.refreshShown) {
-      this.refreshShown = started;
-      this.snapshot = snapshot;
-    }
+  // commits fn's changes to thumbnails, which leave the snapshot as it is
+  private async writeThumbnails<T>(
+    storeNames: readonly StoreName[],
+    fn: (tx: IDBTransaction) => Promise<T>,
+  ) {
+    const result = await transact(this.db, storeNames, "readwrite", fn);
+    this.broadcast.post("thumbnails");
+    notify(this.thumbnailListeners);
+    return result;
   }
 
-  private notify() {
-    for (const listener of this.listeners) {
-      listener();
+  // resolves with whether the snapshot changed
+  private async refresh() {
+    const started = ++this.refreshesStarted;
+    const tree = await this.read(TREE_STORES, readTree);
+    if (started <= this.refreshShown) {
+      return false;
     }
+    this.refreshShown = started;
+    const previous = this.snapshot;
+    this.snapshot = nextSnapshot(previous, ...tree);
+    return this.snapshot !== previous;
   }
 }

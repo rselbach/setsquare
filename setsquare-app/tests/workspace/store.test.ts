@@ -199,18 +199,23 @@ describe("LocalWorkspaceStore", () => {
     expect((await store.loadDrawingContent(plan.id))?.appState.name).toBeNull();
   });
 
-  it("deletes a thumbnail and tells subscribers", async () => {
+  it("deletes a thumbnail and tells thumbnail subscribers, not snapshot ones", async () => {
     const store = await workspace.open();
     const plan = await store.createDrawing({ folderId: null, name: "Plan" });
     const seating = await store.createDrawing({ folderId: null, name: null });
+    const snapshot = store.getSnapshot();
+    const listener = vi.fn();
+    const thumbnailListener = vi.fn();
+    store.subscribe(listener);
+    store.subscribeThumbnails(thumbnailListener);
+
     await store.saveThumbnail(plan.id, thumbnailOf(1));
     await store.saveThumbnail(seating.id, thumbnailOf(1));
-    const listener = vi.fn();
-    store.subscribe(listener);
-
     await store.deleteThumbnail(plan.id);
 
-    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener).not.toHaveBeenCalled();
+    expect(thumbnailListener).toHaveBeenCalledTimes(3);
+    expect(store.getSnapshot()).toBe(snapshot);
     expect(await store.getThumbnails([plan.id, seating.id])).toEqual(
       new Map([[seating.id, thumbnailOf(1)]]),
     );
@@ -444,6 +449,62 @@ describe("LocalWorkspaceStore", () => {
     unsubscribe();
     await store.createFolder(null, "Greendale");
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps every record a change leaves alone", async () => {
+    const store = await workspace.open();
+    const greendale = await store.createFolder(null, "Greendale");
+    const plan = await store.createDrawing({ folderId: null, name: "Plan" });
+    const seating = await store.createDrawing({
+      folderId: greendale.id,
+      name: "Seating",
+      fileIds: ["chang" as FileId],
+    });
+    const before = store.getSnapshot();
+
+    await store.renameDrawing(plan.id, "Paintball");
+
+    const after = store.getSnapshot();
+    expect(after.drawings.get(plan.id)?.name).toBe("Paintball");
+    expect(after.drawings.get(seating.id)).toBe(
+      before.drawings.get(seating.id),
+    );
+    expect(after.folders).toBe(before.folders);
+
+    const listener = vi.fn();
+    store.subscribe(listener);
+    // a write that changes nothing in the snapshot shows nothing new
+    expect(await store.trash({ kind: "drawing", id: plan.id })).toEqual({
+      ok: true,
+    });
+    const trashed = store.getSnapshot();
+    expect(await store.trash({ kind: "drawing", id: plan.id })).toEqual({
+      ok: true,
+    });
+    expect(store.getSnapshot()).toBe(trashed);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells another tab about thumbnails apart from changes", async () => {
+    const troyTab = await workspace.open();
+    const abedTab = await workspace.open();
+    const plan = await troyTab.createDrawing({ folderId: null, name: "Plan" });
+    await vi.waitFor(() =>
+      expect(abedTab.getSnapshot().drawings.has(plan.id)).toBe(true),
+    );
+    const listener = vi.fn();
+    abedTab.subscribe(listener);
+    const thumbnailsChanged = new Promise<void>((resolve) =>
+      abedTab.subscribeThumbnails(resolve),
+    );
+
+    await troyTab.saveThumbnail(plan.id, thumbnailOf(1));
+    await thumbnailsChanged;
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(await abedTab.getThumbnails([plan.id])).toEqual(
+      new Map([[plan.id, thumbnailOf(1)]]),
+    );
   });
 
   it("tells another tab about changes", async () => {
