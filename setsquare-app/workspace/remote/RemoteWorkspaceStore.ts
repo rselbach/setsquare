@@ -120,7 +120,7 @@ export class RemoteWorkspaceStore implements WorkspaceStore {
     this.recoveryDrafts = {
       save: (draft) => cache.saveDraft(draft),
       load: (id) => cache.loadDrafts(id),
-      remove: (id, generation) => cache.removeDraft(id, generation),
+      remove: (id, notAfter) => cache.removeDraft(id, notAfter),
     };
     this.fetch =
       options.fetch ?? options.ownerWindow.fetch.bind(options.ownerWindow);

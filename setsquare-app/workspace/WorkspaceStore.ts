@@ -55,7 +55,8 @@ export interface WorkspaceStore {
   readonly recoveryDrafts?: {
     save(draft: AccountDraft): Promise<void>;
     load(id: DrawingId): Promise<AccountDraft[]>;
-    remove(draftId: string, generation?: string): Promise<void>;
+    /** removes the draft, or only a copy edited at or before `notAfter` */
+    remove(draftId: string, notAfter?: number): Promise<void>;
   };
   /** caches image bytes locally before a network save can begin */
   stageFiles?(files: BinaryFiles): Promise<void>;

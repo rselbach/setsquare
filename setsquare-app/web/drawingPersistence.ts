@@ -105,6 +105,7 @@ export type DrawingPersistence = Merge<
     subscribeSaveState(listener: () => void): () => void;
     retry(): Promise<void>;
     recoverAsCopy(): Promise<DrawingMeta | null>;
+    discard(): Promise<void>;
     hasDurableDraft(): boolean;
     keepRecovery(): void;
     getRecoveryError(): unknown | null;
@@ -291,17 +292,19 @@ export const createDrawingPersistence = ({
       recoveryWriting = recoveryWriting
         .then(async () => {
           await store.recoveryDrafts?.remove(draftId);
+          // the two stores' copies of the source can differ; a copy its
+          // still-open editor wrote after the one adopted here stays
           if (source) {
             await store.recoveryDrafts?.remove(
               source.draftId,
-              source.generation,
+              source.updatedAt,
             );
             clearUnsaved(
               id,
               store.recoveryKey,
               recoveryStorage,
               source.draftId,
-              source.generation,
+              source.updatedAt,
             );
           }
         })
@@ -449,6 +452,15 @@ export const createDrawingPersistence = ({
           }
           request = null;
           publish({ kind: "conflict", meta: saved.meta });
+          keepRecovery();
+          return;
+        }
+        // a resent request gets the receipt of its first commit, which a
+        // later save elsewhere may have overwritten since
+        const current = store.getSnapshot().drawings.get(id);
+        if (current && current.revision > saved.meta.revision) {
+          request = null;
+          publish({ kind: "conflict", meta: current });
           keepRecovery();
           return;
         }
@@ -772,6 +784,19 @@ export const createDrawingPersistence = ({
       await recoveryWriting;
       publish({ kind: "saved" });
       return copy;
+    },
+    // ends the session without saving; the drawing has to open again to show
+    // what the server has
+    discard: async () => {
+      await writing;
+      gone = true;
+      pending = null;
+      request = null;
+      debouncedSave.cancel();
+      debouncedRecovery.cancel();
+      thumbnailer.cancel();
+      keepRecovery();
+      await recoveryWriting;
     },
     renderThumbnail: async () => {
       if (!gone && !pending) {

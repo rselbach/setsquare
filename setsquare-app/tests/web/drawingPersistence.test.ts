@@ -20,7 +20,9 @@ import {
   readAccountRecovery,
   recoverUnavailable,
   replayUnsaved,
+  writeUnsaved,
 } from "../../web/unsavedJournal";
+import { splitAppState } from "../../workspace/drawingAppState";
 import { openDatabase, request, transact } from "../../workspace/local/idb";
 import { AccountCache } from "../../workspace/remote/AccountCache";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
@@ -30,6 +32,7 @@ import { workspaceFixture } from "../workspace/helpers";
 import { savedContent } from "./helpers";
 
 import type {
+  AccountDraft,
   DrawingContent,
   OpenedDrawing,
   SaveResult,
@@ -88,8 +91,8 @@ const openLocal = async (account: string): Promise<AccountStore> => {
         cache.saveDraft(draft),
       load: (id: Parameters<AccountCache["loadDrafts"]>[0]) =>
         cache.loadDrafts(id),
-      remove: (id: string, generation?: string) =>
-        cache.removeDraft(id, generation),
+      remove: (id: string, notAfter?: number) =>
+        cache.removeDraft(id, notAfter),
     },
     stageFiles: (files: Record<string, BinaryFileData>) =>
       cache.saveFiles(Object.values(files)),
@@ -139,6 +142,24 @@ const persistenceFor = (store: AccountStore, drawing: OpenedDrawing) =>
     ownerWindow: window,
     onNotFound: vi.fn(),
   });
+
+/** One copy of another editor session's draft, as it was at `updatedAt`. */
+const draftAt = (
+  drawing: OpenedDrawing,
+  updatedAt: number,
+  ...ids: string[]
+): AccountDraft => {
+  const { content, view } = splitAppState(appState());
+  return {
+    id: drawing.meta.id,
+    baseRevision: drawing.meta.revision,
+    elements: savedContent("Greendale", ...ids).elements,
+    appState: { ...content, ...view },
+    draftId: "britta",
+    generation: `perry-${updatedAt}`,
+    updatedAt,
+  };
+};
 
 describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
   const session = async () =>
@@ -492,6 +513,124 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
     await second.renderThumbnail();
   });
 
+  it.each([
+    ["IndexedDB", "localStorage"],
+    ["localStorage", "IndexedDB"],
+  ] as const)(
+    "retires a recovered draft's older %s copy with its newer %s one",
+    async (older, newer) => {
+      const { store, drawing } = await session();
+      const write = {
+        IndexedDB: (draft: AccountDraft) => store.recoveryDrafts.save(draft),
+        localStorage: async (draft: AccountDraft) =>
+          expect(
+            writeUnsaved(draft, store.recoveryKey, store.recoveryStorage),
+          ).toBe(true),
+      };
+      await write[older](draftAt(drawing, 1_000, "annie"));
+      await write[newer](draftAt(drawing, 2_000, "annie", "abed"));
+      const recovered = await replayUnsaved(store, drawing);
+      expect(recovered.recovered?.elements.map(({ id }) => id)).toEqual([
+        "annie",
+        "abed",
+      ]);
+      const persistence = persistenceFor(store, recovered);
+      await persistence.flush();
+      expect(persistence.getSaveState().kind).toBe("saved");
+      expect(await readAccountRecovery(store, drawing.meta.id)).toBe(null);
+    },
+  );
+
+  it("keeps a recovered draft's copy written after this tab adopted it", async () => {
+    const { store, drawing } = await session();
+    await store.recoveryDrafts.save(draftAt(drawing, 1_000, "annie"));
+    const persistence = persistenceFor(
+      store,
+      await replayUnsaved(store, drawing),
+    );
+    const newer = draftAt(drawing, 2_000, "annie", "abed");
+    await store.recoveryDrafts.save(newer);
+    writeUnsaved(newer, store.recoveryKey, store.recoveryStorage);
+    await persistence.flush();
+    expect(persistence.getSaveState().kind).toBe("saved");
+    expect(
+      (await readAccountRecovery(store, drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["annie", "abed"]);
+    localStorage.clear();
+    expect(
+      (await readAccountRecovery(store, drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["annie", "abed"]);
+  });
+
+  it("reports a replayed receipt older than the drawing as changed elsewhere", async () => {
+    const { store, drawing } = await session();
+    const original = store.saveDrawingContent.bind(store);
+    const receipt = await original(
+      drawing.meta.id,
+      savedContent("Greendale", "annie"),
+      [],
+    );
+    await original(drawing.meta.id, savedContent("Greendale", "abed"), [], {
+      baseRevision: 2,
+      requestId: "shirley",
+    });
+    expect(store.getSnapshot().drawings.get(drawing.meta.id)?.revision).toBe(3);
+    vi.spyOn(store, "saveDrawingContent").mockResolvedValue(receipt);
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await persistence.flush();
+    const state = persistence.getSaveState();
+    expect(state.kind).toBe("conflict");
+    expect(state.kind === "conflict" && state.meta.revision).toBe(3);
+    expect(
+      (await readAccountRecovery(store, drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["annie"]);
+  });
+
+  it("discards a conflicting draft and leaves no recovery behind", async () => {
+    const { store, drawing } = await session();
+    await store.recoveryDrafts.save(draftAt(drawing, 1_000, "annie"));
+    await store.saveDrawingContent(
+      drawing.meta.id,
+      savedContent("Greendale", "abed"),
+      [],
+    );
+    const newer = await store.openDrawing(drawing.meta.id);
+    if (!newer) {
+      throw new Error("The updated drawing is missing");
+    }
+    const persistence = persistenceFor(
+      store,
+      await replayUnsaved(store, newer),
+    );
+    expect(persistence.getSaveState().kind).toBe("conflict");
+    persistence.save(
+      savedContent("Greendale", "annie", "troy").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await persistence.discard();
+    expect(persistence.unsaved()).toBe(null);
+    expect(await readAccountRecovery(store, drawing.meta.id)).toBe(null);
+    expect(
+      (await store.loadDrawingContent(drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["abed"]);
+  });
+
   it("opens a preserved draft after the server drawing is deleted", async () => {
     const { store, drawing } = await session();
     const persistence = persistenceFor(store, drawing);
@@ -642,9 +781,9 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
         ({ id }) => id,
       ),
     ).toEqual(["annie"]);
-    await cache.removeDraft("pierce", "chang");
+    await cache.removeDraft("pierce", valid.updatedAt - 1);
     expect(await stored()).toContain("pierce");
-    await cache.removeDraft("pierce", "hawthorne");
+    await cache.removeDraft("pierce", valid.updatedAt);
     expect(await stored()).toEqual([valid.draftId]);
     db.close();
   });

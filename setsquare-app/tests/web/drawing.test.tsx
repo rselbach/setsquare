@@ -28,6 +28,7 @@ import type {
 
 import { FileStatusStore } from "../../data/fileStatusStore";
 import { filesStore } from "../../data/localFiles";
+import { readAccountRecovery } from "../../web/unsavedJournal";
 import * as workspaceStore from "../../web/workspaceStore";
 import {
   emptyDrawingContent,
@@ -375,6 +376,37 @@ describe("a drawing's save warnings", () => {
       expect(banners()).toEqual([null, null]);
     },
   );
+
+  it("discards changes another tab overtook and shows what it saved", async () => {
+    const account = await signedIn();
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+    await store.saveDrawingContent(
+      plan.id,
+      savedContent("Floor plan", "abed"),
+      [],
+    );
+    edit();
+    await waitForAutosave();
+
+    const status = screen.getByRole("status");
+    expect(status).toHaveAttribute("data-state", "conflict");
+    expect(
+      (await readAccountRecovery(account, plan.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["troy", "annie"]);
+    fireEvent.click(
+      within(status).getByRole("button", { name: t("workspace.saveDiscard") }),
+    );
+
+    await waitForDrawing(plan.id, ["abed"]);
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveAttribute("data-state", "saved"),
+    );
+    expect(await readAccountRecovery(account, plan.id)).toBe(null);
+    expect(await storedIds(account, plan.id)).toEqual(["abed"]);
+  });
 
   it("says the device is full when it can't stage a recovery copy", async () => {
     const account = await signedIn();

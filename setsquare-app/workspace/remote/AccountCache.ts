@@ -138,18 +138,21 @@ export class AccountCache {
   }
 
   /**
-   * Deletes a draft, but only at `generation` when one is given. The check
-   * reads just the generation, so a record this build cannot parse still
-   * goes, and one without a readable generation is deleted outright.
+   * Deletes a draft, but only a copy last edited at or before `notAfter` when
+   * that is given, so a newer copy its editor wrote since stays. The check
+   * reads just `updatedAt`, so a record this build cannot parse still goes,
+   * and one without a readable `updatedAt` is deleted outright.
    */
-  removeDraft(draftId: string, generation?: string) {
+  removeDraft(draftId: string, notAfter?: number) {
     return transact(this.db, ["drafts"], "readwrite", async (tx) => {
       const store = tx.objectStore("drafts");
       const value: unknown = await request(store.get(draftId));
-      const saved = z.object({ generation: z.string() }).safeParse(value);
+      const saved = z.object({ updatedAt: z.number() }).safeParse(value);
       if (
         value !== undefined &&
-        (!generation || !saved.success || saved.data.generation === generation)
+        (notAfter === undefined ||
+          !saved.success ||
+          saved.data.updatedAt <= notAfter)
       ) {
         await request(store.delete(draftId));
       }
