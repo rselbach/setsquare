@@ -178,7 +178,7 @@ export const createWorkspaceMcp = (
   };
   const command = async (requestId: string, input: unknown) => {
     const parsed = commandSchema.parse({ requestId, command: input });
-    const { result: saved } = await workspace.command(
+    const saved = await workspace.command(
       owner,
       parsed.requestId,
       parsed.command,

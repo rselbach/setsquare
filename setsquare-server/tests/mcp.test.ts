@@ -302,15 +302,12 @@ it("preserves revisions and retry IDs and reports conflicts as tool errors", asy
   const write = vi
     .spyOn(WorkspaceDatabase.prototype, "command")
     .mockResolvedValue({
+      kind: "save",
       result: {
-        kind: "save",
-        result: {
-          ok: false,
-          reason: "conflict",
-          meta: { ...meta(), revision: 2 },
-        },
+        ok: false,
+        reason: "conflict",
+        meta: { ...meta(), revision: 2 },
       },
-      snapshot: { folders: [], drawings: [] },
     });
   const result = await rpc("tools/call", {
     name: "update_drawing",
