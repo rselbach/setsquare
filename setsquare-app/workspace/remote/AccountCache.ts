@@ -1,3 +1,5 @@
+import { isInitializedImageElement } from "@setsquare/element";
+
 import type { FileId } from "@setsquare/element/types";
 
 import type { BinaryFileData } from "@setsquare/setsquare/types";
@@ -132,6 +134,56 @@ export class AccountCache {
         await request(store.delete(draftId));
       }
     });
+  }
+
+  /**
+   * Deletes views of drawings the snapshot no longer has, and image bytes
+   * that were referenced by a drawing this session but no longer are. Files
+   * that may be the only copy of an image — staged, unconfirmed, drafted, in
+   * flight — are left alone, as are recovery drafts themselves.
+   */
+  async maintain(
+    drawings: ReadonlySet<DrawingId>,
+    keepFiles: ReadonlySet<FileId>,
+    evictableFiles: ReadonlySet<FileId>,
+  ) {
+    await transact(
+      this.db,
+      ["views", "files", "drafts"],
+      "readwrite",
+      async (tx) => {
+        const views = tx.objectStore("views");
+        for (const key of await request(views.getAllKeys())) {
+          if (!drawings.has(key as DrawingId)) {
+            await request(views.delete(key));
+          }
+        }
+        const keep = new Set(keepFiles);
+        try {
+          const drafts: unknown[] = await request(
+            tx.objectStore("drafts").getAll(),
+          );
+          for (const value of drafts) {
+            for (const element of parseAccountDraft(value).elements) {
+              if (isInitializedImageElement(element)) {
+                keep.add(element.fileId);
+              }
+            }
+          }
+        } catch (error) {
+          // an unreadable draft may show any image, so keep them all
+          console.warn("Keeping cached images for an unreadable draft", error);
+          return;
+        }
+        const files = tx.objectStore("files");
+        for (const key of await request(files.getAllKeys())) {
+          const id = key as FileId;
+          if (evictableFiles.has(id) && !keep.has(id)) {
+            await request(files.delete(key));
+          }
+        }
+      },
+    );
   }
 
   close() {

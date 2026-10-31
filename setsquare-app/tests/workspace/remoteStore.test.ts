@@ -707,6 +707,100 @@ describe("RemoteWorkspaceStore", () => {
     }
   });
 
+  it("evicts unreferenced views and images, keeping staged, drafted and unconfirmed ones", async () => {
+    const account = session();
+    const used = file("used" as FileId);
+    const orphan = file("orphan" as FileId);
+    const drafted = file("drafted" as FileId);
+    const staged = file("staged" as FileId);
+    const unconfirmed = file("unconfirmed" as FileId);
+    const gone = { ...drawing(), fileIds: [orphan.id] };
+    const meta = { ...drawing(), fileIds: [used.id] };
+    let data: WorkspaceData = { folders: [], drawings: [gone, meta] };
+    const fetch: typeof globalThis.fetch = async (input) => {
+      if (String(input) === "/api/workspace") {
+        return response(data);
+      }
+      throw new Error(`Unexpected request: ${String(input)}`);
+    };
+    const store = await open(fetch, account);
+    const db = await openDatabase(
+      `setsquare-account-${account.user.id}`,
+      2,
+      () => {},
+    );
+    try {
+      const draft = {
+        id: "recovered" as DrawingId,
+        baseRevision: 1,
+        draftId: "recovery",
+        generation: "generation",
+        updatedAt: 1000,
+        elements: [API.createElement({ type: "image", fileId: drafted.id })],
+        appState: {
+          ...emptyDrawingContent(meta.name).appState,
+          ...splitAppState(getDefaultAppState()).view,
+        },
+      };
+      await transact(
+        db,
+        ["views", "files", "drafts"],
+        "readwrite",
+        async (tx) => {
+          await request(tx.objectStore("views").put({ scrollX: 1 }, meta.id));
+          await request(tx.objectStore("views").put({ scrollX: 2 }, gone.id));
+          await request(tx.objectStore("files").put(used, used.id));
+          await request(tx.objectStore("files").put(orphan, orphan.id));
+          await request(tx.objectStore("files").put(drafted, drafted.id));
+          await request(
+            tx.objectStore("files").put(unconfirmed, unconfirmed.id),
+          );
+          await request(
+            tx
+              .objectStore("drafts")
+              .put(JSON.parse(JSON.stringify(draft)), draft.draftId),
+          );
+        },
+      );
+      await store.stageFiles({ [staged.id]: staged });
+      data = { folders: [], drawings: [meta] };
+      await store.refresh();
+      await transact(
+        db,
+        ["views", "files", "drafts"],
+        "readonly",
+        async (tx) => {
+          expect(await request(tx.objectStore("views").get(meta.id))).toEqual({
+            scrollX: 1,
+          });
+          expect(
+            await request(tx.objectStore("views").get(gone.id)),
+          ).toBeUndefined();
+          expect(await request(tx.objectStore("files").get(used.id))).toEqual(
+            used,
+          );
+          expect(
+            await request(tx.objectStore("files").get(orphan.id)),
+          ).toBeUndefined();
+          expect(
+            await request(tx.objectStore("files").get(drafted.id)),
+          ).toEqual(drafted);
+          expect(await request(tx.objectStore("files").get(staged.id))).toEqual(
+            staged,
+          );
+          expect(
+            await request(tx.objectStore("files").get(unconfirmed.id)),
+          ).toEqual(unconfirmed);
+          expect(
+            await request(tx.objectStore("drafts").get("recovery")),
+          ).toEqual(draft);
+        },
+      );
+    } finally {
+      db.close();
+    }
+  });
+
   it("treats a missing drawing as gone and ignores stale thumbnail conflicts", async () => {
     const meta = drawing();
     const fetch = vi
