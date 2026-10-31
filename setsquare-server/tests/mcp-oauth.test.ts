@@ -146,12 +146,17 @@ const exchange = (
     resource,
     ...extra,
   });
-const refresh = (clientId: string, refreshToken: string) =>
+const refresh = (
+  clientId: string,
+  refreshToken: string,
+  extra: Record<string, string> = {},
+) =>
   form("/oauth/token", {
     grant_type: "refresh_token",
     client_id: clientId,
     refresh_token: refreshToken,
     resource,
+    ...extra,
   });
 const connect = async () => {
   const client = await register();
@@ -184,6 +189,12 @@ const mcp = async (
     body: event ? JSON.parse(event.slice(6)) : response.json(),
   };
 };
+
+const createFolder = (token: string, folderId: string) =>
+  mcp(token, "tools/call", {
+    name: "create_folder",
+    arguments: { requestId: folderId, folderId, name: "Greendale" },
+  });
 
 it("completes OAuth and persists isolated, retryable, revision-checked MCP edits", async () => {
   const queries = vi.spyOn(pg.Client.prototype, "query");
@@ -739,7 +750,7 @@ it("rejects MCP access tokens of accounts outside the allowlist", async () => {
   }
 });
 
-it("serializes simultaneous refreshes and rejects scope escalation", async () => {
+it("serializes simultaneous refreshes", async () => {
   const { client, tokens } = await connect();
   const replies = await Promise.all([
     refresh(client.client_id, tokens.refresh_token),
@@ -750,23 +761,87 @@ it("serializes simultaneous refreshes and rejects scope escalation", async () =>
   expect((await mcp(issued.access_token, "ping")).response.statusCode).toBe(
     401,
   );
-  const another = await connect();
-  const reduced = await form("/oauth/token", {
-    grant_type: "refresh_token",
-    client_id: another.client.client_id,
-    refresh_token: another.tokens.refresh_token,
-    resource,
+});
+
+it("narrows a refreshed access token without narrowing the grant", async () => {
+  const { client, tokens } = await connect();
+  const reduced = await refresh(client.client_id, tokens.refresh_token, {
     scope: "drawings:read",
   });
   expect(reduced.statusCode).toBe(200);
-  const expanded = await form("/oauth/token", {
-    grant_type: "refresh_token",
-    client_id: another.client.client_id,
-    refresh_token: reduced.json().refresh_token,
-    resource,
-    scope: "drawings:read drawings:write",
+  expect(reduced.json().scope).toBe("drawings:read");
+  expect(
+    (await createFolder(reduced.json().access_token, "reduced")).response
+      .statusCode,
+  ).toBe(403);
+  const earlier = await createFolder(tokens.access_token, "earlier");
+  expect(earlier.response.statusCode).toBe(200);
+  expect(earlier.body.result.isError).toBeUndefined();
+
+  const restored = await refresh(
+    client.client_id,
+    reduced.json().refresh_token,
+  );
+  expect(restored.statusCode).toBe(200);
+  expect(restored.json().scope).toBe("drawings:read drawings:write");
+  const restoredWrite = await createFolder(
+    restored.json().access_token,
+    "restored",
+  );
+  expect(restoredWrite.response.statusCode).toBe(200);
+  expect(restoredWrite.body.result.isError).toBeUndefined();
+  const requested = await refresh(
+    client.client_id,
+    restored.json().refresh_token,
+    { scope: "drawings:read drawings:write" },
+  );
+  expect(requested.statusCode).toBe(200);
+  expect(requested.json().scope).toBe("drawings:read drawings:write");
+  const connections = await app.inject({
+    url: "/oauth/connections",
+    headers: troy.headers,
   });
-  expect(expanded.json().error).toBe("invalid_scope");
+  expect(connections.body).toContain("Read and edit drawings");
+});
+
+it("gives tokens issued before per-token scopes the grant's scopes", async () => {
+  const { tokens } = await connect();
+  await db.pool.query("UPDATE mcp_tokens SET scopes = NULL");
+  const write = await createFolder(tokens.access_token, "legacy");
+  expect(write.response.statusCode).toBe(200);
+  expect(write.body.result.isError).toBeUndefined();
+});
+
+it("ignores scope on the authorization code exchange", async () => {
+  const editor = await register();
+  const narrowed = await exchange(
+    editor.client_id,
+    await code(editor.client_id),
+    { scope: "drawings:read" },
+  );
+  expect(narrowed.statusCode).toBe(200);
+  expect(narrowed.json().scope).toBe("drawings:read drawings:write");
+  expect(
+    (await createFolder(narrowed.json().access_token, "editor")).response
+      .statusCode,
+  ).toBe(200);
+  expect(
+    (await refresh(editor.client_id, narrowed.json().refresh_token)).json()
+      .scope,
+  ).toBe("drawings:read drawings:write");
+
+  const reader = await register();
+  const expanded = await exchange(
+    reader.client_id,
+    await code(reader.client_id, troy, "drawings:read"),
+    { scope: "drawings:read drawings:write" },
+  );
+  expect(expanded.statusCode).toBe(200);
+  expect(expanded.json().scope).toBe("drawings:read");
+  expect(
+    (await createFolder(expanded.json().access_token, "reader")).response
+      .statusCode,
+  ).toBe(403);
 });
 
 it("limits client registrations to 30 per source address per hour", async () => {
