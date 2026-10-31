@@ -9,6 +9,14 @@ import {
   waitFor,
 } from "@setsquare/setsquare/tests/test-utils";
 
+import type { FileId } from "@setsquare/element/types";
+
+import type { BinaryFileData, DataURL } from "@setsquare/setsquare/types";
+
+import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
+import * as workspaceStore from "../../web/workspaceStore";
+import { fakeAccountServer } from "../workspace/fakeAccountServer";
+
 import {
   cleanUpWebApp,
   elementIds,
@@ -30,6 +38,43 @@ const sceneFile = (name: string, ...ids: string[]) =>
         ids.map((id) => API.createElement({ type: "rectangle", id })),
         {},
         {},
+        "local",
+      ),
+    ],
+    `${name}.setsquare`,
+    { type: MIME_TYPES.setsquare },
+  );
+
+const PIXEL =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+const imageFile = (id: string, dataURL: string): BinaryFileData => ({
+  id: id as FileId,
+  dataURL: dataURL as DataURL,
+  mimeType: "image/png",
+  created: Date.now(),
+});
+
+// Annie's rectangle and an image each for Abed, Britta and Chang, of which the
+// file holds only Abed's and Britta's, and an account refuses Britta's bytes
+const sceneWithImages = (name: string) =>
+  new File(
+    [
+      serializeAsJSON(
+        [
+          API.createElement({ type: "rectangle", id: "annie" }),
+          ...["abed", "britta", "chang"].map((id) =>
+            API.createElement({ type: "image", id, fileId: `${id}-image` }),
+          ),
+        ],
+        {},
+        {
+          ["abed-image" as FileId]: imageFile("abed-image", PIXEL),
+          ["britta-image" as FileId]: imageFile(
+            "britta-image",
+            "data:image/png;base64,AAAA",
+          ),
+        },
         "local",
       ),
     ],
@@ -71,6 +116,7 @@ const importedDrawing = (store: LocalWorkspaceStore, ...kept: DrawingId[]) =>
   });
 
 let workspace: ReturnType<typeof setUpTestWorkspace>;
+const remotes: RemoteWorkspaceStore[] = [];
 let store: LocalWorkspaceStore;
 let greendale: Folder;
 let plan: DrawingMeta;
@@ -90,6 +136,9 @@ afterEach(async () => {
   delete (window as any).launchQueue;
   await h.app?.library.resetLibrary();
   await cleanUpWebApp(workspace);
+  for (const remote of remotes.splice(0)) {
+    remote.close();
+  }
 });
 
 describe("opening a file on the web", () => {
@@ -113,6 +162,29 @@ describe("opening a file on the web", () => {
     expect(screen.queryByRole("dialog")).toBe(null);
     await waitFor(async () =>
       expect(await storedIds(store, plan.id)).toEqual(["troy"]),
+    );
+  });
+
+  it("leaves out images the file lacks, and says so", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(filesystem, "fileOpen").mockResolvedValue(
+      sceneWithImages("Study room") as any,
+    );
+    await renderWebAppAt(`/d/${plan.id}`);
+    await waitForDrawing(plan.id, ["troy"]);
+
+    pressOpen();
+
+    const drawing = await importedDrawing(store, plan.id);
+    expect(drawing.fileIds).toEqual(["abed-image", "britta-image"]);
+    await waitForDrawing(drawing.id, ["annie", "abed", "britta"]);
+    await waitFor(() =>
+      expect(h.state.errorMessage).toBe(
+        t("errors.openFileMissingImages", {
+          name: "Study room.setsquare",
+          count: 1,
+        }),
+      ),
     );
   });
 
@@ -217,6 +289,50 @@ describe("files the app is launched with on the web", () => {
     await waitFor(() =>
       expect(h.state.errorMessage).toBe(
         t("errors.openFileError", { name: "abed.setsquare" }),
+      ),
+    );
+  });
+});
+
+describe("opening a file in an account", () => {
+  it("leaves out images the file lacks or the account refuses", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const server = fakeAccountServer({ userId: workspace.dbName });
+    const remote = await RemoteWorkspaceStore.open({
+      session: server.session,
+      ownerWindow: window,
+      onSessionExpired: vi.fn(),
+      fetch: server.fetch,
+    });
+    remotes.push(remote);
+    vi.spyOn(workspaceStore, "openWorkspaceStore").mockImplementation(
+      async (options) => {
+        options?.onSession?.(server.session);
+        return remote;
+      },
+    );
+    launch(handleFor(sceneWithImages("Study room")));
+
+    await renderWebAppAt("/");
+
+    const [drawing] = await waitFor(() => {
+      const drawings = [...remote.getSnapshot().drawings.values()];
+      expect(drawings).toHaveLength(1);
+      return drawings;
+    });
+    const stored = server.drawing(drawing.id);
+    expect(stored?.meta.fileIds).toEqual(["abed-image"]);
+    expect(stored?.content.elements.map(({ id }) => id)).toEqual([
+      "annie",
+      "abed",
+    ]);
+    await waitForDrawing(drawing.id, ["annie", "abed"]);
+    await waitFor(() =>
+      expect(h.state.errorMessage).toBe(
+        t("errors.openFileMissingImages", {
+          name: "Study room.setsquare",
+          count: 2,
+        }),
       ),
     );
   });
