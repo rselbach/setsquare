@@ -4,10 +4,8 @@ import { API } from "@setsquare/setsquare/tests/helpers/api";
 import type { AppState } from "@setsquare/setsquare/types";
 
 import { commandSchema } from "../../../setsquare-server/src/validation";
-import {
-  createDrawingPersistence,
-  imageFileIds,
-} from "../../web/drawingPersistence";
+import { createDrawingPersistence } from "../../web/drawingPersistence";
+import { imageFileIds } from "../../web/persistence/saveContent";
 import { replayUnsaved } from "../../web/unsavedJournal";
 import { parseFiles } from "../../workspace/remote/parse";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";

@@ -12,10 +12,8 @@ import { navigate } from "./router";
 
 import "./DrawingSaveStatus.scss";
 
-import type {
-  DrawingPersistence,
-  DrawingSaveState,
-} from "./drawingPersistence";
+import type { DrawingPersistence } from "./drawingPersistence";
+import type { DrawingSaveState } from "./persistence/saveState";
 
 // a failed save tries again on its own, backing off while it keeps failing
 const RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
