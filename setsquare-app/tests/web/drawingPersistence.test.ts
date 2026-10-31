@@ -11,6 +11,10 @@ import type {
   DataURL,
 } from "@setsquare/setsquare/types";
 
+import {
+  SAVE_TO_LOCAL_STORAGE_TIMEOUT,
+  STORAGE_KEYS,
+} from "../../app_constants";
 import { createDrawingPersistence } from "../../web/drawingPersistence";
 import {
   readAccountRecovery,
@@ -60,6 +64,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
   fixture.close();
   for (const cache of caches) {
@@ -190,6 +195,104 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
     expect(persistence.getSaveState().kind).toBe("saved");
     expect(persistence.unsaved()).toBe(null);
     await persistence.renderThumbnail();
+  });
+
+  it("waits for a pause in editing before saving edits made during a save", async () => {
+    const { store, drawing } = await session();
+    const original = store.saveDrawingContent.bind(store);
+    let release = () => {};
+    const calledAt: number[] = [];
+    const save = vi
+      .spyOn(store, "saveDrawingContent")
+      .mockImplementation(async (...args) => {
+        calledAt.push(Date.now());
+        if (save.mock.calls.length < 3) {
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        }
+        return original(...args);
+      });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    const persistence = persistenceFor(store, drawing);
+    const edit = (...names: string[]) =>
+      persistence.save(
+        savedContent("Greendale", ...names).elements,
+        appState(),
+        {},
+        vi.fn(),
+      );
+    edit("troy", "annie");
+    await vi.advanceTimersByTimeAsync(SAVE_TO_LOCAL_STORAGE_TIMEOUT);
+    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+    edit("troy", "annie", "abed");
+    edit("troy", "annie", "abed", "shirley");
+    await vi.advanceTimersByTimeAsync(SAVE_TO_LOCAL_STORAGE_TIMEOUT);
+    const saved = new Promise<void>((resolve) =>
+      persistence.subscribeSaveState(() => {
+        if (persistence.getSaveState().kind === "unsaved") {
+          resolve();
+        }
+      }),
+    );
+    release();
+    await saved;
+    const savedAt = Date.now();
+    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    expect(calledAt[1] - savedAt).toBeGreaterThanOrEqual(
+      SAVE_TO_LOCAL_STORAGE_TIMEOUT,
+    );
+    expect(save.mock.calls[1][1].elements.map(({ id }) => id)).toEqual([
+      "troy",
+      "annie",
+      "abed",
+      "shirley",
+    ]);
+
+    edit("troy", "annie", "abed", "shirley", "pierce");
+    const flushed = persistence.flush();
+    release();
+    await flushed;
+    expect(save).toHaveBeenCalledTimes(3);
+    expect(persistence.getSaveState().kind).toBe("saved");
+    expect(
+      (await store.loadDrawingContent(drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["troy", "annie", "abed", "shirley", "pierce"]);
+  });
+
+  it("writes nothing for a change the drawing doesn't keep", async () => {
+    const { store, drawing } = await session();
+    const persistence = persistenceFor(store, drawing);
+    const { elements } = savedContent("Greendale", "troy", "annie");
+    persistence.save(elements, appState(), {}, vi.fn());
+    await persistence.flush();
+    const setItem = vi.spyOn(store.recoveryStorage, "setItem");
+    const draft = vi.spyOn(store.recoveryDrafts, "save");
+    const view = vi.spyOn(store, "saveDrawingView");
+    const content = vi.spyOn(store, "saveDrawingContent");
+    persistence.save(
+      elements,
+      { ...appState(), cursorButton: "down" },
+      {},
+      vi.fn(),
+    );
+    persistence.save(
+      elements,
+      { ...appState(), cursorButton: "up", openMenu: "canvas" },
+      {},
+      vi.fn(),
+    );
+    await persistence.flush();
+    expect(setItem.mock.calls.map(([key]) => key)).toEqual([
+      STORAGE_KEYS.LOCAL_STORAGE_PREFS,
+    ]);
+    expect(draft).not.toHaveBeenCalled();
+    expect(view).not.toHaveBeenCalled();
+    expect(content).not.toHaveBeenCalled();
+    expect(persistence.getSaveState().kind).toBe("saved");
+    expect(persistence.unsaved()).toBe(null);
   });
 
   it("replays an unacknowledged write before saving a newer draft", async () => {
