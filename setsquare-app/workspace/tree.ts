@@ -20,12 +20,22 @@ export const findItem = (
 ): WorkspaceItem | undefined =>
   ref.kind === "folder" ? snap.folders.get(ref.id) : snap.drawings.get(ref.id);
 
+/** Whether an item is a folder rather than a drawing. */
+export const isFolder = (item: WorkspaceItem): item is Folder =>
+  "parentId" in item;
+
+/** A ref to the item. */
+export const refOf = (item: WorkspaceItem): ItemRef =>
+  isFolder(item)
+    ? { kind: "folder", id: item.id }
+    : { kind: "drawing", id: item.id };
+
 /** The folder an item is in; a folder that no longer exists counts as root. */
 export const parentOf = (
   snap: WorkspaceSnapshot,
   item: WorkspaceItem,
 ): ParentId => {
-  const parentId = "parentId" in item ? item.parentId : item.folderId;
+  const parentId = isFolder(item) ? item.parentId : item.folderId;
   return parentId !== null && snap.folders.has(parentId) ? parentId : null;
 };
 
@@ -61,6 +71,21 @@ export const ancestors = (
   }
   return path;
 };
+
+/**
+ * Where an item is, as "Drawings › A › B": `rootName` for the root, then the
+ * folders down to the item's own, as they are now. Like {@link parentOf}, a
+ * folder that's gone means the root.
+ */
+export const locationLabel = (
+  snap: WorkspaceSnapshot,
+  item: WorkspaceItem,
+  rootName: string,
+) =>
+  [
+    rootName,
+    ...ancestors(snap, parentOf(snap, item)).map((folder) => folder.name),
+  ].join(" › ");
 
 const inTrashedFolder = (snap: WorkspaceSnapshot, item: WorkspaceItem) =>
   ancestors(snap, parentOf(snap, item)).some(

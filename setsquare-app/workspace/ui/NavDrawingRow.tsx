@@ -10,10 +10,10 @@ import { useRef, useState } from "react";
 
 import { drawingIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
-import { attempt, reportFailure } from "../../web/workspaceActions";
-import { parentOf, uniqueName } from "../tree";
+import { attempt, duplicateDrawing } from "../../web/workspaceActions";
 
 import { InlineName, useRenameClose } from "./InlineName";
+import { useMenuState } from "./useMenuState";
 import { useShowMessage } from "./WorkspaceToast";
 
 import type { DrawingMeta, ItemRef } from "../types";
@@ -59,7 +59,7 @@ export const NavDrawingRow = ({
   const { t } = useI18n();
   const show = useShowMessage();
   const [renaming, setRenaming] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useMenuState();
   const rowRef = useRef<HTMLDivElement>(null);
   const closeRename = useRenameClose(
     renaming,
@@ -82,28 +82,12 @@ export const NavDrawingRow = ({
     );
   };
 
-  const duplicate = async () => {
-    try {
+  const duplicate = () => {
+    void duplicateDrawing(store, drawing.id, show, {
+      name: shownName,
       // so the copy has what the editor shows, not only what's saved
-      await editing?.save();
-      const snap = store.getSnapshot();
-      const source = snap.drawings.get(drawing.id);
-      if (!source) {
-        return;
-      }
-      const copyName = t("workspace.copyName", {
-        name: source.name || t("labels.untitled"),
-      });
-      const copy = await store.duplicateDrawing(
-        source.id,
-        uniqueName(snap, parentOf(snap, source), copyName),
-      );
-      if (!copy) {
-        reportFailure(show, { reason: "notFound" }, "duplicate", shownName);
-      }
-    } catch (error) {
-      reportFailure(show, { error }, "duplicate", shownName);
-    }
+      beforeCopy: editing?.save,
+    });
   };
 
   return (
@@ -138,10 +122,10 @@ export const NavDrawingRow = ({
           </RouteLink>
         )}
         {(!isCurrent || editing) && (
-          <DropdownMenu open={menuOpen}>
+          <DropdownMenu open={menu.open}>
             <DropdownMenu.Trigger
               className="nav-drawing__more"
-              onToggle={() => setMenuOpen(!menuOpen)}
+              onToggle={menu.toggle}
               title={t("workspace.drawingActions", { name: shownName })}
               aria-label={t("workspace.drawingActions", { name: shownName })}
             >
@@ -150,8 +134,8 @@ export const NavDrawingRow = ({
             <DropdownMenu.Content
               className="workspace-menu"
               returnFocus
-              onClickOutside={() => setMenuOpen(false)}
-              onSelect={() => setMenuOpen(false)}
+              onClickOutside={menu.close}
+              onSelect={menu.close}
             >
               <DropdownMenu.Item
                 icon={pencilIcon}

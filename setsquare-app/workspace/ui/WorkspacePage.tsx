@@ -29,13 +29,14 @@ import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
 import {
   attempt,
+  duplicateDrawing,
   reportFailure,
   useWorkspaceActions,
 } from "../../web/workspaceActions";
 import {
   ancestors,
   childrenOf,
-  parentOf,
+  locationLabel,
   recentDrawings,
   searchItems,
   sortItems,
@@ -312,21 +313,10 @@ const WorkspaceView = ({
         trashedFrom.current = placeOf(card);
         trash(item);
       },
-      duplicate: async (drawing: DrawingMeta) => {
-        const shownName = drawing.name || t("labels.untitled");
-        try {
-          const snap = store.getSnapshot();
-          const name = t("workspace.copyName", { name: shownName });
-          const copy = await store.duplicateDrawing(
-            drawing.id,
-            uniqueName(snap, parentOf(snap, drawing), name),
-          );
-          if (!copy) {
-            reportFailure(show, { reason: "notFound" }, "duplicate", shownName);
-          }
-        } catch (error) {
-          reportFailure(show, { error }, "duplicate", shownName);
-        }
+      duplicate: (drawing: DrawingMeta) => {
+        void duplicateDrawing(store, drawing.id, show, {
+          name: drawing.name || t("labels.untitled"),
+        });
       },
     }),
     [path, store, show, trash, t],
@@ -403,13 +393,7 @@ const WorkspaceView = ({
   const locationOf =
     view === "folder"
       ? undefined
-      : (item: WorkspaceItem) =>
-          [
-            drawingsName,
-            ...ancestors(snapshot, parentOf(snapshot, item)).map(
-              (folder) => folder.name,
-            ),
-          ].join(" › ");
+      : (item: WorkspaceItem) => locationLabel(snapshot, item, drawingsName);
 
   let empty: ReactNode = null;
   if (!items.folders.length && !items.drawings.length) {

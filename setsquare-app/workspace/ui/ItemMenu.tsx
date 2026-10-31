@@ -7,10 +7,11 @@ import {
   pencilIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useState } from "react";
 
 import { moveIcon } from "../../web/icons";
 import { navigate } from "../../web/router";
+
+import { useMenuState } from "./useMenuState";
 
 import type { Route } from "../../web/router";
 
@@ -35,13 +36,13 @@ export const ItemMenu = ({
   onTrash: () => void;
 }) => {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const menu = useMenuState();
 
   return (
-    <DropdownMenu open={open}>
+    <DropdownMenu open={menu.open}>
       <DropdownMenu.Trigger
         className="workspace-card__more"
-        onToggle={() => setOpen(!open)}
+        onToggle={menu.toggle}
         title={label}
         aria-label={label}
       >
@@ -50,8 +51,8 @@ export const ItemMenu = ({
       <DropdownMenu.Content
         className="workspace-menu"
         returnFocus
-        onClickOutside={() => setOpen(false)}
-        onSelect={() => setOpen(false)}
+        onClickOutside={menu.close}
+        onSelect={menu.close}
       >
         <DropdownMenu.Item icon={LoadIcon} onSelect={() => navigate(to)}>
           {t("workspace.open")}

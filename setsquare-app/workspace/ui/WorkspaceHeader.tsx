@@ -12,11 +12,11 @@ import {
   searchIcon,
 } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import { useState } from "react";
 
 import { newDrawingIcon, newFolderIcon } from "../../web/icons";
 import { RouteLink } from "../../web/RouteLink";
 
+import { useMenuState } from "./useMenuState";
 import { useDropTarget } from "./useWorkspaceDrag";
 import { NavButton } from "./WorkspaceNav";
 
@@ -57,18 +57,15 @@ const SortMenu = ({
   onChange: (order: SortOrder) => void;
 }) => {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const menu = useMenuState();
   const labels: Record<SortOrder, string> = {
     updated: t("workspace.sortUpdated"),
     name: t("workspace.sortName"),
   };
 
   return (
-    <DropdownMenu open={open}>
-      <DropdownMenu.Trigger
-        className="workspace-sort"
-        onToggle={() => setOpen(!open)}
-      >
+    <DropdownMenu open={menu.open}>
+      <DropdownMenu.Trigger className="workspace-sort" onToggle={menu.toggle}>
         <span className="workspace-caption">{t("workspace.sort")}</span>
         <span className="workspace-sort__value">{labels[order]}</span>
         {chevronDownIcon}
@@ -76,8 +73,8 @@ const SortMenu = ({
       <DropdownMenu.Content
         className="workspace-menu"
         returnFocus
-        onClickOutside={() => setOpen(false)}
-        onSelect={() => setOpen(false)}
+        onClickOutside={menu.close}
+        onSelect={menu.close}
       >
         {SORT_ORDERS.map((each) => (
           <DropdownMenu.ItemCheckbox
@@ -96,13 +93,13 @@ const SortMenu = ({
 // the create actions folded into one `+` menu, for phones
 const CreateMenu = ({ actions }: { actions: CreateActions }) => {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const menu = useMenuState();
 
   return (
-    <DropdownMenu open={open}>
+    <DropdownMenu open={menu.open}>
       <DropdownMenu.Trigger
         className="workspace-header__icon workspace-header__create-menu"
-        onToggle={() => setOpen(!open)}
+        onToggle={menu.toggle}
         title={t("workspace.create")}
         aria-label={t("workspace.create")}
       >
@@ -111,8 +108,8 @@ const CreateMenu = ({ actions }: { actions: CreateActions }) => {
       <DropdownMenu.Content
         className="workspace-menu"
         returnFocus
-        onClickOutside={() => setOpen(false)}
-        onSelect={() => setOpen(false)}
+        onClickOutside={menu.close}
+        onSelect={menu.close}
       >
         <DropdownMenu.Item icon={newDrawingIcon} onSelect={actions.newDrawing}>
           {t("workspace.newDrawing")}

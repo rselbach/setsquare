@@ -10,7 +10,7 @@ import { navigate } from "../../web/router";
 import { collectOrphanDrafts } from "../../web/unsavedJournal";
 import { reportFailure } from "../../web/workspaceActions";
 import { formatTimeAgo } from "../formatRelativeTime";
-import { ancestors, parentOf, trashRoots } from "../tree";
+import { isFolder, locationLabel, refOf, trashRoots } from "../tree";
 
 import { EmptyState } from "./EmptyState";
 import { useThumbnails } from "./useThumbnails";
@@ -29,11 +29,6 @@ import type { ReactNode } from "react";
 import type { WorkspaceStore } from "../WorkspaceStore";
 
 import type { NavToggle } from "./WorkspaceNav";
-
-const refOf = (item: WorkspaceItem): ItemRef =>
-  "parentId" in item
-    ? { kind: "folder", id: item.id }
-    : { kind: "drawing", id: item.id };
 
 /** What's to be deleted for good once the user confirms it. */
 type Confirming =
@@ -56,7 +51,7 @@ const TrashRow = ({
   onDelete: () => void;
 }) => {
   const { t, langCode } = useI18n();
-  const isFolder = "parentId" in item;
+  const folder = isFolder(item);
   const name = item.name || t("labels.untitled");
   // trashed items always have the time they were trashed
   const trashedAt = item.trashedAt ?? now;
@@ -66,11 +61,11 @@ const TrashRow = ({
     <li className="trash-row" aria-label={name}>
       <div
         className={clsx("trash-row__sheet", {
-          "trash-row__sheet--folder": isFolder,
+          "trash-row__sheet--folder": folder,
         })}
         aria-hidden="true"
       >
-        {isFolder
+        {folder
           ? LoadIcon
           : thumbnail && <img src={thumbnail.src} alt="" draggable={false} />}
       </div>
@@ -209,17 +204,6 @@ export const TrashView = ({
     };
   }, [store, snapshot]);
 
-  const drawingsName = t("workspace.drawings");
-  // where it was, as its folder is now; one that's gone means the root,
-  // where restoring puts it
-  const locationOf = (item: WorkspaceItem) =>
-    [
-      drawingsName,
-      ...ancestors(snapshot, parentOf(snapshot, item)).map(
-        (folder) => folder.name,
-      ),
-    ].join(" › ");
-
   // what's gone already, such as from another tab, needs no word
   const deleteForever = (confirmed: Confirming) => {
     if (confirmed.kind === "empty") {
@@ -271,9 +255,15 @@ export const TrashView = ({
                   key={item.id}
                   item={item}
                   thumbnail={
-                    "folderId" in item ? thumbnails.get(item.id) : undefined
+                    isFolder(item) ? undefined : thumbnails.get(item.id)
                   }
-                  location={locationOf(item)}
+                  // where it was; a folder that's gone means the root,
+                  // where restoring puts it
+                  location={locationLabel(
+                    snapshot,
+                    item,
+                    t("workspace.drawings"),
+                  )}
                   now={now}
                   onRestore={() => {
                     store
