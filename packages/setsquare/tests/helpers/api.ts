@@ -110,7 +110,7 @@ export class API {
     });
   };
 
-  // eslint-disable-next-line prettier/prettier
+  // prettier-ignore
   static updateElement = <T extends SetsquareElement>(
     ...args: Parameters<typeof h.app.scene.mutateElement<T>>
   ) => {

@@ -1,0 +1,12 @@
+node_modules/
+build/
+package-lock.json
+.vscode/
+dist/
+public/workbox
+packages/setsquare/types
+examples/**/public
+dev-dist
+coverage
+setsquare-app/src-tauri/target
+setsquare-app/src-tauri/gen

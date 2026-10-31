@@ -3803,7 +3803,6 @@ class App extends React.Component<AppProps, AppState> {
     this.setsquareContainerValue.container = this.setsquareContainerRef.current;
 
     if (isTestEnv() || isDevEnv()) {
-      const setState = this.setState.bind(this);
       Object.defineProperties(window.h, {
         state: {
           configurable: true,
@@ -3813,7 +3812,7 @@ class App extends React.Component<AppProps, AppState> {
         },
         setState: {
           configurable: true,
-          value: (...args: Parameters<typeof setState>) => {
+          value: (...args: Parameters<typeof this.setState>) => {
             return this.setState(...args);
           },
         },
