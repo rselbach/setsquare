@@ -16,6 +16,7 @@ const envSchema = z.object({
   MCP_ALLOWED_ORIGINS: z.string().optional(),
   ALLOWED_GITHUB_IDS: z.string().optional(),
   ALLOW_ANY_GITHUB_ACCOUNT: z.enum(["true", "false"]).optional(),
+  TRUST_PROXY: z.string().optional(),
 });
 
 /** The server's validated deployment settings. */
@@ -30,6 +31,35 @@ export type ServerConfig = {
   /** GitHub user ids that may sign in, or null to admit any GitHub account. */
   allowedGithubIds: string[] | null;
   mcpAllowedOrigins?: string[];
+  /**
+   * Proxies whose X-Forwarded-For entries are believed: false for none, a hop
+   * count, or the proxies' addresses and CIDR ranges.
+   */
+  trustProxy: false | number | string[];
+};
+
+// `true` would believe the leftmost X-Forwarded-For entry, which the client controls
+const parseTrustProxy = (value: string | undefined) => {
+  if (!value) {
+    return false;
+  }
+  if (/^[0-9]+$/.test(value)) {
+    const hops = Number(value);
+    if (!Number.isSafeInteger(hops) || hops < 1) {
+      throw new Error("TRUST_PROXY must be a positive hop count");
+    }
+    return hops;
+  }
+  const address = z.union([z.ipv4(), z.ipv6(), z.cidrv4(), z.cidrv6()]);
+  return value.split(",").map((entry) => {
+    const parsed = address.safeParse(entry.trim());
+    if (!parsed.success) {
+      throw new Error(
+        "TRUST_PROXY must be a hop count or proxy IP addresses and CIDR ranges",
+      );
+    }
+    return parsed.data;
+  });
 };
 
 /** Parses environment configuration before starting the server. */
@@ -41,6 +71,7 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
     MCP_ALLOWED_ORIGINS: env.MCP_ALLOWED_ORIGINS || undefined,
     ALLOWED_GITHUB_IDS: env.ALLOWED_GITHUB_IDS || undefined,
     ALLOW_ANY_GITHUB_ACCOUNT: env.ALLOW_ANY_GITHUB_ACCOUNT || undefined,
+    TRUST_PROXY: env.TRUST_PROXY?.trim() || undefined,
   });
   const origin = new URL(parsed.APP_ORIGIN);
   if (!["http:", "https:"].includes(origin.protocol)) {
@@ -116,5 +147,6 @@ export const loadConfig = (env: NodeJS.ProcessEnv): ServerConfig => {
         }
         return allowed.origin;
       }),
+    trustProxy: parseTrustProxy(parsed.TRUST_PROXY),
   };
 };

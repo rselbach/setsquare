@@ -440,6 +440,23 @@ it("requires HTTPS and OAuth configuration for production", async () => {
   }
 });
 
+it("parses proxy trust as off, a hop count, or proxy addresses", () => {
+  const trustProxy = (TRUST_PROXY?: string) =>
+    loadConfig({ DATABASE_URL: config.databaseUrl, TRUST_PROXY }).trustProxy;
+  expect(trustProxy()).toBe(false);
+  expect(trustProxy("")).toBe(false);
+  expect(trustProxy("1")).toBe(1);
+  expect(trustProxy(" 2 ")).toBe(2);
+  expect(trustProxy("10.0.0.1, 172.16.0.0/12,fd00::/8")).toEqual([
+    "10.0.0.1",
+    "172.16.0.0/12",
+    "fd00::/8",
+  ]);
+  for (const value of ["0", "true", "loopback", "10.0.0.0/33", "1.5", "-1"]) {
+    expect(() => trustProxy(value)).toThrow("TRUST_PROXY");
+  }
+});
+
 it("admits only allowed GitHub accounts and cuts off existing sessions", async () => {
   const signIn = async (server: FastifyInstance) => {
     const login = await server.inject({ url: "/api/auth/github" });

@@ -32,7 +32,7 @@ it("applies migrations safely when servers start concurrently", async () => {
         "SELECT version FROM schema_migrations ORDER BY version",
       )
     ).rows,
-  ).toEqual([{ version: 1 }, { version: 2 }]);
+  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }]);
 });
 
 it("serves static navigation while keeping API and missing asset requests out of the SPA", async () => {

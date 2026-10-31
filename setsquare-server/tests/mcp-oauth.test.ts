@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { migrate } from "../src/database";
+import { McpOAuthStore, registrationSource } from "../src/mcp/oauth-store";
 
 import { account, config, testDatabase, testServer } from "./helpers";
 
@@ -48,10 +49,17 @@ const form = (
     payload: new URLSearchParams(payload).toString(),
   });
 
-const register = async (method = "none") => {
-  const response = await app.inject({
+const registration = (
+  method = "none",
+  server = app,
+  remoteAddress = "127.0.0.1",
+  headers: Record<string, string> = {},
+) =>
+  server.inject({
     method: "POST",
     url: "/oauth/register",
+    remoteAddress,
+    headers,
     payload: {
       client_name: "Drawing assistant",
       redirect_uris: [redirect],
@@ -59,6 +67,9 @@ const register = async (method = "none") => {
       grant_types: ["authorization_code", "refresh_token"],
     },
   });
+
+const register = async (method = "none") => {
+  const response = await registration(method);
   expect(response.statusCode).toBe(201);
   return response.json();
 };
@@ -647,7 +658,7 @@ it("shares grants across instances and applies migrations idempotently", async (
         "SELECT version FROM schema_migrations ORDER BY version",
       )
     ).rows,
-  ).toEqual([{ version: 1 }, { version: 2 }]);
+  ).toEqual([{ version: 1 }, { version: 2 }, { version: 3 }]);
   const second = await testServer(db.pool, clock);
   try {
     expect(
@@ -705,4 +716,127 @@ it("serializes simultaneous refreshes and rejects scope escalation", async () =>
     scope: "drawings:read drawings:write",
   });
   expect(expanded.json().error).toBe("invalid_scope");
+});
+
+it("limits client registrations to 30 per source address per hour", async () => {
+  const statuses: number[] = [];
+  for (let i = 0; i < 30; i++) {
+    statuses.push((await registration()).statusCode);
+  }
+  expect(statuses).toEqual(Array(30).fill(201));
+  const limited = await registration();
+  expect(limited.statusCode).toBe(429);
+  expect(limited.json()).toEqual({
+    error: "temporarily_unavailable",
+    error_description: expect.any(String),
+  });
+  expect((await registration("none", app, "127.0.0.2")).statusCode).toBe(201);
+  now += 61 * 60_000;
+  expect((await registration()).statusCode).toBe(201);
+});
+
+it("counts registrations by forwarded address only when the proxy is trusted", async () => {
+  const proxied = await testServer(db.pool, clock, { trustProxy: 1 });
+  try {
+    for (let i = 0; i < 30; i++) {
+      expect(
+        (
+          await registration("none", proxied, "10.0.0.1", {
+            "x-forwarded-for": "198.51.100.1",
+          })
+        ).statusCode,
+      ).toBe(201);
+    }
+    expect(
+      (
+        await registration("none", proxied, "10.0.0.1", {
+          "x-forwarded-for": "198.51.100.1",
+        })
+      ).statusCode,
+    ).toBe(429);
+    expect(
+      (
+        await registration("none", proxied, "10.0.0.1", {
+          "x-forwarded-for": "203.0.113.7",
+        })
+      ).statusCode,
+    ).toBe(201);
+    for (let i = 0; i < 29; i++) {
+      expect(
+        (
+          await registration("none", app, "10.0.0.2", {
+            "x-forwarded-for": `198.51.100.${i}`,
+          })
+        ).statusCode,
+      ).toBe(201);
+    }
+    expect(
+      (
+        await registration("none", app, "10.0.0.2", {
+          "x-forwarded-for": "203.0.113.7",
+        })
+      ).statusCode,
+    ).toBe(201);
+    expect(
+      (
+        await registration("none", app, "10.0.0.2", {
+          "x-forwarded-for": "203.0.113.8",
+        })
+      ).statusCode,
+    ).toBe(429);
+  } finally {
+    await proxied.close();
+  }
+});
+
+it("counts IPv6 registrations by /64 and IPv4-mapped ones as IPv4", () => {
+  expect(registrationSource("2001:db8:1:2::1")).toBe("2001:db8:1:2::/64");
+  expect(registrationSource("2001:DB8:1:2:ffff:abcd:1:9")).toBe(
+    "2001:db8:1:2::/64",
+  );
+  expect(registrationSource("2001:db8:1:3::1")).toBe("2001:db8:1:3::/64");
+  expect(registrationSource("::1")).toBe("0:0:0:0::/64");
+  expect(registrationSource("fe80::1%eth0")).toBe("fe80:0:0:0::/64");
+  expect(registrationSource("::ffff:203.0.113.5")).toBe("203.0.113.5");
+  expect(registrationSource("::ffff:cb00:7105")).toBe("203.0.113.5");
+  expect(registrationSource("203.0.113.5")).toBe("203.0.113.5");
+});
+
+it("purges never-authorized clients after a day and keeps authorized ones", async () => {
+  const store = new McpOAuthStore(db.pool, resource, clock);
+  const clients = async () =>
+    (await db.pool.query("SELECT id FROM mcp_clients")).rows
+      .map((row) => row.id)
+      .sort();
+  await register();
+  const pending = await register();
+  const denied = await register();
+  await form(
+    "/oauth/authorize",
+    {
+      consent: await consent(denied.client_id),
+      csrf_token: troy.csrfToken,
+      decision: "deny",
+    },
+    troy.headers,
+  );
+  const { client: authorized } = await connect();
+  now += 25 * 60 * 60_000;
+  await consent(pending.client_id);
+  const fresh = await register();
+  await store.collect();
+  expect(await clients()).toEqual(
+    [pending, authorized, fresh].map((client) => client.client_id).sort(),
+  );
+  now += 31 * 24 * 60 * 60_000;
+  await store.collect();
+  expect(
+    (await db.pool.query("SELECT count(*)::int AS count FROM mcp_grants"))
+      .rows[0].count,
+  ).toBe(0);
+  expect(await clients()).toEqual([authorized.client_id]);
+  expect(
+    (await app.inject({ url: authorization(authorized.client_id) })).headers
+      .location,
+  ).toMatch(/^\/api\/auth\/github\?/);
 });
