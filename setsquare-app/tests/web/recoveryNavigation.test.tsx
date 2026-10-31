@@ -80,6 +80,34 @@ it("keeps the canvas mounted when network and local recovery both fail", async (
   expect(closing.defaultPrevented).toBe(true);
 });
 
+it("closes without a prompt right after an edit, before the editor flushes", async () => {
+  const listening = vi.spyOn(window, "addEventListener");
+  const { store } = await openWithRecovery(() => Promise.resolve());
+  const keeping = vi.spyOn(store.recoveryStorage, "setItem");
+  await act(async () => {
+    API.updateScene({
+      elements: [
+        ...h.elements,
+        API.createElement({ type: "ellipse", id: "annie" }),
+      ],
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(keeping).not.toHaveBeenCalled();
+  // the route's own listener, without the editor's flush ahead of it
+  const onPageHide = listening.mock.calls
+    .filter(([type]) => type === "pagehide")
+    .at(-1)?.[1] as EventListener;
+  const closing = new Event("beforeunload", { cancelable: true });
+  await act(async () => onPageHide(closing));
+  expect(closing.defaultPrevented).toBe(false);
+  expect(keeping).toHaveBeenLastCalledWith(
+    expect.any(String),
+    expect.stringContaining('"annie"'),
+  );
+});
+
 it("leaves a stalled save behind once the recovery draft holds the edit", async () => {
   const { store, drawing } = await openWithRecovery(() => Promise.resolve());
   vi.spyOn(store, "saveDrawingContent").mockReturnValue(new Promise(() => {}));
