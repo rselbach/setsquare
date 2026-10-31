@@ -2,7 +2,7 @@ import fs from "fs";
 
 // vitest.setup.ts
 import "vitest-canvas-mock";
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 import { configure } from "@testing-library/react";
 import { vi } from "vitest";
 

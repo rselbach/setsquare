@@ -251,6 +251,12 @@ export const togglePopover = (label: string) => {
   UI.clickLabeledElement(label);
 };
 
+declare module "vitest" {
+  interface Matchers<T = any> {
+    toBeNonNaNNumber(): T;
+  }
+}
+
 expect.extend({
   toBeNonNaNNumber(received) {
     const pass = typeof received === "number" && !isNaN(received);
@@ -421,7 +427,7 @@ export const assertElements = <T extends AllPossibleKeys<SetsquareElement>>(
   }
 
   expect(mappedActualElements).toEqual(
-    expect.arrayContaining(expectedElementsWithIds),
+    expect.arrayContaining<unknown>(expectedElementsWithIds),
   );
 
   expect(h.state.selectedElementIds).toEqual(selectedElementIds);
