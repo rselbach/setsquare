@@ -664,3 +664,72 @@ it("rejects repeated OAuth form parameters", async () => {
   expect(response.statusCode).toBe(400);
   expect(response.json().error).toBe("invalid_request");
 });
+
+it("answers unreadable OAuth requests in the OAuth error shape", async () => {
+  const cases = {
+    "oversized form": {
+      contentType: "application/x-www-form-urlencoded",
+      payload: `client_name=${"a".repeat(20_000)}`,
+      status: 413,
+    },
+    "oversized JSON": {
+      contentType: "application/json",
+      payload: JSON.stringify({ client_name: "a".repeat(20_000) }),
+      status: 413,
+    },
+    "malformed JSON": {
+      contentType: "application/json",
+      payload: "{",
+      status: 400,
+    },
+    "unsupported media type": {
+      contentType: "multipart/form-data; boundary=greendale",
+      payload: "--greendale--",
+      status: 415,
+    },
+  };
+  for (const url of ["/oauth/register", "/oauth/token", "/oauth/revoke"]) {
+    for (const [name, tc] of Object.entries(cases)) {
+      const response = await app.inject({
+        method: "POST",
+        url,
+        headers: { "content-type": tc.contentType },
+        payload: tc.payload,
+      });
+      expect(response.statusCode, `${url} ${name}`).toBe(tc.status);
+      expect(response.json(), `${url} ${name}`).toEqual({
+        error: "invalid_request",
+        error_description: expect.any(String),
+      });
+      expect(response.headers["cache-control"]).toBe("no-store");
+      expect(response.headers["access-control-allow-origin"]).toBe("*");
+    }
+  }
+});
+
+it("logs unexpected OAuth failures and answers in the OAuth error shape", async () => {
+  const log = vi.spyOn(app.log, "error");
+  vi.spyOn(McpOAuthStore.prototype, "register").mockRejectedValue(
+    new Error("Greendale database is down"),
+  );
+  const response = await app.inject({
+    method: "POST",
+    url: "/oauth/register",
+    payload: {
+      client_name: "Troy Barnes",
+      redirect_uris: ["https://greendale.edu/callback"],
+      token_endpoint_auth_method: "none",
+    },
+  });
+  expect(response.statusCode).toBe(500);
+  expect(response.json()).toEqual({
+    error: "server_error",
+    error_description: expect.any(String),
+  });
+  expect(log).toHaveBeenCalledTimes(1);
+  expect(log.mock.calls[0][0]).toMatchObject({
+    requestId: expect.any(String),
+    err: expect.objectContaining({ message: "Greendale database is down" }),
+  });
+  expect(JSON.stringify(log.mock.calls)).not.toContain("/oauth/register");
+});
