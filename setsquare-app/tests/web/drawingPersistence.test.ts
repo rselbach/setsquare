@@ -15,6 +15,7 @@ import {
   recoverUnavailable,
   replayUnsaved,
 } from "../../web/unsavedJournal";
+import { openDatabase, request, transact } from "../../workspace/local/idb";
 import { AccountCache } from "../../workspace/remote/AccountCache";
 import { workspaceFixture } from "../workspace/helpers";
 
@@ -442,6 +443,60 @@ it("keeps recovery in IndexedDB when the synchronous fallback is full", async ()
       ({ id }) => id,
     ),
   ).toEqual(["annie"]);
+});
+
+it("reads valid IndexedDB drafts past an unreadable one and can remove it", async () => {
+  const { store, drawing } = await session();
+  vi.spyOn(store.recoveryStorage, "setItem").mockImplementation(() => {
+    throw new DOMException("Full", "QuotaExceededError");
+  });
+  vi.spyOn(store, "saveDrawingContent").mockRejectedValue(new Error("Offline"));
+  const persistence = persistenceFor(store, drawing);
+  persistence.save(
+    savedContent("Greendale", "annie").elements,
+    appState(),
+    {},
+    vi.fn(),
+  );
+  await persistence.flush();
+  const [valid] = await caches[0].loadDrafts(drawing.meta.id);
+  const db = await openDatabase(
+    `setsquare-account-${fixture.dbName}`,
+    2,
+    () => {},
+  );
+  await transact(db, ["drafts"], "readwrite", (tx) =>
+    request(
+      tx.objectStore("drafts").put(
+        {
+          ...JSON.parse(JSON.stringify(valid)),
+          draftId: "pierce",
+          generation: "hawthorne",
+          elements: [{ id: "x", type: "unknown" }],
+        },
+        "pierce",
+      ),
+    ),
+  );
+  const stored = () =>
+    transact(db, ["drafts"], "readonly", (tx) =>
+      request(tx.objectStore("drafts").getAllKeys()),
+    );
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+
+  expect(
+    (await caches[0].loadDrafts(drawing.meta.id)).map(({ draftId }) => draftId),
+  ).toEqual([valid.draftId]);
+  expect(
+    (await readAccountRecovery(store, drawing.meta.id))?.elements.map(
+      ({ id }) => id,
+    ),
+  ).toEqual(["annie"]);
+  await caches[0].removeDraft("pierce", "chang");
+  expect(await stored()).toContain("pierce");
+  await caches[0].removeDraft("pierce", "hawthorne");
+  expect(await stored()).toEqual([valid.draftId]);
+  db.close();
 });
 
 it("reports failed local recovery and detects image bytes still being staged", async () => {
