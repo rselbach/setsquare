@@ -51,10 +51,14 @@ export interface WorkspaceStore {
   readonly recoveryKey?: string;
   /** the mounted browser's recovery storage, when using accounts */
   readonly recoveryStorage?: Storage;
+  /** the browser's locks, which each editor session holds on its drafts */
+  readonly recoveryLocks?: LockManager;
   /** private recovery records belonging to individual editor sessions */
   readonly recoveryDrafts?: {
     save(draft: AccountDraft): Promise<void>;
     load(id: DrawingId): Promise<AccountDraft[]>;
+    /** every draft of every drawing */
+    list(): Promise<AccountDraft[]>;
     /** removes the draft, or only a copy edited at or before `notAfter` */
     remove(draftId: string, notAfter?: number): Promise<void>;
   };

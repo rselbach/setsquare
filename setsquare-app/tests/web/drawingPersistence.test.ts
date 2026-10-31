@@ -17,6 +17,8 @@ import {
 } from "../../app_constants";
 import { createDrawingPersistence } from "../../web/drawingPersistence";
 import {
+  collectOrphanDrafts,
+  ORPHAN_DRAFT_AGE,
   readAccountRecovery,
   recoverUnavailable,
   replayUnsaved,
@@ -91,6 +93,7 @@ const openLocal = async (account: string): Promise<AccountStore> => {
         cache.saveDraft(draft),
       load: (id: Parameters<AccountCache["loadDrafts"]>[0]) =>
         cache.loadDrafts(id),
+      list: () => cache.listDrafts(),
       remove: (id: string, notAfter?: number) =>
         cache.removeDraft(id, notAfter),
     },
@@ -159,6 +162,38 @@ const draftAt = (
     generation: `perry-${updatedAt}`,
     updatedAt,
   };
+};
+
+/** The browser's exclusive Web Locks, which jsdom doesn't have. */
+const fakeLocks = () => {
+  const held = new Set<string>();
+  const waiting = new Map<string, Array<() => void>>();
+  const request = async <T>(
+    name: string,
+    ...args: [LockGrantedCallback<T>] | [LockOptions, LockGrantedCallback<T>]
+  ) => {
+    const [options, callback] = args.length === 1 ? [{}, ...args] : args;
+    if (held.has(name)) {
+      if (options.ifAvailable) {
+        return callback(null);
+      }
+      await new Promise<void>((resolve) =>
+        waiting.set(name, [...(waiting.get(name) ?? []), resolve]),
+      );
+    }
+    held.add(name);
+    try {
+      return await callback({ name, mode: "exclusive" });
+    } finally {
+      const next = waiting.get(name)?.shift();
+      if (next) {
+        next();
+      } else {
+        held.delete(name);
+      }
+    }
+  };
+  return { request } as unknown as LockManager;
 };
 
 describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
@@ -513,6 +548,42 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
     await second.renderThumbnail();
   });
 
+  it("recovers another tab's draft only once that tab lets it go", async () => {
+    const { store, drawing } = await session();
+    const locked = Object.assign(store, { recoveryLocks: fakeLocks() });
+    const first = persistenceFor(locked, drawing);
+    const release = first.hold();
+    vi.spyOn(store, "saveDrawingContent").mockResolvedValueOnce({
+      ok: false,
+      reason: "conflict",
+      meta: drawing.meta,
+    });
+    first.save(
+      savedContent("Greendale", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await first.flush();
+    expect(first.getSaveState().kind).toBe("conflict");
+    expect(await readAccountRecovery(locked, drawing.meta.id)).toBe(null);
+    expect((await replayUnsaved(locked, drawing)).recovered).toBeUndefined();
+
+    release();
+    const adopted = await replayUnsaved(locked, drawing);
+    const second = persistenceFor(locked, adopted);
+    expect(adopted.recovered?.elements.map(({ id }) => id)).toEqual(["annie"]);
+    // past the task that read it, the adopting session's own lock keeps it
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(await readAccountRecovery(locked, drawing.meta.id)).toBe(null);
+    second.hold()();
+    expect(
+      (await readAccountRecovery(locked, drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["annie"]);
+  });
+
   it.each([
     ["IndexedDB", "localStorage"],
     ["localStorage", "IndexedDB"],
@@ -660,6 +731,84 @@ describe.each(["local", "remote"] as const)("with a %s store", (kind) => {
       copy &&
         (await store.loadDrawingContent(copy.id))?.elements.map(({ id }) => id),
     ).toEqual(["annie"]);
+  });
+
+  it("lists a deleted drawing's draft until it expires", async () => {
+    const { store, drawing } = await session();
+    const other = await store.createDrawing({
+      folderId: null,
+      name: "Hawthorne Wipes",
+      content: savedContent("Hawthorne Wipes", "pierce"),
+    });
+    const kept = draftAt(drawing, 1, "britta");
+    await store.recoveryDrafts.save({ ...kept, id: other.id });
+    const persistence = persistenceFor(store, drawing);
+    persistence.save(
+      savedContent("Greendale", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await store.deleteForever({ kind: "drawing", id: drawing.meta.id });
+    await persistence.flush();
+    const draft = await readAccountRecovery(store, drawing.meta.id);
+    if (!draft) {
+      throw new Error("The deleted drawing's draft is missing");
+    }
+
+    const orphans = await collectOrphanDrafts(
+      store,
+      draft.updatedAt + ORPHAN_DRAFT_AGE,
+    );
+    expect(orphans.map(({ id }) => id)).toEqual([drawing.meta.id]);
+    expect(await readAccountRecovery(store, drawing.meta.id)).toEqual(draft);
+    expect(
+      await collectOrphanDrafts(store, draft.updatedAt + ORPHAN_DRAFT_AGE + 1),
+    ).toEqual([]);
+    expect(await readAccountRecovery(store, drawing.meta.id)).toBe(null);
+    expect(
+      Object.keys(localStorage).filter((key) => key.includes(drawing.meta.id)),
+    ).toEqual([]);
+    expect(await readAccountRecovery(store, other.id)).toMatchObject({
+      draftId: kept.draftId,
+    });
+  });
+
+  it("keeps an expired draft that an open editor recovered", async () => {
+    const { store, drawing } = await session();
+    const locked = Object.assign(store, { recoveryLocks: fakeLocks() });
+    const persistence = persistenceFor(locked, drawing);
+    persistence.save(
+      savedContent("Greendale", "annie").elements,
+      appState(),
+      {},
+      vi.fn(),
+    );
+    await store.deleteForever({ kind: "drawing", id: drawing.meta.id });
+    await persistence.flush();
+    persistence.hold()();
+    const recovered = await recoverUnavailable(
+      locked,
+      drawing.meta.id,
+      "missing",
+    );
+    if (!recovered?.recovered) {
+      throw new Error("The deleted drawing's draft is missing");
+    }
+    const reopened = persistenceFor(locked, recovered);
+    const expired = recovered.meta.updatedAt + ORPHAN_DRAFT_AGE + 1;
+
+    await new Promise((resolve) => setTimeout(resolve));
+    await collectOrphanDrafts(locked, expired);
+    reopened.hold()();
+    expect(
+      (await readAccountRecovery(locked, drawing.meta.id))?.elements.map(
+        ({ id }) => id,
+      ),
+    ).toEqual(["annie"]);
+    await new Promise((resolve) => setTimeout(resolve));
+    await collectOrphanDrafts(locked, expired);
+    expect(await readAccountRecovery(locked, drawing.meta.id)).toBe(null);
   });
 
   it("includes edits made while a recovered copy is being created", async () => {

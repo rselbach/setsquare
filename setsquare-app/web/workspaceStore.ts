@@ -2,6 +2,8 @@ import { LocalWorkspaceStore } from "../workspace/local/LocalWorkspaceStore";
 import { RemoteWorkspaceStore } from "../workspace/remote/RemoteWorkspaceStore";
 import { parseSession } from "../workspace/remote/parse";
 
+import { collectOrphanDrafts } from "./unsavedJournal";
+
 import type { SessionInfo } from "../workspace/api";
 import type { LocalWorkspaceOptions } from "../workspace/local/LocalWorkspaceStore";
 import type { WorkspaceStore } from "../workspace/WorkspaceStore";
@@ -74,6 +76,10 @@ export const openWorkspaceStore = async ({
       onSessionExpired,
     });
     onSession?.(session);
+    // drafts of drawings deleted elsewhere expire while the Trash lists them
+    collectOrphanDrafts(store).catch((error) =>
+      console.warn("Could not collect recovery drafts", error),
+    );
     return store;
   } catch (error) {
     // the browser's own drawings stay usable while the account can't load

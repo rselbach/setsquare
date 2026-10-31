@@ -30,7 +30,7 @@ import {
 import { visibleFolder } from "../workspace/tree";
 
 import { createThumbnailer } from "./thumbnail";
-import { clearUnsaved, writeUnsaved } from "./unsavedJournal";
+import { clearUnsaved, holdDraft, writeUnsaved } from "./unsavedJournal";
 
 import type { ScenePersistence } from "../editor/ScenePersistence";
 import type {
@@ -111,6 +111,11 @@ export type DrawingPersistence = Merge<
     getRecoveryError(): unknown | null;
     isDeviceStorageFull(): boolean;
     exportRecovery(): void;
+    /**
+     * Keeps other tabs from recovering this session's drafts, as they do
+     * from its creation, until every hold it returns is released.
+     */
+    hold(): () => void;
   }
 >;
 
@@ -160,6 +165,17 @@ export const createDrawingPersistence = ({
   let imageRecoveryError: unknown | null = null;
   let viewError: unknown | null = null;
   let recoveredSource = recovered && "draftId" in recovered ? recovered : null;
+  // until the last hold ends, another tab adopts neither this session's
+  // draft nor the one it adopted
+  let holds = 0;
+  let unlock = () => {};
+  const unlocked = new Promise<void>((resolve) => {
+    unlock = resolve;
+  });
+  holdDraft(store.recoveryLocks, draftId, unlocked);
+  if (recoveredSource) {
+    holdDraft(store.recoveryLocks, recoveredSource.draftId, unlocked);
+  }
   const listeners = new Set<() => void>();
   let state: DrawingSaveState = drawing.unavailable
     ? { kind: "missing" }
@@ -797,6 +813,15 @@ export const createDrawingPersistence = ({
       thumbnailer.cancel();
       keepRecovery();
       await recoveryWriting;
+    },
+    hold: () => {
+      holds++;
+      return () => {
+        holds--;
+        if (!holds) {
+          unlock();
+        }
+      };
     },
     renderThumbnail: async () => {
       if (!gone && !pending) {

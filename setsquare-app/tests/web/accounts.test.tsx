@@ -223,6 +223,7 @@ describe("web accounts", () => {
       recoveryDrafts: {
         save: vi.fn().mockResolvedValue(undefined),
         load: vi.fn().mockResolvedValue([]),
+        list: vi.fn().mockResolvedValue([]),
         remove: vi.fn().mockResolvedValue(undefined),
       },
     });

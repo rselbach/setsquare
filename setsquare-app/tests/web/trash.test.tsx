@@ -1,5 +1,6 @@
 import { KEYS } from "@setsquare/common";
 import { CaptureUpdateAction } from "@setsquare/setsquare";
+import { getDefaultAppState } from "@setsquare/setsquare/appState";
 import { API } from "@setsquare/setsquare/tests/helpers/api";
 import {
   act,
@@ -8,6 +9,9 @@ import {
   waitFor,
   within,
 } from "@setsquare/setsquare/tests/test-utils";
+
+import * as workspaceStore from "../../web/workspaceStore";
+import { splitAppState } from "../../workspace/drawingAppState";
 
 import {
   cleanUpWebApp,
@@ -21,7 +25,13 @@ import {
 } from "./helpers";
 
 import type { LocalWorkspaceStore } from "../../workspace/local/LocalWorkspaceStore";
-import type { DrawingMeta, Folder, FolderId } from "../../workspace/types";
+import type {
+  AccountDraft,
+  DrawingId,
+  DrawingMeta,
+  Folder,
+  FolderId,
+} from "../../workspace/types";
 
 const { h } = window;
 
@@ -346,6 +356,51 @@ describe("the Trash", () => {
         .getAllByRole("link")
         .map((link) => link.textContent),
     ).toEqual(["Seating", "Floor plan"]);
+  });
+
+  it("lists what this device kept of drawings deleted elsewhere", async () => {
+    const { content, view } = splitAppState({
+      ...getDefaultAppState(),
+      width: 800,
+      height: 600,
+      offsetTop: 0,
+      offsetLeft: 0,
+      name: "Dean's office",
+    });
+    const draft: AccountDraft = {
+      id: "deleted-elsewhere" as DrawingId,
+      baseRevision: 3,
+      elements: savedContent("Dean's office", "pelton").elements,
+      appState: { ...content, ...view },
+      draftId: "britta",
+      generation: "perry",
+      updatedAt: Date.now() - 2 * DAY,
+    };
+    const account = Object.assign(store, {
+      recoveryKey: "troy-barnes",
+      recoveryStorage: window.localStorage,
+      recoveryDrafts: {
+        save: vi.fn().mockResolvedValue(undefined),
+        load: vi.fn().mockResolvedValue([draft]),
+        list: vi.fn().mockResolvedValue([draft]),
+        remove: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+    vi.spyOn(workspaceStore, "openWorkspaceStore").mockResolvedValue(account);
+
+    await renderPageAt("/trash");
+
+    const list = await screen.findByRole("list", {
+      name: "Recovered on this device",
+    });
+    const row = within(list).getByRole("listitem", { name: "Dean's office" });
+    expect(within(row).getByText("Deleted elsewhere")).toBeInTheDocument();
+    expect(within(row).getByText("Edited 2 days ago")).toBeInTheDocument();
+    fireEvent.click(within(row).getByRole("button", { name: "Open" }));
+    await waitForDrawing(draft.id, ["pelton"]);
+    expect(
+      screen.getByRole("button", { name: "Save as a copy" }),
+    ).toBeInTheDocument();
   });
 
   it("says when there's nothing in it", async () => {
