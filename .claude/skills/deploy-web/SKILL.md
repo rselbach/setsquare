@@ -5,7 +5,7 @@ description: Deploy, redeploy, or roll back the Setsquare web app in production 
 
 # Deploy the web app
 
-Production runs on the exe.dev VM `setsquare`. The VM runs the image built from the repository's `Dockerfile` as the container `setsquare`. The image runs `setsquare-server`, which serves the app and its `/api` on port 3002. The container maps that port to the VM's port 8000, and the exe.dev HTTPS proxy publishes port 8000 publicly. `setsquare.rselbach.com` is a DNS-only Cloudflare CNAME to `setsquare.exe.xyz`.
+Production runs on the exe.dev VM `setsquare`. The VM runs the image built from the repository's `Dockerfile` as the container `setsquare`. The image runs `setsquare-server`, which serves the app and its `/api` on port 3002. The container maps that port to the VM's port 8000, and the exe.dev HTTPS proxy publishes port 8000 publicly. Port 8000 serves plain HTTP on every VM interface, including the tailnet address, because exe.dev does not document which interface its proxy connects to. Tailnet peers can therefore reach the server without the proxy and forge `X-Forwarded-For` under `TRUST_PROXY`. `setsquare.rselbach.com` is a DNS-only Cloudflare CNAME to `setsquare.exe.xyz`.
 
 The server reads its settings from `/home/exedev/setsquare.env` on the VM. The file has mode 600 and is never in the repository. It sets these variables:
 

@@ -46,7 +46,7 @@ Saves check the revision last loaded by the editor. A conflicting edit stays in 
 
 ## Deploy the account server
 
-The Docker image serves the frontend and API on port 3002. Put it behind an HTTPS reverse proxy and configure the OAuth callback for the public origin. Use a separate OAuth registration for development and production.
+The Docker image serves the frontend and API on port 3002 over plain HTTP. Put it behind an HTTPS reverse proxy and configure the OAuth callback for the public origin. The proxy should be the only way to reach the server, so Compose publishes port 3002 on the host's loopback interface by default. Use a separate OAuth registration for development and production.
 
 Set these environment variables before running `docker compose up --build -d`.
 
@@ -57,6 +57,7 @@ Set these environment variables before running `docker compose up --build -d`.
 | `GITHUB_CLIENT_SECRET` | The production OAuth app's secret |
 | `ALLOWED_GITHUB_IDS` | The numeric GitHub user ids that may sign in, separated by commas. `gh api users/<login> --jq .id` prints an account's id |
 | `POSTGRES_PASSWORD` | A URL-safe database password, such as a random hex string |
+| `SETSQUARE_BIND` | Optional. The host address Compose publishes port 3002 on. Defaults to `127.0.0.1`, for a reverse proxy on the same host. Set it to an address the proxy uses, such as a private network address, when the proxy runs elsewhere. Docker publishes ports past host firewalls such as ufw, so avoid `0.0.0.0` |
 | `TRUST_PROXY` | Optional. The number of reverse proxies in front of the server, such as `1`, or their IP addresses and CIDR ranges separated by commas. When unset, the server ignores `X-Forwarded-For` and uses the connection's address. With a hop count, callers that reach port 3002 without the proxy can forge their address, so expose the port only to the proxy |
 
 Compose keeps PostgreSQL in the `database` volume and does not expose its port. For an existing database, run the app image with `DATABASE_URL` instead of the Compose database service. Production startup requires HTTPS, OAuth credentials, and either `ALLOWED_GITHUB_IDS` or `ALLOW_ANY_GITHUB_ACCOUNT=true`. Accounts have no storage quotas, so `ALLOW_ANY_GITHUB_ACCOUNT=true` lets any GitHub user fill the database. Removing an id from `ALLOWED_GITHUB_IDS` ends that account's sessions and MCP access when the server restarts. Unfinished sign-ins expire after 10 minutes. Each source address can start 30 in that time, and the server accepts 10,000 in total, so set `TRUST_PROXY` behind a reverse proxy. `/api/health` checks the database connection.
