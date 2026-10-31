@@ -228,8 +228,8 @@ const content = z
   .pipe(drawingContentInputSchema)
   .transform((value): DrawingContent => value);
 const item = z.discriminatedUnion("kind", [
-  z.strictObject({ kind: z.literal("folder"), id: folderId }),
   z.strictObject({ kind: z.literal("drawing"), id: drawingId }),
+  z.strictObject({ kind: z.literal("folder"), id: folderId }),
 ]);
 const folder = z.strictObject({
   id: folderId,
@@ -381,6 +381,18 @@ export const idsSchema = z
 
 /** Validates the drawing id decoded by the HTTP router. */
 export const drawingIdSchema = drawingId;
+
+/** Validates any workspace id, also published in MCP tool schemas. */
+export const idSchema = id;
+
+/** Validates a required, trimmed name, also published in MCP tool schemas. */
+export const nameSchema = name;
+
+/** Validates a drawing revision, also published in MCP tool schemas. */
+export const revisionSchema = revision;
+
+/** Validates a drawing or folder reference, also published in MCP tool schemas. */
+export const itemSchema = item;
 
 /** Validates stored metadata when it crosses the database boundary. */
 export const folderSchema = folder;

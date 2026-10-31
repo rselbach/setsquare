@@ -1,14 +1,10 @@
-import {
-  createHash,
-  randomBytes,
-  randomUUID,
-  timingSafeEqual,
-} from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { isIPv6 } from "node:net";
 
 import { z } from "zod";
 
 import { transaction } from "../database";
+import { equalSecret, hash, token } from "../tokens";
 
 import type { Pool, PoolClient } from "pg";
 import type { AuthenticatedSession } from "../auth";
@@ -19,12 +15,6 @@ export const SCOPES = [READ_SCOPE, WRITE_SCOPE];
 const MINUTE = 60_000;
 const GRANT_MS = 30 * 24 * 60 * MINUTE;
 const ACCESS_MS = 15 * MINUTE;
-
-export const hash = (value: string) =>
-  createHash("sha256").update(value).digest("hex");
-const token = () => randomBytes(32).toString("base64url");
-export const equal = (a: string, b: string) =>
-  timingSafeEqual(Buffer.from(hash(a)), Buffer.from(hash(b)));
 
 /**
  * The address a registration counts against: IPv4-mapped addresses as IPv4,
@@ -430,7 +420,7 @@ export class McpOAuthStore {
       if (
         isCode &&
         (record.redirect_uri !== input.redirect_uri ||
-          !equal(
+          !equalSecret(
             record.challenge,
             createHash("sha256")
               .update(input.code_verifier!)
