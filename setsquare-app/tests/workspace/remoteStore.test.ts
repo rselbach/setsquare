@@ -1,9 +1,19 @@
 import { webcrypto } from "node:crypto";
 
+import { arrayToMap } from "@setsquare/common";
+import { LinearElementEditor } from "@setsquare/element";
+import { getDefaultAppState } from "@setsquare/setsquare/appState";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+
 import type { FileId } from "@setsquare/element/types";
 import type { BinaryFileData } from "@setsquare/setsquare/types";
 
-import { emptyDrawingContent } from "../../workspace/drawingAppState";
+import {
+  emptyDrawingContent,
+  splitAppState,
+} from "../../workspace/drawingAppState";
+import { openDatabase, request, transact } from "../../workspace/local/idb";
+import { AccountCache } from "../../workspace/remote/AccountCache";
 import { ApiError } from "../../workspace/remote/ApiError";
 import { RemoteWorkspaceStore } from "../../workspace/remote/RemoteWorkspaceStore";
 import { newDrawingMeta } from "../../workspace/types";
@@ -16,7 +26,7 @@ import type {
   WorkspaceCommand,
   WorkspaceData,
 } from "../../workspace/api";
-import type { DrawingMeta, DrawingView } from "../../workspace/types";
+import type { DrawingMeta } from "../../workspace/types";
 
 const stores: RemoteWorkspaceStore[] = [];
 let accounts = 0;
@@ -256,10 +266,15 @@ describe("RemoteWorkspaceStore", () => {
 
   it("restores content and keeps a drawing's view separate for each account", async () => {
     const meta = drawing();
+    const arrow = API.createElement({ type: "arrow", id: "troy" });
+    const content = {
+      ...emptyDrawingContent(meta.name),
+      elements: [arrow],
+    };
     const fetch: typeof globalThis.fetch = async (input) =>
       String(input) === "/api/workspace"
         ? response(workspace(meta))
-        : response({ meta, content: contentWith(meta.name, "troy") });
+        : response({ meta, content });
     const troy = session();
     const first = await open(fetch, troy);
     const opened = await first.openDrawing(meta.id);
@@ -268,15 +283,134 @@ describe("RemoteWorkspaceStore", () => {
     ]);
     expect(opened?.view).toBeNull();
     const view = {
+      ...splitAppState(getDefaultAppState()).view,
       scrollX: 99,
       scrollY: 120,
-      zoom: { value: 1 },
-    } as DrawingView;
+      selectedElementIds: { [arrow.id]: true as const },
+      selectedLinearElement: new LinearElementEditor(
+        arrow,
+        arrayToMap([arrow]),
+      ),
+    };
     await first.saveDrawingView(meta.id, view);
     const sameAccount = await open(fetch, troy);
-    expect((await sameAccount.openDrawing(meta.id))?.view).toMatchObject(view);
+    const reopened = await sameAccount.openDrawing(meta.id);
+    expect(reopened?.content.elements).toMatchObject([
+      {
+        id: arrow.id,
+        type: arrow.type,
+        x: arrow.x,
+        y: arrow.y,
+        points: arrow.points,
+      },
+    ]);
+    expect(reopened?.view).toMatchObject({
+      ...view,
+      selectedLinearElement: null,
+    });
     const otherAccount = await open(fetch);
     expect((await otherAccount.openDrawing(meta.id))?.view).toBeNull();
+  });
+
+  it.each([
+    {
+      scrollX: 0,
+      scrollY: 0,
+      zoom: { value: 1 },
+      selectedLinearElement: { elementId: "x", pointerDownState: undefined },
+    },
+    { scrollX: 0, scrollY: 0, zoom: { value: 0 } },
+  ])(
+    "opens content and removes only the malformed cached view %j",
+    async (view) => {
+      const meta = drawing();
+      const content = contentWith(meta.name, "troy");
+      const fetch: typeof globalThis.fetch = async (input) =>
+        String(input) === "/api/workspace"
+          ? response(workspace(meta))
+          : response({ meta, content });
+      const account = session();
+      const store = await open(fetch, account);
+      const db = await openDatabase(
+        `setsquare-account-${account.user.id}`,
+        2,
+        () => {},
+      );
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const image = file();
+      try {
+        await transact(
+          db,
+          ["views", "files", "drafts"],
+          "readwrite",
+          async (tx) => {
+            await request(tx.objectStore("views").put(view, meta.id));
+            await request(
+              tx.objectStore("views").put({ scrollX: 50 }, "other"),
+            );
+            await request(tx.objectStore("files").put(image, image.id));
+            await request(
+              tx.objectStore("drafts").put({ id: meta.id }, "recovery"),
+            );
+          },
+        );
+
+        const opened = await store.openDrawing(meta.id);
+        expect(opened?.view).toBeNull();
+        expect(opened?.content.elements.map((element) => element.id)).toEqual([
+          "troy",
+        ]);
+        expect(warn).toHaveBeenCalled();
+        await transact(
+          db,
+          ["views", "files", "drafts"],
+          "readonly",
+          async (tx) => {
+            expect(
+              await request(tx.objectStore("views").get(meta.id)),
+            ).toBeUndefined();
+            expect(await request(tx.objectStore("views").get("other"))).toEqual(
+              { scrollX: 50 },
+            );
+            expect(
+              await request(tx.objectStore("files").get(image.id)),
+            ).toEqual(image);
+            expect(
+              await request(tx.objectStore("drafts").get("recovery")),
+            ).toEqual({ id: meta.id });
+          },
+        );
+      } finally {
+        warn.mockRestore();
+        db.close();
+      }
+    },
+  );
+
+  it("opens server content when reading the optional cached view fails", async () => {
+    const meta = drawing();
+    const fetch: typeof globalThis.fetch = async (input) =>
+      String(input) === "/api/workspace"
+        ? response(workspace(meta))
+        : response({ meta, content: contentWith(meta.name, "troy") });
+    const store = await open(fetch);
+    const failed = vi
+      .spyOn(AccountCache.prototype, "getView")
+      .mockRejectedValue(
+        new DOMException("Cannot read views", "InvalidStateError"),
+      );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const opened = await store.openDrawing(meta.id);
+      expect(opened?.view).toBeNull();
+      expect(opened?.content.elements.map((element) => element.id)).toEqual([
+        "troy",
+      ]);
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      failed.mockRestore();
+      warn.mockRestore();
+    }
   });
 
   it("keeps failed image uploads recoverable and uploads them before the drawing", async () => {

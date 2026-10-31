@@ -1,9 +1,15 @@
-import { CANVAS_SEARCH_TAB, DEFAULT_SIDEBAR } from "@setsquare/common";
+import {
+  arrayToMap,
+  CANVAS_SEARCH_TAB,
+  DEFAULT_SIDEBAR,
+} from "@setsquare/common";
+import { LinearElementEditor } from "@setsquare/element";
 import {
   clearAppStateForLocalStorage,
   getDefaultAppState,
 } from "@setsquare/setsquare/appState";
 import { restoreAppState } from "@setsquare/setsquare/data/restore";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
 
 import type { NormalizedZoomValue } from "@setsquare/setsquare/types";
 
@@ -12,6 +18,7 @@ import {
   DRAWING_CONTENT_KEYS,
   DRAWING_VIEW_KEYS,
   splitAppState,
+  toPrefs,
 } from "../../workspace/drawingAppState";
 import { loadPrefs, savePrefs } from "../../workspace/prefs";
 
@@ -31,6 +38,29 @@ const appState = {
 };
 
 describe("splitAppState", () => {
+  it("persists arrow selection without the live point editor or its hover state", () => {
+    const arrow = API.createElement({ type: "arrow" });
+    const editor = new LinearElementEditor(arrow, arrayToMap([arrow]));
+    const selected = {
+      ...appState,
+      selectedElementIds: { [arrow.id]: true as const },
+      selectedLinearElement: editor,
+    };
+    const { view } = splitAppState(selected);
+
+    expect(view).toStrictEqual(JSON.parse(JSON.stringify(view)));
+    expect(view.selectedLinearElement).toBeNull();
+    expect(view.selectedElementIds).toEqual({ [arrow.id]: true });
+    expect(toPrefs(selected)).not.toHaveProperty("selectedLinearElement");
+    expect(selected.selectedLinearElement).toBe(editor);
+    expect(
+      splitAppState({
+        ...selected,
+        selectedLinearElement: { ...editor, hoverPointIndex: 1 },
+      }).view,
+    ).toStrictEqual(view);
+  });
+
   it("keeps every drawing key that browser storage keeps", () => {
     const stored = clearAppStateForLocalStorage(getDefaultAppState());
 

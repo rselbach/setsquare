@@ -1,6 +1,12 @@
+import { arrayToMap } from "@setsquare/common";
+import { LinearElementEditor } from "@setsquare/element";
+import { getDefaultAppState } from "@setsquare/setsquare/appState";
+import { API } from "@setsquare/setsquare/tests/helpers/api";
+
 import type { FileId } from "@setsquare/element/types";
 import type { DataURL } from "@setsquare/setsquare/types";
 
+import { splitAppState } from "../../workspace/drawingAppState";
 import {
   childrenOf,
   isTrashed,
@@ -29,6 +35,27 @@ afterEach(() => {
 });
 
 describe("LocalWorkspaceStore", () => {
+  it("stores a JSON-safe view when given a live linear element editor", async () => {
+    const store = await workspace.open();
+    const plan = await store.createDrawing({ folderId: null, name: "Arrow" });
+    const arrow = API.createElement({ type: "arrow" });
+    const view = {
+      ...splitAppState(getDefaultAppState()).view,
+      selectedElementIds: { [arrow.id]: true as const },
+      selectedLinearElement: new LinearElementEditor(
+        arrow,
+        arrayToMap([arrow]),
+      ),
+    };
+
+    await store.saveDrawingView(plan.id, view);
+    const reopened = await workspace.open();
+    const opened = await reopened.openDrawing(plan.id);
+
+    expect(opened?.view).toStrictEqual(JSON.parse(JSON.stringify(view)));
+    expect(opened?.view?.selectedElementIds).toEqual({ [arrow.id]: true });
+  });
+
   it("creates, renames and duplicates", async () => {
     const store = await workspace.open();
 
