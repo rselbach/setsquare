@@ -1,38 +1,18 @@
-import { APP_NAME, KEYS, isWritableElement } from "@setsquare/common";
+import { APP_NAME } from "@setsquare/common";
 import { StandaloneUIProvider, useEditorInterface } from "@setsquare/setsquare";
-import { FilledButton } from "@setsquare/setsquare/components/FilledButton";
-import { PlusIcon } from "@setsquare/setsquare/components/icons";
 import { useI18n } from "@setsquare/setsquare/i18n";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Theme } from "@setsquare/element/types";
 
 import { useAppLangCode } from "../../app-language/language-state";
 import { STORAGE_KEYS } from "../../app_constants";
-import { useWorkspaceAccount } from "../../web/accountContext";
-import {
-  AccountMenu,
-  AccountNotice,
-  importBrowserDrawings,
-} from "../../web/accountControls";
+import { AccountMenu, AccountNotice } from "../../web/accountControls";
 import { useBrowserImport } from "../../web/browserImport";
-import { isModalOpen } from "../../web/isModalOpen";
 import { navigate, routeToPath } from "../../web/router";
 import { useNow } from "../../web/useNow";
 import { useWorkspaceSnapshot } from "../../web/useWorkspaceSnapshot";
-import {
-  attempt,
-  duplicateDrawing,
-  reportFailure,
-  useWorkspaceActions,
-} from "../../web/workspaceActions";
+import { useWorkspaceActions } from "../../web/workspaceActions";
 import {
   ancestors,
   childrenOf,
@@ -40,35 +20,35 @@ import {
   recentDrawings,
   searchItems,
   sortItems,
-  uniqueName,
   visibleFolder,
 } from "../tree";
 
-import { EmptyState } from "./EmptyState";
+import { EmptyView } from "./EmptyView";
 import { ItemGrid } from "./ItemGrid";
 import { MoveDialog } from "./MoveDialog";
 import { TrashView } from "./TrashView";
+import { useItemActions } from "./useItemActions";
+import { usePageShortcuts } from "./usePageShortcuts";
 import { useThumbnails } from "./useThumbnails";
 import { WorkspaceHeader } from "./WorkspaceHeader";
 import { WorkspaceToast, useTasksOnPage } from "./WorkspaceToast";
 
 import "./Workspace.scss";
 
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 import type { QueuedTasks } from "../../web/editorTasks";
 import type { Route } from "../../web/router";
 import type { SortOrder } from "../tree";
 import type {
-  DrawingMeta,
   ItemRef,
   ParentId,
   WorkspaceItem,
   WorkspaceItems,
+  WorkspaceSnapshot,
 } from "../types";
 import type { WorkspaceStore } from "../WorkspaceStore";
 
-import type { ItemActions } from "./ItemGrid";
 import type { Crumb } from "./WorkspaceHeader";
 import type { NavToggle } from "./WorkspaceNav";
 import type { WorkspaceToastState } from "./WorkspaceToast";
@@ -135,74 +115,18 @@ const useSortOrder = () => {
   return [order, change] as const;
 };
 
-/** A card the focus left for Move to… or the Trash, and where it was. */
-type CardPlace = { card: HTMLElement; list: HTMLElement | null; index: number };
+/** What the page lists: a folder, search results, Recent or the Trash. */
+export type PageView = "folder" | "search" | "recent" | "trash";
 
-const placeOf = (card: HTMLElement | null): CardPlace | null => {
-  if (!card) {
-    return null;
-  }
-  const list = card.parentElement;
-  return { card, list, index: list ? [...list.children].indexOf(card) : 0 };
-};
-
-// whether the focus fell to the page, as when what had it went
-const isFocusLost = () =>
-  !document.activeElement || document.activeElement === document.body;
-
-// back to the card's ⋯ button, or once the card's gone, to the link of the
-// card that took its place, or the one before it, or the first one left, or
-// with none left, to the page's heading
-const focusBack = (
-  { card, list, index }: CardPlace,
-  main: HTMLElement | null,
+// what the page at route shows, and the folder it shows, which is the root
+// for a folder that's gone or in the Trash, whose address it leaves
+const usePageView = (
+  snapshot: WorkspaceSnapshot,
+  route: PageRoute,
+  search: PageSearch,
+  sortOrder: SortOrder,
 ) => {
-  if (card.isConnected) {
-    card.querySelector<HTMLElement>(".workspace-card__more")?.focus();
-    return;
-  }
-  const cards = list?.isConnected ? [...list.children] : [];
-  const near =
-    cards[Math.min(index, cards.length - 1)] ??
-    main?.querySelector(".workspace__content li");
-  (near?.querySelector("a") ?? main?.querySelector<HTMLElement>("h1"))?.focus();
-};
-
-const WorkspaceView = ({
-  store,
-  route,
-  nav,
-  search,
-  setSearch,
-  tasks,
-  toast,
-  trash,
-}: Omit<WorkspacePageProps, "theme">) => {
   const { t } = useI18n();
-  const account = useWorkspaceAccount();
-  const browserImport = useBrowserImport(store);
-  const isPhone = useEditorInterface().formFactor === "phone";
-  const snapshot = useWorkspaceSnapshot(store);
-  const now = useNow();
-  const searchRef = useRef<HTMLInputElement>(null);
-  const path = routeToPath(route);
-  const [sortOrder, setSortOrder] = useSortOrder();
-  // what Move to… is moving, and the card it was chosen on
-  const [moving, setMoving] = useState<{
-    item: ItemRef;
-    from: CardPlace | null;
-  } | null>(null);
-  const movedFrom = useRef<CardPlace | null>(null);
-  const trashedFrom = useRef<CardPlace | null>(null);
-  const mainRef = useRef<HTMLElement>(null);
-  // what's being renamed, on the page it shows on
-  const [renaming, setRenaming] = useState<{
-    item: ItemRef;
-    path: string;
-  } | null>(null);
-  useTasksOnPage(tasks, toast.show);
-
-  // a folder that's gone or in the Trash has nothing to show
   const requested = route.kind === "drawings" ? route.folderId : null;
   const folderId = visibleFolder(snapshot, requested);
   useEffect(() => {
@@ -212,7 +136,7 @@ const WorkspaceView = ({
   }, [requested, folderId]);
 
   const query = search.query.trim();
-  const view =
+  const view: PageView =
     route.kind === "trash"
       ? "trash"
       : isSearching(route, search)
@@ -237,133 +161,6 @@ const WorkspaceView = ({
         return { folders: [], drawings: [] };
     }
   }, [snapshot, view, query, folderId, sortOrder]);
-  const thumbnails = useThumbnails(store, items.drawings);
-
-  useLayoutEffect(() => {
-    const from = movedFrom.current;
-    if (!moving && from) {
-      movedFrom.current = null;
-      if (isFocusLost()) {
-        focusBack(from, mainRef.current);
-      }
-    }
-  }, [moving]);
-
-  // once the trashed card goes, which is after its menu gave its ⋯ button
-  // the focus back
-  useLayoutEffect(() => {
-    const from = trashedFrom.current;
-    if (from && !from.card.isConnected) {
-      trashedFrom.current = null;
-      if (isFocusLost()) {
-        focusBack(from, mainRef.current);
-      }
-    }
-  }, [items]);
-
-  // the folder shown, or the root for lists across folders
-  const createIn: ParentId = view === "folder" ? folderId : null;
-  const { newDrawing, openFile } = useWorkspaceActions(
-    store,
-    useCallback(() => createIn, [createIn]),
-    tasks.queueTask,
-  );
-
-  const newFolder = async () => {
-    try {
-      const folder = await store.createFolder(
-        createIn,
-        uniqueName(store.getSnapshot(), createIn, t("workspace.newFolderName")),
-      );
-      // straight into renaming, where the folder shows
-      setRenaming({
-        item: { kind: "folder", id: folder.id },
-        path: routeToPath({ kind: "drawings", folderId: createIn }),
-      });
-      if (view !== "folder") {
-        if (path === routeToPath(ROOT)) {
-          setSearch({ path, query: "", open: false });
-        } else {
-          navigate(ROOT);
-        }
-      }
-    } catch (error) {
-      reportFailure(toast.show, { error }, "newFolder");
-    }
-  };
-
-  const { show } = toast;
-  const itemActions = useMemo(
-    (): ItemActions => ({
-      startRename: (item) => setRenaming({ item, path }),
-      stopRename: () => setRenaming(null),
-      renameFolder: (id, name) => {
-        void attempt(show, store.renameFolder(id, name), "rename", name);
-      },
-      renameDrawing: (id, name) => {
-        void attempt(
-          show,
-          store.renameDrawing(id, name),
-          "rename",
-          name || t("labels.untitled"),
-        );
-      },
-      move: (item, card) => setMoving({ item, from: placeOf(card) }),
-      trash: (item, card) => {
-        trashedFrom.current = placeOf(card);
-        trash(item);
-      },
-      duplicate: (drawing: DrawingMeta) => {
-        void duplicateDrawing(store, drawing.id, show, {
-          name: drawing.name || t("labels.untitled"),
-        });
-      },
-    }),
-    [path, store, show, trash, t],
-  );
-
-  const { undo } = toast;
-  const canUndo = !!toast.message?.undo;
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (isModalOpen(document)) {
-        return;
-      }
-      if (
-        // the toast's Undo, while it shows
-        canUndo &&
-        event.key.toLowerCase() === KEYS.Z &&
-        event[KEYS.CTRL_OR_CMD] &&
-        !event.shiftKey &&
-        !event.altKey &&
-        !isWritableElement(event.target)
-      ) {
-        event.preventDefault();
-        undo();
-      } else if (
-        view !== "trash" &&
-        event.key === KEYS.SLASH &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey &&
-        !isWritableElement(event.target)
-      ) {
-        // the slash would go in the field too
-        event.preventDefault();
-        setSearch((search) => ({ ...search, open: true }));
-        searchRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [canUndo, undo, view, setSearch]);
-
-  // a phone shows the field only once it's opened
-  useEffect(() => {
-    if (search.open) {
-      searchRef.current?.focus();
-    }
-  }, [search.open]);
 
   const drawingsName = t("workspace.drawings");
   const trail = ancestors(snapshot, folderId);
@@ -386,80 +183,60 @@ const WorkspaceView = ({
       ? t("workspace.trash")
       : trail[trail.length - 1]?.name ?? drawingsName;
   const isRoot = view === "folder" && folderId === null;
-  useEffect(() => {
-    document.title = isRoot ? APP_NAME : `${title} · ${APP_NAME}`;
-  }, [isRoot, title]);
-
   const locationOf =
     view === "folder"
       ? undefined
       : (item: WorkspaceItem) => locationLabel(snapshot, item, drawingsName);
+  return { view, folderId, query, items, crumbs, title, isRoot, locationOf };
+};
 
-  let empty: ReactNode = null;
-  if (!items.folders.length && !items.drawings.length) {
-    switch (view) {
-      case "search":
-        empty = <EmptyState title={t("workspace.noResults", { query })} />;
-        break;
-      case "recent":
-        empty = (
-          <EmptyState title={t("workspace.emptyRecent")}>
-            <p>{t("workspace.emptyRecentHint")}</p>
-          </EmptyState>
-        );
-        break;
-      case "trash":
-        break;
-      case "folder":
-        empty =
-          folderId === null ? (
-            <EmptyState title={t("workspace.emptyWorkspace")}>
-              <FilledButton icon={PlusIcon} onClick={newDrawing}>
-                {t("workspace.newDrawing")}
-              </FilledButton>
-              {(!account ||
-                account.state.kind === "local" ||
-                account.state.kind === "signedOut" ||
-                account.state.kind === "unreachable") && (
-                <p className="workspace-empty__warning">
-                  {t("welcomeScreen.app.center_heading")}{" "}
-                  {t("welcomeScreen.app.center_heading_line2")}
-                </p>
-              )}
-              {browserImport &&
-                browserImport.state.kind !== "checking" &&
-                browserImport.state.pending > 0 && (
-                  <div className="workspace-empty__import">
-                    <p>
-                      {browserImport.state.pending === 1
-                        ? t("workspace.emptyImportOne")
-                        : t("workspace.emptyImport", {
-                            count: browserImport.state.pending,
-                          })}
-                    </p>
-                    <button
-                      type="button"
-                      className="account-button"
-                      disabled={browserImport.state.kind === "importing"}
-                      onClick={() =>
-                        importBrowserDrawings(browserImport.run, toast)
-                      }
-                    >
-                      {browserImport.state.kind === "importing"
-                        ? t("workspace.accountImporting")
-                        : t("workspace.accountImport")}
-                    </button>
-                  </div>
-                )}
-            </EmptyState>
-          ) : (
-            <EmptyState title={t("workspace.emptyFolder")}>
-              <p>{t("workspace.emptyFolderHint")}</p>
-            </EmptyState>
-          );
-        break;
-    }
-  }
+// the tab's title, which is the app's alone at the root
+const useDocumentTitle = (title: string, isRoot: boolean) => {
+  useEffect(() => {
+    document.title = isRoot ? APP_NAME : `${title} · ${APP_NAME}`;
+  }, [isRoot, title]);
+};
+
+const WorkspaceView = ({
+  store,
+  route,
+  nav,
+  search,
+  setSearch,
+  tasks,
+  toast,
+  trash,
+}: Omit<WorkspacePageProps, "theme">) => {
+  const browserImport = useBrowserImport(store);
+  const isPhone = useEditorInterface().formFactor === "phone";
+  const snapshot = useWorkspaceSnapshot(store);
+  const now = useNow();
+  const path = routeToPath(route);
+  const [sortOrder, setSortOrder] = useSortOrder();
+  useTasksOnPage(tasks, toast.show);
+  const { view, folderId, query, items, crumbs, title, isRoot, locationOf } =
+    usePageView(snapshot, route, search, sortOrder);
+  const thumbnails = useThumbnails(store, items.drawings);
+  // the folder shown, or the root for lists across folders
+  const createIn: ParentId = view === "folder" ? folderId : null;
+  const { itemActions, newFolder, renaming, moving, stopMoving, mainRef } =
+    useItemActions({
+      store,
+      path,
+      view,
+      createIn,
+      items,
+      setSearch,
+      show: toast.show,
+      trash,
+    });
+  const { newDrawing, openFile } = useWorkspaceActions(
+    store,
+    useCallback(() => createIn, [createIn]),
+    tasks.queueTask,
+  );
+  const searchRef = usePageShortcuts({ toast, view, search, setSearch });
+  useDocumentTitle(title, isRoot);
 
   const accountMenu = <AccountMenu toast={toast} />;
 
@@ -501,14 +278,23 @@ const WorkspaceView = ({
               account={accountMenu}
             />
             <div className="workspace__content">
-              {empty ?? (
+              {!items.folders.length && !items.drawings.length ? (
+                <EmptyView
+                  view={view}
+                  folderId={folderId}
+                  query={query}
+                  browserImport={browserImport}
+                  newDrawing={newDrawing}
+                  toast={toast}
+                />
+              ) : (
                 <ItemGrid
                   folders={items.folders}
                   drawings={items.drawings}
                   thumbnails={thumbnails}
                   now={now}
                   locationOf={locationOf}
-                  renaming={renaming?.path === path ? renaming.item : null}
+                  renaming={renaming}
                   actions={itemActions}
                 />
               )}
@@ -517,14 +303,7 @@ const WorkspaceView = ({
         )}
       </main>
       {moving && (
-        <MoveDialog
-          store={store}
-          item={moving.item}
-          onClose={() => {
-            movedFrom.current = moving.from;
-            setMoving(null);
-          }}
-        />
+        <MoveDialog store={store} item={moving} onClose={stopMoving} />
       )}
       <WorkspaceToast toast={toast} />
       <AccountNotice />
