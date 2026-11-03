@@ -165,6 +165,51 @@ const getMockBBox = (element: SVGElement): BBox => {
 };
 
 describe("state diagrams", () => {
+  it("rejects classDef markup instead of mounting injected HTML", async () => {
+    await expect(
+      parseMermaid(`stateDiagram-v2
+  classDef injected fill:red</style></svg><div id="greendale-injection">Greendale</div><svg><style>a:b
+  [*] --> A:::injected`),
+    ).rejects.toThrow("styles cannot contain HTML end tags");
+    expect(document.querySelector("#greendale-injection")).toBeNull();
+  });
+  it.each(["</style>", "</STYLE >", "</style/>"])(
+    "rejects nested SVG markup using %s",
+    async (closing) => {
+      await expect(
+        parseMermaid(`stateDiagram-v2
+  classDef injected fill:red${closing}<foreignObject><div id="greendale-injection">Greendale</div></foreignObject><style>a:b
+  [*] --> A:::injected`),
+      ).rejects.toThrow("styles cannot contain HTML end tags");
+      expect(document.querySelector("#greendale-injection")).toBeNull();
+    },
+  );
+
+  it("rejects markup in theme CSS supplied through configuration", async () => {
+    await expect(
+      parseMermaid("graph TD; A-->B", {
+        themeCSS: "</style><div>Greendale</div>",
+      }),
+    ).rejects.toThrow("styles cannot contain HTML end tags");
+  });
+
+  it("does not mount markup from escaped init configuration", async () => {
+    // Mermaid filters this directive; it must never reach the mounted document.
+    await parseMermaid(
+      '%%{init: {"themeCSS":"\\u003c/style><div id=\\"greendale-injection\\">Greendale</div>"}}%%\ngraph TD; A-->B',
+    );
+    expect(document.querySelector("#greendale-injection")).toBeNull();
+  });
+
+  it("rejects markup parsed as children of an SVG style element", async () => {
+    await expect(
+      parseMermaid(`stateDiagram-v2
+  classDef injected fill:red<foreignObject><div id="greendale-injection">Greendale</div></foreignObject>
+  [*] --> A:::injected`),
+    ).rejects.toThrow("invalid SVG");
+    expect(document.querySelector("#greendale-injection")).toBeNull();
+  });
+
   const originalGetBBox = (SVGElement.prototype as SVGGraphicsElement).getBBox;
   const originalGetBoundingClientRect =
     SVGElement.prototype.getBoundingClientRect;

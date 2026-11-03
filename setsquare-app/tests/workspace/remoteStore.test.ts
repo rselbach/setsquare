@@ -635,7 +635,7 @@ describe("RemoteWorkspaceStore", () => {
     expect(uploaded.erroredFiles.has(image.id)).toBe(true);
     const events: string[] = [];
     const fetch: typeof globalThis.fetch = async (input, init) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -683,7 +683,7 @@ describe("RemoteWorkspaceStore", () => {
     let collected = false;
     const events: string[] = [];
     const fetch: typeof globalThis.fetch = async (input, init) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -816,7 +816,7 @@ describe("RemoteWorkspaceStore", () => {
     const image = file();
     const missing = "missing" as FileId;
     const fetch: typeof globalThis.fetch = async (input) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -868,7 +868,7 @@ describe("RemoteWorkspaceStore", () => {
     const saved = { ...meta, revision: 2, fileIds: [ours.id] };
     const requests: string[] = [];
     const fetch: typeof globalThis.fetch = async (input, init) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -954,7 +954,7 @@ describe("RemoteWorkspaceStore", () => {
     const image = file();
     const uploads: string[] = [];
     const fetch: typeof globalThis.fetch = async (input, init) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -988,7 +988,7 @@ describe("RemoteWorkspaceStore", () => {
     const image = file();
     const requests: string[] = [];
     const fetch: typeof globalThis.fetch = async (input) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       requests.push(path);
       if (path === "/api/workspace") {
         return response(workspace(meta));
@@ -1033,7 +1033,7 @@ describe("RemoteWorkspaceStore", () => {
     const image = file();
     const events: string[] = [];
     const fetch: typeof globalThis.fetch = async (input, init) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -1109,7 +1109,7 @@ describe("RemoteWorkspaceStore", () => {
     const missing = file("missing" as FileId);
     const events: string[] = [];
     const fetch: typeof globalThis.fetch = async (input) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(workspace(meta));
       }
@@ -1335,7 +1335,7 @@ describe("RemoteWorkspaceStore image cache", () => {
       data: () => WorkspaceData,
     ): typeof globalThis.fetch =>
     async (input) => {
-      const path = String(input);
+      const path = String(input).replace("?response=compact", "");
       if (path === "/api/workspace") {
         return response(data());
       }
@@ -1627,7 +1627,7 @@ describe("RemoteWorkspaceStore image cache", () => {
     const saved = { ...meta, revision: 2 };
     const files = serving([image], () => data);
     const fetch: typeof globalThis.fetch = async (input, init) =>
-      String(input) === "/api/commands"
+      new URL(String(input), "http://localhost").pathname === "/api/commands"
         ? response({
             result: { kind: "save", result: { ok: true, meta: saved } },
             snapshot: workspace(saved),

@@ -166,11 +166,33 @@ export const buildServer = async ({
     async (request) => {
       const session = auth.session(request);
       const { requestId, command } = commandSchema.parse(request.body);
+      const { response: responseMode } = z
+        .object({
+          response: z.literal("compact").optional(),
+        })
+        .parse(request.query);
       const result = await workspace.command(
         session.user.id,
         requestId,
         command,
       );
+      // Older open tabs still receive snapshots; compact clients also accept
+      // snapshots from older servers during a rolling deployment.
+      if (
+        responseMode === "compact" &&
+        (command.kind === "saveDrawing" ||
+          command.kind === "renameDrawing" ||
+          command.kind === "saveThumbnail" ||
+          command.kind === "deleteThumbnail")
+      ) {
+        return {
+          result,
+          drawing: {
+            id: command.id,
+            meta: await workspace.getDrawingMeta(session.user.id, command.id),
+          },
+        } satisfies CommandResponse;
+      }
       const response: CommandResponse = {
         result,
         snapshot: await workspace.getSnapshot(session.user.id),

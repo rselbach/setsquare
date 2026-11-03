@@ -15,12 +15,14 @@ expect.extend({
       throw new Error("expected and received are not point arrays");
     }
 
-    const COMPARE = 1 / precision === 0 ? 1 : Math.pow(10, precision);
-    const pass = expected.every(
-      (point, idx) =>
-        Math.abs(received[idx][0] - point[0]) < COMPARE &&
-        Math.abs(received[idx][1] - point[1]) < COMPARE,
-    );
+    const tolerance = 10 ** -precision;
+    const pass =
+      received.length === expected.length &&
+      expected.every(
+        (point, idx) =>
+          Math.abs(received[idx][0] - point[0]) < tolerance &&
+          Math.abs(received[idx][1] - point[1]) < tolerance,
+      );
 
     if (!pass) {
       return {

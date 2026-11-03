@@ -9,7 +9,7 @@ import { restoreIcon } from "../../web/icons";
 import { navigate } from "../../web/router";
 import { collectOrphanDrafts } from "../../web/unsavedJournal";
 import { reportFailure } from "../../web/workspaceActions";
-import { formatTimeAgo } from "../formatRelativeTime";
+import { dateTimeAttribute, formatTimeAgo } from "../formatRelativeTime";
 import { isFolder, locationLabel, refOf, trashRoots } from "../tree";
 
 import { EmptyState } from "./EmptyState";
@@ -83,7 +83,7 @@ const TrashRow = ({
       </div>
       <time
         className="trash-row__deleted"
-        dateTime={new Date(trashedAt).toISOString()}
+        dateTime={dateTimeAttribute(trashedAt)}
       >
         {ago === null
           ? t("workspace.deletedJustNow")
@@ -136,7 +136,7 @@ const RecoveredRow = ({ draft, now }: { draft: AccountDraft; now: number }) => {
       </div>
       <time
         className="trash-row__deleted"
-        dateTime={new Date(draft.updatedAt).toISOString()}
+        dateTime={dateTimeAttribute(draft.updatedAt)}
       >
         {ago === null
           ? t("workspace.editedJustNow")

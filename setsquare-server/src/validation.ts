@@ -27,7 +27,7 @@ const fileId = id.transform((value) => value as FileId);
 const parentId = folderId.nullable();
 const name = z.string().trim().min(1).max(256);
 const drawingName = z.string().max(256).nullable();
-const timestamp = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+const timestamp = z.number().int().nonnegative().max(8_640_000_000_000_000);
 const revision = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const coordinate = z.number().finite().min(-1e12).max(1e12);
 const point = z.tuple([coordinate, coordinate]);

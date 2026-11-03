@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { memo } from "react";
 
 import { RouteLink } from "../../web/RouteLink";
-import { formatRelativeTime } from "../formatRelativeTime";
+import { dateTimeAttribute, formatRelativeTime } from "../formatRelativeTime";
 
 import { BlankSheet } from "./BlankSheet";
 import { InlineName, useCardKeys } from "./InlineName";
@@ -95,7 +95,7 @@ export const DrawingCard = memo(
           </div>
           <time
             className="workspace-card__time"
-            dateTime={new Date(drawing.updatedAt).toISOString()}
+            dateTime={dateTimeAttribute(drawing.updatedAt)}
           >
             {formatRelativeTime(drawing.updatedAt, now, langCode)}
           </time>

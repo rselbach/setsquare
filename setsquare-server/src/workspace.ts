@@ -304,6 +304,11 @@ export class WorkspaceDatabase {
     return snapshot(this.pool, owner);
   }
 
+  /** Reads current drawing metadata without loading its content. */
+  getDrawingMeta(owner: string, id: string) {
+    return drawingMetaById(this.pool, owner, id);
+  }
+
   async getDrawing(owner: string, id: string, opened = false) {
     if (!opened) {
       return drawingById(this.pool, owner, id);

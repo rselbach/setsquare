@@ -27,7 +27,7 @@ const folderId = id.transform((value) => value as FolderId);
 const fileId = id.transform(
   (value) => value as FilesData["files"][number]["id"],
 );
-const timestamp = z.number().finite().nonnegative();
+const timestamp = z.number().int().nonnegative().max(8_640_000_000_000_000);
 const revision = z.number().int().positive();
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const dataURL = z
@@ -169,31 +169,39 @@ const saveSchema = z.union([
     meta: metaSchema,
   }),
 ]);
-const responseSchema = z.object({
-  snapshot: workspaceSchema,
-  result: z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("folder"), folder: folderSchema }),
-    z.object({ kind: z.literal("drawing"), drawing: metaSchema.nullable() }),
-    z.object({ kind: z.literal("save"), result: saveSchema }),
-    z.object({ kind: z.literal("change"), result: changeSchema }),
-    z.object({
-      kind: z.literal("move"),
-      result: z.union([
-        z.object({ ok: z.literal(true) }),
-        z.object({
-          ok: z.literal(false),
-          reason: z.enum([
-            "notFound",
-            "intoItself",
-            "intoDescendant",
-            "targetTrashed",
-          ]),
-        }),
-      ]),
-    }),
-    z.object({ kind: z.literal("done") }),
-  ]),
-});
+const responseSchema = z
+  .object({
+    result: z.discriminatedUnion("kind", [
+      z.object({ kind: z.literal("folder"), folder: folderSchema }),
+      z.object({ kind: z.literal("drawing"), drawing: metaSchema.nullable() }),
+      z.object({ kind: z.literal("save"), result: saveSchema }),
+      z.object({ kind: z.literal("change"), result: changeSchema }),
+      z.object({
+        kind: z.literal("move"),
+        result: z.union([
+          z.object({ ok: z.literal(true) }),
+          z.object({
+            ok: z.literal(false),
+            reason: z.enum([
+              "notFound",
+              "intoItself",
+              "intoDescendant",
+              "targetTrashed",
+            ]),
+          }),
+        ]),
+      }),
+      z.object({ kind: z.literal("done") }),
+    ]),
+  })
+  .and(
+    z.union([
+      z.object({ snapshot: workspaceSchema }),
+      z.object({
+        drawing: z.object({ id: drawingId, meta: metaSchema.nullable() }),
+      }),
+    ]),
+  );
 
 const fileSchema = z.object({
   id: fileId,

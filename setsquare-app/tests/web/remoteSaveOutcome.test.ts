@@ -65,7 +65,7 @@ const fixture = async () => {
   const onSessionExpired = vi.fn();
   let uploads = 0;
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    const path = String(input);
+    const path = String(input).replace("?response=compact", "");
     if (path === "/api/workspace") {
       return response({ folders: [], drawings: [meta] });
     }

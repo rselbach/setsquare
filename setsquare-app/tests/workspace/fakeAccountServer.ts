@@ -266,7 +266,7 @@ export const fakeAccountServer = ({
     }
   };
 
-  const command = (body: unknown): CommandResponse => {
+  const command = (body: unknown, compact = false): CommandResponse => {
     const { requestId, command } = commandSchema.parse(body);
     commands.push({ requestId, command });
     const hash = payloadHash(command);
@@ -276,6 +276,21 @@ export const fakeAccountServer = ({
     }
     const result = receipt?.result ?? apply(command);
     receipts.set(requestId, { hash, result });
+    if (
+      compact &&
+      (command.kind === "saveDrawing" ||
+        command.kind === "renameDrawing" ||
+        command.kind === "saveThumbnail" ||
+        command.kind === "deleteThumbnail")
+    ) {
+      return {
+        result,
+        drawing: {
+          id: command.id,
+          meta: structuredClone(drawings.get(command.id)?.meta ?? null),
+        },
+      };
+    }
     return { result, snapshot: snapshot() };
   };
 
@@ -403,7 +418,10 @@ export const fakeAccountServer = ({
       case "GET /api/drawings/:id":
         return getDrawing(drawing![1], !drawing![2]);
       case "POST /api/commands":
-        return command(parsed());
+        return command(
+          parsed(),
+          url.searchParams.get("response") === "compact",
+        );
       case "GET /api/thumbnails":
         return getThumbnails(Object.fromEntries(url.searchParams));
       case "GET /api/files":

@@ -77,6 +77,15 @@ export const parseMermaid = async (
   config: MermaidConfig = MERMAID_CONFIG,
 ): Promise<Flowchart | GraphImage | Sequence | Class | ERD | State> => {
   return runMermaidTaskSequentially(async () => {
+    // Mermaid embeds CSS as style text and later serializes it as HTML.
+    // End-style tokens can turn that CSS into live markup on reparsing.
+    const rejectStyleMarkup = (value: string) => {
+      if (/<\/style\b/i.test(value)) {
+        throw new Error("Mermaid styles cannot contain HTML end tags");
+      }
+    };
+    rejectStyleMarkup(definition);
+    rejectStyleMarkup(JSON.stringify(config));
     const resolvedFontSize =
       config.themeVariables?.fontSize ?? MERMAID_CONFIG.themeVariables.fontSize;
 
@@ -97,6 +106,10 @@ export const parseMermaid = async (
       mermaid.initialize(mergedConfig);
       lastConfigHash = configHash;
     }
+
+    // Resolve frontmatter/init directives before checking their decoded CSS.
+    await mermaid.parse(definition);
+    rejectStyleMarkup(JSON.stringify(mermaid.mermaidAPI.getConfig()));
 
     // Parse the diagram definition
     // Note: mermaidAPI.getDiagramFromText is deprecated but there's no public
@@ -127,7 +140,33 @@ export const parseMermaid = async (
       const { svg } = await mermaid.render(renderId, definition, svgContainer);
 
       // Append SVG to DOM temporarily to allow querying element dimensions/positions
-      svgContainer.innerHTML = svg;
+      // HTML reparsing can turn SVG style text into sibling HTML elements.
+      // Parse in a detached document and reject anything escaping the SVG.
+      const ownerDocument = svgContainer.ownerDocument;
+      const ownerWindow = ownerDocument.defaultView;
+      if (!ownerWindow) {
+        throw new Error("The diagram document has no window");
+      }
+      const parsed = new ownerWindow.DOMParser().parseFromString(
+        svg,
+        "text/html",
+      );
+      const root = parsed.body.firstElementChild;
+      if (
+        Array.from(parsed.querySelectorAll("style")).some(
+          (style) => style.children.length > 0,
+        ) ||
+        parsed.head.childNodes.length ||
+        parsed.body.children.length !== 1 ||
+        Array.from(parsed.body.childNodes).some(
+          (node) => node.nodeType === 3 && node.textContent?.trim(),
+        ) ||
+        root?.localName !== "svg" ||
+        root.namespaceURI !== "http://www.w3.org/2000/svg"
+      ) {
+        throw new Error("Mermaid returned invalid SVG");
+      }
+      svgContainer.replaceChildren(ownerDocument.importNode(root, true));
 
       let data: Flowchart | GraphImage | Sequence | Class | ERD | State;
 

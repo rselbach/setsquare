@@ -2,10 +2,13 @@ import clsx from "clsx";
 import {
   forwardRef,
   useRef,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useState,
 } from "react";
+
+import { t } from "../i18n";
 
 import { Button } from "./Button";
 import { eyeIcon, eyeClosedIcon } from "./icons";
@@ -49,6 +52,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     },
     ref,
   ) => {
+    const inputId = useId();
     const innerRef = useRef<HTMLInputElement | null>(null);
 
     useImperativeHandle(ref, () => innerRef.current!);
@@ -75,13 +79,18 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         }}
       >
         {icon}
-        {label && <div className="ExcTextField__label">{label}</div>}
+        {label && (
+          <label htmlFor={inputId} className="ExcTextField__label">
+            {label}
+          </label>
+        )}
         <div
           className={clsx("ExcTextField__input", {
             "ExcTextField__input--readonly": readonly,
           })}
         >
           <input
+            id={inputId}
             className={clsx({
               "is-redacted":
                 "value" in rest &&
@@ -102,6 +111,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           />
           {isRedacted && (
             <Button
+              aria-label={t(
+                isTemporarilyUnredacted
+                  ? "labels.hideValue"
+                  : "labels.showValue",
+              )}
+              aria-pressed={isTemporarilyUnredacted}
               onSelect={() =>
                 setIsTemporarilyUnredacted(!isTemporarilyUnredacted)
               }

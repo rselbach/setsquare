@@ -9,7 +9,7 @@ import type {
   WorkspaceCommand,
   WorkspaceData,
 } from "../api";
-import type { DrawingMeta, WorkspaceSnapshot } from "../types";
+import type { DrawingId, DrawingMeta, WorkspaceSnapshot } from "../types";
 import type { AccountClient } from "./transport";
 
 /**
@@ -26,6 +26,12 @@ export class SnapshotState {
   private requestsStarted = 0;
   private snapshotShown = 0;
   private closed = false;
+  // Partial reads/writes must not discard unrelated changes in an older
+  // full snapshot that is still in flight.
+  private readonly drawingUpdates = new Map<
+    DrawingId,
+    { sequence: number; meta: DrawingMeta | null }
+  >();
   private mutations: Promise<void> = Promise.resolve();
 
   constructor(
@@ -62,7 +68,7 @@ export class SnapshotState {
       }
       throw error;
     }
-    this.publishDrawing(drawing.meta, sequence);
+    this.publishDrawing(drawing.meta.id, drawing.meta, sequence);
     return drawing;
   }
 
@@ -73,9 +79,20 @@ export class SnapshotState {
     const saving = this.mutations.then(async () => {
       const sequence = ++this.requestsStarted;
       const response = parseCommand(
-        await this.client.post("/api/commands", { requestId, command }),
+        await this.client.post("/api/commands?response=compact", {
+          requestId,
+          command,
+        }),
       );
-      this.publish(response.snapshot, sequence);
+      if ("snapshot" in response) {
+        this.publish(response.snapshot, sequence);
+      } else {
+        this.publishDrawing(
+          response.drawing.id,
+          response.drawing.meta,
+          sequence,
+        );
+      }
       return response;
     });
     this.mutations = saving.then(
@@ -96,20 +113,46 @@ export class SnapshotState {
       return;
     }
     this.snapshotShown = sequence;
-    this.show(nextSnapshot(this.snapshot, data.folders, data.drawings));
+    const drawings = new Map(data.drawings.map((meta) => [meta.id, meta]));
+    for (const [id, update] of this.drawingUpdates) {
+      if (update.sequence <= sequence) {
+        this.drawingUpdates.delete(id);
+      } else if (update.meta) {
+        drawings.set(id, update.meta);
+      } else {
+        drawings.delete(id);
+      }
+    }
+    this.show(
+      nextSnapshot(this.snapshot, data.folders, [...drawings.values()]),
+    );
   }
 
-  private publishDrawing(meta: DrawingMeta, sequence: number) {
-    if (this.closed || sequence < this.snapshotShown) {
+  private publishDrawing(
+    id: DrawingId,
+    meta: DrawingMeta | null,
+    sequence: number,
+  ) {
+    if (
+      this.closed ||
+      sequence < this.snapshotShown ||
+      sequence < (this.drawingUpdates.get(id)?.sequence ?? 0)
+    ) {
       return;
     }
-    this.snapshotShown = sequence;
+    this.drawingUpdates.set(id, { sequence, meta });
     const { folders, drawings } = this.snapshot;
+    const nextDrawings = new Map(drawings);
+    if (meta) {
+      nextDrawings.set(id, meta);
+    } else {
+      nextDrawings.delete(id);
+    }
     this.show(
       nextSnapshot(
         this.snapshot,
         [...folders.values()],
-        [...new Map(drawings).set(meta.id, meta).values()],
+        [...nextDrawings.values()],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import {
+  dateTimeAttribute,
   formatRelativeTime,
   formatTimeAgo,
 } from "../../workspace/formatRelativeTime";
@@ -82,3 +83,12 @@ describe("formatTimeAgo", () => {
     expect(formatTimeAgo(NOW - 3 * DAY, NOW, "pt-BR")).toBe("há 3 dias");
   });
 });
+
+it.each([Number.MAX_SAFE_INTEGER, NaN, Infinity])(
+  "renders invalid stored time %s without throwing",
+  (time) => {
+    expect(formatRelativeTime(time, NOW, "en")).toBe("—");
+    expect(formatTimeAgo(time, NOW, "en")).toBe("—");
+    expect(dateTimeAttribute(time)).toBeUndefined();
+  },
+);

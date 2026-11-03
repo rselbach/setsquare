@@ -88,11 +88,13 @@ export type CommandResult =
   | { kind: "move"; result: MoveResult }
   | { kind: "done" };
 
-/** A mutation and the new metadata snapshot it committed. */
+/** A mutation with either a full snapshot or the current affected drawing. */
 export type CommandResponse = {
   result: CommandResult;
-  snapshot: WorkspaceData;
-};
+} & (
+  | { snapshot: WorkspaceData }
+  | { drawing: { id: DrawingId; meta: DrawingMeta | null } }
+);
 
 /** Images loaded from or uploaded to the account's private file store. */
 export type FilesData = { files: BinaryFileData[] };

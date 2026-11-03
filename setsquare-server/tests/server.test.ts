@@ -392,3 +392,75 @@ it("serves before the first cleanup pass finishes", async () => {
     await app.close();
   }
 });
+
+it("returns only current drawing metadata for compact saves, including receipt replays", async () => {
+  const app = await testServer(db.pool, Date.now);
+  try {
+    const troy = await account(db.pool, Date.now, "9501", "troy-barnes");
+    const created = await command(app, troy, {
+      kind: "createDrawing",
+      id: "compact-greendale",
+      folderId: null,
+      name: "Greendale",
+      content: content(),
+      fileIds: [],
+    });
+    expect(created.statusCode).toBe(200);
+    const send = (requestId: string, value: unknown) =>
+      app.inject({
+        method: "POST",
+        url: "/api/commands?response=compact",
+        headers: troy.headers,
+        payload: { requestId, command: value },
+      });
+    const value = {
+      kind: "saveDrawing",
+      id: "compact-greendale",
+      baseRevision: 1,
+      content: content("Troy"),
+      fileIds: [],
+    };
+    const saved = await send("troy-save", value);
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json()).not.toHaveProperty("snapshot");
+    expect(saved.json().drawing.meta).toMatchObject({
+      name: "Troy",
+      revision: 2,
+    });
+    const renamed = await send("abed-rename", {
+      kind: "renameDrawing",
+      id: value.id,
+      baseRevision: 2,
+      name: "Abed",
+    });
+    expect(renamed.statusCode).toBe(200);
+    const replay = await send("troy-save", value);
+    expect(replay.json().result.result.meta.revision).toBe(2);
+    expect(replay.json().drawing.meta).toMatchObject({
+      name: "Abed",
+      revision: 3,
+    });
+    const thumbnail = await send("troy-thumbnail", {
+      kind: "saveThumbnail",
+      id: value.id,
+      thumbnail: { src: pixel.dataURL, revision: 3 },
+    });
+    expect(thumbnail.statusCode).toBe(200);
+    expect(thumbnail.json()).not.toHaveProperty("snapshot");
+    const removed = await send("remove-thumbnail", {
+      kind: "deleteThumbnail",
+      id: value.id,
+    });
+    expect(removed.statusCode).toBe(200);
+    expect(removed.json()).not.toHaveProperty("snapshot");
+    const legacy = await command(app, troy, {
+      kind: "renameDrawing",
+      id: value.id,
+      baseRevision: 3,
+      name: "Greendale",
+    });
+    expect(legacy.json()).toHaveProperty("snapshot");
+  } finally {
+    await app.close();
+  }
+});

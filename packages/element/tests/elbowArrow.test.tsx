@@ -13,6 +13,7 @@ import {
   render,
 } from "@setsquare/setsquare/tests/test-utils";
 import "@setsquare/utils/test-utils";
+
 import { bindBindingElement } from "@setsquare/element";
 
 import type { LocalPoint } from "@setsquare/math";
@@ -74,9 +75,9 @@ describe("elbow arrow segment move", () => {
 
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
-      [110, 0],
-      [110, 200],
-      [190, 200],
+      [109, 0],
+      [109, 200],
+      [188, 200],
     ]);
 
     mouse.reset();
@@ -85,9 +86,9 @@ describe("elbow arrow segment move", () => {
 
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
-      [110, 0],
-      [110, 200],
-      [190, 200],
+      [109, 0],
+      [109, 200],
+      [188, 200],
     ]);
   });
 
@@ -212,11 +213,12 @@ describe("elbow arrow routing", () => {
       points: [pointFrom<LocalPoint>(0, 0), pointFrom<LocalPoint>(90, 200)],
     });
 
+    // The 100-unit space between shapes leaves 88 units after two 6-unit gaps.
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
-      [39, 0],
-      [39, 200],
-      [78, 200],
+      [44, 0],
+      [44, 200],
+      [88, 200],
     ]);
   });
 });
@@ -268,9 +270,9 @@ describe("elbow arrow ui", () => {
     expect(arrow.elbowed).toBe(true);
     expect(arrow.points).toCloselyEqualPoints([
       [0, 0],
-      [39, 0],
-      [39, 200],
-      [78, 200],
+      [44, 0],
+      [44, 200],
+      [88, 200],
     ]);
   });
 
@@ -368,9 +370,9 @@ describe("elbow arrow ui", () => {
     expect(duplicatedArrow.elbowed).toBe(true);
     expect(duplicatedArrow.points).toCloselyEqualPoints([
       [0, 0],
-      [39, 0],
-      [39, 200],
-      [78, 200],
+      [44, 0],
+      [44, 200],
+      [88, 200],
     ]);
     expect(arrow.startBinding).not.toBe(null);
     expect(arrow.endBinding).not.toBe(null);
@@ -423,8 +425,8 @@ describe("elbow arrow ui", () => {
     expect(duplicatedArrow.points).toCloselyEqualPoints([
       [0, 0],
       [0, 100],
-      [78, 100],
-      [78, 200],
+      [88, 100],
+      [88, 200],
     ]);
   });
 });

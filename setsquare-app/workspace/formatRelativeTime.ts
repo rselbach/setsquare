@@ -1,3 +1,9 @@
+/** Returns a valid datetime attribute, omitting invalid stored timestamps. */
+export const dateTimeAttribute = (time: number) => {
+  const date = new Date(time);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : undefined;
+};
+
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -26,6 +32,9 @@ export const formatRelativeTime = (
   now: number,
   locale: string,
 ) => {
+  if (!dateTimeAttribute(time)) {
+    return "—";
+  }
   const elapsed = now - time;
   // a clock that's a little ahead makes the future recent too
   if (elapsed < MINUTE) {
@@ -59,6 +68,9 @@ export const formatRelativeTime = (
  * Returns null under a minute, which the locale only has "now" for.
  */
 export const formatTimeAgo = (time: number, now: number, locale: string) => {
+  if (!dateTimeAttribute(time)) {
+    return "—";
+  }
   const elapsed = now - time;
   if (elapsed < MINUTE) {
     return null;

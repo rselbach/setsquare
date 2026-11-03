@@ -22,26 +22,30 @@ export const readAccountSession = async (
   const unavailable = knownServer
     ? ({ kind: "unreachable" } as const)
     : ({ kind: "local" } as const);
-  let response: Response;
+  const controller = new AbortController();
+  const timeout = ownerWindow.setTimeout(() => controller.abort(), 20_000);
   try {
-    response = await ownerWindow.fetch("/api/session", {
+    const response = await ownerWindow.fetch("/api/session", {
       credentials: "same-origin",
       cache: "no-store",
+      signal: controller.signal,
     });
+    if (
+      !response.ok ||
+      response.headers.get("content-type")?.includes("text/html")
+    ) {
+      return unavailable;
+    }
+    const session = parseSession(await response.json());
+    if (session.kind !== "local") {
+      ownerWindow.localStorage.setItem(ACCOUNT_SERVER_KEY, "true");
+    }
+    return session;
   } catch {
     return unavailable;
+  } finally {
+    ownerWindow.clearTimeout(timeout);
   }
-  if (
-    !response.ok ||
-    response.headers.get("content-type")?.includes("text/html")
-  ) {
-    return unavailable;
-  }
-  const session = parseSession(await response.json());
-  if (session.kind !== "local") {
-    ownerWindow.localStorage.setItem(ACCOUNT_SERVER_KEY, "true");
-  }
-  return session;
 };
 
 /** Whether opening a database failed because a newer build upgraded it. */

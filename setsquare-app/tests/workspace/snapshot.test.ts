@@ -81,7 +81,7 @@ describe("SnapshotState", () => {
     const saving = state.command({ kind: "emptyTrash" });
     const refreshing = state.refresh();
     await vi.waitFor(() => expect(held).toHaveLength(1));
-    expect(held[0].path).toBe("/api/commands");
+    expect(held[0].path).toBe("/api/commands?response=compact");
     held[0].answer({
       result: { kind: "change", result: { ok: true } },
       snapshot: workspace(meta("Pierce")),
@@ -143,3 +143,40 @@ describe("SnapshotState", () => {
     expect(listener).not.toHaveBeenCalled();
   });
 });
+
+it.each([false, true])(
+  "merges a late full refresh without undoing a compact save (deleted=%s)",
+  async (deleted) => {
+    const { held, fetch } = heldServer();
+    const state = snapshotOf(fetch);
+    const troy = meta("Troy");
+    const abed = meta("Abed");
+    const refresh = state.refresh();
+    await vi.waitFor(() => expect(held).toHaveLength(1));
+    const saving = state.command({
+      kind: "saveDrawing",
+      id: troy.id,
+      content: emptyDrawingContent("Troy"),
+      fileIds: [],
+      baseRevision: 1,
+    });
+    await vi.waitFor(() => expect(held).toHaveLength(2));
+    const updated = { ...troy, revision: 2 };
+    held[1].answer({
+      result: {
+        kind: "save",
+        result: deleted
+          ? { ok: false, reason: "notFound" }
+          : { ok: true, meta: updated },
+      },
+      drawing: { id: troy.id, meta: deleted ? null : updated },
+    });
+    await saving;
+    held[0].answer(workspace(troy, abed));
+    await refresh;
+    expect(state.getSnapshot().drawings.get(troy.id)).toEqual(
+      deleted ? undefined : updated,
+    );
+    expect(state.getSnapshot().drawings.get(abed.id)).toEqual(abed);
+  },
+);
